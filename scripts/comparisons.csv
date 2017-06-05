@@ -1,0 +1,6 @@
+animal,strain,genotype,group,cage_number,age,sex,rep_nr,date
+mouse,FX,KO-WT,,,,females,1,
+mouse,BALB,,VPA-CTRL-NaCl,,,males,1,
+mouse,C57,,VPA-CTRL-NaCl,,,males,1,
+mouse,BTBR-C57-CTRL,,,,,males,1,
+mouse,FAMB,KO-WT,,,,females,1,
