@@ -97,9 +97,9 @@ class Experiment(object):
                 ts, te = self.phases[s]
                 print 'Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2))
                 self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
-            if not os.path.exists(os.path.join('..','PreprocessedData/IteractionsData/')):
-                os.makedirs(os.path.join('..','PreprocessedData/IteractionsData/'))
-            np.save(os.path.join('..','PreprocessedData/IteractionsData/')+'%s.npy'%self.path,self.interactions)
+            if not os.path.exists(os.path.join('..','PreprocessedData/InteractionsData/')):
+                os.makedirs(os.path.join('..','PreprocessedData/InteractionsData/'))
+            np.save(os.path.join('..','PreprocessedData/InteractionsData/')+'%s.npy'%self.path,self.interactions)
             return self.f
      
     
@@ -268,7 +268,7 @@ def InteractionsPerPair(names):
         IPP[key] = []
         for path in names[key]:
             print path
-            patterns = np.load(os.path.join('..','PreprocessedData/IteractionsData/')+'%s.npy'%path)
+            patterns = np.load(os.path.join('..','PreprocessedData/InteractionsData/')+'%s.npy'%path)
             i8states = np.sum(patterns[:,:,:,:,:2],axis=4)
             interactions = np.sum(i8states ,axis=3)
             IPP[key].append(interactions)
@@ -309,7 +309,7 @@ def FollowingAvoidingMatrix(names):
         FAP[key] = []
         for path in names[key]:
             print path
-            patterns = np.load(os.path.join('..','PreprocessedData/IteractionsData/')+'%s.npy'%path)
+            patterns = np.load(os.path.join('..','PreprocessedData/InteractionsData/')+'%s.npy'%path)
             FAP[key].append(easyFAP(patterns,p=0.5))
     return FAP
     

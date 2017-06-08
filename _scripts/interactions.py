@@ -25,6 +25,9 @@ import matplotlib.colors as mcol
 import matplotlib.patches as patches
 import scipy.stats as st
 from plotfunctions import barplot
+import threading
+
+threads = []
 
 
 class bcolors:
@@ -98,9 +101,9 @@ class Experiment(object):
                 ts, te = self.phases[s]
                 print 'Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2))
                 self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
-            if not os.path.exists(os.path.join('..','PreprocessedData/IteractionsData/')):
-                os.makedirs(os.path.join('..','PreprocessedData/IteractionsData/'))
-            np.save(os.path.join('..','PreprocessedData/IteractionsData/')+'%s.npy'%self.path,self.interactions)
+            if not os.path.exists(os.path.join('..','PreprocessedData/InteractionsData/')):
+                os.makedirs(os.path.join('..','PreprocessedData/InteractionsData/'))
+            np.save(os.path.join('..','PreprocessedData/InteractionsData/')+'%s.npy'%self.path,self.interactions)
             return self.f
      
     
@@ -257,18 +260,23 @@ def createRandomExpepiments(paths,core='Random_test' ):
            del rdE
 
 
+def singleThreadProcess(key, path, window):
+        print path
+        if key == "RD":
+            with open('../PreprocessedData/RandomData/' + path + '.pkl', "rb") as input_file:
+                E = pickle.load(input_file)
+        else:
+            E = Experiment(path)
+        E.calculate_fvalue(window=window, treshold=ts, force=True)
 
 def preprocessData(names,window,ts=3):
     for key in names.keys():
         for path in names[key]:
-            print path
-            if key=="RD":
-                with open('../PreprocessedData/RandomData/'+path+'.pkl', "rb") as input_file:
-                    E = pickle.load(input_file)
-            else:
-                E = Experiment(path)
-            E.calculate_fvalue(window = window, treshold =ts, force=True)
-            
+            print('Hi, new thread here!')
+            threads.append(threading.Thread(target=singleThreadProcess, args=[key, path, window]))
+            threads[-1].daemon = True
+            threads[-1].start()
+
 def Interpersec(names,ts=3, directory='InterPerSec'):
     if not os.path.exists('../Results/%s/'%directory):
         os.makedirs('../Results/%s/'%directory)
@@ -314,7 +322,7 @@ def InteractionsPerPair(names):
         IPP[key] = []
         for path in names[key]:
             print path
-            patterns = np.load(os.path.join('..','PreprocessedData/IteractionsData/')+'%s.npy'%path)
+            patterns = np.load(os.path.join('..','PreprocessedData/InteractionsData/')+'%s.npy'%path)
             i8states = np.sum(patterns[:,:,:,:,:2],axis=4)
             interactions = np.sum(i8states ,axis=3)
             IPP[key].append(interactions)
@@ -326,7 +334,7 @@ def FollowingPerPair(names):
         FPP[key] = []
         for path in names[key]:
             print path
-            patterns = np.load(os.path.join('..','PreprocessedData/IteractionsData/')+'%s.npy'%path)
+            patterns = np.load(os.path.join('..','PreprocessedData/InteractionsData/')+'%s.npy'%path)
             i8states = np.sum(patterns[:,:,:,:,:1],axis=4)
             interactions = np.sum(i8states ,axis=3)
             FPP[key].append(interactions)
@@ -338,7 +346,7 @@ def AvoidingPerPair(names):
         APP[key] = []
         for path in names[key]:
             print path
-            patterns = np.load(os.path.join('..','PreprocessedData/IteractionsData/')+'%s.npy'%path)
+            patterns = np.load(os.path.join('..','PreprocessedData/InteractionsData/')+'%s.npy'%path)
             i8states = np.sum(patterns[:,:,:,:,1:2],axis=4)
             interactions = np.sum(i8states ,axis=3)
             APP[key].append(interactions)
@@ -380,7 +388,7 @@ def FollowingAvoidingMatrix(names):
         FAP[key] = []
         for path in names[key]:
             print path
-            patterns = np.load(os.path.join('..','PreprocessedData/IteractionsData/')+'%s.npy'%path)
+            patterns = np.load(os.path.join('..','PreprocessedData/InteractionsData/')+'%s.npy'%path)
             FAP[key].append(easyFAP(patterns,p=0.5))
     return FAP
 def scaling(p):
@@ -637,7 +645,7 @@ names["KO"] = paths_KO
 #          }            
 #createRandomExpepiments(exp_paths)
 #Interpersec(names,ts=200)
-#preprocessData(names,window = 12,ts=3)
+preprocessData(names,window = 6,ts=3)
 IPP = InteractionsPerPair(names)
 scalefactor = np.max([np.max(i) for i in IPP["KO"]]+[np.max(i) for i in IPP["WT"]])
 #scalefactor = np.max([np.max(i) for i in IPP["BALB_VPA"]]+[np.max(i) for i in IPP["BALB_CTRL"]]+[np.max(i) for i in IPP["BALB_NaCl"]])

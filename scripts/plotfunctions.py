@@ -10,6 +10,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import scipy.stats as st
+from ExperimentConfigFile import *
+import matplotlib.patches as patches
+import networkx as nx
+import matplotlib.colors as mcol
+import threading
+threads = []
+threadsStarted = 0
+threadsFinished = 0
 
 class bcolors:
     HEADER = '\033[95m'
@@ -96,11 +104,11 @@ def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'Rast
                 plt.suptitle('%s'%(names[key][exp]), fontsize=14, fontweight='bold')
                 n_s,n_l,n_f = FAM[key][exp].shape
                 for s in range(n_s):
-                    plt.text(0.06+s*0.125, 1.025,ExperimentConfigFile('../RawData/'+names[key][exp]).sections()[s],
-                     horizontalalignment='center',
-                     verticalalignment='center',
-                     fontsize=10,
-                     transform = ax.transAxes)
+                    #plt.text(0.06+s*0.125, 1.025,ExperimentConfigFile('../RawData/'+names[key][exp]).sections()[s],
+                     #horizontalalignment='center',
+                     #verticalalignment='center',
+                     #fontsize=10,
+                     #transform = ax.transAxes)
                     #MakeRelationGraph(FAM[key][exp][s,:,:],IPP[key][exp][s,:,:],exp,s,key,directory,scalefactor)
                     _FAM = FAM[key][exp][s,:,:]
                     _IPP = IPP[key][exp][s,:,:]
@@ -127,10 +135,10 @@ def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'Rast
                                 pair_labels.append(str(i+1)+'|'+str(j+1))
                                 #pair_labels.append(str(j+1)+'|'+str(i+1))
                                 pos+=1
-                for i in range(8-n_s):
+                for i in range(16-n_s):
                     ax.add_patch(patches.Rectangle((
                                         n_s+i, -pos+1),1, pos,facecolor="lightgrey"))
-                plt.axis([0,8,-pos+1,1])
+                plt.axis([0,16,-pos+1,1])
                 ax.set_aspect('auto')
                 ax.xaxis.grid()
                 ax.xaxis.set_ticklabels([])
@@ -153,11 +161,11 @@ def createRasterPlotsSUM(FAM,IPP,names,scalefactor,to_file = True,directory = 'R
             for exp in range(len(names[key])):
                 n_s,n_l,n_f = FAM[key][exp].shape
                 for s in range(n_s):
-                    plt.text(0.06+s*0.125, 1.025,ExperimentConfigFile('../RawData/'+names[key][exp]).sections()[s],
-                     horizontalalignment='center',
-                     verticalalignment='center',
-                     fontsize=10,
-                     transform = ax.transAxes)
+                     #plt.text(0.06+s*0.125, 1.025,ExperimentConfigFile('../RawData/'+names[key][exp]).sections()[s],
+                     #horizontalalignment='center',
+                     #verticalalignment='center',
+                     #fontsize=10,
+                     #transform = ax.transAxes)
                     #MakeRelationGraph(FAM[key][exp][s,:,:],IPP[key][exp][s,:,:],exp,s,key,directory,scalefactor)
                     _FAM = FAM[key][exp][s,:,:]
                     _IPP = IPP[key][exp][s,:,:]
@@ -184,12 +192,12 @@ def createRasterPlotsSUM(FAM,IPP,names,scalefactor,to_file = True,directory = 'R
                                 pair_labels.append(str(i+1)+'|'+str(j+1))
                                 #pair_labels.append(str(j+1)+'|'+str(i+1))
                                 pos+=1
-                for i in range(8-n_s):
+                for i in range(16-n_s):
                     ax.add_patch(patches.Rectangle((
                                         n_s+i, -pos+1),1, pos,facecolor="lightgrey"))
                 pos -=exp_pos
                 exp_pos += pos
-            plt.axis([0,8,-exp_pos+1,1])
+            plt.axis([0,16,-exp_pos+1,1])
             ax.set_aspect('auto')
             ax.xaxis.grid()
             ax.xaxis.set_ticklabels([])
@@ -202,14 +210,17 @@ def createRasterPlotsSUM(FAM,IPP,names,scalefactor,to_file = True,directory = 'R
             plt.close(fig) 
 
 
+
 def CreateRelationGraphs(FAM,IPP,names,scalefactor,to_file = True,directory = 'InteractionsGraphs'):
     if not os.path.exists('../Results/'+directory):
         os.makedirs('../Results/'+directory)
     for key in names.keys():
         for exp in range(len(names[key])):
+            # original
             n_s,n_l,n_f = FAM[key][exp].shape
             for s in range(n_s):
                 MakeRelationGraph(FAM[key][exp][s,:,:],IPP[key][exp][s,:,:],exp,s,key,directory,scalefactor,names)
+
     
 def MakeRelationGraph(FAM,IPP,exp,s,key,directory,scalefactor,names, fig = None, xy0 = 0):
     print exp
@@ -233,7 +244,7 @@ def MakeRelationGraph(FAM,IPP,exp,s,key,directory,scalefactor,names, fig = None,
     node_labels = {node:node for node in G.nodes()}  
     if not fig:
         fig = plt.figure(figsize=(10*size,10*size))
-    plt.suptitle('%s'%(names[key][exp]), fontsize=14, fontweight='bold')
+    #plt.suptitle('%s'%(names[key][exp]), fontsize=14, fontweight='bold')
     ax = fig.add_subplot(111, aspect='equal')
     #fig.suptitle(self.path, fontsize=14*size, fontweight='bold')
     nx.draw_networkx_labels(G, pos, labels=node_labels,font_size=120)

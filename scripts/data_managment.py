@@ -63,8 +63,3 @@ def group_data(comparison,comparisons,experiments, color_lst=['green','red', 'bl
         if valid and exp[division_param] in division_values:
             names[exp[division_param]].append(exp["path"])
     return names, colors      
-
-
-                        
-                    
-                    
