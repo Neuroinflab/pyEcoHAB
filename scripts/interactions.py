@@ -5,28 +5,24 @@ Created on Thu Oct 27 12:48:42 2016
 
 @author: Jan Maka
 """
-# EcoHAB libraries
-import EcoHab
-from ExperimentConfigFile import ExperimentConfigFile
-from experiments_info import smells, antenna_positions
-# from plotfunctions import *
-import plotfunctions
-from data_managment import *
-# Third party libraries
-import networkx as nx
-import numpy as np
 import os
 import pickle
-# Debug libraries
-import time
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.colors as mcol
-import matplotlib.patches as patches
-from time import sleep
-from datetime import datetime
-
 import threading
+from datetime import datetime
+from time import sleep
+
+# Debug libraries
+import matplotlib.pyplot as plt
+# Third party libraries
+import numpy as np
+
+# EcoHAB libraries
+import EcoHab
+# from plotfunctions import *
+import plotfunctions
+from ExperimentConfigFile import ExperimentConfigFile
+from data_managment import *
+from experiments_info import antenna_positions
 
 threads = []
 started = 0
@@ -166,7 +162,7 @@ class Experiment(object):
                     # define conditions
                     unknown_state = sd[s, m1] == 0 or int(sd[m1_idx[i - 1], m1]) == 0
                     unknown_previous_states = (sd[m1_idx[i - 1], m1] == 0 and (sd[m1_idx[i - 2], m1] == 0)) or (
-                    sd[m1_idx[i - 1], m1] != 0 and (sd[m1_idx[i - 2], m1] == 0))
+                        sd[m1_idx[i - 1], m1] != 0 and (sd[m1_idx[i - 2], m1] == 0))
                     in_pipe = sd[s, m1] % 2 == 1
                     if unknown_state or unknown_previous_states or in_pipe or start_st == end_st:
                         continue
@@ -281,7 +277,7 @@ def Interpersec(names, ts=3, directory='InterPerSec'):
                     E = pickle.load(input_file)
             else:
                 E = Experiment(path)
-            E.calculate_fvalue(window=24, treshold=ts, force=True, fols=fols, ops=ops)
+            E.calculate_fvalue(window=4, treshold=ts, force=True, fols=fols, ops=ops)
             fols = E.fols
             ops = E.ops
         print '###########%s###########' % key
@@ -457,8 +453,8 @@ if __name__ == "__main__":
     # createRandomExpepiments(exp_paths)
     # Interpersec(names,ts=200)
     startingpoint = datetime.now()
-    #preprocessData(names, window=6, ts=3)
-    print 'processing took '+ str(-(startingpoint-datetime.now()).total_seconds()) + ' seconds'
+    # preprocessData(names, window=4, ts=3)
+    print 'processing took ' + str(-(startingpoint - datetime.now()).total_seconds()) + ' seconds'
     IPP = InteractionsPerPair(names)
     scalefactor = np.max([np.max(i) for i in IPP["KO"]] + [np.max(i) for i in IPP["WT"]])
     # scalefactor = np.max([np.max(i) for i in IPP["BALB_VPA"]]+[np.max(i) for i in IPP["BALB_CTRL"]]+[np.max(i) for i in IPP["BALB_NaCl"]])
@@ -509,33 +505,40 @@ if __name__ == "__main__":
     #    plt.show()
 
 
-    plotfunctions.createRasterPlots(FAM,IPP,names,scalefactor)
-    plotfunctions.createRasterPlotsSUM(FAM,IPP,names,scalefactor)
-    #plotfunctions.CreateRelationGraphs(FAM,IPP,names,scalefactor/50)
+    # plotfunctions.createRasterPlots(FAM,IPP,names,scalefactor)
+    # plotfunctions.createRasterPlotsSUM(FAM,IPP,names,scalefactor)
+    # plotfunctions.CreateRelationGraphs(FAM,IPP,names,scalefactor/50)
 
     """
     plotfunctions.barplot(stats,names,["SLA","SLD",], colors, name="AverageLengthofSec",ylab = "Average length of sequence per pair")
     plotfunctions.barplot(stats,names,["NFA","NFD" ], colors, name="AverageNumberofFols", ylab="Average number of followings per pair")
-    #createRasterPlots(FAM,IPP,names,scalefactor)           
+
+    #createRasterPlots(FAM,IPP,names,scalefactor)
     #createRasterPlotsSUM(FAM,IPP,names,scalefactor)
     #CreateRelationGraphs(FAM,IPP,names,scalefactor/50)
-    statsIPP = plotfunctions.plotphist(IPP,names,colors,to_file = True,directory = 'Interactions',vrange = [0,120], prange = [0,0.11])
-    statsFPP = plotfunctions.plotphist(FPP,names,colors,to_file = True,directory = 'Followings',vrange = [0,120], prange = [0,0.11])
-    statsAPP = plotfunctions.plotphist(APP,names,colors,to_file = True,directory = 'Avoidings',vrange = [0,120], prange = [0,0.11])
-    print statsIPP
-    plotfunctions.barplot(statsIPP,names,["Interactions"], colors, name="InteractionPerPairplotfunctions.barplot",ylab="Average number of interactions per pair")
-    plotfunctions.barplot(statsFPP,names,["Followings"], colors,name="FollowingsPerPairplotfunctions.barplot",ylab="Average number of followings per pair")
-    plotfunctions.barplot(statsAPP,names,["Avoidings"], colors,name="AvoidingsPerPairplotfunctions.barplot", ylab="Average number of avoidings per pair")
     """
-    #print  st.mannwhitneyu(statsIPP["KO"]["mean"], statsIPP["WT"]["mean"], use_continuity=True)
-    #print  st.mannwhitneyu(statsFPP["KO"]["mean"], statsFPP["WT"]["mean"], use_continuity=True)
-    #print  st.mannwhitneyu(statsAPP["KO"]["mean"], statsAPP["WT"]["mean"], use_continuity=True)
-    #print  st.mannwhitneyu(stats["KO"]["median"], stats["WT"]["median"], use_continuity=True)
-    #FAP = FollowingAvoidingMatrix(names)
-    #stats = plotfunctions.plotphist(FAP,names,colors,to_file = True,directory = 'FA',vrange = [-1,1], prange = [0,1])
-    #print  st.mannwhitneyu(stats["KO"]["mean"], stats["WT"]["mean"], use_continuity=True)
-    #print  st.mannwhitneyu(stats["KO"]["median"], stats["WT"]["median"], use_continuity=True)
-    #m = np.round(FAP["KO"][0][0],3)
-    #print m
+    statsIPP = plotfunctions.plotphist(IPP, names, colors, to_file=True, directory='Interactions', vrange=[0, 120],
+                                       prange=[0, 0.11])
+    statsFPP = plotfunctions.plotphist(FPP, names, colors, to_file=True, directory='Followings', vrange=[0, 120],
+                                       prange=[0, 0.11])
+    statsAPP = plotfunctions.plotphist(APP, names, colors, to_file=True, directory='Avoidings', vrange=[0, 120],
+                                       prange=[0, 0.11])
+    print statsIPP
 
+    plotfunctions.barplot(statsIPP, names, ["Interactions"], colors, name="InteractionPerPairplotfunctions.barplot",
+                          ylab="Average number of interactions per pair")
+    plotfunctions.barplot(statsFPP, names, ["Followings"], colors, name="FollowingsPerPairplotfunctions.barplot",
+                          ylab="Average number of followings per pair")
+    plotfunctions.barplot(statsAPP, names, ["Avoidings"], colors, name="AvoidingsPerPairplotfunctions.barplot",
+                          ylab="Average number of avoidings per pair")
 
+    # print  st.mannwhitneyu(statsIPP["KO"]["mean"], statsIPP["WT"]["mean"], use_continuity=True)
+    # print  st.mannwhitneyu(statsFPP["KO"]["mean"], statsFPP["WT"]["mean"], use_continuity=True)
+    # print  st.mannwhitneyu(statsAPP["KO"]["mean"], statsAPP["WT"]["mean"], use_continuity=True)
+    # print  st.mannwhitneyu(stats["KO"]["median"], stats["WT"]["median"], use_continuity=True)
+    # FAP = FollowingAvoidingMatrix(names)
+    # stats = plotfunctions.plotphist(FAP,names,colors,to_file = True,directory = 'FA',vrange = [-1,1], prange = [0,1])
+    # print  st.mannwhitneyu(stats["KO"]["mean"], stats["WT"]["mean"], use_continuity=True)
+    # print  st.mannwhitneyu(stats["KO"]["median"], stats["WT"]["median"], use_continuity=True)
+    # m = np.round(FAP["KO"][0][0],3)
+    # print m

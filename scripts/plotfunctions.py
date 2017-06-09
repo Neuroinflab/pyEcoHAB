@@ -19,6 +19,7 @@ threads = []
 threadsStarted = 0
 threadsFinished = 0
 
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -28,6 +29,7 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
 
 def plotfsec(self,fols, ops, to_file = True):
     x = np.arange(1,ts+1)
@@ -44,6 +46,7 @@ def plotfsec(self,fols, ops, to_file = True):
     plt.savefig('../Results/rdn_ops%s'%max_ts+'.png')
     plt.show()
 
+
 def autolabel(rects,ax):
         """
         Attach a text label above each bar displaying its height
@@ -53,6 +56,7 @@ def autolabel(rects,ax):
             ax.text(rect.get_x() + rect.get_width()/2., 1.05*height,
                     '%d' % int(height),
                     ha='center', va='bottom')
+
 
 def barplot(stats, names, groups,colors, directory = "Barplots",name = "",ylab = ""):
     if not os.path.exists('../Results/'+directory):
@@ -81,6 +85,7 @@ def barplot(stats, names, groups,colors, directory = "Barplots",name = "",ylab =
     plt.savefig('../Results/%s/%s.png'%(directory, name))
     plt.show()
 
+
 def scaling(p):
     if p<0.05 and p>0:
         return 2.5-p*50
@@ -89,17 +94,19 @@ def scaling(p):
     else:
         return 0
 
+
 def forceAspect(ax,aspect=1):
     im = ax.get_images()
     extent =  im[0].get_extent()
     ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
+
 
 def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'RasterPlots'):
     if not os.path.exists('../Results/'+directory):
         os.makedirs('../Results/'+directory)
     for key in names.keys():
             for exp in range(len(names[key])):
-                fig = plt.figure(figsize=(12,12))
+                fig = plt.figure(figsize=(24,24))
                 ax = fig.add_subplot(111, aspect='equal')
                 plt.suptitle('%s'%(names[key][exp]), fontsize=14, fontweight='bold')
                 n_s,n_l,n_f = FAM[key][exp].shape
@@ -120,7 +127,7 @@ def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'Rast
 
                     for i in range(n_l):
                         for j in range(i,n_f):
-                            if i!=j and (s % 4 == 2 or s % 4 == 3):
+                            if i!=j and (s % 6 == 0 or s % 6 == 1 or s % 6 == 2):
                                 ax.add_patch(patches.Rectangle((
                                     s, -1*pos), 1, 1, facecolor=(0, 0, 0, 0.1)))
                             if i!=j and abs(_FAM[i,j])<0.05 and _FAM[i,j]>0:
@@ -140,11 +147,11 @@ def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'Rast
                                 pair_labels.append(str(i+1)+'|'+str(j+1))
                                 #pair_labels.append(str(j+1)+'|'+str(i+1))
                                 pos+=1
-                for i in range(16-n_s):
+                for i in range(24-n_s):
                     ax.add_patch(patches.Rectangle((
                                         n_s+i, -pos+1),1, pos,facecolor="grey"))
 
-                plt.axis([0,16,-pos+1,1])
+                plt.axis([0,24,-pos+1,1])
                 ax.set_aspect('auto')
                 ax.xaxis.grid()
                 ax.xaxis.set_ticklabels([])
@@ -155,6 +162,7 @@ def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'Rast
                 plt.savefig('../Results/%s/%s.png'%(directory,names[key][exp]))
                 #plt.show()
                 plt.close(fig)   
+
 
 def createRasterPlotsSUM(FAM,IPP,names,scalefactor,to_file = True,directory = 'RasterPlotsSUM'):
     if not os.path.exists('../Results/'+directory):
@@ -216,7 +224,6 @@ def createRasterPlotsSUM(FAM,IPP,names,scalefactor,to_file = True,directory = 'R
             plt.close(fig) 
 
 
-
 def CreateRelationGraphs(FAM,IPP,names,scalefactor,to_file = True,directory = 'InteractionsGraphs'):
     if not os.path.exists('../Results/'+directory):
         os.makedirs('../Results/'+directory)
@@ -244,7 +251,7 @@ def MakeRelationGraph(FAM,IPP,exp,s,key,directory,scalefactor,names, fig = None,
         G.add_edges_from([(conn[i][1],conn[i][2])], weight=conn[i][0])
     edge_colors = [conn[i][0] for i in range(len(conn))]
     size = 10
-    pos=nx.circular_layout(G)
+    pos = nx.circular_layout(G)
     for key in pos.keys():
         pos[key]+=np.array([2,0])
     node_labels = {node:node for node in G.nodes()}  
