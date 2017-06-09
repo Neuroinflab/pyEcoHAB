@@ -103,6 +103,7 @@ def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'Rast
                 ax = fig.add_subplot(111, aspect='equal')
                 plt.suptitle('%s'%(names[key][exp]), fontsize=14, fontweight='bold')
                 n_s,n_l,n_f = FAM[key][exp].shape
+
                 for s in range(n_s):
                     #plt.text(0.06+s*0.125, 1.025,ExperimentConfigFile('../RawData/'+names[key][exp]).sections()[s],
                      #horizontalalignment='center',
@@ -116,8 +117,12 @@ def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'Rast
                     print n_l, n_f
                     pair_labels = []
                     pos = 0
+
                     for i in range(n_l):
                         for j in range(i,n_f):
+                            if i!=j and (s % 4 == 2 or s % 4 == 3):
+                                ax.add_patch(patches.Rectangle((
+                                    s, -1*pos), 1, 1, facecolor=(0, 0, 0, 0.1)))
                             if i!=j and abs(_FAM[i,j])<0.05 and _FAM[i,j]>0:
                                 ax.add_patch(patches.Rectangle((
                                         s, -1*pos),1 , 1,facecolor=(1,0,0,_IPP[i,j]*0.5/scalefactor)))  
@@ -137,7 +142,8 @@ def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'Rast
                                 pos+=1
                 for i in range(16-n_s):
                     ax.add_patch(patches.Rectangle((
-                                        n_s+i, -pos+1),1, pos,facecolor="lightgrey"))
+                                        n_s+i, -pos+1),1, pos,facecolor="grey"))
+
                 plt.axis([0,16,-pos+1,1])
                 ax.set_aspect('auto')
                 ax.xaxis.grid()

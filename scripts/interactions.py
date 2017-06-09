@@ -509,9 +509,9 @@ if __name__ == "__main__":
     #    plt.show()
 
 
-    #plotfunctions.createRasterPlots(FAM,IPP,names,scalefactor)
-    #plotfunctions.createRasterPlotsSUM(FAM,IPP,names,scalefactor)
-    plotfunctions.CreateRelationGraphs(FAM,IPP,names,scalefactor/50)
+    plotfunctions.createRasterPlots(FAM,IPP,names,scalefactor)
+    plotfunctions.createRasterPlotsSUM(FAM,IPP,names,scalefactor)
+    #plotfunctions.CreateRelationGraphs(FAM,IPP,names,scalefactor/50)
 
     """
     plotfunctions.barplot(stats,names,["SLA","SLD",], colors, name="AverageLengthofSec",ylab = "Average length of sequence per pair")
