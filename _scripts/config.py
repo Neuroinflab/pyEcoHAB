@@ -8,7 +8,7 @@ Created on Mon Feb 27 14:56:11 2017
 
 
 rawdatasets = [
-            'BALB EH (1) 06.03.14
+            'BALB EH (1) 06.03.14,
             'BALB EH (2) po raz 2 10.04.14',
             'C57 EH (1) 23.04.14',
             'FX KO F (3) EH (1) 15.05.14',

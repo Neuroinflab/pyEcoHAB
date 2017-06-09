@@ -505,13 +505,13 @@ if __name__ == "__main__":
     #    plt.show()
 
 
-    # plotfunctions.createRasterPlots(FAM,IPP,names,scalefactor)
+    plotfunctions.createRasterPlots(FAM,IPP,names,scalefactor)
     # plotfunctions.createRasterPlotsSUM(FAM,IPP,names,scalefactor)
     # plotfunctions.CreateRelationGraphs(FAM,IPP,names,scalefactor/50)
 
-    """
-    plotfunctions.barplot(stats,names,["SLA","SLD",], colors, name="AverageLengthofSec",ylab = "Average length of sequence per pair")
-    plotfunctions.barplot(stats,names,["NFA","NFD" ], colors, name="AverageNumberofFols", ylab="Average number of followings per pair")
+
+    #plotfunctions.barplot(stats,names,["SLA","SLD",], colors, name="AverageLengthofSec",ylab = "Average length of sequence per pair")
+    #plotfunctions.barplot(stats,names,["NFA","NFD" ], colors, name="AverageNumberofFols", ylab="Average number of followings per pair")
 
     #createRasterPlots(FAM,IPP,names,scalefactor)
     #createRasterPlotsSUM(FAM,IPP,names,scalefactor)
@@ -542,3 +542,4 @@ if __name__ == "__main__":
     # print  st.mannwhitneyu(stats["KO"]["median"], stats["WT"]["median"], use_continuity=True)
     # m = np.round(FAP["KO"][0][0],3)
     # print m
+    """

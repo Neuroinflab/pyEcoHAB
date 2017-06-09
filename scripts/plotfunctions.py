@@ -106,7 +106,7 @@ def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'Rast
         os.makedirs('../Results/'+directory)
     for key in names.keys():
             for exp in range(len(names[key])):
-                fig = plt.figure(figsize=(24,24))
+                fig = plt.figure(figsize=(16,16))
                 ax = fig.add_subplot(111, aspect='equal')
                 plt.suptitle('%s'%(names[key][exp]), fontsize=14, fontweight='bold')
                 n_s,n_l,n_f = FAM[key][exp].shape
@@ -154,6 +154,7 @@ def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'Rast
                 plt.axis([0,24,-pos+1,1])
                 ax.set_aspect('auto')
                 ax.xaxis.grid()
+                plt.xticks( np.arange(24))
                 ax.xaxis.set_ticklabels([])
                 ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(pos)])
                 ax.set_yticklabels(pair_labels)
