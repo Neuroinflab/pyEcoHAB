@@ -2,3 +2,4 @@ RawData/
 Results/
 Results_old/
 PreprocessedData/
+*.pyc
