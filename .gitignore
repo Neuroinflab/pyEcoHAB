@@ -3,3 +3,6 @@ Results/
 Results_old/
 PreprocessedData/
 *.pyc
+*pdf
+*py~
+*zip
