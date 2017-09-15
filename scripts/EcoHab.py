@@ -1,54 +1,71 @@
+from __future__ import print_function
+
 import os
 import csv
 import time
 import numpy as np
 import pylab as plt
 
+
+def parse_fname(fname):
+    """"Extracts time and date from data's filename"""
+
+    hour = fname[9:11]
+    date = fname[:8]
+    datenext = time.strftime('%Y%m%d',
+                             time.localtime(time.mktime(time.strptime(date, '%Y%m%d')) + 24 * 3600.))
+
+    return hour, date, datenext
+
+
 class EcoHabData(object):
     """Reads in a folder with data from Eco-HAB"""
+
+    def process_line_6(self,elements):
+        """remove point from 2nd column of new data files"""
+        return [elements[0],' '.join([elements[1].replace('.', ''), elements[2]]),                                       elements[3], elements[4], elements[5]]
+
+    def process_line_5(self, elements, date):
+        """Add date to data (old data files)"""
+        elements[1] = ' '.join([date, elements[1]])
+        return elements
+
+    def read_file(self,fname):
+        """Reads in data file"""
+        hour, date, datenext = parse_fname(fname)
+
+        f = open(os.path.join(self.path, fname),'r')
+
+        for line in f:
+            elements = line.split()
+
+            if len(elements) == 6:
+                self.rawdata.append(self.process_line_6(elements))
+
+            elif len(elements) == 5:
+                if hour == '23' and elements[1][:2] == '00':
+                    self.rawdata.append(self.process_line_5(elements,datenext))
+                else:
+                    self.rawdata.append(self.process_line_5(elements,date))
+            else:
+                    print(elements)
+                    raise(IOError('Unknown data format in file %s' %f))
+
+    def get_data(self):
+        """Finds files in provided directory (path) and reads in data"""
+
+        self._fnames =  filter(lambda x: x.endswith('0000.txt') or
+                             (x[-12:-7] == '0000_' and x.endswith('.txt')),
+                             os.listdir(self.path))
+
+        for f_name in self._fnames:
+            self.read_file(f_name)
+
     def __init__(self, path, _ant_pos=None):
+
         self.path = path
         self.rawdata = []
-        # ff = filter(lambda x: x.endswith('0000.txt'), os.listdir(path))
-        ff = filter(lambda x: x.endswith('0000.txt') or 
-                             (x[-12:-7] == '0000_' and x.endswith('.txt')), 
-                             os.listdir(path))
-        self._fnames = ff
-        for f in ff:
-            cc = csv.reader(open(os.path.join(path, f)), delimiter='\t')
-            fhour = f[9:11]
-            fdate = f[:8]
-            fdatenext = time.strftime('%Y%m%d', 
-                    time.localtime(time.mktime(time.strptime(fdate, '%Y%m%d')) + 24*3600.))
-            for d in cc:
-                if len(d) in [6, 7]:
-                    # New format - id, date, time, antena, duration, tag
-                    # Sometimes extra tab at the end of line
-                    self.rawdata.append([d[0], 
-                                        ' '.join([d[1].replace('.', ''), d[2]]), 
-                                        d[3], d[4], d[5]])
-                elif len(d) == 5: 
-                    # Legacy - no date in text file
-                    # id, time, antena, duration, tag
-                    if fhour == '23':
-                        for d in cc:
-                            # # TODO if len(d) == '...' -> nowy format daty 
-                            if d[1][:2] == '23':
-                                # print f, fhour, fdate, fdatenext, tt
-                                d[1] = ' '.join([fdate, d[1]])
-                                # print d[1]
-                            elif d[1][:2] == '00':
-                                d[1] = ' '.join([fdatenext, d[1]])
-                            # d.append(f)
-                            self.rawdata.append(d)                
-                    else:
-                        for d in cc:
-                            d[1] = ' '.join([fdate, d[1]])
-                            # d.append(f)
-                            self.rawdata.append(d)
-                else:
-                    print d 
-                    raise(IOError('Unknown data format in file %s' %f))
+        self.get_data()
         self.rawdata.sort(key=lambda x: self.convert_time(x[1]))
         self.mice = set([d[4] for d in self.rawdata])
         self.data = {}
