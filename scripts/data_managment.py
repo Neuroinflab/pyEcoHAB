@@ -4,7 +4,7 @@ Created on Tue Apr 18 12:05:03 2017
 
 @author: JanKMlaptop
 """
-
+from __future__ import print_function
 def load_experiments_info(name):
     experiments = []
     with open(name, "r") as cmp_file:
