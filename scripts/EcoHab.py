@@ -23,8 +23,11 @@ class EcoHabData(object):
 
     def process_line_6(self,elements):
         """remove point from 2nd column of new data files"""
-        return [elements[0],' '.join([elements[1].replace('.', ''), elements[2]]),                                       elements[3], elements[4], elements[5]]
-
+        return [elements[0],' '.join([elements[1].replace('.', ''), elements[2]]), elements[3], elements[4], elements[5]]
+    
+    def process_line_7(self,elements):
+        """remove point from 2nd column of new data files"""
+        return [elements[0],' '.join([elements[1].replace('.', ''), elements[2]]), elements[3], elements[4], elements[5], elements[6]]
     def process_line_5(self, elements, date):
         """Add date to data (old data files)"""
         elements[1] = ' '.join([date, elements[1]])
@@ -41,7 +44,8 @@ class EcoHabData(object):
 
             if len(elements) == 6:
                 self.rawdata.append(self.process_line_6(elements))
-
+            elif len(elements) == 7:
+                self.rawdata.append(self.process_line_7(elements))
             elif len(elements) == 5:
                 if hour == '23' and elements[1][:2] == '00':
                     self.rawdata.append(self.process_line_5(elements,datenext))
@@ -140,8 +144,20 @@ class EcoHabData(object):
     def convert_time(s): 
         """Convert date and time to seconds since epoch""" 
         return (time.mktime(time.strptime(s[:-4], '%Y%m%d %H:%M:%S'))
-                    + float(s[-3:])/1000.)          
+                    + float(s[-3:])/1000.)
 
+    def checkData_one_mouse(self,mouse):
+        antennas = self.getantennas(mouse)
+        times  = self.gettimes(mouse)
+        wrong_times = []
+        for i,next_antenna in enumerate(antennas[1:]):
+            if abs(next_antenna - antennas[i]) not in [0,1]:
+                if next_antenna !=8 and antennas[i] != 8:
+                    wrong_times.append(times[i])
+                    #print('mouse',mouse,'wrong antenna',antennas[i],'time',times[i],'antenna',next_antenna,'next time',times[i+1],times[i+1]-times[i])
+        
+        return wrong_times
+    
 class IEcoHabSession(object):
     def getstarttimes(self, *arg, **kwarg):
         raise NotImplementedError("Virtual method called")
@@ -182,7 +198,10 @@ class EcoHabSessions(IEcoHabSession):
         for mm in ehd.mice:
             tt = self._ehd.gettimes(mm)
             an = self._ehd.getantennas(mm)
+            print(tt)
+            print(an)
             for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
+                print(tstart, tend, anstart, anend)
                 # # Old code - until 14 May 2014
                 # if tend - tstart < self.shortest_session_threshold:
                 #     continue
@@ -339,6 +358,7 @@ class EcoHabSessions9states(IEcoHabSession):
                  
             previous = 0
             for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
+                
                 if tend - tstart < self.shortest_session_threshold:
                     state = 0
                     previous = 0
@@ -522,3 +542,6 @@ class EcoHabSessions9states(IEcoHabSession):
             tott[idx] = sum(durs)
         return totv, tott
         
+if __name__ == '__main__':
+    eco = EcoHabData('/home/jszmek/EcoHAB/eh')
+    
