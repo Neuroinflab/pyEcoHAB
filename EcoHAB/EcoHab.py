@@ -52,7 +52,6 @@ class EcoHabData(object):
                 else:
                     self.rawdata.append(self.process_line_5(elements,date))
             else:
-                    print(elements)
                     raise(IOError('Unknown data format in file %s' %f))
 
     def get_data(self):
@@ -61,17 +60,22 @@ class EcoHabData(object):
         self._fnames =  filter(lambda x: x.endswith('0000.txt') or
                              (x[-12:-7] == '0000_' and x.endswith('.txt')),
                              os.listdir(self.path))
-
+        
         for f_name in self._fnames:
             self.read_file(f_name)
+            self.days.add(f_name.split('_')[0])
 
     def __init__(self, path, _ant_pos=None):
-
+        self.days = set()
         self.path = path
         self.rawdata = []
         self.get_data()
+
+        self.rawdata = self.remove_ghost_tags()
+        
+        self.mice = set([d[4] for d in self.rawdata])        
         self.rawdata.sort(key=lambda x: self.convert_time(x[1]))
-        self.mice = set([d[4] for d in self.rawdata])
+  
         self.data = {}
         self.data['Id'] = [d[0] for d in self.rawdata]
         self.data['Time'] = [self.convert_time(d[1]) for d in self.rawdata]
@@ -85,7 +89,33 @@ class EcoHabData(object):
         self.mask = None 
         self._mask_slice = None
         
+        
+    def remove_ghost_tags(self, how_many_appearances=20,factor=3):
+        new_data = []
+        ghost_mice = []
+        counters = {}
+        dates = {}
+        for d in self.rawdata:
+            mouse = d[4]
+            if mouse not in counters:
+                counters[mouse] = 0
+            if mouse not in dates:
+                dates[mouse] = set()
+                
+            counters[mouse] += 1
+            dates[mouse].add(d[1].split()[0])
+        how_many_days = len(self.days)/factor
+        for mouse in counters:
+            if counters[mouse] < how_many_appearances or dates[mouse] <= how_many_days:
+                ghost_mice.append(mouse)
+   
+        for d in self.rawdata:
+            mouse = d[4]
+            if mouse not in ghost_mice:
+                new_data.append(d)
 
+        return new_data[:]
+                        
     def __repr__ (self):
         """Nice string representation for prtinting this class."""
         mystring = 'Eco-HAB data loaded from:\n%s\nin the folder%s\n' %(
@@ -198,10 +228,7 @@ class EcoHabSessions(IEcoHabSession):
         for mm in ehd.mice:
             tt = self._ehd.gettimes(mm)
             an = self._ehd.getantennas(mm)
-            print(tt)
-            print(an)
             for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
-                print(tstart, tend, anstart, anend)
                 # # Old code - until 14 May 2014
                 # if tend - tstart < self.shortest_session_threshold:
                 #     continue
@@ -534,8 +561,8 @@ class EcoHabSessions9states(IEcoHabSession):
         and total time spent in compartments."""
         durations = self.getdurations(mm)
         adds = self.getaddresses(mm)
-        totv = [0, 0, 0, 0]
-        tott = [0., 0., 0., 0.]
+        totv = [0, 0, 0, 0] #total number of visits
+        tott = [0., 0., 0., 0.] #total number of time
         for idx, ad in enumerate([1, 2, 3, 4]):
             durs = [x for x, y in zip(durations, adds) if y == ad]
             totv[idx] = len(durs)
@@ -544,4 +571,12 @@ class EcoHabSessions9states(IEcoHabSession):
         
 if __name__ == '__main__':
     eco = EcoHabData('/home/jszmek/EcoHAB/eh')
-    
+    sessions = EcoHabSessions(eco)
+    i = 0
+    for mouse in eco.mice:
+        totv,tott = sessions.getstats(mouse)
+        if totv == [0,0,0,0] or tott == [0,0,0,0]:
+            
+            i = i+1
+        print(mouse,totv, tott, sum(totv))
+
