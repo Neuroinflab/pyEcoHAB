@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function,division
 
 import os
 import csv
@@ -174,7 +174,7 @@ class EcoHabData(object):
     def convert_time(s): 
         """Convert date and time to seconds since epoch""" 
         return (time.mktime(time.strptime(s[:-4], '%Y%m%d %H:%M:%S'))
-                    + float(s[-3:])/1000.)
+                    + float(s[-3:])/1000)
 
     def checkData_one_mouse(self,mouse):
         antennas = self.getantennas(mouse)
@@ -184,7 +184,6 @@ class EcoHabData(object):
             if abs(next_antenna - antennas[i]) not in [0,1]:
                 if next_antenna !=8 and antennas[i] != 8:
                     wrong_times.append(times[i])
-                    #print('mouse',mouse,'wrong antenna',antennas[i],'time',times[i],'antenna',next_antenna,'next time',times[i+1],times[i+1]-times[i])
         
         return wrong_times
     
@@ -360,125 +359,35 @@ class EcoHabSessions(IEcoHabSession):
         
         
 class EcoHabSessions9states(IEcoHabSession):
-    """Calculates 'visits' to Eco-HAB compartments."""
+    """Calculates 'visits' to Eco-HAB compartments.
+    state: 0 -- visit too fast
+    state: 1 -- pipe between antennae 1 and 2, chamber 1 and 2
+    state: 2 -- chamber 2 (antennae 2 and 3)
+    state: 3 -- pipe between antennae 3 and 4, chamber 2 and 3
+    state: 4 -- chamber 3 (antennae 4 and 5)
+    state: 5 -- pipe between antennae 5 and 6, chamber 3 and 4
+    state: 6 -- chamber 4 (antennae 6 and 7)
+    state: 7 -- pipe between antennae 7 and 8, chamber 4 and 1
+    state: 8 -- chamber 1 (antennae 8 and 1)
+
+    """
+    
+
     def __init__(self, ehd, **kwargs):
         self._ehd = ehd
         self.mask = None
         self._mask_slice = None
-        self.shortest_session_threshold = kwargs.pop('shortest_session_threshold', 2)
-        self.fs = 10
-        tempdata = []
-        statistics = {}
+        self.shortest_session_threshold = kwargs.get('shortest_session_threshold', 2)
+        self.fs = kwargs.get('fs',10)
+        
         self.t_start_exp = np.min(self._ehd.data['Time'])
         self.t_end_exp = np.max(self._ehd.data['Time'])
-        t = np.arange(self.t_start_exp,self.t_end_exp,1./self.fs)
-        self.signal_data = np.zeros((len(t),len(ehd.mice)),dtype =np.int8)          
-        for n, mm in enumerate(ehd.mice):
-            tt = self._ehd.gettimes(mm)
-            an = self._ehd.getantennas(mm)
-            statistics[mm] = {}
-            statistics[mm]["state_freq"]= np.zeros(9)
-            statistics[mm]["state_time"]= [[] for i in range(9)]
-            statistics[mm]["preference"]={}
-            for i in range(9):
-                 statistics[mm]["preference"][i] = np.zeros(2)
-                 
-            previous = 0
-            for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
-                
-                if tend - tstart < self.shortest_session_threshold:
-                    state = 0
-                    previous = 0
-                    statistics[mm]["state_freq"][state]+=1
-                    statistics[mm]["state_time"][state].append(tend - tstart)
-                    continue
-                diff = np.abs(anstart - anend)
-                if diff in [0,1,7]:
-                    s = (tstart - self.t_start_exp)*self.fs
-                    e = (tend- self.t_start_exp)*self.fs
-                    ############Most obvious reading##########
-                    if diff in [1, 7]:
-                        if diff == 1:
-                            state = int((anstart + anend)/2.-0.5)
-                            previous = state
-                        else:
-                            state = 8
-                            previous = state
-                        #Save state to stadard and signal data
-                        tempdata.append((state, mm, tstart, tend, tend-tstart,
-                                         True))
-                        self.signal_data[int(s):int(e),n] = state
-                                         
-                        statistics[mm]["state_freq"][state]+=1
-                        statistics[mm]["state_time"][state].append(tend - tstart)
-                        if anend == state:
-                            statistics[mm]["preference"][state][1]+=1
-                        else:
-                            statistics[mm]["preference"][state][0]+=1  
-                        previous = state       
-                    elif diff == 0 and previous != 0:
-                        if tend - tstart < 2:
-                            continue
-                        diff2 = anstart - previous
-                        state  = 0
-                        if diff2 >=0:
-                            if diff2 == 0 and previous != 1:
-                                state = previous-1
-                            elif diff2 == 0 and previous == 1:
-                                state = 8
-                            elif diff2 == 1:
-                                state = previous+1
-                            elif diff2 == 7:
-                                state = 1
-                            
-                            
-                            #print previous,state,anend
-                        #Save state to stadard and signal data
-                        tempdata.append((state, mm, tstart, tend, tend-tstart,
-                                         True))
-                        self.signal_data[int(s):int(e),n] = state
-                                         
-                        statistics[mm]["state_freq"][state]+=1
-                        statistics[mm]["state_time"][state].append(tend - tstart)
-                        if anend == state:
-                            statistics[mm]["preference"][state][1]+=1
-                        else:
-                            statistics[mm]["preference"][state][0]+=1  
-                        previous = state       
-                    
+        
+        t = np.arange(self.t_start_exp,self.t_end_exp,1/self.fs)
+        self.signal_data = np.zeros((len(t),len(ehd.mice)),dtype =np.int8)      
+        tempdata, self.statistics = self.get_statistics()
+
             
-#            for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
-#                if tend - tstart < self.shortest_session_threshold:
-#                    state = 0
-#                    previous = 0
-#                    continue
-#                diff = np.abs(anstart - anend)
-#                if diff in [2,6]:
-#                    if diff == 2:
-#                        state2_temp = (anstart + anend)/2
-#                        state1_temp = state2_temp -1
-#                    elif diff == 6:
-#                        if np.max([anstart, anend]) == 8:
-#                            state1_temp = 8
-#                            state2_temp = 1
-#                        else:
-#                            state1_temp = 7
-#                            state2_temp = 8
-#                        
-#                    if anstart< anend:
-#                        state1 = state1_temp
-#                        state2 = state2_temp
-#                    else:
-#                        state1 = state2_temp
-#                        state2 = state1_temp
-#                    d = statistics[mm]["state_time"]
-#                    split = tstart+(tend - tstart)*(np.sum(d[state1])/np.sum(d[state1]+d[state2]))
-#                    tempdata.append((state1, 
-#                                mm, tstart, split, split-tstart,
-#                                False))
-#                    tempdata.append((state2, 
-#                                mm, split, tend, tend-split,
-#                                False))
         tempdata.sort(key=lambda x: x[2])
         self.data = {'Tag': [],
              'Address': [],
@@ -492,8 +401,100 @@ class EcoHabSessions9states(IEcoHabSession):
         self.data['AbsEndTimecode'] = [x[3] for x in tempdata]
         self.data['VisitDuration'] = [x[4] for x in tempdata]
         self.data['ValidVisitSolution'] = [x[5] for x in tempdata]
-        self.statistics = statistics
         
+    def time_to_experiment_beginning(self,t):
+        return (t - self.t_start_exp)*self.fs
+    
+    def get_statistics(self):
+        
+        tempdata = []
+        statistics = {}
+        
+        for n, mm in enumerate(self._ehd.mice):
+            tt = self._ehd.gettimes(mm)
+            an = self._ehd.getantennas(mm)
+
+            statistics[mm] = {}
+            statistics[mm]["state_freq"]= np.zeros(9)
+            statistics[mm]["state_time"]= [[] for i in range(9)]
+            statistics[mm]["preference"]={}
+            
+            for i in range(9):
+                 statistics[mm]["preference"][i] = np.zeros(2)
+                 
+            previous = 0
+            for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
+                
+                t_diff = tend - tstart
+
+                if t_diff < self.shortest_session_threshold:
+                    state = 0
+                    previous = 0
+                    statistics[mm]["state_freq"][state]+=1
+                    statistics[mm]["state_time"][state].append(t_diff)
+                    continue
+
+                antennae_diff = np.abs(anstart - anend)
+            
+                if antennae_diff in [0,1,7]:
+                    
+                    s = self.time_to_experiment_beginning(tstart)
+                    e = self.time_to_experiment_beginning(tend)
+
+                    ############Most obvious reading##########
+                    if antennae_diff in [1, 7]:
+                        if antennae_diff == 1:
+                            state = int((anstart + anend)/2-0.5)
+                        else:
+                            state = 8
+                        #Save state to stadard and signal data
+                        tempdata.append((state, mm, tstart, tend, t_diff,
+                                         True))
+                        self.signal_data[int(s):int(e),n] = state
+                                         
+                        statistics[mm]["state_freq"][state]+=1
+                        statistics[mm]["state_time"][state].append(t_diff)
+                        
+                        if anend == state:
+                            statistics[mm]["preference"][state][1]+=1 #counterclockwise
+                        else:
+                            statistics[mm]["preference"][state][0]+=1  #clockwise
+                        previous = state
+                        
+                    elif antennae_diff == 0 and previous != 0:
+
+                        if t_diff < 2:
+                            continue
+
+                        antennae_diff2 = abs(anstart - previous)
+          
+                        if antennae_diff2 == 0 and previous != 1:
+                            state = previous-1
+                        elif antennae_diff2 == 0 and previous == 1:
+                            state = 8
+                        elif antennae_diff2 == 1:
+                            state = previous+1
+                            if state > 8:
+                                state = 1
+                        elif antennae_diff2 == 7:
+                            state = 1
+                            
+                            
+                        #print previous,state,anend
+                        #Save state to stadard and signal data
+                        tempdata.append((state, mm, tstart, tend, t_diff,
+                                         True))
+                        self.signal_data[int(s):int(e),n] = state
+                                         
+                        statistics[mm]["state_freq"][state]+=1
+                        statistics[mm]["state_time"][state].append(tend - tstart)
+                        if anend == state:
+                            statistics[mm]["preference"][state][1]+=1
+                        else:
+                            statistics[mm]["preference"][state][0]+=1  
+                        previous = state       
+
+        return tempdata, statistics         
     def unmask_data(self):
         """Remove the mask - future queries will not be clipped"""
         self.mask = None
@@ -571,12 +572,7 @@ class EcoHabSessions9states(IEcoHabSession):
         
 if __name__ == '__main__':
     eco = EcoHabData('/home/jszmek/EcoHAB/eh')
-    sessions = EcoHabSessions(eco)
-    i = 0
+    sessions = EcoHabSessions9states(eco)
     for mouse in eco.mice:
-        totv,tott = sessions.getstats(mouse)
-        if totv == [0,0,0,0] or tott == [0,0,0,0]:
-            
-            i = i+1
-        print(mouse,totv, tott, sum(totv))
-
+        print(sessions.statistics[mouse]['state_freq'])
+   
