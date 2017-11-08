@@ -9,3 +9,9 @@ Cage 2 is between antennaes 2 & 3,
 Cage 3 -||- -||- -||- 4&5
 Cage 4 -||- -||- -||- 6&7
 Cage 1 -||- -||- -||- 1&8
+
+
+Output files --  columns: event no.; date; time; antennae; duration; mouse transponder; tag (7the column)
+
+Reject ghost tags -- transponder ids that do not start with 0065
+
