@@ -73,7 +73,7 @@ class EcoHabData(object):
 
         self.rawdata = self.remove_ghost_tags()
         
-        self.mice = set([d[4] for d in self.rawdata])        
+        self.mice = list(set([d[4] for d in self.rawdata]))
         self.rawdata.sort(key=lambda x: self.convert_time(x[1]))
   
         self.data = {}
@@ -210,6 +210,7 @@ class EcoHabSessions(IEcoHabSession):
         self._ehd = ehd
         self.mask = None
         self._mask_slice = None
+        self.mice = ehd.mice
         # No longer used after 14 May 2014
         # self.same_antenna_threshold = kwargs.pop('same_antenna_threshold', 2.)
         self.shortest_session_threshold = kwargs.pop('shortest_session_threshold', 2.)
