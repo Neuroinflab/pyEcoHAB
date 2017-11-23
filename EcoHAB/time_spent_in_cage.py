@@ -1,3 +1,4 @@
+from __future__ import division, print_function
 import EcoHab
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,7 +13,7 @@ import os
 
 datarange = slice(10, 11, None)
 datasets = {
-    'long':'/home/jszmek/EcoHAB_data_November/long_experiment_WT',
+    #'long':'/home/jszmek/EcoHAB_data_November/long_experiment_WT',
     'standard':'/home/jszmek/EcoHAB_data_November/standard_known_stimulus_WT',
 }
 smells = {
@@ -128,11 +129,11 @@ def visits(mouse_address,mouse_durations, key, stim_type):
             result.append(t)
     return result
 
-def save_data_cvs(data,fname,cf,key):
+def save_data_cvs(data,fname,key):
     
     f = open(fname,'w')
-    phases = cf.sections()
-    phases = cf.sections()
+    phases = data['phases']
+    mice = data['mice']
     
     header = 'mouse,\"time [h]\"'
     for phase in phases:
@@ -144,29 +145,20 @@ def save_data_cvs(data,fname,cf,key):
 
             f.write(h%smells[key][stim])
             f.write(header+'\n')
-            for mouse in ehs.mice:
-                lines = [mouse for i in range(len(data[stim][j][phases[0]][mouse]))]
+            for mouse in mice:
+                lines = [mouse for i in data[stim][j][phases[0]][mouse]]
                 for phase in phases:
-                    
                     if phase != 'ALL':
                         for k,time in enumerate(data['time'][phase]):
                             if phase == phases[0]:
-                                lines[k] += ',' + str(time)
-                            if isinstance(data[stim][j][phase][mouse][k],list):
-                                lines[k] += ','+str(sum(data[stim][j][phase][mouse][k]))
-                            else:
-                                lines[k] += ','+str(data[stim][j][phase][mouse][k])
+                                lines[k] += ',%3.2f'%(time/3600)
+                            lines[k] += ','+str(data[stim][j][phase][mouse][k])
                                                                 
                 for line in lines:
                     f.write(line)
                     f.write('\n')
-                        
-                    
-    
-        
-        
 
-def get_data(ehs,cf,key,binsize=12*3600):
+def get_time_spent(ehs,cf,key,binsize=12*3600):
   
     tstart, tend = cf.gettime('ALL')
     phases = cf.sections()
@@ -174,14 +166,13 @@ def get_data(ehs,cf,key,binsize=12*3600):
     soc = dict([(phase, []) for phase in phases])
     t_nsoc = dict([(phase, []) for phase in phases])
     t_soc = dict([(phase, []) for phase in phases])
-    test_exploration = dict([(phase, []) for phase in phases])
     tt =  dict([(phase, []) for phase in phases])
+    
     for phase in phases:
         nsoc[phase] = dict([(mm, []) for mm in ehs.mice])
         soc[phase] = dict([(mm, []) for mm in ehs.mice])
         t_nsoc[phase] = dict([(mm, []) for mm in ehs.mice])
         t_soc[phase] = dict([(mm, []) for mm in ehs.mice])
-        test_exploration[phase] = dict([(mm, []) for mm in ehs.mice])
         time_start,phase_end = cf.gettime(phase)
         time = time_start
       
@@ -191,7 +182,7 @@ def get_data(ehs,cf,key,binsize=12*3600):
             for mouse in ehs.mice:
                 mouse_address = ehs.getaddresses(mouse)
                 mouse_durations = ehs.getdurations(mouse)
-                test_exploration[phase][mouse] += mouse_durations
+ 
                 nsoc[phase][mouse].append(mouse_address.count(smells[key]['nsoc']))
                 soc[phase][mouse].append(mouse_address.count(smells[key]['soc']))
                 t_nsoc[phase][mouse].append(visits(mouse_address,mouse_durations, key, 'nsoc'))
@@ -200,128 +191,104 @@ def get_data(ehs,cf,key,binsize=12*3600):
                 #print  nsoc[phase][mouse],soc[phase][mouse], len(t_nsoc[phase][mouse]),len(t_soc[phase][mouse])
             tt[phase].append((time-time_start)*binsize/3600.)
             time += binsize
-            
-    
-    
-    return {'nsoc':[nsoc,t_nsoc], 'soc':[soc,t_soc],'time':tt}
+ 
+    for phase in phases:
+        for mouse in ehs.mice:
+            nsoc[phase][mouse] = np.array(nsoc[phase][mouse])
+            soc[phase][mouse] = np.array(soc[phase][mouse])
+            t_nsoc[phase][mouse] = np.array(t_nsoc[phase][mouse])
+            t_soc[phase][mouse] = np.array(t_soc[phase][mouse])
 
-        
-                
-        
+    return {'nsoc':[nsoc,t_nsoc], 'soc':[soc,t_soc],'time':tt,'mice':ehs.mice,'phases':phases}
+
+def sum_times(data):
     
-  
+    phases = data['phases']
+    mice = data['mice']
+    sum_t_soc = dict([(phase, []) for phase in phases])
+    sum_t_nsoc = dict([(phase, []) for phase in phases])
+
+    for phase in phases:
+
+        sum_t_soc[phase] = dict([(mouse, []) for mouse in mice])
+        sum_t_nsoc[phase] = dict([(mouse, []) for mouse in mice])
+          
+        for mouse in mice:
+
+            sum_t_soc[phase][mouse] = np.zeros((len(data['time'][phase])))
+            sum_t_nsoc[phase][mouse] = np.zeros((len(data['time'][phase])))
+            
+            for k,time in enumerate(data['time'][phase]):
+                sum_t_soc[phase][mouse][k] = sum(data['soc'][1][phase][mouse][k])
+                sum_t_nsoc[phase][mouse][k] = sum(data['nsoc'][1][phase][mouse][k])
+ 
+    return {'phases':phases,'mice':mice,'soc':[data['soc'][0],sum_t_soc],'nsoc':[data['nsoc'][0],sum_t_nsoc],'time':data['time']}
+                    
+                
+def calculate_approach_to_social(data):
+    #possibly calculate a square root of sum of squared errors -- if independent errors (Taylor, 1997) probably not
+    ats = data[0]/data[1]/(data[2]/data[3])
+    d_ats = np.zeros(data[0].shape)
+    for i,dat in enumerate(data[4:]):
+        d_ats += abs(dat/data[i])
+    return ats,d_ats*ats
+        
+def approach_to_social(data,fname=None):
+
+    times_nsoc = data['nsoc'][1]
+    times_soc = data['soc'][1]
+    phases = data['phases']
+    last_phase_before_stimulus = [phase for phase in phases if 'EMPTY' in phase and 'dark' in phase][-1]
+    first_phase_after_stimulus = [phase for phase in phases if 'SNIFF' in phase and 'dark' in phase][0]
+
+    mice = data['mice']
+    mice_no = len(mice)
+    shape = (len(times_soc[first_phase_after_stimulus][mice[0]]),len(mice))
+    T_S, T_NS, t_s, t_ns = np.zeros(shape), np.zeros(shape), np.zeros(shape), np.zeros(shape)
+    
+    for i,mouse in enumerate(mice):
+        T_S [:,i] = times_soc[first_phase_after_stimulus][mouse]
+        T_NS[:,i] = times_nsoc[first_phase_after_stimulus][mouse]
+        t_s[:,i] = times_soc[last_phase_before_stimulus][mouse]
+        t_ns[:,i] = times_nsoc[last_phase_before_stimulus][mouse]
+        
+    mean_T_S, mean_T_NS, mean_t_s, mean_t_ns = T_S.mean(axis=1), T_NS.mean(axis=1), t_s.mean(axis=1), t_ns.mean(axis=1)
+    std_T_S, std_T_NS, std_t_s, std_t_ns = (T_S.var(axis=1)/mice_no)**.5, (T_NS.var(axis=1)/mice_no)**.5, (t_s.var(axis=1)/mice_no)**.5, (t_ns.var(axis=1)/mice_no)**.5
+    ats,d_ats = calculate_approach_to_social([mean_T_S, mean_T_NS, mean_t_s, mean_t_ns,std_T_S, std_T_NS, std_t_s, std_t_ns])
+    l = len(data['time'][last_phase_before_stimulus])
+    try:
+        binsize = data['time'][last_phase_before_stimulus][1]-data['time'][last_phase_before_stimulus][0]
+    except IndexError:
+        binsize = 12*3600
+        
+    time = [binsize*i/3600 for i in range(l)]
+
+    if fname:
+
+        np.savetxt(fname, np.array((time,ats,d_ats)).T,header='time, AtS, dAtS',delimiter=',',comments="")
+        
+    return time, ats, d_ats
+
 if __name__ == '__main__':
-    binsizes = [12 * 3600., 2 * 3600., 1 * 3600.]
+    binsizes = [12 * 3600., 2 * 3600., 1 * 3600.,1.5*3600,3600/4]
     bintitles = ['12', '2', '1']
 
-
-    for key in datasets:
-        path1 = datasets[key]
-        ehd = EcoHab.EcoHabData(path1)#, _ant_pos=antenna_positions[key])
-        ehs = EcoHab.EcoHabSessions(ehd)
-        cf = ExperimentConfigFile(path1)
-        tstart, tend = cf.gettime('ALL')
-        
-              
-        plt.figure(figsize=(8, 8))
-        plot_antennas(ehd, ax=plt.subplot(311), smell_comps=smells[key].values(), 
-                      comp_labels={v: k for k, v in smells[key].items()})
-        plt.title(key)
-        plot_files(ehd, ax=plt.subplot(312))
-        plot_antennas_diags(ehd, ax=plt.subplot(313), tstart=tstart, tend=tend, 
-                        binsize=6*3600.)
-    
-        plt.savefig(os.path.join(path1,'Results/','setup_%s.pdf' %key))
-
-        data = get_data(ehs,cf,key,binsize=12*3600)
-        fname = os.path.join(path1,'Results','collective_results_social_non_social.csv')
-        save_data_cvs(data,fname,cf,key)
-        
-        # def time2title(tt):
-        #     return cf(epoch2num(tt + 300.))
-
-        # for binsize, btit in zip(binsizes, bintitles):
-        #     print(binsize,btit)
-        #     tt = tstart
-        #     tts = []
-        #     results_soc = dict([(mm, []) for mm in ehd.mice])
-        #     results_nsoc = dict([(mm, []) for mm in ehd.mice])
-        #     results_soc_t = dict([(mm, []) for mm in ehd.mice])
-        #     results_nsoc_t = dict([(mm, []) for mm in ehd.mice])
-        #     test_exploration = dict([(mm, []) for mm in ehd.mice])
-        #     while tt < tend:
-        #         ehs.unmask_data()
-        #         ehs.mask_data(tt, tt + binsize)
-        #         for mm in ehd.mice:
-        #             adds = ehs.getaddresses(mm)
-        #             durs = ehs.getdurations(mm)
-                    
-        #             test_exploration[mm] += durs
-                    
-        #             results_nsoc[mm].append(adds.count(smells[key]['nsoc']))
-                   
-        #             results_soc[mm].append(adds.count(smells[key]['soc']))
-        #             results_nsoc_t[mm].append(sum([d for d, ad in zip(durs, adds)
-        #                           if ad == smells[key]['nsoc']]))
-        #             results_soc_t[mm].append(sum([d for d, ad in zip(durs, adds)
-        #                           if ad == smells[key]['soc']]))
-        #         tts.append(tt)
-        #         tt += binsize
-        #         # Save data to cvs file
-        #     name = 'res_%s_%s.csv' %(key, btit)
-        #     data = [results_soc_t,results_soc_t,
-        #             results_soc,results_nsoc]
+    for binsize in binsizes:
+        for key in datasets:
+            path1 = datasets[key]
+            ehd = EcoHab.EcoHabData(path1)
+            ehs = EcoHab.EcoHabSessions(ehd)
+            cf = ExperimentConfigFile(path1)
+            tstart, tend = cf.gettime('ALL')
             
-        #     headers = ['Total time with social smell (box %d), seconds\n',
-        #                'Total time with non-social smell (box %d), seconds\n',
-        #                'Number of visits to social smell (box %d)\n',
-        #                'Number of visits to non-social smell (box %d)\n']
-        #     data2csv(name, headers, data,key)
-        #     colors = ['black', 'blue','green','cyan','magenta','yellow','red']
-        #     t2 = np.arange(0,4000,0.1)
-        #     tuples = []
-        #     for c in range(len(colors)):
-        #         mm = list(ehd.mice)[c]
-        #         d = test_exploration[mm]
-        #         if d == []:
-        #             continue
-        #         t = np.copy(d)
-        #         for i in range(1,len(t)):
-        #             t[i] = t[i]+t[i-1]
-        #         j = 0
-        #         i = 0
-        #         v2 = np.zeros(len(t2))
-        #         while j<len(t2)-1:
-        #             if t2[j]>t[-1]:
-        #                 break
-        #             v2[j] = 1.0/np.array(d[i])
-        #             j+=1
-        #             if t2[j]>t[i]:
-        #                 i+=1
-        #         plt.plot(t2,v2,'-', color = colors[c])
-        #         if c <2:
-        #             tuples.append(v2)
-        #     #plt.show()
+            print('Binsize ',binsize/3600)
+            data = get_time_spent(ehs,cf,key,binsize=binsize)
+            data = sum_times(data)
+            fname = os.path.join(path1,'Results','collective_results_social_non_social_binsize_%f_h.csv'%(binsize/3600))
+            save_data_cvs(data,fname,key)
+            fname =  os.path.join(path1,'Results','AtS_%f_h.csv'%(binsize/3600))
+            approach_to_social(data,fname)
+        #print data
         
-        #     plt.subplot(2,1,1)
-        #     plt.plot(tuples[0],'-', color = colors[2])
-        #     plt.plot(tuples[1],'-', color = colors[-1])
-        #     plt.subplot(2,1,2)
-        #     plt.plot(tuples[0]*tuples[1])
-        #     #plt.show()
-        # ## Totals in dark and light phases
-        # results_sec = dict([(mm, {}) for mm in ehd.mice])
-        # for sec in cf.sections()[:-1]:
-        #     ehs.unmask_data()
-        #     ehs.mask_data(*cf.gettime(sec))
-        #     for mm in ehd.mice:
-        #         results_sec[mm][sec] = ehs.getstats(mm)
-        # #print results_sec
-   
-        # """name = 'activity_%s.csv' %(key)
-        # headers = ['Total number of visits to boxes\n']
-        # data = [results_sec[:][:][0]]
-        # for box in [0, 1, 2, 3]:
-        #     headers.append('Number of visits to box %d\n' %(box + 1))
-        #     #data.append(results_sec[mm][sec][0][box]))"""
-    plt.show()     
+        
+
