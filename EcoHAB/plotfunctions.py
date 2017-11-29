@@ -28,13 +28,13 @@ def plotfsec(self,fols, ops, to_file = True):
     plt.xlabel('1 s time bin')
     plt.ylabel('Percetage of positive f')
     plt.savefig('../Results/rdn_fols%s'%max_ts+'.png')
-    plt.show()
+    #plt.show()
     plt.stem(x,self.ops/np.sum(self.ops)*100)
     plt.axis([0,max_ts+1,0,15])
     plt.xlabel('1 s time bin')
     plt.ylabel('Percetage of negative f')
     plt.savefig('../Results/rdn_ops%s'%max_ts+'.png')
-    plt.show()
+    #plt.show()
 
 def autolabel(rects,ax):
         """
@@ -55,10 +55,13 @@ def barplot(stats, names, groups,colors, directory = "Barplots",name = "",ylab =
     fig, ax = plt.subplots()
     rects = []
     for i,key in enumerate(names.keys()):
-        mean = [np.mean(stats[key][group]) for group in groups]
-        err = [st.sem(stats[key][group]) for group in groups]
-        rects.append(ax.bar(ind+i*width, mean, width, color=colors[key], yerr=err))
-        #autolabel(rects[-1],ax)
+        try:
+            mean = [np.mean(stats[key][group]) for group in groups]
+            err = [st.sem(stats[key][group]) for group in groups]
+            rects.append(ax.bar(ind+i*width, mean, width, color=colors[key], yerr=err))
+        except KeyError:
+            pass
+            #autolabel(rects[-1],ax)
     # add some text for labels, title and axes ticks
     ax.set_ylabel(ylab)
     ax.set_title('Group comparison')
@@ -71,7 +74,7 @@ def barplot(stats, names, groups,colors, directory = "Barplots",name = "",ylab =
     #autolabel(rects1)
     #autolabel(rects2)
     plt.savefig('../Results/%s/%s.png'%(directory, name))
-    plt.show()
+    #plt.show()
 
 def scaling(p):
     if p<0.05 and p>0:
@@ -273,15 +276,20 @@ def create_group_graph(FAM,IPP,names,scalefactor,to_file = True,directory = 'Int
                 MakeRelationGraph(FAM[key][exp][s,:,:],IPP[key][exp][s,:,:],exp,s,key,directory,scalefactor)
 
 def plotphist(data,names,colors,to_file = True,directory = 'Interactions',vrange = [], prange = [],nbins = 24):
-    if not os.path.exists('../Results/'+directory):
-        os.makedirs('../Results/'+directory)
     stats = {}
     for key in data.keys():
+        
+
         stats[key] = {}
         stats[key][directory] = []
         stats[key]["mean"] = []
         stats[key]["median"] = []
         for i in range(len(data[key])):
+            print(names[key])
+            new_path = os.path.join(names[key][i],'Results',directory)
+            if not os.path.exists(new_path):
+                os.makedirs(new_path)
+                
             x = data[key][i].flatten()
             stats[key][directory]+=list(x[x!=0])
             stats[key]["mean"].append(np.mean(x[x!=0]))
@@ -291,8 +299,9 @@ def plotphist(data,names,colors,to_file = True,directory = 'Interactions',vrange
             plt.axvline(np.mean(x), color=colors[key], linestyle='solid', linewidth=2)
             plt.axvline(np.median(x), color=colors[key], linestyle='dashed', linewidth=2)
             plt.ylim(prange)
-            plt.savefig('../Results/'+directory+'/'+names[key][i]+'.png')
-            plt.show()
+            fig_fname = os.path.join(new_path,'plothist.png')
+            plt.savefig(fig_fname,bbox_inches='tight', pad_inches=0.1)
+            #plt.show()
     for key in data.keys():
         for i in range(len(data[key])):
             x = data[key][i].flatten()
@@ -301,6 +310,5 @@ def plotphist(data,names,colors,to_file = True,directory = 'Interactions',vrange
             plt.subplot(2,1,2)
             plt.axvline(np.median(x[x!=0]), color=colors[key], linestyle='dashed', linewidth=2)
     plt.savefig('../Results/'+directory+'/'+"WT_KO_RD"+'.png')
-    plt.show()
     plt.show()
     return stats    
