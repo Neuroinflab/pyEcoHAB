@@ -5,17 +5,22 @@ Created on Tue Apr 18 12:05:03 2017
 @author: JanKMlaptop
 """
 from __future__ import print_function
-def load_experiments_info(name):
+import os
+def load_experiments_info(name,directory=''):
     experiments = []
     with open(name, "r") as cmp_file:
         for i,line in enumerate(cmp_file):
             if i==0:
                 keys = line.split()[0].split(',')
             else:
+                
                 linedata = line.split("\n")[0].split(',')
                 experiments.append({})
                 for j, key in enumerate(keys):
-                    experiments[-1][key] = linedata[j]
+                    if key == 'path' and directory:
+                        experiments[-1][key] = os.path.join(directory,linedata[j])
+                    else:
+                        experiments[-1][key] = linedata[j]
     return experiments
 
 def load_comparisons_info(name):
@@ -26,7 +31,7 @@ def load_comparisons_info(name):
                 keys = line.split()[0].split(',')
             else:
                 linedata = line.split()[0].split(',')
-                #print linedata
+                diff = ""
                 for j, key in enumerate(keys):
                     if "-" in linedata[j]:
                         diff = linedata[j]
