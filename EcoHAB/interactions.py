@@ -5,6 +5,7 @@ Created on Thu Oct 27 12:48:42 2016
 
 @author: Jan Maka
 """
+from __future__ import division
 #EcoHAB libraries 
 import EcoHab
 from ExperimentConfigFile import ExperimentConfigFile
@@ -22,6 +23,7 @@ import matplotlib.colors as mcol
 import matplotlib.patches as patches
 import glob
 import sys
+import utils
 
 class Experiment(object):
     """Class, which represent data from one of the experiments"""
@@ -38,7 +40,8 @@ class Experiment(object):
             return 
         self.path = path
         
-        self.directory = os.path.join(path,'Results')
+        self.directory = utils.results_path(path)
+        print path,self.directory
         
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
@@ -62,12 +65,15 @@ class Experiment(object):
         self.mice = filter(lambda x: len(self.ehs.getstarttimes(x)) > 30, mice)
         self.lm = len(self.mice)
         
-    def calculate_fvalue(self,window='default',treshold = 2,min_interactions = 1, force=False,fols=None,ops=None):
+    def calculate_fvalue(self,window='default',treshold = 2,min_interactions = 1, force=False,fols=None,ops=None,which_phase='ALL'):
+        
         self.fols = fols
         self.ops = ops
         self.treshold = treshold
         self.min_interactions = min_interactions
-        self.tstart, self.tend = self.cf.gettime('ALL')
+
+        self.tstart, self.tend = self.cf.gettime(which_phase)
+
         self.fpatterns = []
         self.opatterns = []
         if window=='default':
@@ -76,30 +82,36 @@ class Experiment(object):
             self.phases = [(self.cf.gettime(sec)[0]-self.tstart ,self.cf.gettime(sec)[1]-self.tstart) for sec in sessions]
         else:
             if isinstance(window,float) or isinstance(window,int):
-                self.phases = [(i*window*3600,np.min([(i+1)*window*3600,self.sd.shape[0]])) for i in range(int(np.ceil(self.sd.shape[0]*1.0/(window*3600*self.fs))))]
+                r = int(np.ceil(self.sd.shape[0]/(window*3600*self.fs)))
+                self.phases = [(i*window*3600,np.min([(i+1)*window*3600,self.sd.shape[0]])) for i in range(r)]
             elif isinstance(window, list):
                 self.phases = [(st*window[0]*3600,(st+1)*window[0]*3600) for st in window[1]]
             else:
                 raise TypeError
             
-        self.f = np.zeros((len(self.mice),len(self.mice),len(self.phases)))
         self.interactions = np.zeros((len(self.phases),len(self.mice),len(self.mice),8,3))
-        self.f_sum = np.zeros((len(self.phases),self.lm))
+        new_path = os.path.join(self.directory,'PreprocessedData/IteractionsData/')
+        new_fname_patterns = os.path.join(new_path, 'Patterns_%s.npy'%which_phase)
+        new_fname_fpatterns = os.path.join(new_path, 'fpatterns_%s.npy'%which_phase)
+        new_fname_opatterns = os.path.join(new_path, 'opatterns_%s.npy'%which_phase)
+
+        if not os.path.exists(os.path.dirname(new_path)):
+            os.makedirs(os.path.dirname(new_path))
+        
         try:
-            self.f = np.load(os.path.join(self.directory,'Patterns.npy'))
-            return self.f
+            self.interactions = np.load(new_fname_patterns)
+            self.fpatterns = np.load(new_fname_fpatterns)
+            self.opatterns = np.load(new_fname_opatterns)
+            
         except IOError:
             for s in range(len(self.phases)):
                 ts, te = self.phases[s]
                 print 'Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2))
                 self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
-            new_path = os.path.join(self.directory,'PreprocessedData/IteractionsData/')
-            if not os.path.exists(os.path.dirname(new_path)):
-                os.makedirs(os.path.dirname(new_path))
-            print(new_path)                      
-            np.save(os.path.join(new_path,'Patterns.npy'),self.interactions)
-            return self.f
-        
+                                  
+            np.save(new_fname_patterns,self.interactions)
+            np.save(new_fname_fpatterns,self.fpatterns)
+            np.save(new_fname_opatterns,self.opatterns)
      
     
     def interaction_matrix(self,ts, te):
@@ -117,7 +129,15 @@ class Experiment(object):
                     self.opatterns+=patterns[1]
         return imatrix
     
-    
+    def InteractionsPerPair(self,start,stop):
+        #start 0, stop 2 -- Interactions per pair
+        #start 0, stop 1 -- following per pair
+        #start 1, stop 2 -- avoiding per pair
+        return np.sum(self.interactions[:,:,:,:,start:stop],axis=4)
+
+    def FollowingAvoidingMatrix(self,):
+        return easyFAP(self.interactions,p=0.5)
+
     def validatePatterns(self,plots_nr = 9, trange = [-3,3]):
         size = np.ceil(np.sqrt(plots_nr))
         t = np.arange(trange[0],trange[1],1.0/self.fs)
@@ -150,8 +170,10 @@ class Experiment(object):
     def findpatterns(self, (m1,m2),t1, t2):
         fs = self.fs
         sd = self.sd
+        
         detected_idx = [[],[]]
         follow_stat = {}
+
         m1_idx = np.where(((np.roll(sd[:,m1], 1) - sd[:,m1]) != 0))[0]
         m2_stats = self.ehs.statistics[self.mice[m2]]["preference"]
         moves = ['24','42','46','64','68','86','82','28']
@@ -264,7 +286,6 @@ def preprocessData(names,window,ts=3):
 
 
 
-
             
 def Interpersec(names,ts=3, directory='InterPerSec'):
     if not os.path.exists('../Results/%s/'%directory):
@@ -305,33 +326,41 @@ def Interpersec(names,ts=3, directory='InterPerSec'):
         plt.savefig('../Results/'+directory+'/'+key+'interinsec.png')
         plt.show()
 
-        
-def InteractionsPerPair(names,start,stop):
+def open_interactions_matrix(path,custom_fname):
+    if custom_fname:
+        fname = os.path.join(path,'Results/PreprocessedData/IteractionsData',custom_fname)
+    else:
+        fname = os.path.join(path,'Results/PreprocessedData/IteractionsData/Patterns.npy')
+    return fname
+
+def single_interactions_matrix(patterns,start,stop,custom_fname):
+
+    fname =  open_interactions_matrix(path,custom_fname)
+    patterns = np.load(fname)
+    
+    return get_single_interactions_matrix(patterns,start,stop)
+
+def get_single_interactions_matrix(patterns,start,stop):
+
+    i8states = np.sum(patterns[:,:,:,:,start:stop],axis=4)
+    interactions = np.sum(i8states ,axis=3)
+    return interactions
+
+def InteractionsPerPair(names,start,stop,custom_fname=''):
     #start 0, stop 2 -- Interactions per pair
     #start 0, stop 1 -- following per pair
     #start 1, stop 2 -- avoiding per pair
-    IPP = {}    
+    IPP = {}
+
     if isinstance(names,dict):
-
-
         for key in names.keys():
             IPP[key] = []
             for path in names[key]:
-                print path
-                patterns = np.load(os.path.join(path,'Results/PreprocessedData/IteractionsData/Patterns.npy'))
-                i8states = np.sum(patterns[:,:,:,:,start:stop],axis=4)
-                interactions = np.sum(i8states ,axis=3)
-                IPP[key].append(interactions)
+                IPP[key].append(get_single_interactions_matrix(path,start,stop,custom_fname))
         return IPP
     if isinstance(names,list):
-
         for path in names:
-            print path
-            patterns = np.load(os.path.join(path,'Results/PreprocessedData/IteractionsData/Patterns.npy'))
-            i8states = np.sum(patterns[:,:,:,:,start:stop],axis=4)
-            interactions = np.sum(i8states ,axis=3)
-            IPP[path] = interactions
-    
+            IPP[path] = get_single_interactions_matrix(path,start,stop,custom_fname)
         return IPP
     
 
@@ -362,26 +391,6 @@ def easyFAP(patterns,p=0.5):
     FAPmatrix = np.apply_along_axis(FAprobablity, 3, rawFA)
     return FAPmatrix
 
-                               
-def FollowingAvoidingMatrix(names):
-    FAP = {}
-    if isinstance(names, dict):
-        for key in names.keys(): 
-            print key
-            FAP[key] = []
-            for path in names[key]:
-                print path
-                patterns = np.load(os.path.join(path,'Results/PreprocessedData/IteractionsData/Patterns.npy'))
-                FAP[key].append(easyFAP(patterns,p=0.5))
-        return FAP
-    if isinstance (names,list):
-        for path in names:
-            patterns = np.load(os.path.join(path,'Results/PreprocessedData/IteractionsData/Patterns.npy'))
-            FAP[path] = easyFAP(patterns,p=0.5)
-        return FAP
-    
-
-                               
 def longest_sequence(FAM,n_s=6):
     DARK = []
     ALL = []
@@ -410,6 +419,27 @@ def longest_sequence(FAM,n_s=6):
             DARK.append(sec_DARK)
     return DARK, ALL
                                
+def FollowingAvoidingMatrix(names):
+    FAP = {}
+    if isinstance(names, dict):
+        for key in names.keys(): 
+            print key
+            FAP[key] = []
+            for path in names[key]:
+                print path
+                patterns = np.load(os.path.join(path,'Results/PreprocessedData/IteractionsData/Patterns.npy'))
+                FAP[key].append(easyFAP(patterns,p=0.5))
+        return FAP
+    if isinstance (names,list):
+        for path in names:
+            patterns = np.load(os.path.join(path,'Results/PreprocessedData/IteractionsData/Patterns.npy'))
+            FAP[path] = easyFAP(patterns,p=0.5)
+        return FAP
+    
+
+                               
+
+                               
 
 def follsactive(FAM,n_s=6):
     DARK = []
@@ -429,68 +459,73 @@ def follsactive(FAM,n_s=6):
             DARK.append(sec_DARK)
     return DARK, ALL
 
-                               
-def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'RasterPlots'):
-    
-   
-    for key in names.keys():
-            for exp in range(len(names[key])):
-                
-                new_dir = os.path.join(names[key][exp],'Results',directory)
-                if not os.path.exists(new_dir):
-                    os.makedirs(new_dir)
-                    
-                fig = plt.figure(figsize=(12,12))
-                ax = fig.add_subplot(111, aspect='equal')
-                plt.suptitle('%s'%(names[key][exp]), fontsize=14, fontweight='bold')
-                n_s,n_l,n_f = FAM[key][exp].shape
-                for s in range(n_s):
-                    plt.text(0.06+s*0.125, 1.025,ExperimentConfigFile(names[key][exp]).sections()[s],
-                    horizontalalignment='center',
-                    verticalalignment='center',
-                    fontsize=10,
-                     transform = ax.transAxes)
-                    #MakeRelationGraph(FAM[key][exp][s,:,:],IPP[key][exp][s,:,:],exp,s,key,directory,scalefactor)
-                    _FAM = FAM[key][exp][s,:,:]
-                    _IPP = IPP[key][exp][s,:,:]
-                    n_l,n_f = _FAM.shape
-                    print n_l, n_f
-                    pair_labels = []
-                    pos = 0
-                    for i in range(n_l):
-                        for j in range(i,n_f):
-                            if i!=j and abs(_FAM[i,j])<0.05 and _FAM[i,j]>0:
-                                ax.add_patch(patches.Rectangle((
-                                        s, -1*pos),1 , 1,facecolor=(1,0,0,_IPP[i,j]*0.5/scalefactor)))  
-                            elif i!=j and abs(_FAM[i,j])<0.05 and _FAM[i,j]<0:
-                                ax.add_patch(patches.Rectangle((
-                                        s, -1*pos),1 , 1,facecolor=(0,0,1,_IPP[i,j]*0.5/scalefactor)))
-                            if i!=j and abs(_FAM[j,i])<0.05 and _FAM[j,i]>0:
-                                ax.add_patch(patches.Rectangle((
-                                        s, -1*pos),1 , 1,facecolor=(1,0,0,_IPP[j,i]*0.5/scalefactor))) 
-                            elif i!=j and abs(_FAM[j,i])<0.05 and _FAM[j,i]<0:
-                                ax.add_patch(patches.Rectangle((
-                                        s, -1*pos),1 , 1,facecolor=(0,0,1,_IPP[j,i]*0.5/scalefactor)))
-                            if i!=j:
-                                #ax.add_patch(patches.Rectangle((0, -1*pos+1),8,1,facecolor="black",fill=False))
-                                pair_labels.append(str(i+1)+'|'+str(j+1))
-                                #pair_labels.append(str(j+1)+'|'+str(i+1))
-                                pos+=1
+
+def oneRasterPlot(path,FAM,IPP,phases,directory,scalefactor):
+
+    new_dir = os.path.join(path,directory)
+    if not os.path.exists(new_dir):
+        os.makedirs(new_dir)
+        
+    fig = plt.figure(figsize=(12,12))
+    ax = fig.add_subplot(111, aspect='equal')
+    plt.suptitle('%s'%(path), fontsize=14, fontweight='bold')
+    n_s,n_l,n_f = FAM.shape
+    for s in range(n_s):
+        plt.text(0.06+s*0.125, 1.025,phases[s],
+                 horizontalalignment='center',
+                 verticalalignment='center',
+                 fontsize=10,
+                 transform = ax.transAxes)
+        #MakeRelationGraph(FAM[key][exp][s,:,:],IPP[key][exp][s,:,:],exp,s,key,directory,scalefactor)
+        _FAM = FAM[s,:,:]
+        _IPP = IPP[s,:,:]
+        n_l,n_f = _FAM.shape
+        pair_labels = []
+        pos = 0
+
+        pair_labels = []
+        pos = 0
+        for i in range(n_l):
+            for j in range(i,n_f):
+                if i!=j and abs(_FAM[i,j])<0.05 and _FAM[i,j]>0:
+                    ax.add_patch(patches.Rectangle((
+                        s, -1*pos),1 , 1,facecolor=(1,0,0,_IPP[i,j]*0.5/scalefactor)))  
+                elif i!=j and abs(_FAM[i,j])<0.05 and _FAM[i,j]<0:
+                    ax.add_patch(patches.Rectangle((
+                        s, -1*pos),1 , 1,facecolor=(0,0,1,_IPP[i,j]*0.5/scalefactor)))
+                if i!=j and abs(_FAM[j,i])<0.05 and _FAM[j,i]>0:
+                    ax.add_patch(patches.Rectangle((
+                            s, -1*pos),1 , 1,facecolor=(1,0,0,_IPP[j,i]*0.5/scalefactor))) 
+                elif i!=j and abs(_FAM[j,i])<0.05 and _FAM[j,i]<0:
+                    ax.add_patch(patches.Rectangle((
+                            s, -1*pos),1 , 1,facecolor=(0,0,1,_IPP[j,i]*0.5/scalefactor)))
+                if i!=j:
+                    #ax.add_patch(patches.Rectangle((0, -1*pos+1),8,1,facecolor="black",fill=False))
+                    pair_labels.append(str(i+1)+'|'+str(j+1))
+                    #pair_labels.append(str(j+1)+'|'+str(i+1))
+                    pos+=1
                 for i in range(8-n_s):
                     ax.add_patch(patches.Rectangle((
                                         n_s+i, -pos+1),1, pos,facecolor="lightgrey"))
-                plt.axis([0,8,-pos+1,1])
-                ax.set_aspect('auto')
-                ax.xaxis.grid()
-                ax.xaxis.set_ticklabels([])
-                ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(pos)])
-                ax.set_yticklabels(pair_labels)
-                plt.xlabel("session")
-                plt.ylabel("following strength in pair")
-                new_fname = os.path,join(new_path,'RasterRasterPlots.png')
-                fig.savefig(new_fname)
-                #plt.show()
-                plt.close(fig)   
+    plt.axis([0,8,-pos+1,1])
+    ax.set_aspect('auto')
+    ax.xaxis.grid()
+    ax.xaxis.set_ticklabels([])
+    ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(pos)])
+    ax.set_yticklabels(pair_labels)
+    plt.xlabel("session")
+    plt.ylabel("following strength in pair")
+    new_fname = os.path,join(new_path,'RasterRasterPlots.png')
+    fig.savefig(new_fname)
+    #plt.show()
+    plt.close(fig)   
+        
+def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'RasterPlots'):
+   
+    for key in names.keys():
+            for exp in range(len(names[key])):
+                path = utils.results_path(names[key][exp])
+                oneRasterPlot(path,FAM[key][exp],IPP[key][exp],directory)
 
 def createRasterPlotsSUM(FAM,IPP,names,scalefactor,to_file = True,directory = 'RasterPlotsSUM'):
     for key in names.keys():
