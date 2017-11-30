@@ -8,7 +8,7 @@ from matplotlib.patches import Rectangle
 import locale
 from ExperimentConfigFile import ExperimentConfigFile
 import os
-
+import utils
 ### How much time mice spend in the 'social' compartment
 
 datarange = slice(10, 11, None)
@@ -129,8 +129,11 @@ def visits(mouse_address,mouse_durations, key, stim_type):
             result.append(t)
     return result
 
-def save_data_cvs(data,fname,key):
-    
+def save_data_cvs(data,fname,path,key):
+
+    if not os.path.exists(path):
+        os.makedirs(path)
+    fname = os.path.join(path,fname)
     f = open(fname,'w')
     phases = data['phases']
     mice = data['mice']
@@ -233,7 +236,7 @@ def calculate_approach_to_social(data):
         d_ats += abs(dat/data[i])
     return ats,d_ats*ats
         
-def approach_to_social(data,fname=None):
+def approach_to_social(data,fname=None,path=None):
 
     times_nsoc = data['nsoc'][1]
     times_soc = data['soc'][1]
@@ -264,10 +267,14 @@ def approach_to_social(data,fname=None):
     time = [binsize*i/3600 for i in range(l)]
 
     if fname:
-
+        if path:
+            if not os.path.exists(path):
+                os.makedirs(path)
+            fname = os.path.join(path,fname)
         np.savetxt(fname, np.array((time,ats,d_ats)).T,header='time, AtS, dAtS',delimiter=',',comments="")
         
     return time, ats, d_ats
+
 
 if __name__ == '__main__':
     binsizes = [12 * 3600., 2 * 3600., 1 * 3600.,1.5*3600,3600/4]
@@ -284,10 +291,11 @@ if __name__ == '__main__':
             print('Binsize ',binsize/3600)
             data = get_time_spent(ehs,cf,key,binsize=binsize)
             data = sum_times(data)
-            fname = os.path.join(path1,'Results','collective_results_social_non_social_binsize_%f_h.csv'%(binsize/3600))
-            save_data_cvs(data,fname,key)
-            fname =  os.path.join(path1,'Results','AtS_%f_h.csv'%(binsize/3600))
-            approach_to_social(data,fname)
+            path = utils.results_path(path1)
+            fname = 'collective_results_social_non_social_binsize_%f_h.csv'%(binsize/3600)
+            save_data_cvs(data,fname,path,key)
+            fname =  'AtS_%f_h.csv'%(binsize/3600)
+            approach_to_social(data,fname,path)
         #print data
         
         
