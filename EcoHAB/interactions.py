@@ -89,7 +89,7 @@ class Experiment(object):
             else:
                 raise TypeError
             
-        self.interactions = np.zeros((len(self.phases),len(self.mice),len(self.mice),8,3))
+       
         new_path = os.path.join(self.directory,'PreprocessedData/IteractionsData/')
         new_fname_patterns = os.path.join(new_path, 'Patterns_%s.npy'%which_phase)
         new_fname_fpatterns = os.path.join(new_path, 'fpatterns_%s.npy'%which_phase)
@@ -104,6 +104,7 @@ class Experiment(object):
             self.opatterns = np.load(new_fname_opatterns)
             
         except IOError:
+            self.interactions = np.zeros((len(self.phases),len(self.mice),len(self.mice),8,3))
             for s in range(len(self.phases)):
                 ts, te = self.phases[s]
                 print 'Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2))
@@ -133,7 +134,8 @@ class Experiment(object):
         #start 0, stop 2 -- Interactions per pair
         #start 0, stop 1 -- following per pair
         #start 1, stop 2 -- avoiding per pair
-        return np.sum(self.interactions[:,:,:,:,start:stop],axis=4)
+        i8states = np.sum(self.interactions[:,:,:,:,start:stop],axis=4)
+        return np.sum(i8states,axis=3)
 
     def FollowingAvoidingMatrix(self,):
         return easyFAP(self.interactions,p=0.5)
@@ -153,7 +155,7 @@ class Experiment(object):
             plt.plot(t,self.sd[s-3*self.fs:s+3*self.fs,jj]+0.05,'bo',label="follower")
             plt.axis([-3.1,3.1,-0.5,9.5])
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-        plt.show()
+        #plt.show()
         plt.suptitle("Random avoiding patterns", fontsize=14, fontweight='bold')
         for i,idx in enumerate(orandom_idx):
             ax = plt.subplot(size, size,i+1)
@@ -164,7 +166,7 @@ class Experiment(object):
             plt.plot(t,self.sd[s-3*self.fs:s+3*self.fs,jj]+0.05,'bo',label="follower")
             plt.axis([-3.1,3.1,-0.5,9.5])
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-        plt.show()
+        #plt.show()
 
         
     def findpatterns(self, (m1,m2),t1, t2):
@@ -174,47 +176,53 @@ class Experiment(object):
         detected_idx = [[],[]]
         follow_stat = {}
 
-        m1_idx = np.where(((np.roll(sd[:,m1], 1) - sd[:,m1]) != 0))[0]
-        m2_stats = self.ehs.statistics[self.mice[m2]]["preference"]
-        moves = ['24','42','46','64','68','86','82','28']
-        for m in moves:
-            follow_stat[m] = np.zeros(3)
-            start_st, end_st = int(m[0]),int(m[1])
+        m1_idx = np.where(((np.roll(sd[:,m1], 1) - sd[:,m1]) != 0))[0] #indices of position change of mouse m1
+        m2_stats = self.ehs.statistics[self.mice[m2]]["preference"] #m2
+        
+        moves = ['24','42','46','64','68','86','82','28'] #from cage to cage
+        
+        for move in moves:
+            follow_stat[move] = np.zeros(3)
+            start_st, end_st = int(move[0]),int(move[1])
             if end_st == 2 and start_st==8:
-                index = 0
+                index = 0 #clockwise direction
             elif end_st == 8 and start_st==2:
-                index = 1
+                index = 1 #counterclockwise
             elif start_st <end_st:
                 index = 0
             else:
                 index = 1
-            follow_stat[m][2] = m2_stats[int(m[0])][index]/np.sum(m2_stats[int(m[0])])
+            follow_stat[move][2] = m2_stats[int(move[0])][index]/np.sum(m2_stats[int(move[0])])#visits in cage move[0] in particular direction/all visits to cage
+
         #print m2_stats
         #print 'ruchliwosc', len(m1_idx)
+        print sd[m1_idx,m1]
         for i in range(2,len(m1_idx)):
             if m1_idx[i] > t1*fs and m1_idx[i]<t2*fs:
-                s = m1_idx[i]
-                start_st = int(sd[m1_idx[i-2],m1])
-                end_st = int(sd[s,m1])
-                e =s+self.treshold*fs
+                start_idx = m1_idx[i]
+                start_st = int(sd[m1_idx[i-2],m1]) #state before start
+                end_st = int(sd[start_idx,m1]) #actual start state
+                end_idx = start_idx + self.treshold*fs #self.threshold*fs -- minimum visit duration
+               
                 try:
-                    period1 = list(sd[s:e,m2])
-                    period2 = list(sd[s-2*fs:s,m2])
-                    period3 = list(sd[s-int(0.1*fs):s,m2])
+                    period1 = list(sd[start_idx:end_idx,m2]) #current period
+                    period2 = list(sd[start_idx-2*fs:start_idx,m2]) #2 fs before current period
+                    period3 = list(sd[start_idx-int(0.1*fs):start_idx,m2]) #beginning of period 1
                     # define conditions
-                    unknown_state = sd[s,m1]==0 or int(sd[m1_idx[i-1],m1])==0
-                    unknown_previous_states = (sd[m1_idx[i-1],m1] ==0 and (sd[m1_idx[i-2],m1] ==0)) or (sd[m1_idx[i-1],m1] !=0 and (sd[m1_idx[i-2],m1] ==0))
-                    in_pipe =  sd[s,m1]%2==1
+                    unknown_state = sd[start_idx,m1]==0 or int(sd[m1_idx[i-1],m1])==0 #of m1
+                    unknown_previous_states = sd[m1_idx[i-1],m1] == 0 or sd[m1_idx[i-2],m1] ==0 #(sd[m1_idx[i-1],m1] ==0 and (sd[m1_idx[i-2],m1] ==0)) or (sd[m1_idx[i-1],m1] !=0 and (sd[m1_idx[i-2],m1] ==0))
+                    in_pipe =  sd[start_idx,m1]%2==1 #odd states are pipes
                     if unknown_state or unknown_previous_states or in_pipe or start_st==end_st:
                         continue
                     
-                    op_idx = (2*sd[m1_idx[i-2],m1]-sd[s,m1]-1)%8+1
+                    op_idx = (2*sd[m1_idx[i-2],m1]-sd[start_idx,m1]-1)%8+1 #WTF
+                    
                     same_start = sd[m1_idx[i-2],m1] in period2 #POPRAWIC!!!!!!!
-                    first_m1 = sd[s,m1] not in period3 and op_idx not in period3
-                    followed = period1.count(sd[s,m1])>0
-                    go_oposite = op_idx in period1
+                    first_m1 = sd[start_idx,m1] not in period3 and op_idx not in period3
+                    followed = period1.count(sd[start_idx,m1])>0
+                    go_oposite = op_idx in period1 #WTF
                     if followed and go_oposite:
-                        followed = period1.index(sd[s,m1])<period1.index(op_idx)
+                        followed = period1.index(sd[start_idx,m1])<period1.index(op_idx)
                         go_oposite = not followed
                     if same_start and first_m1:
                         #print start_st,end_st, op_idx
@@ -224,16 +232,16 @@ class Experiment(object):
                             #####POPRAWIC
                             #print np.ceil((period1.index(sd[s,m1]))/self.fs)
                             if self.fols!=None:
-                                self.fols[np.ceil((period1.index(sd[s,m1]))/self.fs)]+=1
+                                self.fols[np.ceil((period1.index(sd[start_idx,m1]))/self.fs)]+=1
                             follow_stat[str(start_st)+str(end_st)][0] += 1 
                             #print p, sd[m1_idx[i-2],m1],[index]
-                            detected_idx[0].append((m1,m2,s))
+                            detected_idx[0].append((m1,m2,start_idx))
                         elif go_oposite:
                             #print np.ceil((period1.index(op_idx))/self.fs)
                             if self.ops!=None:
                                 self.ops[np.ceil((period1.index(op_idx))/self.fs)]+=1
                             follow_stat[str(start_st)+str(end_st)][1] += 1
-                            detected_idx[1].append((m1,m2,s))
+                            detected_idx[1].append((m1,m2,start_idx))
                 except IndexError:
                     print 'Err'
                     continue
@@ -466,9 +474,7 @@ def oneRasterPlot(path,FAM,IPP,phases,directory,scalefactor):
     if not os.path.exists(new_dir):
         os.makedirs(new_dir)
         
-    fig = plt.figure(figsize=(12,12))
-    ax = fig.add_subplot(111, aspect='equal')
-    plt.suptitle('%s'%(path), fontsize=14, fontweight='bold')
+    fig,ax  = utils.make_figure(path)
     n_s,n_l,n_f = FAM.shape
     for s in range(n_s):
         plt.text(0.06+s*0.125, 1.025,phases[s],
@@ -479,6 +485,7 @@ def oneRasterPlot(path,FAM,IPP,phases,directory,scalefactor):
         #MakeRelationGraph(FAM[key][exp][s,:,:],IPP[key][exp][s,:,:],exp,s,key,directory,scalefactor)
         _FAM = FAM[s,:,:]
         _IPP = IPP[s,:,:]
+
         n_l,n_f = _FAM.shape
         pair_labels = []
         pos = 0
@@ -487,6 +494,7 @@ def oneRasterPlot(path,FAM,IPP,phases,directory,scalefactor):
         pos = 0
         for i in range(n_l):
             for j in range(i,n_f):
+                
                 if i!=j and abs(_FAM[i,j])<0.05 and _FAM[i,j]>0:
                     ax.add_patch(patches.Rectangle((
                         s, -1*pos),1 , 1,facecolor=(1,0,0,_IPP[i,j]*0.5/scalefactor)))  
@@ -495,10 +503,10 @@ def oneRasterPlot(path,FAM,IPP,phases,directory,scalefactor):
                         s, -1*pos),1 , 1,facecolor=(0,0,1,_IPP[i,j]*0.5/scalefactor)))
                 if i!=j and abs(_FAM[j,i])<0.05 and _FAM[j,i]>0:
                     ax.add_patch(patches.Rectangle((
-                            s, -1*pos),1 , 1,facecolor=(1,0,0,_IPP[j,i]*0.5/scalefactor))) 
+                        s, -1*pos),1 , 1,facecolor=(1,0,0,_IPP[j,i]*0.5/scalefactor))) 
                 elif i!=j and abs(_FAM[j,i])<0.05 and _FAM[j,i]<0:
                     ax.add_patch(patches.Rectangle((
-                            s, -1*pos),1 , 1,facecolor=(0,0,1,_IPP[j,i]*0.5/scalefactor)))
+                        s, -1*pos),1 , 1,facecolor=(0,0,1,_IPP[j,i]*0.5/scalefactor)))
                 if i!=j:
                     #ax.add_patch(patches.Rectangle((0, -1*pos+1),8,1,facecolor="black",fill=False))
                     pair_labels.append(str(i+1)+'|'+str(j+1))
@@ -513,12 +521,12 @@ def oneRasterPlot(path,FAM,IPP,phases,directory,scalefactor):
     ax.xaxis.set_ticklabels([])
     ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(pos)])
     ax.set_yticklabels(pair_labels)
-    plt.xlabel("session")
-    plt.ylabel("following strength in pair")
-    new_fname = os.path,join(new_path,'RasterRasterPlots.png')
+    ax.set_xlabel("session")
+    ax.set_ylabel("following strength in pair")
+    new_fname = os.path.join(new_dir,'RasterRasterPlots.png')
     fig.savefig(new_fname)
-    #plt.show()
-    plt.close(fig)   
+    plt.show()
+    #plt.close(fig)   
         
 def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'RasterPlots'):
    
