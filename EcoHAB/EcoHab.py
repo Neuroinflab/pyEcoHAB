@@ -65,7 +65,8 @@ class EcoHabData(object):
             self.read_file(f_name)
             self.days.add(f_name.split('_')[0])
 
-    def __init__(self, path, _ant_pos=None):
+    
+    def __init__(self, path, _ant_pos=None,mask=None):
         self.days = set()
         self.path = path
         self.rawdata = []
@@ -73,24 +74,36 @@ class EcoHabData(object):
 
         self.rawdata = self.remove_ghost_tags()
         
-        self.mice = set([d[4] for d in self.rawdata])        
+        self.mice = list(set([d[4] for d in self.rawdata]))
         self.rawdata.sort(key=lambda x: self.convert_time(x[1]))
-  
-        self.data = {}
-        self.data['Id'] = [d[0] for d in self.rawdata]
-        self.data['Time'] = [self.convert_time(d[1]) for d in self.rawdata]
+        
         if _ant_pos is None:
             self._ant_pos = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8}
         else:
             self._ant_pos = _ant_pos
-        self.data['Antenna'] = [self._ant_pos[d[2]] for d in self.rawdata]
-        self.data['Tag'] = [d[4] for d in self.rawdata]
-        # Masking - by default do not mask
+        print(self._ant_pos)
         self.mask = None 
         self._mask_slice = None
+
+        self.data = {}
+        self.data['Time'] = [self.convert_time(d[1]) for d in self.rawdata]
+        self.data['Id'] = [d[0] for d in self.rawdata]
         
+        self.data['Antenna'] = [self._ant_pos[d[2]] for d in self.rawdata]
+        self.data['Tag'] = [d[4] for d in self.rawdata]
+        if mask:
+            self.mask_data(mask[0],mask[1])
+            
+            self.data['Id'] = self.data['Id'][self._mask_slice[0]:self._mask_slice[1]]
+            self.data['Time'] = self.data['Time'][self._mask_slice[0]:self._mask_slice[1]]
+      
+            self.data['Antenna'] = self.data['Antenna'][self._mask_slice[0]:self._mask_slice[1]]
+            self.data['Tag'] = self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]
+            self.mask = None 
+            self._mask_slice = None
+          
         
-    def remove_ghost_tags(self, how_many_appearances=20,factor=3):
+    def remove_ghost_tags(self, how_many_appearances=1000,factor=2):
         new_data = []
         ghost_mice = []
         counters = {}
@@ -104,6 +117,7 @@ class EcoHabData(object):
                 
             counters[mouse] += 1
             dates[mouse].add(d[1].split()[0])
+
         how_many_days = len(self.days)/factor
         for mouse in counters:
             if counters[mouse] < how_many_appearances or dates[mouse] <= how_many_days:
@@ -208,6 +222,7 @@ class EcoHabSessions(IEcoHabSession):
     """Calculates 'visits' to Eco-HAB compartments."""
     def __init__(self, ehd, **kwargs):
         self._ehd = ehd
+        
         self.mask = None
         self._mask_slice = None
         # No longer used after 14 May 2014
@@ -228,6 +243,7 @@ class EcoHabSessions(IEcoHabSession):
         for mm in ehd.mice:
             tt = self._ehd.gettimes(mm)
             an = self._ehd.getantennas(mm)
+            print(an)
             for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
                 # # Old code - until 14 May 2014
                 # if tend - tstart < self.shortest_session_threshold:
@@ -269,6 +285,7 @@ class EcoHabSessions(IEcoHabSession):
                 
                             
         tempdata.sort(key=lambda x: x[2])
+        print(tempdata)
         self.data = {'Tag': [],
              'Address': [],
              'AbsStartTimecode': [],
@@ -362,9 +379,12 @@ class EcoHabSessions(IEcoHabSession):
 class EcoHabSessions9states(IEcoHabSession):
     """Calculates 'visits' to Eco-HAB compartments."""
     def __init__(self, ehd, **kwargs):
+        
+        ehd.unmask_data()
         self._ehd = ehd
         self.mask = None
         self._mask_slice = None
+        self.mice = self._ehd.mice
         self.shortest_session_threshold = kwargs.pop('shortest_session_threshold', 2)
         self.fs = 10
         tempdata = []
@@ -372,8 +392,10 @@ class EcoHabSessions9states(IEcoHabSession):
         self.t_start_exp = np.min(self._ehd.data['Time'])
         self.t_end_exp = np.max(self._ehd.data['Time'])
         t = np.arange(self.t_start_exp,self.t_end_exp,1./self.fs)
-        self.signal_data = np.zeros((len(t),len(ehd.mice)),dtype =np.int8)          
-        for n, mm in enumerate(ehd.mice):
+        self.signal_data = {}
+        for mouse in self.mice:
+            self.signal_data[mouse] = np.zeros(len(t),dtype =np.int8)          
+        for  mm in self._ehd.mice:
             tt = self._ehd.gettimes(mm)
             an = self._ehd.getantennas(mm)
             statistics[mm] = {}
@@ -407,8 +429,8 @@ class EcoHabSessions9states(IEcoHabSession):
                         #Save state to stadard and signal data
                         tempdata.append((state, mm, tstart, tend, tend-tstart,
                                          True))
-                        self.signal_data[int(s):int(e),n] = state
-                                         
+                        self.signal_data[mm][int(s):int(e)] = state
+
                         statistics[mm]["state_freq"][state]+=1
                         statistics[mm]["state_time"][state].append(tend - tstart)
                         if anend == state:
@@ -436,7 +458,7 @@ class EcoHabSessions9states(IEcoHabSession):
                         #Save state to stadard and signal data
                         tempdata.append((state, mm, tstart, tend, tend-tstart,
                                          True))
-                        self.signal_data[int(s):int(e),n] = state
+                        self.signal_data[mm][int(s):int(e)] = state
                                          
                         statistics[mm]["state_freq"][state]+=1
                         statistics[mm]["state_time"][state].append(tend - tstart)
@@ -445,7 +467,7 @@ class EcoHabSessions9states(IEcoHabSession):
                         else:
                             statistics[mm]["preference"][state][0]+=1  
                         previous = state       
-                    
+
             
 #            for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
 #                if tend - tstart < self.shortest_session_threshold:
@@ -507,7 +529,7 @@ class EcoHabSessions9states(IEcoHabSession):
             starttime = args[0]
             endtime = args[1]
         except IndexError:   
-            starttime = min(self.getstarttimes(self._ehd.mice))
+            starttime = min(self.getstarttimes(self.mice))
             endtime = args[0]
         self.mask = (starttime, endtime) 
         arr = np.array(self.data['AbsStartTimecode'])
