@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import scipy.stats as st
+import utils as utils
 
 class bcolors:
     HEADER = '\033[95m'
@@ -46,6 +47,41 @@ def autolabel(rects,ax):
                     '%d' % int(height),
                     ha='center', va='bottom')
 
+def single_barplot(stats,directory, groups,color,name = "",ylab = "",titles=""):
+
+    path = utils.check_directory(directory,"Results")
+        
+    N = len(groups)
+    ind = np.arange(N)
+    width = 0.35
+    fig, ax = plt.subplots()
+    rects = []
+   
+    means = [np.mean(stats[group]) for group in groups]
+    errs = [st.sem(stats[group]) for group in groups]
+    for i, mean in enumerate(means):
+        
+        if isinstance(titles,list):
+            rects.append(ax.bar(ind[i]+width, mean, width, color=color, yerr=errs[i],label=titles[i]))
+        else:
+            rects.append(ax.bar(ind[i]+width, mean, width, color=color, yerr=errs[i]))
+
+    ax.set_ylabel(ylab)
+    ax.set_title('Group comparison')
+    ax.set_xticks(ind + width / 2)
+    ax.set_xticklabels(groups)
+    ax.set_xlabel('Parameter')
+    
+    if isinstance(titles,list):
+        ax.legend()
+    
+    #autolabel(rects1)
+    #autolabel(rects2)
+
+    new_fname = os.path.join(path,(name+'.png'))
+    plt.savefig(new_fname)
+    plt.show()
+
 def barplot(stats, names, groups,colors, directory = "Barplots",name = "",ylab = ""):
     if not os.path.exists('../Results/'+directory):
         os.makedirs('../Results/'+directory)
@@ -57,9 +93,9 @@ def barplot(stats, names, groups,colors, directory = "Barplots",name = "",ylab =
     for i,key in enumerate(names.keys()):
         mean = [np.mean(stats[key][group]) for group in groups]
         err = [st.sem(stats[key][group]) for group in groups]
+       
         rects.append(ax.bar(ind+i*width, mean, width, color=colors[key], yerr=err))
-        #autolabel(rects[-1],ax)
-    # add some text for labels, title and axes ticks
+
     ax.set_ylabel(ylab)
     ax.set_title('Group comparison')
     ax.set_xticks(ind + width / 2)
@@ -85,6 +121,58 @@ def forceAspect(ax,aspect=1):
     im = ax.get_images()
     extent =  im[0].get_extent()
     ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
+
+def oneRasterPlot(directory,FAM,IPP,phases,name,scalefactor,to_file=True):
+
+    subdirectory = 'RasterPlots'
+    new_path = utils.check_directory(directory,subdirectory)
+    fig = plt.figure(figsize=(12,12))
+    ax = fig.add_subplot(111, aspect='equal')
+
+    if name:
+        plt.suptitle(name, fontsize=14, fontweight='bold')
+
+    n_s,n_l,n_f = FAM.shape
+    for s in range(n_s):
+        plt.text(0.06+s*0.125, 1.025,phases[s], horizontalalignment='center', verticalalignment='center', fontsize=10,  transform = ax.transAxes)
+        # MakeRelationGraph(FAM[s,:,:],IPP[s,:,:],exp,s,key,directory,scalefactor)
+        _FAM = FAM[s,:,:]
+        _IPP = IPP[s,:,:]
+        pair_labels = []
+        pos = 0
+        for i in range(n_l):
+            for j in range(i,n_f):
+                if i!=j and abs(_FAM[i,j])<0.05 and _FAM[i,j]>0:
+                    ax.add_patch(patches.Rectangle((
+                            s, -1*pos),1 , 1,facecolor=(1,0,0,_IPP[i,j]*0.5/scalefactor)))  
+                elif i!=j and abs(_FAM[i,j])<0.05 and _FAM[i,j]<0:
+                        ax.add_patch(patches.Rectangle((
+                            s, -1*pos),1 , 1,facecolor=(0,0,1,_IPP[i,j]*0.5/scalefactor)))
+                if i!=j and abs(_FAM[j,i])<0.05 and _FAM[j,i]>0:
+                    ax.add_patch(patches.Rectangle((
+                            s, -1*pos),1 , 1,facecolor=(1,0,0,_IPP[j,i]*0.5/scalefactor))) 
+                elif i!=j and abs(_FAM[j,i])<0.05 and _FAM[j,i]<0:
+                                ax.add_patch(patches.Rectangle((
+                                        s, -1*pos),1 , 1,facecolor=(0,0,1,_IPP[j,i]*0.5/scalefactor)))
+                if i!=j:
+                    #ax.add_patch(patches.Rectangle((0, -1*pos+1),8,1,facecolor="black",fill=False))
+                    pair_labels.append(str(i+1)+'|'+str(j+1))
+                    #pair_labels.append(str(j+1)+'|'+str(i+1))
+                    pos+=1
+        for i in range(8-n_s):
+            ax.add_patch(patches.Rectangle((
+                                        n_s+i, -pos+1),1, pos,facecolor="lightgrey"))
+        plt.axis([0,8,-pos+1,1])
+        ax.set_aspect('auto')
+        ax.xaxis.grid()
+        ax.xaxis.set_ticklabels([])
+        ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(pos)])
+        ax.set_yticklabels(pair_labels)
+        plt.xlabel("session")
+        plt.ylabel("following strength in pair")
+        plt.savefig(os.path.join(new_path,'oneRasterPlot.png'))
+        plt.show()
+        #plt.close(fig)   
 
 def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'RasterPlots'):
     if not os.path.exists('../Results/'+directory):
