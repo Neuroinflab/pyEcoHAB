@@ -29,7 +29,31 @@ import matplotlib.patches as patches
 
 class Experiment(object):
     """Class, which represent data from one of the experiments"""
-    
+    def _fix_config(self):
+        tstarts = []
+        tends = []
+        phases = self.cf.sections()
+        for phase in phases:
+            if 'dark' in phase or 'light' in phase:
+                st, en = self.cf.gettime(phase)
+                tstarts.append(st)
+                tends.append(en)
+        t_min = np.argmin(tstarts)
+        t_max = np.argmax(tends)
+        if 'ALL' in phases :
+            
+            startdate = self.cf.get(phases[t_min],'startdate')
+            starttime = self.cf.get(phases[t_min],'starttime')
+            enddate = self.cf.get(phases[t_max],'enddate')
+            endtime = self.cf.get(phases[t_max],'endtime')
+            
+            self.cf.set('ALL','startdate',startdate)
+            self.cf.set('ALL','starttime',starttime)
+            self.cf.set('ALL','enddate',enddate)
+            self.cf.set('ALL','endtime',endtime)
+            
+            
+
     def __init__(self, path,_ant_pos=None,which_phase='ALL'):
         
         self.path = path
@@ -43,7 +67,7 @@ class Experiment(object):
                     self.cf.remove_section(phase)
                 elif st > mask[1]:
                     self.cf.remove_section(phase)
-                    
+            self._fix_config()
         except ConfigParser.NoSectionError:
             mask = None
             
@@ -66,7 +90,7 @@ class Experiment(object):
         self.treshold = treshold
  
         self.tstart, self.tend = self.cf.gettime('ALL')
-        print(self.tstart, self.tend,(self.tend-self.tstart)/60/24)
+  
         self.fpatterns = []
         self.opatterns = []
         if window=='default':
@@ -234,7 +258,7 @@ def createRandomExpepiments(paths,core='Random_test' ):
         rdname = 'Random_test%s.pkl'%(j+1)
         print(rdE.sd.shape)
         rd = np.zeros(rdE.sd.shape)
-        print '####%s#####'%j
+        print('####%s#####'%j)
         ######Create test file#########
         for i in range(j,len(paths)+j):
             E = Experiment(paths[i%len(paths)])
@@ -308,22 +332,25 @@ def factorial(n):
     if n < 2: return 1
     return reduce(lambda x, y: x*y, xrange(2, int(n)+1))
 
-def prob(s, p, n):
+def binomial_probability(s, p, n):
+
     x = 1.0 - p
-    a = n - s
-    b = s + 1
-    c = a + b - 1
+ 
     prob = 0.0
-    for j in xrange(a, c + 1):
-        prob += factorial(c) / (factorial(j)*factorial(c-j)) \
-                * x**j * (1 - x)**(c-j)
+    
+    for k in range(n - s, n + 1):
+        prob += scipy.special.binom(n, k)* x**k * (1 - x)**(n-k)
+
     return prob
+
 def FAprobablity(a,p=0.5):
-    pf,pa=prob(int(a[1]), 0.5, int(a[0]+a[1])), prob(int(a[0]), 0.5, int(a[0]+a[1]))
-    if pf<pa and pf<0.05:
+    
+    pf = binomial_probability(int(a[1]), p, int(a[0]+a[1]))
+    pa = binomial_probability(int(a[0]), p, int(a[0]+a[1]))
+
+    if pf < pa and pf < 0.05:
         v = round(pf,3)#0.5-pf
-    elif pa<pf and pa<0.05:
-        print(pa)
+    elif pa < pf and pa < 0.05:
         v = round(-pa,3)#pa-0.5
     else:
         v = 0.
