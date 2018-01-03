@@ -63,9 +63,18 @@ class EcoHabData(object):
         
         for f_name in self._fnames:
             self.read_file(f_name)
-            self.days.add(f_name.split('_')[0])
+            self.days.add(f_name.split('_')[0])        
+        
+    def _cut_out_data(self,mask):
 
-    
+        mask = self._find_mask_indices(mask)
+        
+        self.data['Id'] = self.data['Id'][mask[0]:mask[1]]
+        self.data['Time'] = self.data['Time'][mask[0]:mask[1]]
+        
+        self.data['Antenna'] = self.data['Antenna'][mask[0]:mask[1]]
+        self.data['Tag'] = self.data['Tag'][mask[0]:mask[1]]
+
     def __init__(self, path, _ant_pos=None,mask=None):
         self.days = set()
         self.path = path
@@ -81,7 +90,7 @@ class EcoHabData(object):
             self._ant_pos = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8}
         else:
             self._ant_pos = _ant_pos
-        print(self._ant_pos)
+        
         self.mask = None 
         self._mask_slice = None
 
@@ -91,16 +100,9 @@ class EcoHabData(object):
         
         self.data['Antenna'] = [self._ant_pos[d[2]] for d in self.rawdata]
         self.data['Tag'] = [d[4] for d in self.rawdata]
+        
         if mask:
-            self.mask_data(mask[0],mask[1])
-            
-            self.data['Id'] = self.data['Id'][self._mask_slice[0]:self._mask_slice[1]]
-            self.data['Time'] = self.data['Time'][self._mask_slice[0]:self._mask_slice[1]]
-      
-            self.data['Antenna'] = self.data['Antenna'][self._mask_slice[0]:self._mask_slice[1]]
-            self.data['Tag'] = self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]
-            self.mask = None 
-            self._mask_slice = None
+            self._cut_out_data(mask)
           
         
     def remove_ghost_tags(self, how_many_appearances=1000,factor=2):
@@ -136,19 +138,25 @@ class EcoHabData(object):
                    self._fnames.__str__(), self.path) 
         return mystring
 
+    def _find_mask_indices(self,mask):
+        
+        starttime, endtime = mask
+        arr = np.array(self.data['Time'])
+        idcs = np.where((arr >= starttime) & (arr < endtime))[0]
+
+        if len(idcs) >= 2:
+            return (idcs[0], idcs[-1] + 1)
+        if len(idcs) == 1:
+            return (idcs[0], idcs[0] + 1)
+        
+        return (0,0)
+    
     def mask_data(self, starttime, endtime):
         """mask_data(starttime, endtime)
         All future queries will be clipped to the visits starting between
         starttime and endtime."""
         self.mask = (starttime, endtime) 
-        arr = np.array(self.data['Time'])
-        idcs = np.where((arr >= starttime) & (arr < endtime))[0]
-        if len(idcs) >= 2:
-            self._mask_slice = (idcs[0], idcs[-1] + 1)
-        elif len(idcs) == 1:
-            self._mask_slice = (idcs[0], idcs[0] + 1)
-        else:
-            self._mask_slice = (0, 0)
+        self._mask_slice = self._find_mask_indices(self.mask)
 
     def unmask_data(self):
         """Remove the mask - future queries will not be clipped"""
@@ -221,6 +229,7 @@ class IEcoHabSession(object):
 class EcoHabSessions(IEcoHabSession):
     """Calculates 'visits' to Eco-HAB compartments."""
     def __init__(self, ehd, **kwargs):
+        
         self._ehd = ehd
         
         self.mask = None
