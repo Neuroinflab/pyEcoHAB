@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, division
 
 import os
 import csv
@@ -252,7 +252,7 @@ class EcoHabSessions(IEcoHabSession):
         for mm in ehd.mice:
             tt = self._ehd.gettimes(mm)
             an = self._ehd.getantennas(mm)
-            print(an)
+
             for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
                 # # Old code - until 14 May 2014
                 # if tend - tstart < self.shortest_session_threshold:
@@ -294,7 +294,7 @@ class EcoHabSessions(IEcoHabSession):
                 
                             
         tempdata.sort(key=lambda x: x[2])
-        print(tempdata)
+
         self.data = {'Tag': [],
              'Address': [],
              'AbsStartTimecode': [],
@@ -387,95 +387,76 @@ class EcoHabSessions(IEcoHabSession):
         
 class EcoHabSessions9states(IEcoHabSession):
     """Calculates 'visits' to Eco-HAB compartments."""
-    def __init__(self, ehd, **kwargs):
-        
-        ehd.unmask_data()
-        self._ehd = ehd
-        self.mask = None
-        self._mask_slice = None
-        self.mice = self._ehd.mice
-        self.shortest_session_threshold = kwargs.pop('shortest_session_threshold', 2)
-        self.fs = 10
-        tempdata = []
+    
+    def _calculate_visitis(self):
+
         statistics = {}
-        self.t_start_exp = np.min(self._ehd.data['Time'])
-        self.t_end_exp = np.max(self._ehd.data['Time'])
-        t = np.arange(self.t_start_exp,self.t_end_exp,1./self.fs)
-        self.signal_data = {}
-        for mouse in self.mice:
-            self.signal_data[mouse] = np.zeros(len(t),dtype =np.int8)          
-        for  mm in self._ehd.mice:
-            tt = self._ehd.gettimes(mm)
-            an = self._ehd.getantennas(mm)
-            statistics[mm] = {}
-            statistics[mm]["state_freq"]= np.zeros(9)
-            statistics[mm]["state_time"]= [[] for i in range(9)]
-            statistics[mm]["preference"]={}
+        tempdata = []
+
+        for  mouse in self._ehd.mice:
+            
+            tt = self._ehd.gettimes(mouse)
+            an = self._ehd.getantennas(mouse)
+            statistics[mouse] = {}
+            statistics[mouse]["state_freq"]= np.zeros(9)
+            statistics[mouse]["state_time"]= [[] for i in range(9)]
+            statistics[mouse]["preference"]={}
             for i in range(9):
-                 statistics[mm]["preference"][i] = np.zeros(2)
+                 statistics[mouse]["preference"][i] = np.zeros(2)
                  
-            previous = 0
+            state = 0
+            
             for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
                 
-                if tend - tstart < self.shortest_session_threshold:
-                    state = 0
-                    previous = 0
-                    statistics[mm]["state_freq"][state]+=1
-                    statistics[mm]["state_time"][state].append(tend - tstart)
-                    continue
-                diff = np.abs(anstart - anend)
-                if diff in [0,1,7]:
-                    s = (tstart - self.t_start_exp)*self.fs
-                    e = (tend- self.t_start_exp)*self.fs
-                    ############Most obvious reading##########
-                    if diff in [1, 7]:
-                        if diff == 1:
-                            state = int((anstart + anend)/2.-0.5)
-                            previous = state
-                        else:
-                            state = 8
-                            previous = state
-                        #Save state to stadard and signal data
-                        tempdata.append((state, mm, tstart, tend, tend-tstart,
-                                         True))
-                        self.signal_data[mm][int(s):int(e)] = state
-
-                        statistics[mm]["state_freq"][state]+=1
-                        statistics[mm]["state_time"][state].append(tend - tstart)
-                        if anend == state:
-                            statistics[mm]["preference"][state][1]+=1
-                        else:
-                            statistics[mm]["preference"][state][0]+=1  
-                        previous = state       
-                    elif diff == 0 and previous != 0:
-                        if tend - tstart < 2:
-                            continue
-                        diff2 = anstart - previous
-                        state  = 0
-                        if diff2 >=0:
-                            if diff2 == 0 and previous != 1:
-                                state = previous-1
-                            elif diff2 == 0 and previous == 1:
+                previous = state       
+                state = 0
+                
+                if tend - tstart >= self.shortest_session_threshold:
+                    diff = np.abs(anstart - anend)
+                    if diff in [0,1,7]:
+                        s = (tstart - self.t_start_exp)*self.fs
+                        e = (tend- self.t_start_exp)*self.fs
+                        ############Most obvious reading##########
+                        if diff in [1, 7]:
+                            if diff == 1:
+                                state = int((anstart + anend)/2-0.5)
+                            else:
                                 state = 8
-                            elif diff2 == 1:
-                                state = previous+1
-                            elif diff2 == 7:
-                                state = 1
+
+                            #Save state to stadard and signal data
+                            tempdata.append((state, mouse, tstart, tend, tend-tstart,
+                                             True))
+                            self.signal_data[mouse][int(s):int(e)] = state
+                        elif diff == 0 and previous != 0:
+
+                            if tend - tstart < 2:
+                                continue
+                            
+                            diff2 = anstart - previous
+                            
+                            if diff2 >=0:
+                                if diff2 == 0 and previous != 1:
+                                    state = previous-1
+                                elif diff2 == 0 and previous == 1:
+                                    state = 8
+                                elif diff2 == 1:
+                                    state = previous+1
+                                elif diff2 == 7:
+                                    state = 1
                             
                             
-                            #print previous,state,anend
-                        #Save state to stadard and signal data
-                        tempdata.append((state, mm, tstart, tend, tend-tstart,
-                                         True))
-                        self.signal_data[mm][int(s):int(e)] = state
-                                         
-                        statistics[mm]["state_freq"][state]+=1
-                        statistics[mm]["state_time"][state].append(tend - tstart)
-                        if anend == state:
-                            statistics[mm]["preference"][state][1]+=1
-                        else:
-                            statistics[mm]["preference"][state][0]+=1  
-                        previous = state       
+                            tempdata.append((state, mouse, tstart, tend, tend-tstart,
+                                             True))
+                            self.signal_data[mouse][int(s):int(e)] = state
+                        
+   
+                statistics[mouse]["state_freq"][state]+=1
+                statistics[mouse]["state_time"][state].append(tend - tstart)
+                if anend == state:
+                    statistics[mouse]["preference"][state][1]+=1
+                else:
+                    statistics[mouse]["preference"][state][0]+=1  
+            
 
             
 #            for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
@@ -502,13 +483,13 @@ class EcoHabSessions9states(IEcoHabSession):
 #                    else:
 #                        state1 = state2_temp
 #                        state2 = state1_temp
-#                    d = statistics[mm]["state_time"]
+#                    d = statistics[mouse]["state_time"]
 #                    split = tstart+(tend - tstart)*(np.sum(d[state1])/np.sum(d[state1]+d[state2]))
 #                    tempdata.append((state1, 
-#                                mm, tstart, split, split-tstart,
+#                                mouse, tstart, split, split-tstart,
 #                                False))
 #                    tempdata.append((state2, 
-#                                mm, split, tend, tend-split,
+#                                mouse, split, tend, tend-split,
 #                                False))
         tempdata.sort(key=lambda x: x[2])
         self.data = {'Tag': [],
@@ -523,7 +504,26 @@ class EcoHabSessions9states(IEcoHabSession):
         self.data['AbsEndTimecode'] = [x[3] for x in tempdata]
         self.data['VisitDuration'] = [x[4] for x in tempdata]
         self.data['ValidVisitSolution'] = [x[5] for x in tempdata]
-        self.statistics = statistics
+        return statistics
+    
+    def __init__(self, ehd, **kwargs):
+        
+        ehd.unmask_data()
+        self._ehd = ehd
+        self.mask = None
+        self._mask_slice = None
+        self.mice = self._ehd.mice
+        self.shortest_session_threshold = kwargs.pop('shortest_session_threshold', 2)
+        self.fs = 10
+        
+        self.t_start_exp = np.min(self._ehd.data['Time'])
+        self.t_end_exp = np.max(self._ehd.data['Time'])
+        t = np.arange(self.t_start_exp,self.t_end_exp,1/self.fs)
+        self.signal_data = {}
+        for mouse in self.mice:
+            self.signal_data[mouse] = np.zeros(len(t),dtype =np.int8)          
+        
+        self.statistics = self._calculate_visitis()
         
     def unmask_data(self):
         """Remove the mask - future queries will not be clipped"""
