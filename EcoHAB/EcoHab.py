@@ -385,7 +385,7 @@ class EcoHabSessions(IEcoHabSession):
         
         
         
-class EcoHabSessions9states(IEcoHabSession):
+class EcoHabSessions9states(EcoHabData,IEcoHabSession):
     """Calculates 'visits' to Eco-HAB compartments."""
     
     def _calculate_visitis(self):
@@ -393,10 +393,11 @@ class EcoHabSessions9states(IEcoHabSession):
         statistics = {}
         tempdata = []
 
-        for  mouse in self._ehd.mice:
+        for  mouse in self.mice:
             
-            tt = self._ehd.gettimes(mouse)
-            an = self._ehd.getantennas(mouse)
+            tt = self.gettimes(mouse)
+            an = self.getantennas(mouse)
+            
             statistics[mouse] = {}
             statistics[mouse]["state_freq"]= np.zeros(9)
             statistics[mouse]["state_time"]= [[] for i in range(9)]
@@ -492,12 +493,7 @@ class EcoHabSessions9states(IEcoHabSession):
 #                                mouse, split, tend, tend-split,
 #                                False))
         tempdata.sort(key=lambda x: x[2])
-        self.data = {'Tag': [],
-             'Address': [],
-             'AbsStartTimecode': [],
-             'AbsEndTimecode': [],
-             'VisitDuration': [],
-             'ValidVisitSolution': [],}
+
         self.data['Address'] = [x[0] for x in tempdata]
         self.data['Tag'] = [x[1] for x in tempdata]
         self.data['AbsStartTimecode'] = [x[2] for x in tempdata]
@@ -506,18 +502,14 @@ class EcoHabSessions9states(IEcoHabSession):
         self.data['ValidVisitSolution'] = [x[5] for x in tempdata]
         return statistics
     
-    def __init__(self, ehd, **kwargs):
-        
-        ehd.unmask_data()
-        self._ehd = ehd
-        self.mask = None
-        self._mask_slice = None
-        self.mice = self._ehd.mice
+    def __init__(self, path, **kwargs):
+        _ant_pos = kwargs.pop('_ant_pos', None)
+        _mask = kwargs.pop('mask', None)
+        super(EcoHabSessions9states,self).__init__(path,_ant_pos,_mask)
         self.shortest_session_threshold = kwargs.pop('shortest_session_threshold', 2)
         self.fs = 10
-        
-        self.t_start_exp = np.min(self._ehd.data['Time'])
-        self.t_end_exp = np.max(self._ehd.data['Time'])
+        self.t_start_exp = np.min(self.data['Time'])
+        self.t_end_exp = np.max(self.data['Time'])
         t = np.arange(self.t_start_exp,self.t_end_exp,1/self.fs)
         self.signal_data = {}
         for mouse in self.mice:
@@ -525,10 +517,6 @@ class EcoHabSessions9states(IEcoHabSession):
         
         self.statistics = self._calculate_visitis()
         
-    def unmask_data(self):
-        """Remove the mask - future queries will not be clipped"""
-        self.mask = None
-        self._mask_slice = None
 
     def mask_data(self, *args):
         """mask_data(endtime) or mask_data(starttime, endtime)
@@ -550,31 +538,7 @@ class EcoHabSessions9states(IEcoHabSession):
         else:
             self._mask_slice = (0, 0)
 
-    def getproperty(self, mice, propname, astype=None):
-        if isinstance(mice, (str, unicode)):
-            mice = [mice]
-        # if not isinstance(mice, collections.Container):
-        #     mice = [mice]
- 
-        if self.mask is None:
-            if astype is None:
-                return [x[0] for x in zip(self.data[propname], 
-                        self.data['Tag']) if x[1] in mice]
-            elif astype == 'float':                          
-                return [float(x[0]) for x in zip(self.data[propname], 
-                        self.data['Tag']) if x[1] in mice]
-        else:
-            if astype is None:
-                return [x[0] for x in zip(
-                        self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
-                        self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
-                        if x[1] in mice] 
-            elif astype == 'float':
-                return [float(x[0]) for x in zip(
-                        self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
-                        self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
-                        if x[1] in mice]
-                    
+                     
     def getstarttimes(self, mice): 
         return self.getproperty(mice, 'AbsStartTimecode', 'float')
                     
