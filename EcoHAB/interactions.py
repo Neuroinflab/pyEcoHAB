@@ -38,6 +38,7 @@ class Experiment(object):
                 st, en = self.cf.gettime(phase)
                 tstarts.append(st)
                 tends.append(en)
+                
         t_min = np.argmin(tstarts)
         t_max = np.argmax(tends)
         if 'ALL' in phases :
@@ -52,35 +53,41 @@ class Experiment(object):
             self.cf.set('ALL','enddate',enddate)
             self.cf.set('ALL','endtime',endtime)
             
-            
+    def _remove_phases(self,mask):
+        if mask:
+            for phase in self.cf.sections():
+                st, en = self.cf.gettime(phase)
+                if en <= mask[0]:
+                    self.cf.remove_section(phase)
+                elif st >= mask[1]:
+                    self.cf.remove_section(phase)
+            self._fix_config()
 
-    def __init__(self, path,_ant_pos=None,which_phase='ALL'):
+    def __init__(self, path,_ant_pos=None,which_phase='ALL',mask=None):
         
         self.path = path
         self.directory = os.path.join(self.path,'Results')
         self.cf = ExperimentConfigFile(self.path)
-        try:
-            mask = self.cf.gettime(which_phase)
-            for phase in self.cf.sections():
-                st, en = self.cf.gettime(phase)
-                if en < mask[0]:
-                    self.cf.remove_section(phase)
-                elif st > mask[1]:
-                    self.cf.remove_section(phase)
-            self._fix_config()
-        except ConfigParser.NoSectionError:
-            mask = None
-            
+
+        if which_phase != 'ALL' and mask == None:
+            try:
+                mask = self.cf.gettime(which_phase)
+            except ConfigParser.NoSectionError:
+                mask = None
+        
+        self._remove_phases(mask)            
+
+        print(self.cf.sections())
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
-        self.ehd = EcoHab.EcoHabData(self.path, _ant_pos=_ant_pos,mask=mask)
+        #self.ehd = EcoHab.EcoHabData(self.path, _ant_pos=_ant_pos,mask=mask)
         
-        self.ehs = EcoHab.EcoHabSessions9states(self.ehd,shortest_session_threshold=0)
+        self.ehs = EcoHab.EcoHabSessions9states(self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0.3)
 
         self.fs = self.ehs.fs
         self.sd =  self.ehs.signal_data
        
-        mice = list(self.ehd.mice)
+        mice = list(self.ehs.mice)
         self.mice = filter(lambda x: len(self.ehs.getstarttimes(x)) > 30, mice)
         self.lm = len(self.mice)
         
@@ -103,15 +110,19 @@ class Experiment(object):
                 self.phases = [(st*window[0]*3600,(st+1)*window[0]*3600) for st in window[1]]
             else:
                 raise TypeError
+            
         self.f = np.zeros((len(self.mice),len(self.mice),len(self.phases)))
         self.interactions = np.zeros((len(self.phases),len(self.mice),len(self.mice),8,3))
         self.f_sum = np.zeros((len(self.phases),self.lm))
+                              
         if 'following.npy' in list(os.walk(os.path.join('..','Results',self.path)))[0][2] and not force:
             self.f = np.load(os.path.join('..','Results/'+self.path+'/')+'following.npy')
             return self.f
         else:
+            print(self.phases)
             for s in range(len(self.phases)):
                 ts, te = self.phases[s]
+                print(ts,te)
                 print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
                 self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
             if not os.path.exists(os.path.join(self.path,'PreprocessedData/IteractionsData/')):
@@ -124,13 +135,13 @@ class Experiment(object):
         """Calculates fvalue matrix for the given period from ts to te
         """
         imatrix = np.zeros((self.lm,self.lm,8,3))
-        for ii, m1 in enumerate(self.mice):
-            for jj,m2 in enumerate(self.mice):
+        for ii, mouse1 in enumerate(self.mice):
+            for jj,mouse2 in enumerate(self.mice):
                 if ii < jj:
-                    imatrix[ii,jj,:,:],patterns = self.findpatterns((m1,m2),ts, te)
+                    imatrix[ii,jj,:,:],patterns = self.findpatterns((ii,jj),ts, te)
                     self.fpatterns+=patterns[0]
                     self.opatterns+=patterns[1]
-                    imatrix[jj,ii,:,:],patterns = self.findpatterns((m2,m1),ts, te)
+                    imatrix[jj,ii,:,:],patterns = self.findpatterns((ii,jj),ts, te)
                     self.fpatterns+=patterns[0]
                     self.opatterns+=patterns[1]
         return imatrix
@@ -140,42 +151,44 @@ class Experiment(object):
         t = np.arange(trange[0],trange[1],1.0/self.fs)
         frandom_idx = [np.random.randint(0,len(self.fpatterns)-1) for i in range(plots_nr)]
         orandom_idx = [np.random.randint(0,len(self.opatterns)-1) for i in range(plots_nr)]
+        plt.figure()
         plt.suptitle("Random following patterns", fontsize=14, fontweight='bold')
         for i,idx in enumerate(frandom_idx):
             ax = plt.subplot(size, size,i+1)
-            print(self.fpatterns[idx])
+
             ii,jj,s = self.fpatterns[idx]
             ax.set_title("%s|%s|t=%s"%(ii,jj,s*1./self.fs))
-            plt.plot(t,self.sd[ii][s-3*self.fs:s+3*self.fs]-0.05,'ro',label="leader")
-            plt.plot(t,self.sd[jj][s-3*self.fs:s+3*self.fs]+0.05,'bo',label="follower")
+            mouse1 = self.mice[ii]
+            mouse2 = self.mice[jj]
+            plt.plot(t,self.sd[mouse1][s-3*self.fs:s+3*self.fs]-0.05,'ro',label="leader")
+            plt.plot(t,self.sd[mouse2][s-3*self.fs:s+3*self.fs]+0.05,'bo',label="follower")
             plt.axis([-3.1,3.1,-0.5,9.5])
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         plt.show()
+        plt.figure()
         plt.suptitle("Random avoiding patterns", fontsize=14, fontweight='bold')
         for i,idx in enumerate(orandom_idx):
             ax = plt.subplot(size, size,i+1)
-            print(self.opatterns[idx])
+
             ii,jj,s = self.opatterns[idx]
+            mouse1 = self.mice[ii]
+            mouse2 = self.mice[jj]
             ax.set_title("%s|%s|t=%s"%(ii,jj,s*1./self.fs))
-            plt.plot(t,self.sd[ii][s-3*self.fs:s+3*self.fs]-0.05,'ro',label="leader")
-            plt.plot(t,self.sd[jj][s-3*self.fs:s+3*self.fs]+0.05,'bo',label="follower")
+            plt.plot(t,self.sd[mouse1][s-3*self.fs:s+3*self.fs]-0.05,'ro',label="leader")
+            plt.plot(t,self.sd[mouse2][s-3*self.fs:s+3*self.fs]+0.05,'bo',label="follower")
             plt.axis([-3.1,3.1,-0.5,9.5])
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         plt.show()
-    
-    def findpatterns(self, (m1,m2),t1, t2):
-        fs = self.fs
-        sd = self.sd
-        detected_idx = [[],[]]
-        follow_stat = {}
-        
-        m1_idx = np.where(((np.roll(sd[m1], 1) - sd[m1]) != 0))[0]
 
-        m2_stats = self.ehs.statistics[m2]["preference"]
+    def calculate_mouse_stats(self,mouse):
+        
+        follow_stat = {}
+        mouse_stats = self.ehs.statistics[mouse]["preference"]
+        #print(mouse2_stats)
         moves = ['24','42','46','64','68','86','82','28']
-        for m in moves:
-            follow_stat[m] = np.zeros(3)
-            start_st, end_st = int(m[0]),int(m[1])
+        for move in moves:
+            follow_stat[move] = np.zeros(3)
+            start_st, end_st = int(move[0]),int(move[1])
             if end_st == 2 and start_st==8:
                 index = 0
             elif end_st == 8 and start_st==2:
@@ -184,62 +197,102 @@ class Experiment(object):
                 index = 0
             else:
                 index = 1
-            follow_stat[m][2] = m2_stats[int(m[0])][index]/np.sum(m2_stats[int(m[0])])
-        #print m2_stats
-        #print 'ruchliwosc', len(m1_idx)
-        for i in range(2,len(m1_idx)):
-            if m1_idx[i] > t1*fs and m1_idx[i]<t2*fs:
-                s = m1_idx[i]
-                start_st = int(sd[m1][m1_idx[i-2]])
-                end_st = int(sd[m1][s])
-                e =s+self.treshold*fs
-                try:
-                    period1 = list(sd[m2][s:e])
-                    period2 = list(sd[m2][s-2*fs:s])
-                    period3 = list(sd[m2][s-int(0.1*fs):s])
-                    # define conditions
-                    unknown_state = sd[m1][s]==0 or int(sd[m1][m1_idx[i-1]])==0
-                    unknown_previous_states = (sd[m1][m1_idx[i-1]] ==0 and (sd[m1][m1_idx[i-2]] ==0)) or (sd[m1][m1_idx[i-1]] !=0 and (sd[m1][m1_idx[i-2]] ==0))
-                    in_pipe =  sd[m1][s]%2==1
-                    if unknown_state or unknown_previous_states or in_pipe or start_st==end_st:
-                        continue
+            follow_stat[move][2] = mouse_stats[int(move[0])][index]/np.sum(mouse_stats[int(move[0])])
+        return follow_stat
+    
+    def findpatterns(self, (ii,jj),t1, t2):
+        
+        fs = self.fs
+
+        detected_idx = [[],[]]
+        mouse1 = self.mice[ii]
+        mouse2 = self.mice[jj]
+
+        follow_stat = self.calculate_mouse_stats(mouse2)
+
+        mouse1_indices = np.where(((np.roll(self.sd[mouse1], 1) - self.sd[mouse1]) != 0))[0]
+        mouse1_idx_start = np.where(mouse1_indices > t1*fs)[0][0]
+        mouse1_idx_stop =  np.where(mouse1_indices < t2*fs)[0][-1]
+              
+        i = mouse1_idx_start - 1
+       
+        for start in mouse1_indices[mouse1_idx_start:mouse1_idx_stop+1]:
+            
+            i = i + 1
+            start_state = int(self.sd[mouse1][mouse1_indices[i-2]])
+            middle_state = int(self.sd[mouse1][mouse1_indices[i-1]])
+            end_state = int(self.sd[mouse1][start])
+     
+            end = start + self.treshold*fs
+
+            unknown_state = end_state == 0 or middle_state == 0 or start_state == 0
+            
+            in_pipe = end_state%2==1
+            # define conditions
+            if unknown_state or start_state == end_state or in_pipe:
+                continue
+            
+            try:
+                
+                period1 = list(self.sd[mouse2][start:end])
+                
+                period2 = list(self.sd[mouse2][start-2*fs:start])
+
+                period3 = list(self.sd[mouse2][start-int(0.1*fs):start])
+
+                
+              
+                op_idx = (2*start_state-end_state-1)%8+1 #opposite direction
+                
+                same_start = start_state in period2 #POPRAWIC!!!!!!!
+
+                first_mouse1 = end_state not in period3 and op_idx not in period3
+                
+                followed = period1.count(end_state) > 0
+                
+                go_oposite = op_idx in period1
+                
+                if followed and go_oposite:
+                    followed = period1.index(end_state) < period1.index(op_idx)
+                    go_oposite = not followed
                     
-                    op_idx = (2*sd[m1][m1_idx[i-2]]-sd[m1][s]-1)%8+1
-                    same_start = sd[m1][m1_idx[i-2]] in period2 #POPRAWIC!!!!!!!
-                    first_m1 = sd[m1][s] not in period3 and op_idx not in period3
-                    followed = period1.count(sd[m1][s])>0
-                    go_oposite = op_idx in period1
-                    if followed and go_oposite:
-                        followed = period1.index(sd[m1][s])<period1.index(op_idx)
-                        go_oposite = not followed
-                    if same_start and first_m1:
-                        #print start_st,end_st, op_idx
-                        #print start_st,end_st,index
-                        #print sd[m1_idx[i-2],m1],sd[s,m1], (2*sd[m1_idx[i-2],m1]-sd[s,m1]-1)%8+1,followed,go_oposite
-                        if followed:
-                            #####POPRAWIC
-                            #print np.ceil((period1.index(sd[s,m1]))/self.fs)
-                            if self.fols!=None:
-                                self.fols[np.ceil((period1.index(sd[m1][s]))/self.fs)]+=1
-                            follow_stat[str(start_st)+str(end_st)][0] += 1 
-                            #print p, sd[m1_idx[i-2],m1],[index]
-                            detected_idx[0].append((m1,m2,s))
-                        elif go_oposite:
-                            #print np.ceil((period1.index(op_idx))/self.fs)
-                            if self.ops!=None:
-                                self.ops[np.ceil((period1.index(op_idx))/self.fs)]+=1
-                            follow_stat[str(start_st)+str(end_st)][1] += 1
-                            detected_idx[1].append((m1,m2,s))
-                except IndexError:
-                    print('Err')
-                    continue
+                    
+                if same_start and first_mouse1:
+                    #print start_state,end_state, op_idx
+                    #print start_state,end_state,index
+                    #print self.sd[mouse1_indices[i-2],mouse1],self.sd[s,mouse1], (2*self.sd[mouse1_indices[i-2],mouse1]-self.sd[s,mouse1]-1)%8+1,followed,go_oposite
+                    if followed:
+                        #####POPRAWIC
+                        #print(np.ceil((period1.index(self.sd[mouse1][start]))/self.fs))
+                        if self.fols!=None:
+                            self.fols[np.ceil((period1.index(end_state))/self.fs)]+=1
+                        follow_stat[str(start_state)+str(end_state)][0] += 1 
+                        #print p, self.sd[mouse1_indices[i-2],mouse1],[index]
+                        detected_idx[0].append((ii,jj,start))
+                        print(start_state,middle_state,end_state,)
+                        print(period2,period1,period3)
+                        print(ii,jj,start,0)
+                    elif go_oposite:
+                        #print np.ceil((period1.index(op_idx))/self.fs)
+                        if self.ops!=None:
+                            self.ops[np.ceil((period1.index(op_idx))/self.fs)]+=1
+                        follow_stat[str(start_state)+str(end_state)][1] += 1
+                        detected_idx[1].append((ii,jj,start))
+                        print(start_state,middle_state,end_state,)
+                        print(period2,period1,period3)
+                        print(ii,jj,start,1)
+                                                
+            except IndexError:
+                print('Err')
+                continue
+        #print(follow_stat)
+        #print(follow_stat.values())
         return np.array(follow_stat.values()), detected_idx
     
     def InteractionsPerPair(self,start,end):
 
         i8states = np.sum(self.interactions[:,:,:,:,start:end],axis=4)
-        interactions = np.sum(i8states ,axis=3)
-        return interactions
+        return np.sum(i8states ,axis=3)
 
     def FollowingAvoidingMatrix(self):
         
@@ -310,27 +363,21 @@ def Interpersec(names,ts=3, directory='InterPerSec'):
         plt.xlabel("time bin [s]")
         plt.ylabel("avarage number of followings")
         plt.savefig('../Results/'+directory+'/'+key+'folinsec.png')
-        plt.show()
+        #plt.show()
         plt.suptitle(key, fontsize=14, fontweight='bold')
         plt.stem(np.arange(1,ts,1),ops*1./np.sum(ops))
         plt.ylim(0,0.5)
         plt.xlabel("time bin [s]")
         plt.ylabel("avarage number of avoidance")
         plt.savefig('../Results/'+directory+'/'+key+'opsinsec.png')
-        plt.show()
+        #plt.show()
         plt.suptitle(key, fontsize=14, fontweight='bold')
         plt.stem(np.arange(1,ts,1),(fols+ops)*1./np.sum(fols+ops))
         plt.ylim(0,0.5)
         plt.xlabel("time bin [s]")
         plt.ylabel("avarage number of interactions")
         plt.savefig('../Results/'+directory+'/'+key+'interinsec.png')
-        plt.show()
-          
-
-    
-def factorial(n): 
-    if n < 2: return 1
-    return reduce(lambda x, y: x*y, xrange(2, int(n)+1))
+        #plt.show()
 
 def binomial_probability(s, p, n):
 
@@ -367,8 +414,9 @@ def FollowingAvoidingMatrix(names):
         print(key)
         FAP[key] = []
         for path in names[key]:
-            print(path)
-            patterns = np.load(os.path.join('..','PreprocessedData/IteractionsData/')+'%s.npy'%path)
+            new_path = utils.check_directory(path,'PreprocessedData/IteractionsData/')
+            fname = os.path.join(new_path,'interactions.npy')
+            patterns = np.load(fname)
             FAP[key].append(easyFAP(patterns,p=0.5))
     return FAP
 
@@ -376,6 +424,7 @@ def longest_sequence(FAM):
     DARK = []
     ALL = []
     n_s,n_l,n_f = FAM.shape
+ 
     for i in range(n_l):
         for j in range(i,n_f):
             t_sec_ALL = 0
@@ -383,6 +432,7 @@ def longest_sequence(FAM):
             t_sec_DARK = 0
             sec_DARK = 0
             for s in range(n_s):
+                #print(s,i,j,FAM[s,i,j],FAM[s,j,i],t_sec_ALL,sec_ALL)
                 if FAM[s,i,j]>0 or FAM[s,j,i] >0:
                     t_sec_ALL+=1
                 else:
@@ -464,7 +514,7 @@ if __name__ == "__main__":
         print(np.mean(LSA), np.mean(FSA), FAM["KO"][i].shape[2])
         #plt.hist(LSD)
         #plt.hist(FSD)
-        #plt.show()
+        ###plt.show()
     print('#####################WT#######################')
     stats["WT"] = {}
     stats["WT"]["SLD"] = []
@@ -482,7 +532,7 @@ if __name__ == "__main__":
         print(np.mean(LSA), np.mean(FSA), FAM["WT"][i].shape[2])
     #    plt.hist(LSA)
     #    plt.hist(FSA)
-    #    plt.show()
+    #    ##plt.show()
     
     
     
