@@ -430,8 +430,10 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
                             self.signal_data[mouse][int(s):int(e)] = state
                         elif diff == 0 and previous != 0:
 
-                            if tend - tstart < 2:
-                                continue
+                            # if tend - tstart < 2: ##WTF?
+                            #     state = previous
+                            #     continue
+
                             
                             diff2 = anstart - previous
                             
