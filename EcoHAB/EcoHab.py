@@ -6,6 +6,7 @@ import time
 import numpy as np
 import pylab as plt
 
+max_break = 60*60
 
 def parse_fname(fname):
     """"Extracts time and date from data's filename"""
@@ -75,14 +76,37 @@ class EcoHabData(object):
         self.data['Antenna'] = self.data['Antenna'][mask[0]:mask[1]]
         self.data['Tag'] = self.data['Tag'][mask[0]:mask[1]]
 
+    def check_antenna_presence(self):
+        t_start = self.data['Time'][0]
+        all_times = np.array(self.data['Time'])
+        breaks = {}
+        for antenna in range(1,9):
+            antenna_idx = np.where(np.array(self.data['Antenna']) == antenna)[0]
+            times = all_times[antenna_idx] 
+            breaks[antenna] = []
+            if times[0] - t_start > self.max_break:
+                breaks[antenna].append([0, np.round(times[0])])
+        
+            intervals = times[1:]-times[0:-1]
+
+            where_breaks = np.where(intervals > self.max_break)[0]
+
+            if len(where_breaks):
+                for i in where_breaks:
+                    breaks[antenna].append([np.round(times[i]), np.round(times[i+1])])
+                    
+        # for antenna in breaks:
+        #     print(antenna, breaks[antenna])
+        return breaks
+    #def antenna_mismatch(self)
+        
     def __init__(self, path, _ant_pos=None,mask=None):
         self.days = set()
         self.path = path
         self.rawdata = []
         self.get_data()
-
+        self.max_break = max_break
         self.rawdata = self.remove_ghost_tags()
-        
         self.mice = list(set([d[4] for d in self.rawdata]))
         self.rawdata.sort(key=lambda x: self.convert_time(x[1]))
         
@@ -100,7 +124,11 @@ class EcoHabData(object):
         
         self.data['Antenna'] = [self._ant_pos[d[2]] for d in self.rawdata]
         self.data['Tag'] = [d[4] for d in self.rawdata]
-        
+        antenna_breaks = self.check_antenna_presence()
+        if antenna_breaks:
+            print('Antenna not working')
+            for antenna in antenna_breaks:
+                print(antenna,antenna_breaks[antenna])
         if mask:
             self._cut_out_data(mask)
           
@@ -408,7 +436,8 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
             state = 0
             
             for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
-                
+                # if anstart == 6 or anend == 6:
+                #     print(mouse,tstart, tend, tstart- tend, anstart, anend,)
                 previous = state       
                 state = 0
                 
@@ -451,8 +480,8 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
                             tempdata.append((state, mouse, tstart, tend, tend-tstart,
                                              True))
                             self.signal_data[mouse][int(s):int(e)] = state
-                        
-   
+                # if anstart == 0 or anend == 0:
+                #     print(state,previous)
                 statistics[mouse]["state_freq"][state]+=1
                 statistics[mouse]["state_time"][state].append(tend - tstart)
                 if anend == state:
