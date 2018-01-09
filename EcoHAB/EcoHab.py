@@ -77,6 +77,7 @@ class EcoHabData(object):
         self.data['Tag'] = self.data['Tag'][mask[0]:mask[1]]
 
     def check_antenna_presence(self):
+        
         t_start = self.data['Time'][0]
         all_times = np.array(self.data['Time'])
         breaks = {}
@@ -98,8 +99,36 @@ class EcoHabData(object):
         # for antenna in breaks:
         #     print(antenna, breaks[antenna])
         return breaks
-    #def antenna_mismatch(self)
+
+    def antenna_mismatch(self):
         
+        t_start = self.data['Time'][0]
+        all_times = np.array(self.data['Time'])
+        weird_transit = [[],[]]
+        for mouse in self.mice:
+        
+            mouse_idx = np.where(np.array(self.data['Tag']) == mouse)[0]
+            times = all_times[mouse_idx]
+            antennas = np.array(self.data['Antenna'])[mouse_idx]
+
+            for i, a in enumerate(antennas[:-1]):
+                if abs(a - antennas[i+1]) not in [0,1,7]:
+                    weird_transit[0].append(times[i])
+                    if a < antennas[i+1]:
+                        weird_transit[1].append(str(a)+' '+str(antennas[i+1]))
+                    else:
+                        weird_transit[1].append(str(antennas[i+1])+' '+str(a))
+                    
+        pairs = list(set(weird_transit[1]))
+        
+        mismatches = {}
+
+        for pair in pairs:
+            mismatches[pair] = weird_transit[1].count(pair)
+            print(pair, mismatches[pair],np.round(100*mismatches[pair]/len(self.data['Antenna'])),'per 100')
+
+        return weird_transit
+
     def __init__(self, path, _ant_pos=None,mask=None):
         self.days = set()
         self.path = path
@@ -129,6 +158,8 @@ class EcoHabData(object):
             print('Antenna not working')
             for antenna in antenna_breaks:
                 print(antenna,antenna_breaks[antenna])
+        self.antenna_mismatch()
+        
         if mask:
             self._cut_out_data(mask)
           
