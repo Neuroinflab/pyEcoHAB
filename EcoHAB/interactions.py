@@ -66,9 +66,12 @@ class Experiment(object):
     def __init__(self, path,_ant_pos=None,which_phase='ALL',mask=None):
         
         self.path = path
-        self.directory = os.path.join(self.path,'Results')
+        self.directory = utils.results_path(path)
+        if not os.path.exists(self.directory):
+            os.makedirs(self.directory)
+        
         self.cf = ExperimentConfigFile(self.path)
-
+        
         if which_phase != 'ALL' and mask == None:
             try:
                 mask = self.cf.gettime(which_phase)
@@ -77,12 +80,8 @@ class Experiment(object):
         
         self._remove_phases(mask)            
 
-        print(self.cf.sections())
-        if not os.path.exists(self.directory):
-            os.makedirs(self.directory)
-        #self.ehd = EcoHab.EcoHabData(self.path, _ant_pos=_ant_pos,mask=mask)
         
-        self.ehs = EcoHab.EcoHabSessions9states(self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0.3)
+        self.ehs = EcoHab.EcoHabSessions9states(self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0)
 
         self.fs = self.ehs.fs
         self.sd =  self.ehs.signal_data
@@ -91,7 +90,7 @@ class Experiment(object):
         self.mice = filter(lambda x: len(self.ehs.getstarttimes(x)) > 30, mice)
         self.lm = len(self.mice)
         
-    def calculate_fvalue(self,window='default',treshold = 2, force=False,fols=None,ops=None):
+    def calculate_fvalue(self,window='default',treshold = 2, force=False,fols=None,ops=None,which_phase='ALL'):
         self.fols = fols
         self.ops = ops
         self.treshold = treshold
@@ -100,6 +99,9 @@ class Experiment(object):
   
         self.fpatterns = []
         self.opatterns = []
+        
+
+
         if window=='default':
             sessions = filter(lambda x: x.endswith('dark') or x.endswith('light'), self.cf.sections())
             self.phases = [(self.cf.gettime(sec)[0]-self.tstart ,self.cf.gettime(sec)[1]-self.tstart) for sec in sessions]
@@ -115,20 +117,30 @@ class Experiment(object):
         self.interactions = np.zeros((len(self.phases),len(self.mice),len(self.mice),8,3))
         self.f_sum = np.zeros((len(self.phases),self.lm))
                               
-        if 'following.npy' in list(os.walk(os.path.join('..','Results',self.path)))[0][2] and not force:
-            self.f = np.load(os.path.join('..','Results/'+self.path+'/')+'following.npy')
-            return self.f
-        else:
-            print(self.phases)
-            for s in range(len(self.phases)):
-                ts, te = self.phases[s]
-                print(ts,te)
-                print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
-                self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
-            if not os.path.exists(os.path.join(self.path,'PreprocessedData/IteractionsData/')):
-                os.makedirs(os.path.join(self.path,'PreprocessedData/IteractionsData/'))
-            np.save(os.path.join(self.path,'PreprocessedData/IteractionsData/','interactions.npy'),self.interactions)
-            return self.f
+        new_path = os.path.join(self.directory,'PreprocessedData/IteractionsData/')
+        new_fname_patterns = os.path.join(new_path, 'Patterns_%s.npy'%which_phase)
+        new_fname_fpatterns = os.path.join(new_path, 'fpatterns_%s.npy'%which_phase)
+        new_fname_opatterns = os.path.join(new_path, 'opatterns_%s.npy'%which_phase)
+        
+        if not os.path.exists(os.path.dirname(new_path)):
+            os.makedirs(os.path.dirname(new_path))
+    
+        # try:
+        #     self.interactions = np.load(new_fname_patterns)
+        #     self.fpatterns = np.load(new_fname_fpatterns)
+        #     self.opatterns = np.load(new_fname_opatterns)
+            
+        # except IOError:
+        
+        for s in range(len(self.phases)):
+            ts, te = self.phases[s]
+            print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
+            self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
+            np.save(new_fname_patterns,self.interactions)
+            np.save(new_fname_fpatterns,self.fpatterns)
+            np.save(new_fname_opatterns,self.opatterns)
+
+        return self.f
      
     
     def interaction_matrix(self,ts, te):
@@ -141,7 +153,7 @@ class Experiment(object):
                     imatrix[ii,jj,:,:],patterns = self.findpatterns((ii,jj),ts, te)
                     self.fpatterns+=patterns[0]
                     self.opatterns+=patterns[1]
-                    imatrix[jj,ii,:,:],patterns = self.findpatterns((ii,jj),ts, te)
+                    imatrix[jj,ii,:,:],patterns = self.findpatterns((jj,ii),ts, te)
                     self.fpatterns+=patterns[0]
                     self.opatterns+=patterns[1]
         return imatrix
@@ -222,7 +234,7 @@ class Experiment(object):
             start_state = int(self.sd[mouse1][mouse1_indices[i-2]])
             middle_state = int(self.sd[mouse1][mouse1_indices[i-1]])
             end_state = int(self.sd[mouse1][start])
-     
+ 
             end = start + self.treshold*fs
 
             unknown_state = end_state == 0 or middle_state == 0 or start_state == 0
@@ -239,8 +251,6 @@ class Experiment(object):
                 period2 = list(self.sd[mouse2][start-2*fs:start])
 
                 period3 = list(self.sd[mouse2][start-int(0.1*fs):start])
-
-                
               
                 op_idx = (2*start_state-end_state-1)%8+1 #opposite direction
                 
@@ -269,18 +279,13 @@ class Experiment(object):
                         follow_stat[str(start_state)+str(end_state)][0] += 1 
                         #print p, self.sd[mouse1_indices[i-2],mouse1],[index]
                         detected_idx[0].append((ii,jj,start))
-                        print(start_state,middle_state,end_state,)
-                        print(period2,period1,period3)
-                        print(ii,jj,start,0)
+
                     elif go_oposite:
                         #print np.ceil((period1.index(op_idx))/self.fs)
                         if self.ops!=None:
                             self.ops[np.ceil((period1.index(op_idx))/self.fs)]+=1
                         follow_stat[str(start_state)+str(end_state)][1] += 1
                         detected_idx[1].append((ii,jj,start))
-                        print(start_state,middle_state,end_state,)
-                        print(period2,period1,period3)
-                        print(ii,jj,start,1)
                                                 
             except IndexError:
                 print('Err')
