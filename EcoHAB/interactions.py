@@ -497,7 +497,7 @@ def follsactive(FAM):
 
 
 if __name__ == "__main__":
-    ts = 2
+    ts = 3
     experiments = load_experiments_info("experiments_desc.csv")
     comparisons = load_comparisons_info("comparisons.csv")
     print(experiments)
@@ -520,48 +520,48 @@ if __name__ == "__main__":
         
         oneRasterPlot(directories[key],FAM[key],IPP[key],phases[key],'Interactions',scalefactor)
 
-        oneRasterPlot(directories[key],FAM[key],FPP[key],phases[key],'Following',scalefactor)
+        #oneRasterPlot(directories[key],FAM[key],FPP[key],phases[key],'Following',scalefactor)
 
-        oneRasterPlot(directories[key],FAM[key],APP[key],phases[key],'Avoiding',scalefactor)
+        #oneRasterPlot(directories[key],FAM[key],APP[key],phases[key],'Avoiding',scalefactor)
 
-        plot_graph(FAM[key],1, base_name = 'following_graph', nr='')
+        #plot_graph(FAM[key],1, base_name = 'following_graph', nr='')
 
     result = []
     pair_inc = []
     pair_long = []
     
-    stats = {}
-    stats["KO"] = {}
-    stats["KO"]["SLD"] = []
-    stats["KO"]["NFD"] = []
-    stats["KO"]["SLA"] = []
-    stats["KO"]["NFA"] = []
-    for i in range(3):
-        _FAM=FAM["KO"][i]
-        LSD, LSA = longest_sequence(_FAM)
-        FSD, FSA = follsactive(_FAM)
-        stats["KO"]["SLA"]+=LSA
-        stats["KO"]["NFA"]+=FSA
-        stats["KO"]["NFD"]+=FSD
-        stats["KO"]["SLD"]+=LSD
-        print(np.mean(LSA), np.mean(FSA), FAM["KO"][i].shape[2])
-        #plt.hist(LSD)
-        #plt.hist(FSD)
-        ###plt.show()
-    print('#####################WT#######################')
-    stats["WT"] = {}
-    stats["WT"]["SLD"] = []
-    stats["WT"]["NFD"] = []
-    stats["WT"]["SLA"] = []
-    stats["WT"]["NFA"] = []
-    for i in range(4):
-        _FAM=FAM["WT"][i]
-        LSD, LSA = longest_sequence(_FAM)
-        FSD, FSA = follsactive(_FAM)
-        stats["WT"]["SLA"]+=LSA
-        stats["WT"]["NFA"]+=FSA
-        stats["WT"]["NFD"]+=FSD
-        stats["WT"]["SLD"]+=LSD
+    # stats = {}
+    # stats["KO"] = {}
+    # stats["KO"]["SLD"] = []
+    # stats["KO"]["NFD"] = []
+    # stats["KO"]["SLA"] = []
+    # stats["KO"]["NFA"] = []
+    # for i in range(3):
+    #     _FAM=FAM["KO"][i]
+    #     LSD, LSA = longest_sequence(_FAM)
+    #     FSD, FSA = follsactive(_FAM)
+    #     stats["KO"]["SLA"]+=LSA
+    #     stats["KO"]["NFA"]+=FSA
+    #     stats["KO"]["NFD"]+=FSD
+    #     stats["KO"]["SLD"]+=LSD
+    #     print(np.mean(LSA), np.mean(FSA), FAM["KO"][i].shape[2])
+    #     #plt.hist(LSD)
+    #     #plt.hist(FSD)
+    #     ###plt.show()
+    # print('#####################WT#######################')
+    # stats["WT"] = {}
+    # stats["WT"]["SLD"] = []
+    # stats["WT"]["NFD"] = []
+    # stats["WT"]["SLA"] = []
+    # stats["WT"]["NFA"] = []
+    # for i in range(4):
+    #     _FAM=FAM["WT"][i]
+    #     LSD, LSA = longest_sequence(_FAM)
+    #     FSD, FSA = follsactive(_FAM)
+    #     stats["WT"]["SLA"]+=LSA
+    #     stats["WT"]["NFA"]+=FSA
+    #     stats["WT"]["NFD"]+=FSD
+    #     stats["WT"]["SLD"]+=LSD
     
     #    plt.hist(LSA)
     #    plt.hist(FSA)
