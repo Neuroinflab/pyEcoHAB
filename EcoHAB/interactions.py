@@ -67,6 +67,7 @@ class Experiment(object):
         
         self.path = path
         self.directory = utils.results_path(path)
+        print(self.directory)
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
 
@@ -133,7 +134,7 @@ class Experiment(object):
         
         for s in range(len(self.phases)):
             ts, te = self.phases[s]
-            print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
+            #print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
             self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
             np.save(new_fname_patterns,self.interactions)
             np.save(new_fname_fpatterns,self.fpatterns)
@@ -345,6 +346,12 @@ def preprocessData(names,window,ts=3):
     directory = {}
     phases = {}
     for key in names.keys():
+        IPP[key] = {}
+        APP[key] = {}
+        FPP[key] = {}
+        FAM[key] = {}
+        directory[key] = {}
+        phases[key] = {}
         for path in names[key]:
             print(path)
             # if key=="RD":
@@ -352,13 +359,13 @@ def preprocessData(names,window,ts=3):
             #         E = pickle.load(input_file)
             # else:
             E = Experiment(path, _ant_pos=antenna_positions[path])
-            E.calculate_fvalue(window = window, treshold =ts, force=True)
-            IPP[key] = E.InteractionsPerPair(0,2)
-            APP[key] = E.InteractionsPerPair(1,2)
-            FPP[key] = E.InteractionsPerPair(0,1)
-            FAM[key] = E.FollowingAvoidingMatrix()
-            directory[key] = E.directory
-            phases[key] = E.cf.sections()
+            E.calculate_fvalue(window=window,treshold=ts,force=True)
+            IPP[key][path] = E.InteractionsPerPair(0,2)
+            APP[key][path] = E.InteractionsPerPair(1,2)
+            FPP[key][path] = E.InteractionsPerPair(0,1)
+            FAM[key][path] = E.FollowingAvoidingMatrix()
+            directory[key][path] = E.directory
+            phases[key][path] = E.cf.sections()
             #E.validatePatterns()
     return IPP,FPP,APP,FAM,directory, phases
 
@@ -500,7 +507,7 @@ if __name__ == "__main__":
     ts = 3
     experiments = load_experiments_info("experiments_desc.csv")
     comparisons = load_comparisons_info("comparisons.csv")
-    print(experiments)
+    #print(experiments)
     #print comparisons.keys()
     ##for i in comparisons:
     ##    names, colors = group_data(i,comparisons,experiments, color_lst = ["red","green", "blue"])
@@ -512,13 +519,13 @@ if __name__ == "__main__":
     #createRandomExpepiments(exp_paths)
     #Interpersec(names,ts=200)
     IPP, FPP, APP, FAM, directories, phases = preprocessData(names,window=12,ts=ts)
+    print(IPP.keys())
     
     
-    
-    scalefactor = np.max([np.max(i) for i in IPP["KO"]]+[np.max(i) for i in IPP["WT"]])
+    scalefactor = np.max([np.max(IPP["KO"][path]) for path in IPP["KO"]]+[np.max(IPP["WT"][path]) for path in IPP["WT"]])
     for key in IPP:
-        
-        oneRasterPlot(directories[key],FAM[key],IPP[key],phases[key],'Interactions',scalefactor)
+        for path in IPP[key]:
+            oneRasterPlot(directories[key][path],FAM[key][path],IPP[key][path],phases[key][path],'Interactions',scalefactor)
 
         #oneRasterPlot(directories[key],FAM[key],FPP[key],phases[key],'Following',scalefactor)
 
