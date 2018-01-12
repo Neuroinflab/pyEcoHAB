@@ -69,7 +69,7 @@ class Experiment(object):
         self.directory = utils.results_path(path)
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
-        
+
         self.cf = ExperimentConfigFile(self.path)
         
         if which_phase != 'ALL' and mask == None:
@@ -96,7 +96,6 @@ class Experiment(object):
         self.treshold = treshold
  
         self.tstart, self.tend = self.cf.gettime('ALL')
-  
         self.fpatterns = []
         self.opatterns = []
         
@@ -221,11 +220,17 @@ class Experiment(object):
         mouse2 = self.mice[jj]
 
         follow_stat = self.calculate_mouse_stats(mouse2)
-
         mouse1_indices = np.where(((np.roll(self.sd[mouse1], 1) - self.sd[mouse1]) != 0))[0]
-        mouse1_idx_start = np.where(mouse1_indices > t1*fs)[0][0]
-        mouse1_idx_stop =  np.where(mouse1_indices < t2*fs)[0][-1]
-              
+        try:
+            mouse1_idx_start = np.where(mouse1_indices > t1*fs)[0][0]
+        except IndexError:
+            return follow_stat.values(),detected_idx
+
+        try:    
+            mouse1_idx_stop =  np.where(mouse1_indices < t2*fs)[0][-1]
+        except IndexError:
+            return follow_stat.values(),detected_idx
+            
         i = mouse1_idx_start - 1
        
         for start in mouse1_indices[mouse1_idx_start:mouse1_idx_stop+1]:
@@ -290,14 +295,13 @@ class Experiment(object):
             except IndexError:
                 print('Err')
                 continue
-        #print(follow_stat)
-        #print(follow_stat.values())
+       
         return np.array(follow_stat.values()), detected_idx
     
     def InteractionsPerPair(self,start,end):
 
-        i8states = np.sum(self.interactions[:,:,:,:,start:end],axis=4)
-        return np.sum(i8states ,axis=3)
+        i8states = np.sum(self.interactions[:,:,:,:,start:end],axis=4) # po kierunku -- 0 following, 1 -- avoiding
+        return np.sum(i8states ,axis=3) #po wszystkich stanach (24,42, etc.)
 
     def FollowingAvoidingMatrix(self):
         
@@ -334,17 +338,30 @@ def createRandomExpepiments(paths,core='Random_test' ):
            del rdE
 
 def preprocessData(names,window,ts=3):
+    IPP = {}
+    APP = {}
+    FPP = {}
+    FAM = {}
+    directory = {}
+    phases = {}
     for key in names.keys():
         for path in names[key]:
             print(path)
-            if key=="RD":
-                with open('../PreprocessedData/RandomData/'+path+'.pkl', "rb") as input_file:
-                    E = pickle.load(input_file)
-            else:
-                E = Experiment(path)
+            # if key=="RD":
+            #     with open('../PreprocessedData/RandomData/'+path+'.pkl', "rb") as input_file:
+            #         E = pickle.load(input_file)
+            # else:
+            E = Experiment(path, _ant_pos=antenna_positions[path])
             E.calculate_fvalue(window = window, treshold =ts, force=True)
-            E.validatePatterns()
-            
+            IPP[key] = E.InteractionsPerPair(0,2)
+            APP[key] = E.InteractionsPerPair(1,2)
+            FPP[key] = E.InteractionsPerPair(0,1)
+            FAM[key] = E.FollowingAvoidingMatrix()
+            directory[key] = E.directory
+            phases[key] = E.cf.sections()
+            #E.validatePatterns()
+    return IPP,FPP,APP,FAM,directory, phases
+
 def Interpersec(names,ts=3, directory='InterPerSec'):
     if not os.path.exists('../Results/%s/'%directory):
         os.makedirs('../Results/%s/'%directory)
@@ -385,20 +402,23 @@ def Interpersec(names,ts=3, directory='InterPerSec'):
         #plt.show()
 
 def binomial_probability(s, p, n):
-
-    x = 1.0 - p
- 
     prob = 0.0
-    
-    for k in range(n - s, n + 1):
-        prob += scipy.special.binom(n, k)* x**k * (1 - x)**(n-k)
 
+    for j in range(s, n + 1):
+        prob += scipy.special.binom(n, j) * p**j * (1 - p)**(n-j)
     return prob
+
 
 def FAprobablity(a,p=0.5):
     
-    pf = binomial_probability(int(a[1]), p, int(a[0]+a[1]))
-    pa = binomial_probability(int(a[0]), p, int(a[0]+a[1]))
+    number_of_following = int(a[0])
+    number_of_avoiding = int(a[1])
+    total = number_of_following + number_of_avoiding
+    probability_of_following = 0.5
+    probability_of_avoiding = 0.5
+    
+    pf = binomial_probability(number_of_following, probability_of_following, total)
+    pa = binomial_probability(number_of_avoiding, probability_of_avoiding, total)
 
     if pf < pa and pf < 0.05:
         v = round(pf,3)#0.5-pf
@@ -406,6 +426,7 @@ def FAprobablity(a,p=0.5):
         v = round(-pa,3)#pa-0.5
     else:
         v = 0.
+    
     return v
 
 def easyFAP(patterns):
@@ -476,9 +497,10 @@ def follsactive(FAM):
 
 
 if __name__ == "__main__":
-    ts = 3    
+    ts = 2
     experiments = load_experiments_info("experiments_desc.csv")
     comparisons = load_comparisons_info("comparisons.csv")
+    print(experiments)
     #print comparisons.keys()
     ##for i in comparisons:
     ##    names, colors = group_data(i,comparisons,experiments, color_lst = ["red","green", "blue"])
@@ -489,15 +511,21 @@ if __name__ == "__main__":
     
     #createRandomExpepiments(exp_paths)
     #Interpersec(names,ts=200)
-    preprocessData(names,window = 12,ts=3)
+    IPP, FPP, APP, FAM, directories, phases = preprocessData(names,window=12,ts=ts)
     
     
-    IPP = InteractionsPerPair(names)
+    
     scalefactor = np.max([np.max(i) for i in IPP["KO"]]+[np.max(i) for i in IPP["WT"]])
-    #scalefactor = np.max([np.max(i) for i in IPP["BALB_VPA"]]+[np.max(i) for i in IPP["BALB_CTRL"]]+[np.max(i) for i in IPP["BALB_NaCl"]])
-    FPP = FollowingPerPair(names)
-    APP = AvoidingPerPair(names)
-    FAM = FollowingAvoidingMatrix(names)
+    for key in IPP:
+        
+        oneRasterPlot(directories[key],FAM[key],IPP[key],phases[key],'Interactions',scalefactor)
+
+        oneRasterPlot(directories[key],FAM[key],FPP[key],phases[key],'Following',scalefactor)
+
+        oneRasterPlot(directories[key],FAM[key],APP[key],phases[key],'Avoiding',scalefactor)
+
+        plot_graph(FAM[key],1, base_name = 'following_graph', nr='')
+
     result = []
     pair_inc = []
     pair_long = []
@@ -510,8 +538,8 @@ if __name__ == "__main__":
     stats["KO"]["NFA"] = []
     for i in range(3):
         _FAM=FAM["KO"][i]
-        LSD, LSA = longest_sequence(_FAM,n_s=6)
-        FSD, FSA = follsactive(_FAM,n_s=6)
+        LSD, LSA = longest_sequence(_FAM)
+        FSD, FSA = follsactive(_FAM)
         stats["KO"]["SLA"]+=LSA
         stats["KO"]["NFA"]+=FSA
         stats["KO"]["NFD"]+=FSD
@@ -528,38 +556,17 @@ if __name__ == "__main__":
     stats["WT"]["NFA"] = []
     for i in range(4):
         _FAM=FAM["WT"][i]
-        LSD, LSA = longest_sequence(_FAM,n_s=6)
-        FSD, FSA = follsactive(_FAM,n_s=6)
+        LSD, LSA = longest_sequence(_FAM)
+        FSD, FSA = follsactive(_FAM)
         stats["WT"]["SLA"]+=LSA
         stats["WT"]["NFA"]+=FSA
         stats["WT"]["NFD"]+=FSD
         stats["WT"]["SLD"]+=LSD
-        print(np.mean(LSA), np.mean(FSA), FAM["WT"][i].shape[2])
+    
     #    plt.hist(LSA)
     #    plt.hist(FSA)
     #    ##plt.show()
     
     
     
-    barplot(stats,names,["SLA","SLD",], colors, name="AverageLengthofSec",ylab = "Average length of sequence per pair")
-    barplot(stats,names,["NFA","NFD" ], colors, name="AverageNumberofFols", ylab="Average number of followings per pair")
-    #createRasterPlots(FAM,IPP,names,scalefactor)           
-    #createRasterPlotsSUM(FAM,IPP,names,scalefactor)
-    #CreateRelationGraphs(FAM,IPP,names,scalefactor/50)
-    statsIPP = plotphist(IPP,names,colors,to_file = True,directory = 'Interactions',vrange = [0,120], prange = [0,0.11])
-    statsFPP = plotphist(FPP,names,colors,to_file = True,directory = 'Followings',vrange = [0,120], prange = [0,0.11])
-    statsAPP = plotphist(APP,names,colors,to_file = True,directory = 'Avoidings',vrange = [0,120], prange = [0,0.11])
-    print(statsIPP)
-    barplot(statsIPP,names,["Interactions"], colors, name="InteractionPerPairBarplot",ylab="Average number of interactions per pair")
-    barplot(statsFPP,names,["Followings"], colors,name="FollowingsPerPairBarplot",ylab="Average number of followings per pair")
-    barplot(statsAPP,names,["Avoidings"], colors,name="AvoidingsPerPairBarplot", ylab="Average number of avoidings per pair")
-    #print  st.mannwhitneyu(statsIPP["KO"]["mean"], statsIPP["WT"]["mean"], use_continuity=True)
-    #print  st.mannwhitneyu(statsFPP["KO"]["mean"], statsFPP["WT"]["mean"], use_continuity=True)
-    #print  st.mannwhitneyu(statsAPP["KO"]["mean"], statsAPP["WT"]["mean"], use_continuity=True)
-    #print  st.mannwhitneyu(stats["KO"]["median"], stats["WT"]["median"], use_continuity=True)
-    #FAP = FollowingAvoidingMatrix(names)
-    #stats = plotphist(FAP,names,colors,to_file = True,directory = 'FA',vrange = [-1,1], prange = [0,1])
-    #print  st.mannwhitneyu(stats["KO"]["mean"], stats["WT"]["mean"], use_continuity=True)
-    #print  st.mannwhitneyu(stats["KO"]["median"], stats["WT"]["median"], use_continuity=True)
-    #m = np.round(FAP["KO"][0][0],3)
-    #print m
+    
