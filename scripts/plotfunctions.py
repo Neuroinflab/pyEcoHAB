@@ -5,12 +5,13 @@ Created on Fri Mar 24 13:38:58 2017
 @author: Jan Maka
 """
 from matplotlib.dates import epoch2num
-from matplotlib.patches import Rectangle
+import matplotlib.patches as patches
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 import scipy.stats as st
-
+from ExperimentConfigFile import ExperimentConfigFile
+import networkx as nx
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'

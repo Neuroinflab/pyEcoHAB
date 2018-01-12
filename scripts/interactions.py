@@ -227,7 +227,7 @@ def preprocessData(names,window,ts=3):
             else:
                 E = Experiment(path)
             E.calculate_fvalue(window = window, treshold =ts, force=True)
-            E.validatePatterns()
+            #E.validatePatterns()
             
 def Interpersec(names,ts=3, directory='InterPerSec'):
     if not os.path.exists('../Results/%s/'%directory):
@@ -458,18 +458,18 @@ if __name__ == "__main__":
     
     
     
-    barplot(stats,names,["SLA","SLD",], colors, name="AverageLengthofSec",ylab = "Average length of sequence per pair")
-    barplot(stats,names,["NFA","NFD" ], colors, name="AverageNumberofFols", ylab="Average number of followings per pair")
-    #createRasterPlots(FAM,IPP,names,scalefactor)           
-    #createRasterPlotsSUM(FAM,IPP,names,scalefactor)
+    #barplot(stats,names,["SLA","SLD",], colors, name="AverageLengthofSec",ylab = "Average length of sequence per pair")
+    #barplot(stats,names,["NFA","NFD" ], colors, name="AverageNumberofFols", ylab="Average number of followings per pair")
+    createRasterPlots(FAM,IPP,names,scalefactor)           
+    createRasterPlotsSUM(FAM,IPP,names,scalefactor)
     #CreateRelationGraphs(FAM,IPP,names,scalefactor/50)
     statsIPP = plotphist(IPP,names,colors,to_file = True,directory = 'Interactions',vrange = [0,120], prange = [0,0.11])
     statsFPP = plotphist(FPP,names,colors,to_file = True,directory = 'Followings',vrange = [0,120], prange = [0,0.11])
     statsAPP = plotphist(APP,names,colors,to_file = True,directory = 'Avoidings',vrange = [0,120], prange = [0,0.11])
-    print statsIPP
-    barplot(statsIPP,names,["Interactions"], colors, name="InteractionPerPairBarplot",ylab="Average number of interactions per pair")
-    barplot(statsFPP,names,["Followings"], colors,name="FollowingsPerPairBarplot",ylab="Average number of followings per pair")
-    barplot(statsAPP,names,["Avoidings"], colors,name="AvoidingsPerPairBarplot", ylab="Average number of avoidings per pair")
+    #print statsIPP
+    #barplot(statsIPP,names,["Interactions"], colors, name="InteractionPerPairBarplot",ylab="Average number of interactions per pair")
+    #barplot(statsFPP,names,["Followings"], colors,name="FollowingsPerPairBarplot",ylab="Average number of followings per pair")
+    #barplot(statsAPP,names,["Avoidings"], colors,name="AvoidingsPerPairBarplot", ylab="Average number of avoidings per pair")
     #print  st.mannwhitneyu(statsIPP["KO"]["mean"], statsIPP["WT"]["mean"], use_continuity=True)
     #print  st.mannwhitneyu(statsFPP["KO"]["mean"], statsFPP["WT"]["mean"], use_continuity=True)
     #print  st.mannwhitneyu(statsAPP["KO"]["mean"], statsAPP["WT"]["mean"], use_continuity=True)
