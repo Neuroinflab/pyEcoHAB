@@ -5,13 +5,16 @@ Created on Fri Mar 24 13:38:58 2017
 @author: Jan Maka
 """
 from matplotlib.dates import epoch2num
-from matplotlib.patches import Rectangle
+import matplotlib.patches as patches
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 import scipy.stats as st
 import utils as utils
-
+import networkx as nx
+from networkx.drawing.nx_agraph import write_dot
+import matplotlib.colors as mcol
+import matplotlib.patches as patches
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -29,13 +32,13 @@ def plotfsec(self,fols, ops, to_file = True):
     plt.xlabel('1 s time bin')
     plt.ylabel('Percetage of positive f')
     plt.savefig('../Results/rdn_fols%s'%max_ts+'.png')
-    plt.show()
+    #plt.show()
     plt.stem(x,self.ops/np.sum(self.ops)*100)
     plt.axis([0,max_ts+1,0,15])
     plt.xlabel('1 s time bin')
     plt.ylabel('Percetage of negative f')
     plt.savefig('../Results/rdn_ops%s'%max_ts+'.png')
-    plt.show()
+    #plt.show()
 
 def autolabel(rects,ax):
         """
@@ -47,7 +50,7 @@ def autolabel(rects,ax):
                     '%d' % int(height),
                     ha='center', va='bottom')
 
-def single_barplot(stats,directory, groups,color,name = "",ylab = "",titles=""):
+def single_barplot(stats,directory, groups,colors,name = "",ylab = "",titles=""):
 
     path = utils.check_directory(directory,"Results")
         
@@ -62,9 +65,9 @@ def single_barplot(stats,directory, groups,color,name = "",ylab = "",titles=""):
     for i, mean in enumerate(means):
         
         if isinstance(titles,list):
-            rects.append(ax.bar(ind[i]+width, mean, width, color=color, yerr=errs[i],label=titles[i]))
+            rects.append(ax.bar(ind[i]+width, mean, width, color=colors[i], yerr=errs[i],label=titles[i]))
         else:
-            rects.append(ax.bar(ind[i]+width, mean, width, color=color, yerr=errs[i]))
+            rects.append(ax.bar(ind[i]+width, mean, width, color=colors[i], yerr=errs[i]))
 
     ax.set_ylabel(ylab)
     ax.set_title('Group comparison')
@@ -80,7 +83,7 @@ def single_barplot(stats,directory, groups,color,name = "",ylab = "",titles=""):
 
     new_fname = os.path.join(path,(name+'.png'))
     plt.savefig(new_fname)
-    plt.show()
+    #plt.show()
 
 def barplot(stats, names, groups,colors, directory = "Barplots",name = "",ylab = ""):
     if not os.path.exists('../Results/'+directory):
@@ -124,7 +127,10 @@ def forceAspect(ax,aspect=1):
 
 def oneRasterPlot(directory,FAM,IPP,phases,name,scalefactor,to_file=True):
 
+    if not name:
+        name = "oneRasterPlot"
     subdirectory = 'RasterPlots'
+    
     new_path = utils.check_directory(directory,subdirectory)
     fig = plt.figure(figsize=(12,12))
     ax = fig.add_subplot(111, aspect='equal')
@@ -133,15 +139,16 @@ def oneRasterPlot(directory,FAM,IPP,phases,name,scalefactor,to_file=True):
         plt.suptitle(name, fontsize=14, fontweight='bold')
 
     n_s,n_l,n_f = FAM.shape
-    for s in range(n_s):
+    
+    for s in range(n_s): #phases
         plt.text(0.06+s*0.125, 1.025,phases[s], horizontalalignment='center', verticalalignment='center', fontsize=10,  transform = ax.transAxes)
         # MakeRelationGraph(FAM[s,:,:],IPP[s,:,:],exp,s,key,directory,scalefactor)
         _FAM = FAM[s,:,:]
         _IPP = IPP[s,:,:]
         pair_labels = []
         pos = 0
-        for i in range(n_l):
-            for j in range(i,n_f):
+        for i in range(n_l): #mice
+            for j in range(i,n_f): #mice
                 if i!=j and abs(_FAM[i,j])<0.05 and _FAM[i,j]>0:
                     ax.add_patch(patches.Rectangle((
                             s, -1*pos),1 , 1,facecolor=(1,0,0,_IPP[i,j]*0.5/scalefactor)))  
@@ -162,17 +169,17 @@ def oneRasterPlot(directory,FAM,IPP,phases,name,scalefactor,to_file=True):
         for i in range(8-n_s):
             ax.add_patch(patches.Rectangle((
                                         n_s+i, -pos+1),1, pos,facecolor="lightgrey"))
-        plt.axis([0,8,-pos+1,1])
-        ax.set_aspect('auto')
-        ax.xaxis.grid()
-        ax.xaxis.set_ticklabels([])
-        ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(pos)])
-        ax.set_yticklabels(pair_labels)
-        plt.xlabel("session")
-        plt.ylabel("following strength in pair")
-        plt.savefig(os.path.join(new_path,'oneRasterPlot.png'))
-        plt.show()
-        #plt.close(fig)   
+    plt.axis([0,8,-pos+1,1])
+    ax.set_aspect('auto')
+    ax.xaxis.grid()
+    ax.xaxis.set_ticklabels([])
+    ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(pos)])
+    ax.set_yticklabels(pair_labels)
+    plt.xlabel("session")
+    plt.ylabel("following strength in pair")
+    plt.savefig(os.path.join(new_path,name+'.png'))
+    plt.show()
+    #plt.close(fig)   
 
 def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'RasterPlots'):
     if not os.path.exists('../Results/'+directory):
@@ -227,7 +234,7 @@ def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'Rast
                 plt.xlabel("session")
                 plt.ylabel("following strength in pair")
                 plt.savefig('../Results/%s/%s.png'%(directory,names[key][exp]))
-                #plt.show()
+                ##plt.show()
                 plt.close(fig)   
 
 def createRasterPlotsSUM(FAM,IPP,names,scalefactor,to_file = True,directory = 'RasterPlotsSUM'):
@@ -286,7 +293,7 @@ def createRasterPlotsSUM(FAM,IPP,names,scalefactor,to_file = True,directory = 'R
             plt.xlabel("session")
             #plt.ylabel("following strength in pair")
             plt.savefig('../Results/%s/%s.png'%(directory,key))
-            #plt.show()
+            ##plt.show()
             plt.close(fig) 
 
 
@@ -336,7 +343,7 @@ def MakeRelationGraph(FAM,IPP,exp,s,key,directory,scalefactor,names, fig = None,
         p = patches.FancyArrowPatch(pos[c[2]],pos[c[1]],connectionstyle='arc3, rad=-0.3',arrowstyle="simple",shrinkA=12*size, shrinkB=12*size,mutation_scale=size*c[0]/scalefactor, color = cmap(c[0]+0.5),zorder=1,alpha=0.5)
         ax.add_patch(p)
     plt.savefig('../Results/%s/%s_exp%s_s%s_graph.png'%(directory,key,exp,s))
-    #plt.show()
+    ##plt.show()
     plt.close(fig)    
 
 
@@ -389,6 +396,49 @@ def plotphist(data,names,colors,to_file = True,directory = 'Interactions',vrange
             plt.subplot(2,1,2)
             plt.axvline(np.median(x[x!=0]), color=colors[key], linestyle='dashed', linewidth=2)
     plt.savefig('../Results/'+directory+'/'+"WT_KO_RD"+'.png')
-    plt.show()
-    plt.show()
+    #plt.show()
+    #plt.show()
     return stats    
+
+def plot_graph(FAPmatrix,s, base_name = 'following_graph', nr=''):
+    def scaling(p):
+        if p<0.05 and p>0:
+            return 2.5-p*50
+        elif p>-0.05 and p<0:
+            return -2.5-p*50
+        else:
+            return 0
+    d1,d2,d3 = FAPmatrix.shape
+    pairs = []       
+    for i in range(d2):
+        for j in range(d3):
+            if i!=j:
+                pairs.append([FAPmatrix[s][i][j],i+1,j+1])
+    pairs.sort(key=lambda x: -x[0])
+    conn = [(scaling(x[0]),x[1],x[2]) for x in pairs]
+    G = nx.MultiDiGraph(multiedges=True, sparse=True)
+    for i in range(len(conn)):
+        G.add_edges_from([(conn[i][1],conn[i][2])], weight=conn[i][0])
+    edge_colors = [conn[i][0] for i in range(len(conn))]
+    size = 10
+    pos=nx.circular_layout(G)
+    node_labels = {node:node for node in G.nodes()}     
+    fig = plt.figure(figsize=(10*size,10*size)) 
+    ax = fig.add_subplot(111, aspect='equal')
+    #fig.suptitle(self.path, fontsize=14*size, fontweight='bold')
+    nx.draw_networkx_labels(G, pos, labels=node_labels,font_size=20)
+    cmap = mcol.LinearSegmentedColormap.from_list(name='red_white_blue', 
+                                             colors =[(0, 0, 1), 
+                                                      (1, 1., 1), 
+                                                      (1, 0, 0)],
+                                             N=20-1,
+                                             )
+    nx.draw(G,pos,ax, node_size=50*size**2,node_color= 'grey',edge_color=edge_colors,edge_cmap=cmap,width = 0,arrows=False, edge_style='dashed',zorder=10)
+    for c in conn:
+        if abs(c[0]-1)>0.01:
+            #print c[0]
+            p = patches.FancyArrowPatch(pos[c[2]],pos[c[1]],connectionstyle='arc3, rad=-0.3',arrowstyle="simple",shrinkA=1.2*size, shrinkB=1.2*size,mutation_scale=20*size*abs(c[0]), color = cmap(c[0]+0.5),zorder=1,alpha=0.5)
+            ax.add_patch(p)
+    plt.savefig('../test.png')
+    plt.show()
+    #plt.close(fig)    
