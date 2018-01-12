@@ -101,7 +101,6 @@ class Experiment(object):
         plt.suptitle("Random following patterns", fontsize=14, fontweight='bold')
         for i,idx in enumerate(frandom_idx):
             ax = plt.subplot(size, size,i+1)
-            print self.fpatterns[idx]
             ii,jj,s = self.fpatterns[idx]
             ax.set_title("%s|%s|t=%s"%(ii,jj,s*1./self.fs))
             plt.plot(t,self.sd[s-3*self.fs:s+3*self.fs,ii]-0.05,'ro',label="leader")
@@ -112,7 +111,6 @@ class Experiment(object):
         plt.suptitle("Random avoiding patterns", fontsize=14, fontweight='bold')
         for i,idx in enumerate(orandom_idx):
             ax = plt.subplot(size, size,i+1)
-            print self.opatterns[idx]
             ii,jj,s = self.opatterns[idx]
             ax.set_title("%s|%s|t=%s"%(ii,jj,s*1./self.fs))
             plt.plot(t,self.sd[s-3*self.fs:s+3*self.fs,ii]-0.05,'ro',label="leader")
@@ -273,7 +271,6 @@ def InteractionsPerPair(names):
     for key in names.keys():
         IPP[key] = []
         for path in names[key]:
-            print path
             patterns = np.load(os.path.join('..','PreprocessedData/IteractionsData/')+'%s.npy'%path)
             i8states = np.sum(patterns[:,:,:,:,:2],axis=4)
             interactions = np.sum(i8states ,axis=3)
@@ -285,7 +282,6 @@ def FollowingPerPair(names):
     for key in names.keys():
         FPP[key] = []
         for path in names[key]:
-            print path
             patterns = np.load(os.path.join('..','PreprocessedData/IteractionsData/')+'%s.npy'%path)
             i8states = np.sum(patterns[:,:,:,:,:1],axis=4)
             interactions = np.sum(i8states ,axis=3)
@@ -297,7 +293,6 @@ def AvoidingPerPair(names):
     for key in names.keys():
         APP[key] = []
         for path in names[key]:
-            print path
             patterns = np.load(os.path.join('..','PreprocessedData/IteractionsData/')+'%s.npy'%path)
             i8states = np.sum(patterns[:,:,:,:,1:2],axis=4)
             interactions = np.sum(i8states ,axis=3)
@@ -323,7 +318,6 @@ def FAprobablity(a):
     if pf<pa and pf<0.05:
         v = round(pf,3)#0.5-pf
     elif pa<pf and pa<0.05:
-        print pa
         v = round(-pa,3)#pa-0.5
     else:
         v = 0.
@@ -417,44 +411,44 @@ if __name__ == "__main__":
     FAM = FollowingAvoidingMatrix(names)
     result = []
     pair_inc = []
-    pair_long = []
+    # pair_long = []
     
-    stats = {}
-    stats["KO"] = {}
-    stats["KO"]["SLD"] = []
-    stats["KO"]["NFD"] = []
-    stats["KO"]["SLA"] = []
-    stats["KO"]["NFA"] = []
-    for i in range(3):
-        _FAM=FAM["KO"][i]
-        LSD, LSA = longest_sequence(_FAM,n_s=6)
-        FSD, FSA = follsactive(_FAM,n_s=6)
-        stats["KO"]["SLA"]+=LSA
-        stats["KO"]["NFA"]+=FSA
-        stats["KO"]["NFD"]+=FSD
-        stats["KO"]["SLD"]+=LSD
-        print np.mean(LSA), np.mean(FSA), FAM["KO"][i].shape[2]
-        #plt.hist(LSD)
-        #plt.hist(FSD)
-        #plt.show()
-    print '#####################WT#######################'
-    stats["WT"] = {}
-    stats["WT"]["SLD"] = []
-    stats["WT"]["NFD"] = []
-    stats["WT"]["SLA"] = []
-    stats["WT"]["NFA"] = []
-    for i in range(4):
-        _FAM=FAM["WT"][i]
-        LSD, LSA = longest_sequence(_FAM,n_s=6)
-        FSD, FSA = follsactive(_FAM,n_s=6)
-        stats["WT"]["SLA"]+=LSA
-        stats["WT"]["NFA"]+=FSA
-        stats["WT"]["NFD"]+=FSD
-        stats["WT"]["SLD"]+=LSD
-        print np.mean(LSA), np.mean(FSA), FAM["WT"][i].shape[2]
-    #    plt.hist(LSA)
-    #    plt.hist(FSA)
-    #    plt.show()
+    # stats = {}
+    # stats["KO"] = {}
+    # stats["KO"]["SLD"] = []
+    # stats["KO"]["NFD"] = []
+    # stats["KO"]["SLA"] = []
+    # stats["KO"]["NFA"] = []
+    # for i in range(3):
+    #     _FAM=FAM["KO"][i]
+    #     LSD, LSA = longest_sequence(_FAM,n_s=6)
+    #     FSD, FSA = follsactive(_FAM,n_s=6)
+    #     stats["KO"]["SLA"]+=LSA
+    #     stats["KO"]["NFA"]+=FSA
+    #     stats["KO"]["NFD"]+=FSD
+    #     stats["KO"]["SLD"]+=LSD
+    #     print np.mean(LSA), np.mean(FSA), FAM["KO"][i].shape[2]
+    #     #plt.hist(LSD)
+    #     #plt.hist(FSD)
+    #     #plt.show()
+    # print '#####################WT#######################'
+    # stats["WT"] = {}
+    # stats["WT"]["SLD"] = []
+    # stats["WT"]["NFD"] = []
+    # stats["WT"]["SLA"] = []
+    # stats["WT"]["NFA"] = []
+    # for i in range(4):
+    #     _FAM=FAM["WT"][i]
+    #     LSD, LSA = longest_sequence(_FAM,n_s=6)
+    #     FSD, FSA = follsactive(_FAM,n_s=6)
+    #     stats["WT"]["SLA"]+=LSA
+    #     stats["WT"]["NFA"]+=FSA
+    #     stats["WT"]["NFD"]+=FSD
+    #     stats["WT"]["SLD"]+=LSD
+    #     print np.mean(LSA), np.mean(FSA), FAM["WT"][i].shape[2]
+    # #    plt.hist(LSA)
+    # #    plt.hist(FSA)
+    # #    plt.show()
     
     
     
@@ -463,9 +457,9 @@ if __name__ == "__main__":
     createRasterPlots(FAM,IPP,names,scalefactor)           
     createRasterPlotsSUM(FAM,IPP,names,scalefactor)
     #CreateRelationGraphs(FAM,IPP,names,scalefactor/50)
-    statsIPP = plotphist(IPP,names,colors,to_file = True,directory = 'Interactions',vrange = [0,120], prange = [0,0.11])
-    statsFPP = plotphist(FPP,names,colors,to_file = True,directory = 'Followings',vrange = [0,120], prange = [0,0.11])
-    statsAPP = plotphist(APP,names,colors,to_file = True,directory = 'Avoidings',vrange = [0,120], prange = [0,0.11])
+    # statsIPP = plotphist(IPP,names,colors,to_file = True,directory = 'Interactions',vrange = [0,120], prange = [0,0.11])
+    # statsFPP = plotphist(FPP,names,colors,to_file = True,directory = 'Followings',vrange = [0,120], prange = [0,0.11])
+    # statsAPP = plotphist(APP,names,colors,to_file = True,directory = 'Avoidings',vrange = [0,120], prange = [0,0.11])
     #print statsIPP
     #barplot(statsIPP,names,["Interactions"], colors, name="InteractionPerPairBarplot",ylab="Average number of interactions per pair")
     #barplot(statsFPP,names,["Followings"], colors,name="FollowingsPerPairBarplot",ylab="Average number of followings per pair")
