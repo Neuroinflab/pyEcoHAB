@@ -162,5 +162,6 @@ antenna_positions = {'BALB EH (1) 06.03.14': None,
             'FX KO  females EH Lab 2 (1) - powtorzenie 1. - 10.05.16': None,
             'FX KO  females EH Lab 2 (1) - powtorzenie 2. - 22.05.16': None,
             'PV Cre males HT EH (1) 09.06.16': None,
-            'Random_test': None,
+                     'Random_test': None,
+                     "long_experiment_KO":{'1':1,'2':5,'3':3,'4':6,'5':4,'6':2,'7':7,'8':8}
             }
