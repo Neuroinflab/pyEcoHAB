@@ -88,7 +88,16 @@ class Experiment(object):
         self.sd =  self.ehs.signal_data
        
         mice = list(self.ehs.mice)
+        
         self.mice = filter(lambda x: len(self.ehs.getstarttimes(x)) > 30, mice)
+        
+        if mice != self.mice:
+            print("False")
+            for mouse in mice:
+                if mouse not in self.mice:
+                    del self.sd[mouse]
+                    del self.ehs.signal_data[mouse]
+                    
         self.lm = len(self.mice)
         
     def calculate_fvalue(self,window='default',treshold = 2, force=False,fols=None,ops=None,which_phase='ALL'):
