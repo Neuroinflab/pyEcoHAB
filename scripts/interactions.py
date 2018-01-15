@@ -11,6 +11,7 @@ from ExperimentConfigFile import ExperimentConfigFile
 from experiments_info import smells, antenna_positions
 from plotfunctions import *
 from data_managment import *
+import scipy
 #Third party libraries
 import networkx as nx 
 import numpy as np
@@ -75,6 +76,7 @@ class Experiment(object):
             if not os.path.exists(os.path.join('..','PreprocessedData/IteractionsData/')):
                 os.makedirs(os.path.join('..','PreprocessedData/IteractionsData/'))
             np.save(os.path.join('..','PreprocessedData/IteractionsData/')+'%s.npy'%self.path,self.interactions)
+            print(os.path.join('..','PreprocessedData/IteractionsData/')+'%s.npy'%self.path)
             return self.f
      
     
@@ -303,24 +305,52 @@ def factorial(n):
     if n < 2: return 1
     return reduce(lambda x, y: x*y, xrange(2, int(n)+1))
 
-def prob(s, p, n):
-    x = 1.0 - p
-    a = n - s
-    b = s + 1
-    c = a + b - 1
+# def prob(s, p, n):
+#     x = 1.0 - p
+#     a = n - s
+#     b = s + 1
+#     c = a + b - 1
+#     prob = 0.0
+#     for j in xrange(a, c + 1):
+#         prob += factorial(c) / (factorial(j)*factorial(c-j)) \
+#                 * x**j * (1 - x)**(c-j)
+#     return prob
+# def FAprobablity(a):
+#     pf,pa=prob(int(a[1]), 0.5, int(a[0]+a[1])), prob(int(a[0]), 0.5, int(a[0]+a[1]))
+#     if pf<pa and pf<0.05:
+#         v = round(pf,3)#0.5-pf
+#     elif pa<pf and pa<0.05:
+#         v = round(-pa,3)#pa-0.5
+#     else:
+#         v = 0.
+#    return v
+
+def binomial_probability(s, p, n):
     prob = 0.0
-    for j in xrange(a, c + 1):
-        prob += factorial(c) / (factorial(j)*factorial(c-j)) \
-                * x**j * (1 - x)**(c-j)
+
+    for j in range(s, n + 1):
+        prob += scipy.special.binom(n, j) * p**j * (1 - p)**(n-j)
     return prob
-def FAprobablity(a):
-    pf,pa=prob(int(a[1]), 0.5, int(a[0]+a[1])), prob(int(a[0]), 0.5, int(a[0]+a[1]))
-    if pf<pa and pf<0.05:
+
+
+def FAprobablity(a,p=0.5):
+    
+    number_of_following = int(a[0])
+    number_of_avoiding = int(a[1])
+    total = number_of_following + number_of_avoiding
+    probability_of_following = 0.5
+    probability_of_avoiding = 0.5
+    
+    pf = binomial_probability(number_of_following, probability_of_following, total)
+    pa = binomial_probability(number_of_avoiding, probability_of_avoiding, total)
+
+    if pf < pa and pf < 0.05:
         v = round(pf,3)#0.5-pf
-    elif pa<pf and pa<0.05:
+    elif pa < pf and pa < 0.05:
         v = round(-pa,3)#pa-0.5
     else:
         v = 0.
+    
     return v
 def easyFAP(patterns,p=0.5):
     rawFA = np.sum(patterns[:,:,:,:,:2] ,axis=3,dtype = 'float32')
