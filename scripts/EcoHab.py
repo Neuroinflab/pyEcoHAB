@@ -309,7 +309,10 @@ class EcoHabSessions9states(IEcoHabSession):
         self.t_start_exp = np.min(self._ehd.data['Time'])
         self.t_end_exp = np.max(self._ehd.data['Time'])
         t = np.arange(self.t_start_exp,self.t_end_exp,1./self.fs)
-        self.signal_data = np.zeros((len(t),len(ehd.mice)),dtype =np.int8)          
+        
+        self.signal_data = {}
+        for mouse in ehd.mice:
+            self.signal_data[mouse] = np.zeros((len(t)),dtype =np.int8)          
         for n, mm in enumerate(ehd.mice):
             tt = self._ehd.gettimes(mm)
             an = self._ehd.getantennas(mm)
@@ -343,7 +346,7 @@ class EcoHabSessions9states(IEcoHabSession):
                         #Save state to stadard and signal data
                         tempdata.append((state, mm, tstart, tend, tend-tstart,
                                          True))
-                        self.signal_data[int(s):int(e),n] = state
+                        self.signal_data[mm][int(s):int(e)] = state
                                          
                         statistics[mm]["state_freq"][state]+=1
                         statistics[mm]["state_time"][state].append(tend - tstart)
@@ -372,7 +375,7 @@ class EcoHabSessions9states(IEcoHabSession):
                         #Save state to stadard and signal data
                         tempdata.append((state, mm, tstart, tend, tend-tstart,
                                          True))
-                        self.signal_data[int(s):int(e),n] = state
+                        self.signal_data[mm][int(s):int(e)] = state
                                          
                         statistics[mm]["state_freq"][state]+=1
                         statistics[mm]["state_time"][state].append(tend - tstart)

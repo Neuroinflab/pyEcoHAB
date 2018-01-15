@@ -42,6 +42,7 @@ class Experiment(object):
         self.cf = ExperimentConfigFile(os.path.join('..','RawData',exp_name))
         mice = list(self.ehd.mice)
         self.mice = filter(lambda x: len(self.ehs.getstarttimes(x)) > 30, mice)
+        print mice == self.mice
         self.lm = len(self.mice)
         
     def calculate_fvalue(self,window='default',treshold = 2,min_interactions = 1, force=False,fols=None,ops=None):
@@ -57,7 +58,7 @@ class Experiment(object):
             self.phases = [(self.cf.gettime(sec)[0]-self.tstart ,self.cf.gettime(sec)[1]-self.tstart) for sec in sessions]
         else:
             if isinstance(window,float) or isinstance(window,int):
-                self.phases = [(i*window*3600,np.min([(i+1)*window*3600,self.sd.shape[0]])) for i in range(int(np.ceil(self.sd.shape[0]*1.0/(window*3600*self.fs))))]
+                self.phases = [(i*window*3600,np.min([(i+1)*window*3600,len(self.sd[self.mice[0]])])) for i in range(int(np.ceil(len(self.sd[self.mice[0]])*1.0/(window*3600*self.fs))))]
             elif isinstance(window, list):
                 self.phases = [(st*window[0]*3600,(st+1)*window[0]*3600) for st in window[1]]
             else:
@@ -105,8 +106,8 @@ class Experiment(object):
             ax = plt.subplot(size, size,i+1)
             ii,jj,s = self.fpatterns[idx]
             ax.set_title("%s|%s|t=%s"%(ii,jj,s*1./self.fs))
-            plt.plot(t,self.sd[s-3*self.fs:s+3*self.fs,ii]-0.05,'ro',label="leader")
-            plt.plot(t,self.sd[s-3*self.fs:s+3*self.fs,jj]+0.05,'bo',label="follower")
+            plt.plot(t,self.sd[self.mice[ii]][s-3*self.fs:s+3*self.fs]-0.05,'ro',label="leader")
+            plt.plot(t,self.sd[self.mice[jj]][s-3*self.fs:s+3*self.fs]+0.05,'bo',label="follower")
             plt.axis([-3.1,3.1,-0.5,9.5])
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         plt.show()
@@ -115,8 +116,8 @@ class Experiment(object):
             ax = plt.subplot(size, size,i+1)
             ii,jj,s = self.opatterns[idx]
             ax.set_title("%s|%s|t=%s"%(ii,jj,s*1./self.fs))
-            plt.plot(t,self.sd[s-3*self.fs:s+3*self.fs,ii]-0.05,'ro',label="leader")
-            plt.plot(t,self.sd[s-3*self.fs:s+3*self.fs,jj]+0.05,'bo',label="follower")
+            plt.plot(t,self.sd[self.mice[ii]][s-3*self.fs:s+3*self.fs]-0.05,'ro',label="leader")
+            plt.plot(t,self.sd[self.mice[jj]][s-3*self.fs:s+3*self.fs]+0.05,'bo',label="follower")
             plt.axis([-3.1,3.1,-0.5,9.5])
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         plt.show()
@@ -126,7 +127,7 @@ class Experiment(object):
         sd = self.sd
         detected_idx = [[],[]]
         follow_stat = {}
-        m1_idx = np.where(((np.roll(sd[:,m1], 1) - sd[:,m1]) != 0))[0]
+        m1_idx = np.where((np.roll(sd[self.mice[m1]], 1) - sd[self.mice[m1]]) != 0)[0]
         m2_stats = self.ehs.statistics[self.mice[m2]]["preference"]
         moves = ['24','42','46','64','68','86','82','28']
         for m in moves:
@@ -146,27 +147,27 @@ class Experiment(object):
         for i in range(2,len(m1_idx)):
             if m1_idx[i] > t1*fs and m1_idx[i]<t2*fs:
                 s = m1_idx[i]
-                start_st = int(sd[m1_idx[i-2],m1])
-                end_st = int(sd[s,m1])
+                start_st = int(sd[self.mice[m1]][m1_idx[i-2]])
+                end_st = int(sd[self.mice[m1]][s])
                 e =s+self.treshold*fs
                 try:
-                    period1 = list(sd[s:e,m2])
-                    period2 = list(sd[s-2*fs:s,m2])
-                    period3 = list(sd[s-int(0.1*fs):s,m2])
+                    period1 = list(sd[self.mice[m2]][s:e])
+                    period2 = list(sd[self.mice[m2]][s-2*fs:s])
+                    period3 = list(sd[self.mice[m2]][s-int(0.1*fs):s])
                     # define conditions
-                    unknown_state = sd[s,m1]==0 or int(sd[m1_idx[i-1],m1])==0
-                    unknown_previous_states = (sd[m1_idx[i-1],m1] ==0 and (sd[m1_idx[i-2],m1] ==0)) or (sd[m1_idx[i-1],m1] !=0 and (sd[m1_idx[i-2],m1] ==0))
-                    in_pipe =  sd[s,m1]%2==1
+                    unknown_state = sd[self.mice[m1]][s]==0 or int(sd[self.mice[m1]][m1_idx[i-1]])==0
+                    unknown_previous_states = (sd[self.mice[m1]][m1_idx[i-1]] ==0 and (sd[self.mice[m1]][m1_idx[i-2]] ==0)) or (sd[self.mice[m1]][m1_idx[i-1]] !=0 and (sd[self.mice[m1]][m1_idx[i-2]] ==0))
+                    in_pipe =  sd[self.mice[m1]][s]%2==1
                     if unknown_state or unknown_previous_states or in_pipe or start_st==end_st:
                         continue
                     
-                    op_idx = (2*sd[m1_idx[i-2],m1]-sd[s,m1]-1)%8+1
-                    same_start = sd[m1_idx[i-2],m1] in period2 #POPRAWIC!!!!!!!
-                    first_m1 = sd[s,m1] not in period3 and op_idx not in period3
-                    followed = period1.count(sd[s,m1])>0
+                    op_idx = (2*sd[self.mice[m1]][m1_idx[i-2]]-sd[self.mice[m1]][s]-1)%8+1
+                    same_start = sd[self.mice[m1]][m1_idx[i-2]] in period2 #POPRAWIC!!!!!!!
+                    first_m1 = sd[self.mice[m1]][s] not in period3 and op_idx not in period3
+                    followed = period1.count(sd[self.mice[m1]][s])>0
                     go_oposite = op_idx in period1
                     if followed and go_oposite:
-                        followed = period1.index(sd[s,m1])<period1.index(op_idx)
+                        followed = period1.index(sd[self.mice[m1]][s])<period1.index(op_idx)
                         go_oposite = not followed
                     if same_start and first_m1:
                         #print start_st,end_st, op_idx
@@ -176,7 +177,7 @@ class Experiment(object):
                             #####POPRAWIC
                             #print np.ceil((period1.index(sd[s,m1]))/self.fs)
                             if self.fols!=None:
-                                self.fols[np.ceil((period1.index(sd[s,m1]))/self.fs)]+=1
+                                self.fols[np.ceil((period1.index(sd[self.mice[m1]][s]))/self.fs)]+=1
                             follow_stat[str(start_st)+str(end_st)][0] += 1 
                             #print p, sd[m1_idx[i-2],m1],[index]
                             detected_idx[0].append((m1,m2,s))
@@ -420,7 +421,7 @@ if __name__ == "__main__":
     ts = 3    
     experiments = load_experiments_info("experiments_desc.csv")
     comparisons = load_comparisons_info("comparisons.csv")
-    #print comparisons.keys()
+    
     ##for i in comparisons:
     ##    names, colors = group_data(i,comparisons,experiments, color_lst = ["red","green", "blue"])
     #    print names
@@ -430,6 +431,8 @@ if __name__ == "__main__":
     
     #createRandomExpepiments(exp_paths)
     #Interpersec(names,ts=200)
+    #names = {}
+    #names["KO"] = ["long_experiment_KO"]
     preprocessData(names,window = 12,ts=3)
     
     
