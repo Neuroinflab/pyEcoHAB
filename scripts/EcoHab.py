@@ -50,7 +50,7 @@ class EcoHabData(object):
                     print d 
                     raise(IOError('Unknown data format in file %s' %f))
         self.rawdata.sort(key=lambda x: self.convert_time(x[1]))
-        self.mice = set([d[4] for d in self.rawdata])
+        self.mice = list(set([d[4] for d in self.rawdata]))
         self.data = {}
         self.data['Id'] = [d[0] for d in self.rawdata]
         self.data['Time'] = [self.convert_time(d[1]) for d in self.rawdata]
