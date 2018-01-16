@@ -96,7 +96,6 @@ class Experiment(object):
             for mouse in mice:
                 if mouse not in self.mice:
                     del self.sd[mouse]
-                    del self.ehs.signal_data[mouse]
                     
         self.lm = len(self.mice)
         
