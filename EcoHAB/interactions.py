@@ -83,7 +83,6 @@ class Experiment(object):
 
         
         self.ehs = EcoHab.EcoHabSessions9states(self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0)
-
         self.fs = self.ehs.fs
         self.sd =  self.ehs.signal_data
        
@@ -98,7 +97,18 @@ class Experiment(object):
                     del self.sd[mouse]
                     
         self.lm = len(self.mice)
-        
+
+        if mask:
+            self.t_start = mask[0]
+            self.t_end = mask[1]
+        else:
+            self.t_start = 0
+            self.t_end = len(self.ehs.signal_data[self.mice[0]])*self.fs
+
+        if mask and which_phase == 'ALL':
+            self.fname_ending = str(self.t_start)+'_'+str(self.t_end)
+        else:
+            self.fname_ending = which_phase
     def calculate_fvalue(self,window='default',treshold = 2, force=False,fols=None,ops=None,which_phase='ALL'):
         self.fols = fols
         self.ops = ops
@@ -126,9 +136,10 @@ class Experiment(object):
         self.f_sum = np.zeros((len(self.phases),self.lm))
                               
         new_path = os.path.join(self.directory,'PreprocessedData/IteractionsData/')
-        new_fname_patterns = os.path.join(new_path, 'Patterns_%s.npy'%which_phase)
-        new_fname_fpatterns = os.path.join(new_path, 'fpatterns_%s.npy'%which_phase)
-        new_fname_opatterns = os.path.join(new_path, 'opatterns_%s.npy'%which_phase)
+    
+        new_fname_patterns = os.path.join(new_path, 'Patterns_%s.npy'%self.fname_ending)
+        new_fname_fpatterns = os.path.join(new_path, 'fpatterns_%s.npy'%self.fname_ending)
+        new_fname_opatterns = os.path.join(new_path, 'opatterns_%s.npy'%self.fname_ending)
         
         if not os.path.exists(os.path.dirname(new_path)):
             os.makedirs(os.path.dirname(new_path))
@@ -248,7 +259,9 @@ class Experiment(object):
             start_state = int(self.sd[mouse1][mouse1_indices[i-2]])
             middle_state = int(self.sd[mouse1][mouse1_indices[i-1]])
             end_state = int(self.sd[mouse1][start])
- 
+            # if abs(start_state-middle_state) !=1 or abs(middle_state-end_state)!=1:
+            #     continue
+            #print(start_state,middle_state,end_state)
             end = start + self.treshold*fs
 
             unknown_state = end_state == 0 or middle_state == 0 or start_state == 0
