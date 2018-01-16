@@ -448,7 +448,7 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
     """Calculates 'visits' to Eco-HAB compartments."""
     
     def _calculate_visitis(self):
-
+        
         statistics = {}
         tempdata = []
         for n, mm in enumerate(self.mice):
@@ -470,11 +470,12 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
                     statistics[mm]["state_time"][state].append(tend - tstart)
                     continue
                 diff = np.abs(anstart - anend)
+                s = int((tstart - self.t_start_exp)*self.fs)
+                e = int((tend- self.t_start_exp)*self.fs)
                 if diff in [0,1,7]:
-                    s = (tstart - self.t_start_exp)*self.fs
-                    e = (tend- self.t_start_exp)*self.fs
                     ############Most obvious reading##########
                     if diff in [1, 7]:
+                        #print(previous,)
                         if diff == 1:
                             state = int((anstart + anend)/2.-0.5)
                             previous = state
@@ -482,6 +483,7 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
                             state = 8
                             previous = state
                         #Save state to stadard and signal data
+                        #print(state)
                         tempdata.append((state, mm, tstart, tend, tend-tstart,
                                          True))
                         self.signal_data[mm][int(s):int(e)] = state
@@ -494,6 +496,7 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
                             statistics[mm]["preference"][state][0]+=1  
                         previous = state       
                     elif diff == 0 and previous != 0:
+                       
                         if tend - tstart < 2:
                             continue
                         diff2 = anstart - previous
@@ -521,7 +524,49 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
                             statistics[mm]["preference"][state][1]+=1
                         else:
                             statistics[mm]["preference"][state][0]+=1  
-                        previous = state       
+                        previous = state
+                        
+                elif diff in [2,6] and tend-tstart>2:
+                    
+                    if anstart == 8 and anend == 2 :
+                        middle_antenna = 1
+                    elif anstart == 2 and anend == 8:
+                        middle_antenna = 1
+                    elif anstart == 7 and anend == 1 :
+                        middle_antenna = 8
+                    elif anstart == 1 and anend == 7:
+                        middle_antenna = 8
+                    else:
+                        middle_antenna = anstart + (anend-anstart)//2
+    
+                    if abs(middle_antenna -anstart) == 1:
+                        previous = int((middle_antenna + anstart)/2.-0.5)
+                    else:
+                        previous = 8
+                        
+                    if abs(anend-middle_antenna) == 1:
+                        state = int((middle_antenna + anend)/2.-0.5)
+                    else:
+                        state = 8
+                        
+                    
+                    duration = e-s
+                   
+                    if anstart % 2:
+                        middle = s + duration//3
+                    else:
+                        middle = s + 2*duration//3
+                    
+                    self.signal_data[mm][s:middle] = previous
+                    self.signal_data[mm][middle:e] = state
+                    
+                    statistics[mm]["state_freq"][previous]+=1
+                    statistics[mm]["state_freq"][state]+=1
+                    
+                    statistics[mm]["state_time"][previous].append((middle-s)*self.fs)
+                    statistics[mm]["state_time"][state].append(tend - tstart - middle*self.fs)
+                    tempdata.append((previous,mm, tstart,tend,(middle-s)*self.fs ,False))
+                    tempdata.append((previous,mm, tstart,tend,tend-tstart-middle*self.fs ,False))
                     
             
 #            for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
