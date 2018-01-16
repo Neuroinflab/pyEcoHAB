@@ -42,7 +42,12 @@ class Experiment(object):
         self.cf = ExperimentConfigFile(os.path.join('..','RawData',exp_name))
         mice = list(self.ehd.mice)
         self.mice = filter(lambda x: len(self.ehs.getstarttimes(x)) > 30, mice)
-        print mice == self.mice
+        if mice != self.mice:
+            for mouse in mice:
+                if mouse not in self.mice:
+                    del self.sd[mouse]
+                    
+                    print(mouse)
         self.lm = len(self.mice)
         
     def calculate_fvalue(self,window='default',treshold = 2,min_interactions = 1, force=False,fols=None,ops=None):
