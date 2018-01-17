@@ -12,10 +12,10 @@ antenna_pos = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":{'1':1,'2'
 #     sys.exit("No data directory given")
 a_dirs  = ["/home/jszmek/EcoHAB_data_November/long_experiment_KO","/home/jszmek/EcoHAB_data_November/long_experiment_WT"]
 #[0,1507905985.0]
-masks = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":[[0,1508410232],[1508410232.,1508740930.0]],
+masks = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":[],#[0,1508410232],[1508410232.,1508740930.0]],
          "/home/jszmek/EcoHAB_data_November/long_experiment_WT":[]}
-phases = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":['ALL'],
-         "/home/jszmek/EcoHAB_data_November/long_experiment_WT":['POCZATEK']}
+phases = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":["BEGINNING","MIDDLE"],
+         "/home/jszmek/EcoHAB_data_November/long_experiment_WT":["BEGINNING","MIDDLE"]}
 ts = 3   
 window=12
 IPP = {}
@@ -68,6 +68,7 @@ for a_dir in a_dirs:
 for a_dir in a_dirs:
     for i, ipp in enumerate(IPP[a_dir]):
         interactions.oneRasterPlot(directories[a_dir][i],FAM[a_dir][i],ipp,sections[a_dir][i],'Interactions_ts_'+str(ts)+'_s_'+endings[a_dir][i],scalefactor)
-        plotfunctions.plot_graph(FAM[a_dir][i],0, base_name = 'following_graph', nr='')
+        for k,l in enumerate(FAM[a_dir][i]):
+            plotfunctions.MakeRelationGraph(FAM[a_dir][i][k],ipp[k],k,sections[a_dir][i],directories[a_dir][i],scalefactor)
             
 
