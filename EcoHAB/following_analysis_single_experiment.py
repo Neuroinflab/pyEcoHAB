@@ -69,6 +69,6 @@ for a_dir in a_dirs:
     for i, ipp in enumerate(IPP[a_dir]):
         interactions.oneRasterPlot(directories[a_dir][i],FAM[a_dir][i],ipp,sections[a_dir][i],'Interactions_ts_'+str(ts)+'_s_'+endings[a_dir][i],scalefactor)
         for k,l in enumerate(FAM[a_dir][i]):
-            plotfunctions.MakeRelationGraph(FAM[a_dir][i][k],ipp[k],k,sections[a_dir][i],directories[a_dir][i],scalefactor)
+            plotfunctions.plot_graph(FAM[a_dir][i],k,sections[a_dir][i],directories[a_dir][i])
             
 
