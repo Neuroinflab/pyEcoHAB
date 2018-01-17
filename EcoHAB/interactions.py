@@ -144,20 +144,20 @@ class Experiment(object):
         if not os.path.exists(os.path.dirname(new_path)):
             os.makedirs(os.path.dirname(new_path))
     
-        # try:
-        #     self.interactions = np.load(new_fname_patterns)
-        #     self.fpatterns = np.load(new_fname_fpatterns)
-        #     self.opatterns = np.load(new_fname_opatterns)
+        try:
+            self.interactions = np.load(new_fname_patterns)
+            self.fpatterns = np.load(new_fname_fpatterns)
+            self.opatterns = np.load(new_fname_opatterns)
             
-        # except IOError:
+        except IOError:
         
-        for s in range(len(self.phases)):
-            ts, te = self.phases[s]
-            #print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
-            self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
-            np.save(new_fname_patterns,self.interactions)
-            np.save(new_fname_fpatterns,self.fpatterns)
-            np.save(new_fname_opatterns,self.opatterns)
+            for s in range(len(self.phases)):
+                ts, te = self.phases[s]
+                #print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
+                self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
+                np.save(new_fname_patterns,self.interactions)
+                np.save(new_fname_fpatterns,self.fpatterns)
+                np.save(new_fname_opatterns,self.opatterns)
 
         return self.f
      
