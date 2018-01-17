@@ -178,10 +178,10 @@ def oneRasterPlot(directory,FAM,IPP,phases,name,scalefactor,to_file=True):
     plt.xlabel("session")
     plt.ylabel("following strength in pair")
     plt.savefig(os.path.join(new_path,name+'.png'))
-    plt.show()
+    #plt.show()
     #plt.close(fig)   
 
-def createRasterPlots(FAM,IPP,names,scalefactor,to_file = True,directory = 'RasterPlots'):
+def createRasterPlots(FAM,IPP,names,scalefactor,directory,to_file = True):
     if not os.path.exists('../Results/'+directory):
         os.makedirs('../Results/'+directory)
     for key in names.keys():
@@ -306,8 +306,10 @@ def CreateRelationGraphs(FAM,IPP,names,scalefactor,to_file = True,directory = 'I
             for s in range(n_s):
                 MakeRelationGraph(FAM[key][exp][s,:,:],IPP[key][exp][s,:,:],exp,s,key,directory,scalefactor,names)
     
-def MakeRelationGraph(FAM,IPP,exp,s,key,directory,scalefactor,names, fig = None, xy0 = 0):
-    print exp
+def MakeRelationGraph(FAM,IPP,k,sections,directory,scalefactor, fig = None, xy0 = 0):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    
     n_l,n_f = FAM.shape
     power = []
     conn = []
@@ -328,7 +330,7 @@ def MakeRelationGraph(FAM,IPP,exp,s,key,directory,scalefactor,names, fig = None,
     node_labels = {node:node for node in G.nodes()}  
     if not fig:
         fig = plt.figure(figsize=(10*size,10*size))
-    plt.suptitle('%s'%(names[key][exp]), fontsize=14, fontweight='bold')
+    plt.suptitle(sections[k], fontsize=14, fontweight='bold')
     ax = fig.add_subplot(111, aspect='equal')
     #fig.suptitle(self.path, fontsize=14*size, fontweight='bold')
     nx.draw_networkx_labels(G, pos, labels=node_labels,font_size=120)
@@ -340,9 +342,10 @@ def MakeRelationGraph(FAM,IPP,exp,s,key,directory,scalefactor,names, fig = None,
                                              )
     nx.draw(G,pos,ax, node_size=500*size**2,node_color= 'grey',edge_color=edge_colors,edge_cmap=cmap,width = 0,arrows=False, edge_style='dashed',zorder=10)
     for c in conn:
-        p = patches.FancyArrowPatch(pos[c[2]],pos[c[1]],connectionstyle='arc3, rad=-0.3',arrowstyle="simple",shrinkA=12*size, shrinkB=12*size,mutation_scale=size*c[0]/scalefactor, color = cmap(c[0]+0.5),zorder=1,alpha=0.5)
-        ax.add_patch(p)
-    plt.savefig('../Results/%s/%s_exp%s_s%s_graph.png'%(directory,key,exp,s))
+        if abs(c[0]-1)>0.01:
+            p = patches.FancyArrowPatch(pos[c[2]],pos[c[1]],connectionstyle='arc3, rad=-0.3',arrowstyle="simple",shrinkA=12*size, shrinkB=12*size,mutation_scale=5*size*c[0]/scalefactor, color = cmap(c[0]+0.5),zorder=1,alpha=0.5)
+            ax.add_patch(p)
+    plt.savefig('%s/Interactions_graph_%s.png'%(directory,sections[k]))
     ##plt.show()
     plt.close(fig)    
 
@@ -400,7 +403,7 @@ def plotphist(data,names,colors,to_file = True,directory = 'Interactions',vrange
     #plt.show()
     return stats    
 
-def plot_graph(FAPmatrix,s, base_name = 'following_graph', nr=''):
+def plot_graph(FAPmatrix,k,sections,directory):
     def scaling(p):
         if p<0.05 and p>0:
             return 2.5-p*50
@@ -413,7 +416,7 @@ def plot_graph(FAPmatrix,s, base_name = 'following_graph', nr=''):
     for i in range(d2):
         for j in range(d3):
             if i!=j:
-                pairs.append([FAPmatrix[s][i][j],i+1,j+1])
+                pairs.append([FAPmatrix[k][i][j],i+1,j+1])
     pairs.sort(key=lambda x: -x[0])
     conn = [(scaling(x[0]),x[1],x[2]) for x in pairs]
     G = nx.MultiDiGraph(multiedges=True, sparse=True)
@@ -426,19 +429,22 @@ def plot_graph(FAPmatrix,s, base_name = 'following_graph', nr=''):
     fig = plt.figure(figsize=(10*size,10*size)) 
     ax = fig.add_subplot(111, aspect='equal')
     #fig.suptitle(self.path, fontsize=14*size, fontweight='bold')
-    nx.draw_networkx_labels(G, pos, labels=node_labels,font_size=20)
+    nx.draw_networkx_labels(G, pos, labels=node_labels,font_size=120)
     cmap = mcol.LinearSegmentedColormap.from_list(name='red_white_blue', 
                                              colors =[(0, 0, 1), 
                                                       (1, 1., 1), 
                                                       (1, 0, 0)],
                                              N=20-1,
                                              )
-    nx.draw(G,pos,ax, node_size=50*size**2,node_color= 'grey',edge_color=edge_colors,edge_cmap=cmap,width = 0,arrows=False, edge_style='dashed',zorder=10)
+    nx.draw(G,pos,ax, node_size=500*size**2,node_color= 'grey',edge_color=edge_colors,edge_cmap=cmap,width = 0,arrows=False, edge_style='dashed',zorder=10)
     for c in conn:
         if abs(c[0]-1)>0.01:
             #print c[0]
-            p = patches.FancyArrowPatch(pos[c[2]],pos[c[1]],connectionstyle='arc3, rad=-0.3',arrowstyle="simple",shrinkA=1.2*size, shrinkB=1.2*size,mutation_scale=20*size*abs(c[0]), color = cmap(c[0]+0.5),zorder=1,alpha=0.5)
+            p = patches.FancyArrowPatch(pos[c[2]],pos[c[1]],connectionstyle='arc3, rad=-0.3',arrowstyle="simple",shrinkA=10.2*size, shrinkB=10.2*size,mutation_scale=20*size*abs(c[0]), color = cmap(c[0]+0.5),zorder=1,alpha=0.5)
             ax.add_patch(p)
-    plt.savefig('../test.png')
-    plt.show()
+    
+    #plt.show()
     #plt.close(fig)    
+    plt.savefig('%s/Interactions_graph_%s.png'%(directory,sections[k]))
+    ##plt.show()
+    plt.close(fig) 
