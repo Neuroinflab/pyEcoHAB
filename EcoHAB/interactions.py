@@ -63,10 +63,11 @@ class Experiment(object):
                     self.cf.remove_section(phase)
             self._fix_config()
 
-    def __init__(self, path,_ant_pos=None,which_phase='ALL',mask=None):
+    def __init__(self, path,_ant_pos=None,which_phase='ALL',mask=None,from_file=False):
         
         self.path = path
         self.directory = utils.results_path(path)
+        self.from_file = False
         print(self.directory)
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
@@ -144,16 +145,17 @@ class Experiment(object):
         if not os.path.exists(os.path.dirname(new_path)):
             os.makedirs(os.path.dirname(new_path))
     
-        try:
+        if self.from_file:
+            
             self.interactions = np.load(new_fname_patterns)
             self.fpatterns = np.load(new_fname_fpatterns)
             self.opatterns = np.load(new_fname_opatterns)
             
-        except IOError:
+        else:
         
             for s in range(len(self.phases)):
                 ts, te = self.phases[s]
-                #print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
+                print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
                 self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
                 np.save(new_fname_patterns,self.interactions)
                 np.save(new_fname_fpatterns,self.fpatterns)
