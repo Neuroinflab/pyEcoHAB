@@ -58,7 +58,7 @@ def open_new_file(t,dir_name):
     location = os.path.join(dir_name,new_fname)
     return open(location,'w')
 
-def make_data(dir_name,phases,endings,m2_function,phase_duration,exp_duration,state_m1=1,state_m2=1,previous_m1=8,previous_m2=8,mouse1 = "0065-0136661698",mouse2 = "0065-0136656570")
+def make_data(dir_name,phases,endings,m2_function,phase_duration,exp_duration,state_m1=1,state_m2=1,previous_m1=8,previous_m2=8,mouse1 = "0065-0136661698",mouse2 = "0065-0136656570"):
     
     counter = 1
     t0 = 1516030860.-41*60-4*60*60
@@ -73,7 +73,6 @@ def make_data(dir_name,phases,endings,m2_function,phase_duration,exp_duration,st
 
     t = t0
     t_start = t0
-    
     for i,phase in enumerate(phases):
         for j in range(exp_duration[i]):
 
