@@ -58,25 +58,12 @@ def open_new_file(t,dir_name):
     location = os.path.join(dir_name,new_fname)
     return open(location,'w')
 
-phases = ['FOLLOWING','AVOIDING']
-endings = ['dark','light']
-m2_function = [new_state_clockwise,new_state_counter_clockwise]
-phase_duration = 12*60*60
-exp_duration = [4,4]
-
-if __name__ == '__main__':
-    state_m1 = 1
-    state_m2 = 1
-    previous_m1 = 8
-    previous_m2 = 8
-    mouse1 = "0065-0136661698"
-    mouse2 = "0065-0136656570"
+def make_data(dir_name,phases,endings,m2_function,phase_duration,exp_duration,state_m1=1,state_m2=1,previous_m1=8,previous_m2=8,mouse1 = "0065-0136661698",mouse2 = "0065-0136656570")
+    
     counter = 1
     t0 = 1516030860.-41*60-4*60*60
     time_m1 = t0
     time_m2 = t0 + 0.21
-    length = 2*24*60*60
-    dir_name = 'Circular_data_following'
     
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
