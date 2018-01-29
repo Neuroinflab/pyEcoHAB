@@ -257,8 +257,7 @@ class EcoHabData(object):
     @staticmethod
     def convert_time(s): 
         """Convert date and time to seconds since epoch"""
-         return (time.mktime(time.strptime(s.split('.')[0], '%Y%m%d %H:%M:%S'))
-                 + float(s.split('.')[-1])/1000.)
+        return (time.mktime(time.strptime(s.split('.')[0], '%Y%m%d %H:%M:%S'))  + float(s.split('.')[-1])/1000.)
     def checkData_one_mouse(self,mouse):
         antennas = self.getantennas(mouse)
         times  = self.gettimes(mouse)
