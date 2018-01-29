@@ -77,7 +77,6 @@ class EcoHabData(object):
         self.data['Tag'] = self.data['Tag'][mask[0]:mask[1]]
 
     def check_antenna_presence(self):
-        
         t_start = self.data['Time'][0]
         all_times = np.array(self.data['Time'])
         breaks = {}
@@ -129,15 +128,19 @@ class EcoHabData(object):
 
         return weird_transit
 
-    def __init__(self, path, _ant_pos=None,mask=None):
+    def __init__(self,path,**kwargs):# path, _ant_pos=None,mask=None):
         self.days = set()
         self.path = path
         self.rawdata = []
         self.get_data()
         self.max_break = max_break
-        self.rawdata = self.remove_ghost_tags()
+        how_many_appearances = kwargs.pop('how_many_appearances',1000)
+        factor = kwargs.pop('factor',2)
+        self.rawdata = self.remove_ghost_tags(how_many_appearances,factor)
         self.mice = list(set([d[4] for d in self.rawdata]))
         self.rawdata.sort(key=lambda x: self.convert_time(x[1]))
+        _ant_pos = kwargs.pop('_ant_pos',None)
+        mask = kwargs.pop('mask',None)
         
         if _ant_pos is None:
             self._ant_pos = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8}
@@ -164,7 +167,7 @@ class EcoHabData(object):
             self._cut_out_data(mask)
           
         
-    def remove_ghost_tags(self, how_many_appearances=1000,factor=2):
+    def remove_ghost_tags(self, how_many_appearances,factor):
         new_data = []
         ghost_mice = []
         counters = {}
@@ -253,7 +256,7 @@ class EcoHabData(object):
                             
     @staticmethod
     def convert_time(s): 
-        """Convert date and time to seconds since epoch""" 
+        """Convert date and time to seconds since epoch"""
         return (time.mktime(time.strptime(s[:-4], '%Y%m%d %H:%M:%S'))
                     + float(s[-3:])/1000.)
 
@@ -730,7 +733,9 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
     def __init__(self, path, **kwargs):
         _ant_pos = kwargs.pop('_ant_pos', None)
         _mask = kwargs.pop('mask', None)
-        super(EcoHabSessions9states,self).__init__(path,_ant_pos,_mask)
+        how_many_appearances = kwargs.pop('how_many_appearances',1000)
+        factor = kwargs.pop('factor',2)
+        super(EcoHabSessions9states,self).__init__(path,_ant_pos=_ant_pos,mask=_mask,how_many_appearances=how_many_appearances, factor=factor)
         self.shortest_session_threshold = kwargs.pop('shortest_session_threshold', 2)
         self.fs = 10
         self.t_start_exp = np.min(self.data['Time'])
