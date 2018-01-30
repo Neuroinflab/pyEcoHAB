@@ -19,7 +19,7 @@ antenna_pos = {"/home/jszmek/EcoHAB/test/Circular_data_following":{'1':1,'2':2,'
 }
 
 data_phases = ['FOLLOWING','AVOIDING']
-ending = ['dark','light']
+ending = ['','']
 m2_function = [make_circular.new_state_clockwise,make_circular.new_state_counter_clockwise]
 phase_duration = 12*60*60
 exp_duration = [4,4]
@@ -81,7 +81,7 @@ print(directories)
 for a_dir in a_dirs:
     for i, ipp in enumerate(IPP[a_dir]):
         interactions.oneRasterPlot(directories[a_dir][i],FAM[a_dir][i],ipp,sections[a_dir][i],'Interactions_ts_'+str(ts)+'_s_'+endings[a_dir][i],scalefactor)
-        print(FAM[a_dir][i])
+
         for k,l in enumerate(FAM[a_dir][i]):
             plotfunctions.plot_graph(FAM[a_dir][i],k,sections[a_dir][i],directories[a_dir][i])
             
