@@ -63,12 +63,17 @@ class Experiment(object):
                     self.cf.remove_section(phase)
             self._fix_config()
 
-    def __init__(self, path,_ant_pos=None,which_phase='ALL',mask=None,from_file=False):
+    def __init__(self, path,**kwargs):#_ant_pos=None,which_phase='ALL',mask=None,from_file=False):
         
         self.path = path
+        _ant_pos = kwargs.pop('_ant_pos',None)
+        which_phase = kwargs.pop('which_phase','ALL')
+        mask = kwargs.pop('mask',None)
+        from_file = kwargs.pop('from_file',None)
+        how_many_appearances = kwargs.pop('how_many_appearances',1000)
+        factor = kwargs.pop('factor',2)
         self.directory = utils.results_path(path)
         self.from_file = False
-        print(self.directory)
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
 
@@ -83,7 +88,7 @@ class Experiment(object):
         self._remove_phases(mask)            
 
         
-        self.ehs = EcoHab.EcoHabSessions9states(self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0)
+        self.ehs = EcoHab.EcoHabSessions9states(self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0,how_many_appearances=how_many_appearances,factor=factor)
         self.fs = self.ehs.fs
         self.sd =  self.ehs.signal_data
        
@@ -91,11 +96,6 @@ class Experiment(object):
         
         self.mice = filter(lambda x: len(self.ehs.getstarttimes(x)) > 30, mice)
         
-        if mice != self.mice:
-            print("False")
-            for mouse in mice:
-                if mouse not in self.mice:
-                    del self.sd[mouse]
                     
         self.lm = len(self.mice)
 
@@ -436,6 +436,7 @@ def binomial_probability(s, p, n):
 
     for j in range(s, n + 1):
         prob += scipy.special.binom(n, j) * p**j * (1 - p)**(n-j)
+   
     return prob
 
 
@@ -451,9 +452,9 @@ def FAprobablity(a,p=0.5):
     pa = binomial_probability(number_of_avoiding, probability_of_avoiding, total)
 
     if pf < pa and pf < 0.05:
-        v = round(pf,3)#0.5-pf
+        v = round(pf,6)#0.5-pf
     elif pa < pf and pa < 0.05:
-        v = round(-pa,3)#pa-0.5
+        v = round(-pa,6)#pa-0.5
     else:
         v = 0.
     
