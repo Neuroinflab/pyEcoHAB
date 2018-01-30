@@ -58,10 +58,10 @@ def open_new_file(t,dir_name):
     location = os.path.join(dir_name,new_fname)
     return open(location,'w')
 
-def make_data(dir_name,phases,endings,m2_function,phase_duration,exp_duration,state_m1=1,state_m2=1,previous_m1=8,previous_m2=8,mouse1 = "0065-0136661698",mouse2 = "0065-0136656570"):
+def make_data(dir_name,phases,endings,m2_function,phase_duration,exp_duration,state_m1=1,state_m2=1,previous_m1=8,previous_m2=8,mouse1 = "0065-0136661698",mouse2 = "0065-0136656570",followings=[2,10]):
     
     counter = 1
-    t0 = 1516030860.-41*60-4*60*60
+    t0 = 1516030860.111-41*60-4*60*60
     time_m1 = t0
     time_m2 = t0 + 0.21
     
@@ -83,23 +83,34 @@ def make_data(dir_name,phases,endings,m2_function,phase_duration,exp_duration,st
                 date = make_date(t)
                 f = open_new_file(t,dir_name)
                 time_counter = t
+                count_followings = 0
                 while t < time_counter+60*60:
                     f.write(str(counter)+"\t"+date+"\t")
                     if time_m1 < time_m2:
                         f.write(make_hour(time_m1)+"\t"+str(state_m1)+"\t200\t"+mouse1+"\n")
                         previous_m1 = state_m1
                         state_m1 = new_state_clockwise(state_m1)
-                        time_m1 += increment(previous_m1)
+                        if count_followings > followings[i]:
+                            time_m1 = time_counter+60*60
+                            time_m2 = time_counter+60*60+0.21
+                        else:
+                            time_m1 += increment(previous_m1)
                         t = time_m1
                         counter += 1
+                        count_followings +=1
                     else:
                         f.write(make_hour(time_m2)+"\t"+str(state_m2)+"\t200\t"+mouse2+"\n")
                         previous_m2 = state_m2
                         state_m2 = m2_function[i](state_m2)
-                        time_m2 += increment(previous_m2)
+                        if count_followings > followings[i]:
+                            time_m1 = time_counter+60*60
+                            time_m2 = time_counter+60*60+0.21
+                        else:
+                            time_m2 += increment(previous_m2)
                         t = time_m2
                         counter +=1
-            t_start = t
+                        count_followings +=1
+            t_start =t         
             write_config(config,phase_name,t,True)
 
     write_config(config,'ALL',t0,False)
