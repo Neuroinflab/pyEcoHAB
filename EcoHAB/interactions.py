@@ -72,6 +72,7 @@ class Experiment(object):
         from_file = kwargs.pop('from_file',None)
         how_many_appearances = kwargs.pop('how_many_appearances',1000)
         factor = kwargs.pop('factor',2)
+        tags = kwargs.pop('remove_mice',[])
         self.directory = utils.results_path(path)
         self.from_file = False
         if not os.path.exists(self.directory):
@@ -88,7 +89,7 @@ class Experiment(object):
         self._remove_phases(mask)            
 
         
-        self.ehs = EcoHab.EcoHabSessions9states(self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0,how_many_appearances=how_many_appearances,factor=factor)
+        self.ehs = EcoHab.EcoHabSessions9states(self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0,how_many_appearances=how_many_appearances,factor=factor,remove_mice=tags)
         self.fs = self.ehs.fs
         self.sd =  self.ehs.signal_data
        

@@ -80,20 +80,25 @@ class EcoHabData(object):
         t_start = self.data['Time'][0]
         all_times = np.array(self.data['Time'])
         breaks = {}
+        
         for antenna in range(1,9):
+            
             antenna_idx = np.where(np.array(self.data['Antenna']) == antenna)[0]
             times = all_times[antenna_idx] 
             breaks[antenna] = []
-            if times[0] - t_start > self.max_break:
-                breaks[antenna].append([0, np.round(times[0])])
+            if len(times):
+                if times[0] - t_start > self.max_break:
+                    breaks[antenna].append([0, np.round(times[0])])
         
-            intervals = times[1:]-times[0:-1]
+                intervals = times[1:]-times[0:-1]
 
-            where_breaks = np.where(intervals > self.max_break)[0]
+                where_breaks = np.where(intervals > self.max_break)[0]
 
-            if len(where_breaks):
-                for i in where_breaks:
-                    breaks[antenna].append([np.round(times[i]), np.round(times[i+1])])
+                if len(where_breaks):
+                    for i in where_breaks:
+                        breaks[antenna].append([np.round(times[i]), np.round(times[i+1])])
+            else:
+                breaks[antenna].append([np.round(t_start),self.data['Time'][-1]])         
                     
         # for antenna in breaks:
         #     print(antenna, breaks[antenna])
@@ -136,7 +141,8 @@ class EcoHabData(object):
         self.max_break = max_break
         how_many_appearances = kwargs.pop('how_many_appearances',1000)
         factor = kwargs.pop('factor',2)
-        self.rawdata = self.remove_ghost_tags(how_many_appearances,factor)
+        tags = kwargs.pop('remove_mice',[])
+        self.rawdata = self.remove_ghost_tags(how_many_appearances,factor,tags=tags)
         self.mice = list(set([d[4] for d in self.rawdata]))
         self.rawdata.sort(key=lambda x: self.convert_time(x[1]))
         _ant_pos = kwargs.pop('_ant_pos',None)
@@ -167,11 +173,14 @@ class EcoHabData(object):
             self._cut_out_data(mask)
           
         
-    def remove_ghost_tags(self, how_many_appearances,factor):
+    def remove_ghost_tags(self, how_many_appearances,factor,tags=[]):
         new_data = []
         ghost_mice = []
         counters = {}
         dates = {}
+        if len(tags):
+            for tag in tags:
+                ghost_mice.append(tag)
         for d in self.rawdata:
             mouse = d[4]
             if mouse not in counters:
@@ -185,7 +194,8 @@ class EcoHabData(object):
         how_many_days = len(self.days)/factor
         for mouse in counters:
             if counters[mouse] < how_many_appearances or dates[mouse] <= how_many_days:
-                ghost_mice.append(mouse)
+                if mouse not in ghost_mice:
+                    ghost_mice.append(mouse)
    
         for d in self.rawdata:
             mouse = d[4]
@@ -476,7 +486,7 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
                 if diff in [0,1,7]:
                     ############Most obvious reading##########
                     if diff in [1, 7]:
-                        #print(previous,)
+                        #printprevious,)
                         if diff == 1:
                             state = int((anstart + anend)/2.-0.5)
                             previous = state
@@ -733,7 +743,8 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
         _mask = kwargs.pop('mask', None)
         how_many_appearances = kwargs.pop('how_many_appearances',1000)
         factor = kwargs.pop('factor',2)
-        super(EcoHabSessions9states,self).__init__(path,_ant_pos=_ant_pos,mask=_mask,how_many_appearances=how_many_appearances, factor=factor)
+        tags = kwargs.pop('remove_mice',[])
+        super(EcoHabSessions9states,self).__init__(path,_ant_pos=_ant_pos,mask=_mask,how_many_appearances=how_many_appearances, factor=factor,remove_mice=tags)
         self.shortest_session_threshold = kwargs.pop('shortest_session_threshold', 2)
         self.fs = 10
         self.t_start_exp = np.min(self.data['Time'])
