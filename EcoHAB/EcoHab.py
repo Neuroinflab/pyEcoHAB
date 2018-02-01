@@ -463,16 +463,21 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
         fig.suptitle(mouse)
         for i in range(8):
             ax.append(fig.add_subplot(2,4,i+1))
-            
+        print(mouse)
         for i in range(4):
-            ax[i].hist(self.statistics[mouse]["state_time"][2*i+1],bins=100)
+            chamber = np.array(self.statistics[mouse]["state_time"][2*(i+1)])
+            corridor  = np.array(self.statistics[mouse]["state_time"][2*i+1])
+            ax[i].hist(corridor,bins=100)
             ax[i].set_title(str(2*i+1))
-            ax[i+4].hist(self.statistics[mouse]["state_time"][2*(i+1)],bins=100)
+            ax[i+4].hist(chamber,bins=100)
             ax[i+4].set_title(str(2*(i+1)))
-
+            print(chamber.mean(),np.median(chamber))
+            print(corridor.mean(),np.median(corridor))
+                  
+                  
         plt.show()
         
-    def _initialize_statistics(self,mouse):
+    def _initialize_statistics(self,statistics,mouse):
         
         statistics[mouse] = {}
         statistics[mouse]["state_freq"]= np.zeros(9)
@@ -489,11 +494,13 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
             tt = self.gettimes(mm)
             an = self.getantennas(mm)
             
-            self._initialize_statistics(mm)
+            self._initialize_statistics(statistics,mm)
                  
             previous = 0
             for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
+                
                 t_diff = tend - tstart
+
                 if  t_diff < self.shortest_session_threshold:
                     state = 0
                     previous = 0
@@ -534,11 +541,11 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
                             
                             #print previous,state,anend
                         #Save state to stadard and signal data
-                        tempdata.append((state, mm, tstart, tend, t_diff,
-
+                        
                     else:
                         continue
-                                                                                  True))
+                    
+                    tempdata.append((state, mm, tstart, tend, t_diff, True))
                     self.signal_data[mm][int(s):int(e)] = state
                     
                     statistics[mm]["state_freq"][state]+=1
@@ -594,18 +601,18 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
             
 
         tempdata.sort(key=lambda x: x[2])
-        self.data = {'Tag': [],
+        self.processed_data = {'Tag': [],
              'Address': [],
              'AbsStartTimecode': [],
              'AbsEndTimecode': [],
              'VisitDuration': [],
              'ValidVisitSolution': [],}
-        self.data['Address'] = [x[0] for x in tempdata]
-        self.data['Tag'] = [x[1] for x in tempdata]
-        self.data['AbsStartTimecode'] = [x[2] for x in tempdata]
-        self.data['AbsEndTimecode'] = [x[3] for x in tempdata]
-        self.data['VisitDuration'] = [x[4] for x in tempdata]
-        self.data['ValidVisitSolution'] = [x[5] for x in tempdata]
+        self.processed_data['Address'] = [x[0] for x in tempdata]
+        self.processed_data['Tag'] = [x[1] for x in tempdata]
+        self.processed_data['AbsStartTimecode'] = [x[2] for x in tempdata]
+        self.processed_data['AbsEndTimecode'] = [x[3] for x in tempdata]
+        self.processed_data['VisitDuration'] = [x[4] for x in tempdata]
+        self.processed_data['ValidVisitSolution'] = [x[5] for x in tempdata]
 
         return statistics
     
@@ -640,7 +647,7 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
             starttime = min(self.getstarttimes(self.mice))
             endtime = args[0]
         self.mask = (starttime, endtime) 
-        arr = np.array(self.data['AbsStartTimecode'])
+        arr = np.array(self.processed_data['AbsStartTimecode'])
         idcs = np.where((arr >= starttime) & (arr < endtime))[0]
         if len(idcs) >= 2:
             self._mask_slice = (idcs[0], idcs[-1] + 1)
