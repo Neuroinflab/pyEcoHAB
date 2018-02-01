@@ -8,6 +8,72 @@ import pylab as plt
 
 max_break = 60*60
 
+class Data(object):
+    
+    def __init__(self,data,mask):
+        self.mask = mask
+        self._mask_slice = None
+        self.data = data
+        if self.mask:
+            self._cut_out_data(mask)
+            
+    def _cut_out_data(self,mask):
+
+        mask = self._find_mask_indices(mask)
+        
+        self.data['Id'] = self.data['Id'][mask[0]:mask[1]]
+        self.data['Time'] = self.data['Time'][mask[0]:mask[1]]
+        
+        self.data['Antenna'] = self.data['Antenna'][mask[0]:mask[1]]
+        self.data['Tag'] = self.data['Tag'][mask[0]:mask[1]]      
+    def _find_mask_indices(self,mask):
+        
+        starttime, endtime = mask
+        arr = np.array(self.data['Time'])
+        idcs = np.where((arr >= starttime) & (arr < endtime))[0]
+
+        if len(idcs) >= 2:
+            return (idcs[0], idcs[-1] + 1)
+        if len(idcs) == 1:
+            return (idcs[0], idcs[0] + 1)
+        
+        return (0,0)
+    
+    def mask_data(self, starttime, endtime):
+        """mask_data(starttime, endtime)
+        All future queries will be clipped to the visits starting between
+        starttime and endtime."""
+        self.mask = (starttime, endtime) 
+        self._mask_slice = self._find_mask_indices(self.mask)
+
+    def unmask_data(self):
+        """Remove the mask - future queries will not be clipped"""
+        self.mask = None
+        self._mask_slice = None
+
+    def getproperty(self, mice, propname, astype=None):
+        if isinstance(mice, (str, unicode)):
+            mice = [mice]
+ 
+        if self.mask is None:
+            if astype is None:
+                return [x[0] for x in zip(self.data[propname], 
+                        self.data['Tag']) if x[1] in mice]
+            elif astype == 'float':                          
+                return [float(x[0]) for x in zip(self.data[propname], 
+                        self.data['Tag']) if x[1] in mice]
+        else:
+            if astype is None:
+                return [x[0] for x in zip(
+                        self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
+                        self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
+                        if x[1] in mice] 
+            elif astype == 'float':
+                return [float(x[0]) for x in zip(
+                        self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
+                        self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
+                        if x[1] in mice]
+
 def parse_fname(fname):
     """"Extracts time and date from data's filename"""
 
@@ -17,7 +83,6 @@ def parse_fname(fname):
                              time.localtime(time.mktime(time.strptime(date, '%Y%m%d')) + 24 * 3600.))
 
     return hour, date, datenext
-
 
 class EcoHabData(object):
     """Reads in a folder with data from Eco-HAB"""
@@ -463,7 +528,7 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
         fig.suptitle(mouse)
         for i in range(8):
             ax.append(fig.add_subplot(2,4,i+1))
-        print(mouse)
+       
         for i in range(4):
             chamber = np.array(self.statistics[mouse]["state_time"][2*(i+1)])
             corridor  = np.array(self.statistics[mouse]["state_time"][2*i+1])
@@ -471,10 +536,7 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
             ax[i].set_title(str(2*i+1))
             ax[i+4].hist(chamber,bins=100)
             ax[i+4].set_title(str(2*(i+1)))
-            print(chamber.mean(),np.median(chamber))
-            print(corridor.mean(),np.median(corridor))
-                  
-                  
+            
         plt.show()
         
     def _initialize_statistics(self,statistics,mouse):
@@ -486,10 +548,11 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
         for i in range(9):
             statistics[mouse]["preference"][i] = np.zeros(2)
             
-    def _calculate_visitis(self, too_fast=2):
+    def _calculate_visitis(self, too_fast=2,compensate_for_lost_antenna=False):
         
         statistics = {}
         tempdata = []
+        in_pipe = 0.7
         for n, mm in enumerate(self.mice):
             tt = self.gettimes(mm)
             an = self.getantennas(mm)
@@ -555,64 +618,74 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
                     else:
                         statistics[mm]["preference"][state][0]+=1  
                     previous = state
+
                     
-                # elif diff in [2,6] and tend-tstart>2:
+            if compensate_for_lost_antenna:
+                previous = 0
+                for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
+                    t_diff = tend - tstart
+                    if t_diff >= self.shortest_session_threshold:
+                        diff = np.abs(anstart - anend)
+                        s = int((tstart - self.t_start_exp)*self.fs)
+                        e = int((tend- self.t_start_exp)*self.fs)
+                        
+                        if diff in [2,6] and tend-tstart>=too_fast:
                     
-                #     if anstart == 8 and anend == 2 :
-                #         middle_antenna = 1
-                #     elif anstart == 2 and anend == 8:
-                #         middle_antenna = 1
-                #     elif anstart == 7 and anend == 1 :
-                #         middle_antenna = 8
-                #     elif anstart == 1 and anend == 7:
-                #         middle_antenna = 8
-                #     else:
-                #         middle_antenna = anstart + (anend-anstart)//2
+                            if anstart == 8 and anend == 2 :
+                                middle_antenna = 1
+                            elif anstart == 2 and anend == 8:
+                                middle_antenna = 1
+                            elif anstart == 7 and anend == 1 :
+                                middle_antenna = 8
+                            elif anstart == 1 and anend == 7:
+                                middle_antenna = 8
+                            else:
+                                middle_antenna = anstart + (anend-anstart)//2
     
-                #     if abs(middle_antenna -anstart) == 1:
-                #         previous = int((middle_antenna + anstart)/2.-0.5)
-                #     else:
-                #         previous = 8
+                        if abs(middle_antenna -anstart) == 1:
+                            previous = int((middle_antenna + anstart)/2.-0.5)
+                        else:
+                            previous = 8
                         
-                #     if abs(anend-middle_antenna) == 1:
-                #         state = int((middle_antenna + anend)/2.-0.5)
-                #     else:
-                #         state = 8
+                        if abs(anend-middle_antenna) == 1:
+                            state = int((middle_antenna + anend)/2.-0.5)
+                        else:
+                            state = 8
                         
                     
-                #     duration = e-s
+                        duration = e-s
                    
-                #     if anstart % 2:
-                #         middle = s + duration//3
-                #     else:
-                #         middle = s + 2*duration//3
+                        if anstart % 2:
+                            middle = s + in_pipe*self.fs
+                        else:
+                            middle = s + duration - in_pipe*self.fs
                     
-                #     self.signal_data[mm][s:middle] = previous
-                #     self.signal_data[mm][middle:e] = state
+                        self.signal_data[mm][s:middle] = previous
+                        self.signal_data[mm][middle:e] = state
                     
-                #     statistics[mm]["state_freq"][previous]+=1
-                #     statistics[mm]["state_freq"][state]+=1
+                        statistics[mm]["state_freq"][previous]+=1
+                        statistics[mm]["state_freq"][state]+=1
                     
-                #     statistics[mm]["state_time"][previous].append((middle-s)*self.fs)
-                #     statistics[mm]["state_time"][state].append(tend - tstart - middle*self.fs)
-                #     tempdata.append((previous,mm, tstart,tend,(middle-s)*self.fs ,False))
-                #     tempdata.append((previous,mm, tstart,tend,tend-tstart-middle*self.fs ,False))
+                        statistics[mm]["state_time"][previous].append((middle-s)*self.fs)
+                        statistics[mm]["state_time"][state].append(tend - tstart - middle*self.fs)
+                        tempdata.append((previous,mm, tstart,tend,(middle-s)*self.fs ,False))
+                        tempdata.append((previous,mm, tstart,tend,tend-tstart-middle*self.fs ,False))
                     
             
 
         tempdata.sort(key=lambda x: x[2])
-        self.processed_data = {'Tag': [],
+        self.data = {'Tag': [],
              'Address': [],
              'AbsStartTimecode': [],
              'AbsEndTimecode': [],
              'VisitDuration': [],
              'ValidVisitSolution': [],}
-        self.processed_data['Address'] = [x[0] for x in tempdata]
-        self.processed_data['Tag'] = [x[1] for x in tempdata]
-        self.processed_data['AbsStartTimecode'] = [x[2] for x in tempdata]
-        self.processed_data['AbsEndTimecode'] = [x[3] for x in tempdata]
-        self.processed_data['VisitDuration'] = [x[4] for x in tempdata]
-        self.processed_data['ValidVisitSolution'] = [x[5] for x in tempdata]
+        self.data['Address'] = [x[0] for x in tempdata]
+        self.data['Tag'] = [x[1] for x in tempdata]
+        self.data['AbsStartTimecode'] = [x[2] for x in tempdata]
+        self.data['AbsEndTimecode'] = [x[3] for x in tempdata]
+        self.data['VisitDuration'] = [x[4] for x in tempdata]
+        self.data['ValidVisitSolution'] = [x[5] for x in tempdata]
 
         return statistics
     
@@ -633,9 +706,7 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
             self.signal_data[mouse] = np.zeros(len(t),dtype=np.int8)          
         
         self.statistics = self._calculate_visitis()
-        for mouse in self.mice:
-             self.plot_histograms_time_spent_each_state(mouse)
-
+        
     def mask_data(self, *args):
         """mask_data(endtime) or mask_data(starttime, endtime)
         All future queries will be clipped to the visits starting between
@@ -647,7 +718,7 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
             starttime = min(self.getstarttimes(self.mice))
             endtime = args[0]
         self.mask = (starttime, endtime) 
-        arr = np.array(self.processed_data['AbsStartTimecode'])
+        arr = np.array(self.data['AbsStartTimecode'])
         idcs = np.where((arr >= starttime) & (arr < endtime))[0]
         if len(idcs) >= 2:
             self._mask_slice = (idcs[0], idcs[-1] + 1)
@@ -681,6 +752,30 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
             totv[idx] = len(durs)
             tott[idx] = sum(durs)
         return totv, tott
+    def getproperty(self, mice, propname, astype=None):
+        if isinstance(mice, (str, unicode)):
+            mice = [mice]
+        # if not isinstance(mice, collections.Container):
+        #     mice = [mice]
+ 
+        if self.mask is None:
+            if astype is None:
+                return [x[0] for x in zip(self.data[propname], 
+                        self.data['Tag']) if x[1] in mice]
+            elif astype == 'float':                          
+                return [float(x[0]) for x in zip(self.data[propname], 
+                        self.data['Tag']) if x[1] in mice]
+        else:
+            if astype is None:
+                return [x[0] for x in zip(
+                        self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
+                        self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
+                        if x[1] in mice] 
+            elif astype == 'float':
+                return [float(x[0]) for x in zip(
+                        self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
+                        self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
+                        if x[1] in mice]
         
 if __name__ == '__main__':
     eco = EcoHabData('/home/jszmek/EcoHAB/eh')
