@@ -69,12 +69,12 @@ class Experiment(object):
         _ant_pos = kwargs.pop('_ant_pos',None)
         which_phase = kwargs.pop('which_phase','ALL')
         mask = kwargs.pop('mask',None)
-        from_file = kwargs.pop('from_file',None)
+        from_file = kwargs.pop('from_file',False)
         how_many_appearances = kwargs.pop('how_many_appearances',1000)
         factor = kwargs.pop('factor',2)
         tags = kwargs.pop('remove_mice',[])
         self.directory = utils.results_path(path)
-        self.from_file = False
+        self.from_file = from_file
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
 
