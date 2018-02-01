@@ -471,57 +471,53 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
             ax[i+4].set_title(str(2*(i+1)))
 
         plt.show()
-    def _calculate_visitis(self):
+        
+    def _initialize_statistics(self,mouse):
+        
+        statistics[mouse] = {}
+        statistics[mouse]["state_freq"]= np.zeros(9)
+        statistics[mouse]["state_time"]= [[] for i in range(9)]
+        statistics[mouse]["preference"]={}
+        for i in range(9):
+            statistics[mouse]["preference"][i] = np.zeros(2)
+            
+    def _calculate_visitis(self, too_fast=2):
         
         statistics = {}
         tempdata = []
         for n, mm in enumerate(self.mice):
             tt = self.gettimes(mm)
             an = self.getantennas(mm)
-            statistics[mm] = {}
-            statistics[mm]["state_freq"]= np.zeros(9)
-            statistics[mm]["state_time"]= [[] for i in range(9)]
-            statistics[mm]["preference"]={}
-            for i in range(9):
-                 statistics[mm]["preference"][i] = np.zeros(2)
+            
+            self._initialize_statistics(mm)
                  
             previous = 0
             for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
-                if tend - tstart < self.shortest_session_threshold:
+                t_diff = tend - tstart
+                if  t_diff < self.shortest_session_threshold:
                     state = 0
                     previous = 0
                     statistics[mm]["state_freq"][state]+=1
                     statistics[mm]["state_time"][state].append(tend - tstart)
                     continue
+                
                 diff = np.abs(anstart - anend)
                 s = int((tstart - self.t_start_exp)*self.fs)
                 e = int((tend- self.t_start_exp)*self.fs)
+
                 if diff in [0,1,7]:
                     ############Most obvious reading##########
                     if diff in [1, 7]:
                         #printprevious,)
                         if diff == 1:
                             state = int((anstart + anend)/2.-0.5)
-                            previous = state
+                           
                         else:
                             state = 8
-                            previous = state
-                        #Save state to stadard and signal data
-                        #print(state)
-                        tempdata.append((state, mm, tstart, tend, tend-tstart,
-                                         True))
-                        self.signal_data[mm][int(s):int(e)] = state
-                                         
-                        statistics[mm]["state_freq"][state]+=1
-                        statistics[mm]["state_time"][state].append(tend - tstart)
-                        if anend == state:
-                            statistics[mm]["preference"][state][1]+=1
-                        else:
-                            statistics[mm]["preference"][state][0]+=1  
-                        previous = state       
+                        
                     elif diff == 0 and previous != 0:
                        
-                        if tend - tstart < 2:
+                        if t_diff < too_fast:
                             continue
                         diff2 = anstart - previous
                         state  = 0
@@ -538,18 +534,21 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
                             
                             #print previous,state,anend
                         #Save state to stadard and signal data
-                        tempdata.append((state, mm, tstart, tend, tend-tstart,
-                                         True))
-                        self.signal_data[mm][int(s):int(e)] = state
-                                         
-                        statistics[mm]["state_freq"][state]+=1
-                        statistics[mm]["state_time"][state].append(tend - tstart)
-                        if anend == state:
-                            statistics[mm]["preference"][state][1]+=1
-                        else:
-                            statistics[mm]["preference"][state][0]+=1  
-                        previous = state
-                        
+                        tempdata.append((state, mm, tstart, tend, t_diff,
+
+                    else:
+                        continue
+                                                                                  True))
+                    self.signal_data[mm][int(s):int(e)] = state
+                    
+                    statistics[mm]["state_freq"][state]+=1
+                    statistics[mm]["state_time"][state].append(t_diff)
+                    if anend == state:
+                        statistics[mm]["preference"][state][1]+=1
+                    else:
+                        statistics[mm]["preference"][state][0]+=1  
+                    previous = state
+                    
                 # elif diff in [2,6] and tend-tstart>2:
                     
                 #     if anstart == 8 and anend == 2 :
