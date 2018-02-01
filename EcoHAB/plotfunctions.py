@@ -125,7 +125,7 @@ def forceAspect(ax,aspect=1):
     extent =  im[0].get_extent()
     ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
 
-def oneRasterPlot(directory,FAM,IPP,phases,name,scalefactor,to_file=True):
+def oneRasterPlot(directory,FAM,IPP,phases,name,scalefactor,mice=[],to_file=True):
 
     if not name:
         name = "oneRasterPlot"
@@ -163,21 +163,25 @@ def oneRasterPlot(directory,FAM,IPP,phases,name,scalefactor,to_file=True):
                                         s, -1*pos),1 , 1,facecolor=(0,0,1,_IPP[j,i]*0.5/scalefactor)))
                 if i!=j:
                     #ax.add_patch(patches.Rectangle((0, -1*pos+1),8,1,facecolor="black",fill=False))
-                    pair_labels.append(str(i+1)+'|'+str(j+1))
-                    #pair_labels.append(str(j+1)+'|'+str(i+1))
+                    if not mice:
+                        pair_labels.append(str(i+1)+'|'+str(j+1))
+                    else:
+                        pair_labels.append(mice[j]+'|'+mice[i])
                     pos+=1
         for i in range(8-n_s):
             ax.add_patch(patches.Rectangle((
                                         n_s+i, -pos+1),1, pos,facecolor="lightgrey"))
     plt.axis([0,8,-pos+1,1])
+    #plt.tight_layout()
+
     ax.set_aspect('auto')
     ax.xaxis.grid()
     ax.xaxis.set_ticklabels([])
     ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(pos)])
-    ax.set_yticklabels(pair_labels)
+    ax.set_yticklabels(pair_labels,fontsize=10)
     plt.xlabel("session")
     plt.ylabel("following strength in pair")
-    plt.savefig(os.path.join(new_path,name+'.png'))
+    plt.savefig(os.path.join(new_path,name+'.png'),transparent=False, bbox_inches=None, pad_inches=2,frameon=None)
     #plt.show()
     #plt.close(fig)   
 
@@ -318,6 +322,7 @@ def MakeRelationGraph(FAM,IPP,k,sections,directory,scalefactor, fig = None, xy0 
             if i!=j and abs(FAM[i,j])<0.05:
                 power.append(IPP[i,j])
                 conn.append([IPP[i,j]*FAM[i,j]/abs(FAM[i,j]),i+1,j+1])
+    
     #scalefactor = np.max(power)/50
     G = nx.MultiDiGraph(multiedges=True, sparse=True)
     for i in range(len(conn)):
@@ -404,6 +409,7 @@ def plotphist(data,names,colors,to_file = True,directory = 'Interactions',vrange
     return stats    
 
 def plot_graph(FAPmatrix,k,sections,directory):
+    
     def scaling(p):
         if p<0.05 and p>0:
             return 2.5-p*50
@@ -411,6 +417,7 @@ def plot_graph(FAPmatrix,k,sections,directory):
             return -2.5-p*50
         else:
             return 0
+        
     d1,d2,d3 = FAPmatrix.shape
     pairs = []       
     for i in range(d2):
@@ -440,6 +447,7 @@ def plot_graph(FAPmatrix,k,sections,directory):
     for c in conn:
         if abs(c[0]-1)>0.01:
             #print c[0]
+            print(pos[c[2]],pos[c[1]])
             p = patches.FancyArrowPatch(pos[c[2]],pos[c[1]],connectionstyle='arc3, rad=-0.3',arrowstyle="simple",shrinkA=10.2*size, shrinkB=10.2*size,mutation_scale=20*size*abs(c[0]), color = cmap(c[0]+0.5),zorder=1,alpha=0.5)
             ax.add_patch(p)
     
