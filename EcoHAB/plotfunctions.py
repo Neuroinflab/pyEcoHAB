@@ -182,7 +182,7 @@ def oneRasterPlot(directory,FAM,IPP,phases,name,scalefactor,mice=[],to_file=True
     plt.xlabel("session")
     plt.ylabel("following strength in pair")
     plt.savefig(os.path.join(new_path,name+'.png'),transparent=False, bbox_inches=None, pad_inches=2,frameon=None)
-    #plt.show()
+    # plt.show()
     #plt.close(fig)   
 
 def createRasterPlots(FAM,IPP,names,scalefactor,directory,to_file = True):
@@ -447,7 +447,7 @@ def plot_graph(FAPmatrix,k,sections,directory):
     for c in conn:
         if abs(c[0]-1)>0.01:
             #print c[0]
-            print(pos[c[2]],pos[c[1]])
+
             p = patches.FancyArrowPatch(pos[c[2]],pos[c[1]],connectionstyle='arc3, rad=-0.3',arrowstyle="simple",shrinkA=10.2*size, shrinkB=10.2*size,mutation_scale=20*size*abs(c[0]), color = cmap(c[0]+0.5),zorder=1,alpha=0.5)
             ax.add_patch(p)
     
