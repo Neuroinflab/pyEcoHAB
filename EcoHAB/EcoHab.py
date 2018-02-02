@@ -548,18 +548,21 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
         for i in range(9):
             statistics[mouse]["preference"][i] = np.zeros(2)
             
-    def _calculate_visitis(self, too_fast=2,compensate_for_lost_antenna=False):
+    def _calculate_visitis(self, too_fast=2,compensate_for_lost_antenna=False,in_pipe=0.7):
         
         statistics = {}
         tempdata = []
-        in_pipe = 0.7
-        for n, mm in enumerate(self.mice):
+ 
+        
+        for mm in self.mice:
+            
             tt = self.gettimes(mm)
             an = self.getantennas(mm)
             
             self._initialize_statistics(statistics,mm)
                  
             previous = 0
+            
             for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
                 
                 t_diff = tend - tstart
@@ -579,11 +582,10 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
                     ############Most obvious reading##########
                     if diff in [1, 7]:
                         #printprevious,)
-                        if diff == 1:
-                            state = int((anstart + anend)/2.-0.5)
-                           
-                        else:
-                            state = 8
+                        state = self._find_state(anstart,anend)
+                        tempdata.append((state, mm, tstart, tend, t_diff, True))
+                        self.signal_data[mm][int(s):int(e)] = state
+                        previous = self._update_statistics(statistics,mm,state,anend,t_diff)
                         
                     elif diff == 0 and previous != 0:
                        
@@ -601,76 +603,51 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
                             elif diff2 == 7:
                                 state = 1
                             
-                            
-                            #print previous,state,anend
-                        #Save state to stadard and signal data
+                        tempdata.append((state, mm, tstart, tend, t_diff, True))
+                        self.signal_data[mm][int(s):int(e)] = state
+                        previous = self._update_statistics(statistics,mm,state,anend,t_diff)
+                    
+                elif compensate_for_lost_antenna and diff in [2,6]:
+                    
+                        if t_diff < too_fast:
+                            continue
                         
-                    else:
-                        continue
-                    
-                    tempdata.append((state, mm, tstart, tend, t_diff, True))
-                    self.signal_data[mm][int(s):int(e)] = state
-                    
-                    statistics[mm]["state_freq"][state]+=1
-                    statistics[mm]["state_time"][state].append(t_diff)
-                    if anend == state:
-                        statistics[mm]["preference"][state][1]+=1
-                    else:
-                        statistics[mm]["preference"][state][0]+=1  
-                    previous = state
+                        if anstart == 8 and anend == 2 :
+                            middle_antenna = 1
+                        elif anstart == 2 and anend == 8:
+                            middle_antenna = 1
+                        elif anstart == 7 and anend == 1 :
+                            middle_antenna = 8
+                        elif anstart == 1 and anend == 7:
+                            middle_antenna = 8
+                        else:
+                            middle_antenna = anstart + (anend-anstart)//2
 
-                    
-            if compensate_for_lost_antenna:
-                previous = 0
-                for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
-                    t_diff = tend - tstart
-                    if t_diff >= self.shortest_session_threshold:
-                        diff = np.abs(anstart - anend)
-                        s = int((tstart - self.t_start_exp)*self.fs)
-                        e = int((tend- self.t_start_exp)*self.fs)
-                        
-                        if diff in [2,6] and tend-tstart>=too_fast:
-                    
-                            if anstart == 8 and anend == 2 :
-                                middle_antenna = 1
-                            elif anstart == 2 and anend == 8:
-                                middle_antenna = 1
-                            elif anstart == 7 and anend == 1 :
-                                middle_antenna = 8
-                            elif anstart == 1 and anend == 7:
-                                middle_antenna = 8
-                            else:
-                                middle_antenna = anstart + (anend-anstart)//2
-    
-                        if abs(middle_antenna -anstart) == 1:
-                            previous = int((middle_antenna + anstart)/2.-0.5)
-                        else:
-                            previous = 8
-                        
-                        if abs(anend-middle_antenna) == 1:
-                            state = int((middle_antenna + anend)/2.-0.5)
-                        else:
-                            state = 8
-                        
+                        previous = self._find_state(anstart,middle_antenna)
+                        state = self._find_state(middle_antenna,anend)
                     
                         duration = e-s
                    
                         if anstart % 2:
-                            middle = s + in_pipe*self.fs
+                            middle = s + int(in_pipe*self.fs)
+                            t_diff_prev = in_pipe
+                            t_diff_post = t_diff - in_pipe
                         else:
-                            middle = s + duration - in_pipe*self.fs
-                    
+                            middle = s + duration - int(in_pipe*self.fs)
+                            t_diff_prev = t_diff - in_pipe
+                            t_diff_post = in_pipe
+                            
                         self.signal_data[mm][s:middle] = previous
                         self.signal_data[mm][middle:e] = state
                     
                         statistics[mm]["state_freq"][previous]+=1
                         statistics[mm]["state_freq"][state]+=1
                     
-                        statistics[mm]["state_time"][previous].append((middle-s)*self.fs)
-                        statistics[mm]["state_time"][state].append(tend - tstart - middle*self.fs)
-                        tempdata.append((previous,mm, tstart,tend,(middle-s)*self.fs ,False))
-                        tempdata.append((previous,mm, tstart,tend,tend-tstart-middle*self.fs ,False))
-                    
+                        statistics[mm]["state_time"][previous].append(t_diff_prev)
+                        statistics[mm]["state_time"][state].append(t_diff_post)
+                        tempdata.append((previous,mm, tstart,tend,t_diff_prev ,False))
+                        tempdata.append((previous,mm, tstart,tend,t_diff_post ,False))
+                        previous = state
             
 
         tempdata.sort(key=lambda x: x[2])
@@ -688,7 +665,24 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
         self.data['ValidVisitSolution'] = [x[5] for x in tempdata]
 
         return statistics
-    
+
+    def _find_state(self,anstart,anend):
+        if abs(anstart-anend) == 1:
+            return int((anstart + anend)/2.-0.5)
+        if abs(anstart-anend) == 7:
+            return 8
+        return 0
+
+    def _update_statistics(self,statistics,mm,state,anend,t_diff):
+        statistics[mm]["state_freq"][state]+=1
+        statistics[mm]["state_time"][state].append(t_diff)
+        if anend == state:
+            statistics[mm]["preference"][state][1]+=1
+        else:
+            statistics[mm]["preference"][state][0]+=1  
+
+        return state
+        
     def __init__(self, path, **kwargs):
         _ant_pos = kwargs.pop('_ant_pos', None)
         _mask = kwargs.pop('mask', None)
