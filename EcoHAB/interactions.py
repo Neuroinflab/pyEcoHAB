@@ -7,6 +7,7 @@ Created on Thu Oct 27 12:48:42 2016
 """
 #EcoHAB libraries
 from __future__ import division,print_function
+
 import EcoHab
 import ConfigParser
 from ExperimentConfigFile import ExperimentConfigFile
@@ -111,17 +112,11 @@ class Experiment(object):
             self.fname_ending = str(self.t_start)+'_'+str(self.t_end)
         else:
             self.fname_ending = which_phase
-    def calculate_fvalue(self,window='default',treshold = 2, force=False,fols=None,ops=None,which_phase='ALL'):
-        self.fols = fols
-        self.ops = ops
-        self.treshold = treshold
- 
+
+        self.phases = None
+
+    def calculate_phases(self,window='default',which_phase='ALL'):
         self.tstart, self.tend = self.cf.gettime('ALL')
-        self.fpatterns = []
-        self.opatterns = []
-        
-
-
         if window=='default':
             sessions = filter(lambda x: x.endswith('dark') or x.endswith('light'), self.cf.sections())
             self.phases = [(self.cf.gettime(sec)[0]-self.tstart ,self.cf.gettime(sec)[1]-self.tstart) for sec in sessions]
@@ -132,6 +127,17 @@ class Experiment(object):
                 self.phases = [(st*window[0]*3600,(st+1)*window[0]*3600) for st in window[1]]
             else:
                 raise TypeError
+    def calculate_fvalue(self,window='default',treshold = 2, force=False,fols=None,ops=None,which_phase='ALL'):
+        
+        self.calculate_phases(window=window,which_phase=which_phase)
+        
+        self.fols = fols
+        self.ops = ops
+        self.treshold = treshold
+ 
+        
+        self.fpatterns = []
+        self.opatterns = []
             
         self.f = np.zeros((len(self.mice),len(self.mice),len(self.phases)))
         self.interactions = np.zeros((len(self.phases),len(self.mice),len(self.mice),8,3))
@@ -139,9 +145,10 @@ class Experiment(object):
                               
         new_path = os.path.join(self.directory,'PreprocessedData/IteractionsData/')
     
-        new_fname_patterns = os.path.join(new_path, 'Patterns_%s.npy'%self.fname_ending)
-        new_fname_fpatterns = os.path.join(new_path, 'fpatterns_%s.npy'%self.fname_ending)
-        new_fname_opatterns = os.path.join(new_path, 'opatterns_%s.npy'%self.fname_ending)
+        new_fname_patterns = os.path.join(new_path, 'Patterns_cut_%s_%s.npy'%(self.fname_ending,which_phase))
+        new_fname_fpatterns = os.path.join(new_path, 'fpatterns_cut_%s_%s.npy'%(self.fname_ending,which_phase))
+        new_fname_opatterns = os.path.join(new_path, 'opatterns_cut_%s_%s.npy'%(self.fname_ending,which_phase))
+        new_fname_mice = os.path.join(new_path, 'mice_cut_%s_%s.npy'%(self.fname_ending,which_phase))
         
         if not os.path.exists(os.path.dirname(new_path)):
             os.makedirs(os.path.dirname(new_path))
@@ -151,7 +158,7 @@ class Experiment(object):
             self.interactions = np.load(new_fname_patterns)
             self.fpatterns = np.load(new_fname_fpatterns)
             self.opatterns = np.load(new_fname_opatterns)
-            
+            self.mice_list =  np.load(new_fname_mice)
         else:
         
             for s in range(len(self.phases)):
@@ -161,10 +168,26 @@ class Experiment(object):
                 np.save(new_fname_patterns,self.interactions)
                 np.save(new_fname_fpatterns,self.fpatterns)
                 np.save(new_fname_opatterns,self.opatterns)
-
+                np.save(new_fname_mice,self.mice)
         return self.f
-     
-    
+
+    def tube_dominance_test(self,window='default',which_phase='ALL'):
+        
+        self.calculate_phases(window=window,which_phase=which_phase)
+        self.tube_dominance_matrix = np.zeros((len(self.phases),self.lm,self.lm))
+        new_path = os.path.join(self.directory,'PreprocessedData/IteractionsData/')
+        new_fname_ = os.path.join(new_path, 'Patterns_%s.npy'%self.fname_ending)
+        new_fname_mice = os.path.join(new_path, 'mice_cut_%s_%s.npy'%(self.fname_ending,which_phase))
+  
+        for s in range(len(self.phases)):
+            ts, te = self.phases[s]
+            print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
+            self.tube_dominance_matrix[s,:,:] = self.calculate_tube_dominance_matrix(ts, te)
+            
+
+        np.save(new_fname_mice,self.mice)
+        np.save(new_fname_,self.tube_dominance_matrix)
+            
     def interaction_matrix(self,ts, te):
         """Calculates fvalue matrix for the given period from ts to te
         """
@@ -233,7 +256,106 @@ class Experiment(object):
                 index = 1
             follow_stat[move][2] = mouse_stats[int(move[0])][index]/np.sum(mouse_stats[int(move[0])])
         return follow_stat
+
+
+    def mouse_indices(self, mouse1, t1,t2):
+        
+        mouse1_indices = np.where(((np.roll(self.sd[mouse1], 1) - self.sd[mouse1]) != 0))[0]
+        try:
+            mouse1_idx_start = np.where(mouse1_indices > t1*self.fs)[0][0]
+        except IndexError:
+            return None
+        
+        try:    
+            mouse1_idx_stop =  np.where(mouse1_indices < t2*self.fs)[0][-1]
+        except IndexError:
+            return None
+
+        return [mouse1_idx_start,mouse1_idx_stop,mouse1_indices]
+
+    def calculate_tube_dominance_matrix(self,ts, te):
+        """Calculates fvalue matrix for the given period from ts to te
+        """
+        imatrix = np.zeros((self.lm,self.lm))
+        for ii, mouse1 in enumerate(self.mice):
+            for jj,mouse2 in enumerate(self.mice):
+                if ii < jj:
+                    imatrix[ii,jj] = self.check_tube_dominance((mouse1,mouse2),ts, te)
+                    imatrix[jj,ii] = self.check_tube_dominance((mouse2,mouse1),ts, te)
+                    total = imatrix[ii,jj] + imatrix[jj,ii]
+                    imatrix[ii,jj] = imatrix[ii,jj]/total
+                    imatrix[jj,ii] = imatrix[jj,ii]/total
+        return imatrix
     
+    def check_tube_dominance(self, (mouse1,mouse2),t1, t2):
+        fs = self.fs
+
+        dominance_stats = 0
+        
+        try:
+            [mouse1_idx_start,mouse1_idx_stop,mouse1_indices] = self.mouse_indices(mouse1, t1,t2)
+        except ValueError:
+            return dominance_stats
+
+                
+        i = mouse1_idx_start - 1
+       
+        for end in mouse1_indices[mouse1_idx_start:mouse1_idx_stop+1]:
+            
+            i = i + 1
+            
+            if i < 2:
+                continue
+
+            start = mouse1_indices[i-2]
+
+            start_state = int(self.sd[mouse1][start]) #from start to mouse1_indices[i-1]-1
+            middle_state = int(self.sd[mouse1][mouse1_indices[i-1]])#from mouse1_indices[i-1] to end-1
+            end_state = int(self.sd[mouse1][end])#from end
+           
+            
+            if start_state != end_state:
+                continue
+
+            if not middle_state %2:
+                continue
+            
+            if not start_state*middle_state*end_state:
+                continue
+            try:
+                end_state_mouse_2 = self.sd[mouse2][end-1]
+                post_end_state_mouse_2 = self.sd[mouse2][end]
+            except IndexError:
+                print("Index error")
+                return dominance_stats
+            
+            
+            if end_state_mouse_2 != middle_state or post_end_state_mouse_2 != middle_state:
+            
+                continue
+            
+            #find previous state
+                
+            idx = end-1
+            while True:
+                idx += -1
+                if end_state_mouse_2 != self.sd[mouse2][idx]:
+                    t_middle_end = idx
+                    middle_state_mouse2 = self.sd[mouse2][idx]
+                    break
+                if idx < self.fs*t1:
+                    t_middle_end = 0
+                    middle_state_mouse2 = 0
+                    break
+                
+            
+            if not middle_state_mouse2 or middle_state_mouse2 == start_state:
+                continue
+            
+            dominance_stats +=1
+            
+            
+        return dominance_stats
     def findpatterns(self, (ii,jj),t1, t2):
         
         fs = self.fs
@@ -243,22 +365,21 @@ class Experiment(object):
         mouse2 = self.mice[jj]
 
         follow_stat = self.calculate_mouse_stats(mouse2)
-        mouse1_indices = np.where(((np.roll(self.sd[mouse1], 1) - self.sd[mouse1]) != 0))[0]
-        try:
-            mouse1_idx_start = np.where(mouse1_indices > t1*fs)[0][0]
-        except IndexError:
-            return follow_stat.values(),detected_idx
 
-        try:    
-            mouse1_idx_stop =  np.where(mouse1_indices < t2*fs)[0][-1]
-        except IndexError:
-            return follow_stat.values(),detected_idx
+        try:
+            [mouse1_idx_start,mouse1_idx_stop,mouse1_indices] = self.mouse_indices(mouse1, t1,t2)
+        except ValueError:
+            return np.array(follow_stat.values()), detected_idx
             
         i = mouse1_idx_start - 1
        
         for start in mouse1_indices[mouse1_idx_start:mouse1_idx_stop+1]:
             
             i = i + 1
+           
+            if i < 2:
+                continue
+
             start_state = int(self.sd[mouse1][mouse1_indices[i-2]])
             middle_state = int(self.sd[mouse1][mouse1_indices[i-1]])
             end_state = int(self.sd[mouse1][start])
