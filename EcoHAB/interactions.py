@@ -62,6 +62,7 @@ class Experiment(object):
                     self.cf.remove_section(phase)
                 elif st >= mask[1]:
                     self.cf.remove_section(phase)
+ 
             self._fix_config()
 
     def __init__(self, path,**kwargs):#_ant_pos=None,which_phase='ALL',mask=None,from_file=False):
@@ -87,10 +88,8 @@ class Experiment(object):
             except ConfigParser.NoSectionError:
                 mask = None
         
-        self._remove_phases(mask)            
-
-        
-        self.ehs = EcoHab.EcoHabSessions9states(self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0,how_many_appearances=how_many_appearances,factor=factor,remove_mice=tags)
+        self.ehs = EcoHab.EcoHabSessions9states(path=self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0,how_many_appearances=how_many_appearances,factor=factor,remove_mice=tags)
+        self._remove_phases(mask) 
         self.fs = self.ehs.fs
         self.sd =  self.ehs.signal_data
        
@@ -102,8 +101,8 @@ class Experiment(object):
         self.lm = len(self.mice)
 
         if mask:
-            self.t_start = mask[0]
-            self.t_end = mask[1]
+            self.t_start = self.ehs.data['AbsStartTimecode'][0]
+            self.t_end = self.ehs.data['AbsStartTimecode'][-1]
         else:
             self.t_start = 0
             self.t_end = len(self.ehs.signal_data[self.mice[0]])*self.fs
@@ -116,17 +115,22 @@ class Experiment(object):
         self.phases = None
 
     def calculate_phases(self,window='default',which_phase='ALL'):
+        
         self.tstart, self.tend = self.cf.gettime('ALL')
+        
         if window=='default':
             sessions = filter(lambda x: x.endswith('dark') or x.endswith('light'), self.cf.sections())
             self.phases = [(self.cf.gettime(sec)[0]-self.tstart ,self.cf.gettime(sec)[1]-self.tstart) for sec in sessions]
         else:
             if isinstance(window,float) or isinstance(window,int):
-                self.phases = [(i*window*3600,np.min([(i+1)*window*3600,len(self.sd[self.mice[0]])])) for i in range(int(np.ceil(len(self.sd[self.mice[0]])*1.0/(window*3600*self.fs))))]
+                phase_nb = int(np.ceil((self.t_end-self.t_start)/(window*3600)))
+                self.phases = [(i*window*3600,np.min([(i+1)*window*3600,len(self.sd[self.mice[0]])])) for i in range(phase_nb)]
             elif isinstance(window, list):
                 self.phases = [(st*window[0]*3600,(st+1)*window[0]*3600) for st in window[1]]
             else:
                 raise TypeError
+        
+       
     def calculate_fvalue(self,window='default',treshold = 2, force=False,fols=None,ops=None,which_phase='ALL'):
         
         self.calculate_phases(window=window,which_phase=which_phase)
@@ -288,8 +292,7 @@ class Experiment(object):
         return imatrix
     
     def check_tube_dominance(self, (mouse1,mouse2),t1, t2):
-        fs = self.fs
-
+        
         dominance_stats = 0
         
         try:
@@ -365,7 +368,7 @@ class Experiment(object):
         mouse2 = self.mice[jj]
 
         follow_stat = self.calculate_mouse_stats(mouse2)
-
+        #print(follow_stat)
         try:
             [mouse1_idx_start,mouse1_idx_stop,mouse1_indices] = self.mouse_indices(mouse1, t1,t2)
         except ValueError:

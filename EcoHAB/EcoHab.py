@@ -11,21 +11,20 @@ max_break = 60*60
 class Data(object):
     
     def __init__(self,data,mask):
-        self.mask = mask
+        self.mask = None
         self._mask_slice = None
         self.data = data
         if self.mask:
             self._cut_out_data(mask)
             
-    def _cut_out_data(self,mask):
-
-        mask = self._find_mask_indices(mask)
-        
+    def _cut_out_data(self,new_mask):
+        mask = self._find_mask_indices(new_mask)
         self.data['Id'] = self.data['Id'][mask[0]:mask[1]]
         self.data['Time'] = self.data['Time'][mask[0]:mask[1]]
         
         self.data['Antenna'] = self.data['Antenna'][mask[0]:mask[1]]
-        self.data['Tag'] = self.data['Tag'][mask[0]:mask[1]]      
+        self.data['Tag'] = self.data['Tag'][mask[0]:mask[1]]
+        
     def _find_mask_indices(self,mask):
         
         starttime, endtime = mask
@@ -74,6 +73,12 @@ class Data(object):
                         self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
                         if x[1] in mice]
 
+    def getantennas(self, mice):
+        return self.getproperty(mice, 'Antenna')
+                                                  
+    def gettimes(self, mice): 
+        return self.getproperty(mice, 'Time', 'float')
+    
 def parse_fname(fname):
     """"Extracts time and date from data's filename"""
 
@@ -84,7 +89,7 @@ def parse_fname(fname):
 
     return hour, date, datenext
 
-class EcoHabData(object):
+class EcoHabData(Data):
     """Reads in a folder with data from Eco-HAB"""
 
     def process_line_6(self,elements):
@@ -131,16 +136,6 @@ class EcoHabData(object):
             self.read_file(f_name)
             self.days.add(f_name.split('_')[0])        
         
-    def _cut_out_data(self,mask):
-
-        mask = self._find_mask_indices(mask)
-        
-        self.data['Id'] = self.data['Id'][mask[0]:mask[1]]
-        self.data['Time'] = self.data['Time'][mask[0]:mask[1]]
-        
-        self.data['Antenna'] = self.data['Antenna'][mask[0]:mask[1]]
-        self.data['Tag'] = self.data['Tag'][mask[0]:mask[1]]
-
     def check_antenna_presence(self):
         t_start = self.data['Time'][0]
         all_times = np.array(self.data['Time'])
@@ -198,9 +193,9 @@ class EcoHabData(object):
 
         return weird_transit
 
-    def __init__(self,path,**kwargs):# path, _ant_pos=None,mask=None):
+    def __init__(self,**kwargs):# path, _ant_pos=None,mask=None):
         self.days = set()
-        self.path = path
+        self.path = kwargs.pop("path")
         self.rawdata = []
         self.get_data()
         self.max_break = max_break
@@ -218,15 +213,16 @@ class EcoHabData(object):
         else:
             self._ant_pos = _ant_pos
         
-        self.mask = None 
-        self._mask_slice = None
+        #self.mask = None 
+        #self._mask_slice = None
 
-        self.data = {}
-        self.data['Time'] = [self.convert_time(d[1]) for d in self.rawdata]
-        self.data['Id'] = [d[0] for d in self.rawdata]
+        data = {}
+        data['Time'] = [self.convert_time(d[1]) for d in self.rawdata]
+        data['Id'] = [d[0] for d in self.rawdata]
         
-        self.data['Antenna'] = [self._ant_pos[d[2]] for d in self.rawdata]
-        self.data['Tag'] = [d[4] for d in self.rawdata]
+        data['Antenna'] = [self._ant_pos[d[2]] for d in self.rawdata]
+        data['Tag'] = [d[4] for d in self.rawdata]
+        super(EcoHabData,self).__init__(data,mask)
         antenna_breaks = self.check_antenna_presence()
         if antenna_breaks:
             print('Antenna not working')
@@ -275,59 +271,59 @@ class EcoHabData(object):
                    self._fnames.__str__(), self.path) 
         return mystring
 
-    def _find_mask_indices(self,mask):
+    # def _find_mask_indices(self,mask):
         
-        starttime, endtime = mask
-        arr = np.array(self.data['Time'])
-        idcs = np.where((arr >= starttime) & (arr < endtime))[0]
+    #     starttime, endtime = mask
+    #     arr = np.array(self.data['Time'])
+    #     idcs = np.where((arr >= starttime) & (arr < endtime))[0]
 
-        if len(idcs) >= 2:
-            return (idcs[0], idcs[-1] + 1)
-        if len(idcs) == 1:
-            return (idcs[0], idcs[0] + 1)
+    #     if len(idcs) >= 2:
+    #         return (idcs[0], idcs[-1] + 1)
+    #     if len(idcs) == 1:
+    #         return (idcs[0], idcs[0] + 1)
         
-        return (0,0)
+    #     return (0,0)
     
-    def mask_data(self, starttime, endtime):
-        """mask_data(starttime, endtime)
-        All future queries will be clipped to the visits starting between
-        starttime and endtime."""
-        self.mask = (starttime, endtime) 
-        self._mask_slice = self._find_mask_indices(self.mask)
+    # def mask_data(self, starttime, endtime):
+    #     """mask_data(starttime, endtime)
+    #     All future queries will be clipped to the visits starting between
+    #     starttime and endtime."""
+    #     self.mask = (starttime, endtime) 
+    #     self._mask_slice = self._find_mask_indices(self.mask)
 
-    def unmask_data(self):
-        """Remove the mask - future queries will not be clipped"""
-        self.mask = None
-        self._mask_slice = None
+    # def unmask_data(self):
+    #     """Remove the mask - future queries will not be clipped"""
+    #     self.mask = None
+    #     self._mask_slice = None
 
-    def getproperty(self, mice, propname, astype=None):
-        if isinstance(mice, (str, unicode)):
-            mice = [mice]
+    # def getproperty(self, mice, propname, astype=None):
+    #     if isinstance(mice, (str, unicode)):
+    #         mice = [mice]
  
-        if self.mask is None:
-            if astype is None:
-                return [x[0] for x in zip(self.data[propname], 
-                        self.data['Tag']) if x[1] in mice]
-            elif astype == 'float':                          
-                return [float(x[0]) for x in zip(self.data[propname], 
-                        self.data['Tag']) if x[1] in mice]
-        else:
-            if astype is None:
-                return [x[0] for x in zip(
-                        self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
-                        self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
-                        if x[1] in mice] 
-            elif astype == 'float':
-                return [float(x[0]) for x in zip(
-                        self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
-                        self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
-                        if x[1] in mice]
+    #     if self.mask is None:
+    #         if astype is None:
+    #             return [x[0] for x in zip(self.data[propname], 
+    #                     self.data['Tag']) if x[1] in mice]
+    #         elif astype == 'float':                          
+    #             return [float(x[0]) for x in zip(self.data[propname], 
+    #                     self.data['Tag']) if x[1] in mice]
+    #     else:
+    #         if astype is None:
+    #             return [x[0] for x in zip(
+    #                     self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
+    #                     self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
+    #                     if x[1] in mice] 
+    #         elif astype == 'float':
+    #             return [float(x[0]) for x in zip(
+    #                     self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
+    #                     self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
+    #                     if x[1] in mice]
 
-    def getantennas(self, mice):
-        return self.getproperty(mice, 'Antenna')
+    # def getantennas(self, mice):
+    #     return self.getproperty(mice, 'Antenna')
                                                   
-    def gettimes(self, mice): 
-        return self.getproperty(mice, 'Time', 'float')
+    # def gettimes(self, mice): 
+    #     return self.getproperty(mice, 'Time', 'float')
                             
     @staticmethod
     def convert_time(s): 
@@ -520,7 +516,7 @@ class EcoHabSessions(IEcoHabSession):
         
         
         
-class EcoHabSessions9states(EcoHabData,IEcoHabSession):
+class EcoHabSessions9states(Data,IEcoHabSession):
     """Calculates 'visits' to Eco-HAB compartments."""
     def plot_histograms_time_spent_each_state(self,mouse):
         fig = plt.figure()
@@ -556,8 +552,8 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
         
         for mm in self.mice:
             
-            tt = self.gettimes(mm)
-            an = self.getantennas(mm)
+            tt = self._ehd.gettimes(mm)
+            an = self._ehd.getantennas(mm)
             
             self._initialize_statistics(statistics,mm)
                  
@@ -683,23 +679,30 @@ class EcoHabSessions9states(EcoHabData,IEcoHabSession):
 
         return state
         
-    def __init__(self, path, **kwargs):
+    def __init__(self, **kwargs):
+        path = kwargs.pop("path")
         _ant_pos = kwargs.pop('_ant_pos', None)
         _mask = kwargs.pop('mask', None)
         how_many_appearances = kwargs.pop('how_many_appearances',1000)
         factor = kwargs.pop('factor',2)
         tags = kwargs.pop('remove_mice',[])
-        super(EcoHabSessions9states,self).__init__(path,_ant_pos=_ant_pos,mask=_mask,how_many_appearances=how_many_appearances, factor=factor,remove_mice=tags)
+        compensate_for_lost_antenna = kwargs.pop('compensate_for_lost_antenna',False)
+        ehd = EcoHabData(path=path,_ant_pos=_ant_pos,mask=_mask,how_many_appearances=how_many_appearances, factor=factor,remove_mice=tags)
+        self._ehd = ehd
+        data = {}
+        mask = None
+        self.mice = self._ehd.mice
+        super(EcoHabSessions9states,self).__init__(data=data,mask=mask)
         self.shortest_session_threshold = kwargs.pop('shortest_session_threshold', 2)
         self.fs = 10
-        self.t_start_exp = np.min(self.data['Time'])
-        self.t_end_exp = np.max(self.data['Time'])
+        self.t_start_exp = np.min(self._ehd.data['Time'])
+        self.t_end_exp = np.max(self._ehd.data['Time'])
         t = np.arange(self.t_start_exp,self.t_end_exp,1/self.fs)
         self.signal_data = {}
         for mouse in self.mice:
             self.signal_data[mouse] = np.zeros(len(t),dtype=np.int8)          
         
-        self.statistics = self._calculate_visitis()
+        self.statistics = self._calculate_visitis(compensate_for_lost_antenna=compensate_for_lost_antenna)
         
     def mask_data(self, *args):
         """mask_data(endtime) or mask_data(starttime, endtime)
