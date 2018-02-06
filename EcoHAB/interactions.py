@@ -292,7 +292,12 @@ class Experiment(object):
         return imatrix
     
     def check_tube_dominance(self, (mouse1,mouse2),t1, t2):
-        
+        """
+        This is an implementation of the tube dominance test, where two mice are placed on opposite sides of a tube
+        and one of the mice forces its opponent out of the tube. The test checks if mouse1 entered a tube and backed
+        out and if mouse2 remains in the tube and entered the tube from the other side.
+        Effectively this function checks how many times mouse2 domineered over mouse1.
+        """
         dominance_stats = 0
         
         try:
