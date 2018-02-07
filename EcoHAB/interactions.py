@@ -478,7 +478,7 @@ class Experiment(object):
         
         for s in range(n_s): #phases
             
-            plt.text(0.06+s*0.125, 1.025,self.cf.sections()[s][:-1], horizontalalignment='center', verticalalignment='center', fontsize=10,  transform = ax.transAxes)
+            plt.text(0.06+s*0.125, 1.025,self.cf.sections()[s], horizontalalignment='center', verticalalignment='center', fontsize=10,  transform = ax.transAxes)
             # MakeRelationGraph(FAM[s,:,:],IPP[s,:,:],exp,s,key,directory,scalefactor)
             _TDT = self.tube_dominance_matrix[s,:,:]
             print(_TDT)
