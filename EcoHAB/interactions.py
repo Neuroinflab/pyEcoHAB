@@ -82,7 +82,7 @@ class Experiment(object):
 
         self.cf = ExperimentConfigFile(self.path)
         
-        if which_phase != 'ALL' and mask == None:
+        if which_phase and mask == None:
             try:
                 mask = self.cf.gettime(which_phase)
             except ConfigParser.NoSectionError:
@@ -105,13 +105,10 @@ class Experiment(object):
             self.t_end = self.ehs.data['AbsStartTimecode'][-1]
         else:
             self.t_start = 0
-            self.t_end = len(self.ehs.signal_data[self.mice[0]])*self.fs
+            self.t_end = len(self.ehs.signal_data[self.mice[0]])/self.fs
 
-        if mask and which_phase == 'ALL':
-            self.fname_ending = str(self.t_start)+'_'+str(self.t_end)
-        else:
-            self.fname_ending = which_phase
-
+        self.fname_ending = which_phase
+        
         self.phases = None
 
     def calculate_phases(self,window='default',which_phase='ALL'):
@@ -280,6 +277,7 @@ class Experiment(object):
     def calculate_tube_dominance_matrix(self,ts, te):
         """Calculates fvalue matrix for the given period from ts to te
         """
+  
         imatrix = np.zeros((self.lm,self.lm))
         for ii, mouse1 in enumerate(self.mice):
             for jj,mouse2 in enumerate(self.mice):
@@ -287,8 +285,9 @@ class Experiment(object):
                     imatrix[ii,jj] = self.check_tube_dominance((mouse1,mouse2),ts, te)
                     imatrix[jj,ii] = self.check_tube_dominance((mouse2,mouse1),ts, te)
                     total = imatrix[ii,jj] + imatrix[jj,ii]
-                    imatrix[ii,jj] = imatrix[ii,jj]/total
-                    imatrix[jj,ii] = imatrix[jj,ii]/total
+                    if total:
+                        imatrix[ii,jj] = imatrix[ii,jj]/total
+                        imatrix[jj,ii] = imatrix[jj,ii]/total
         return imatrix
     
     def check_tube_dominance(self, (mouse1,mouse2),t1, t2):
@@ -427,9 +426,7 @@ class Experiment(object):
                     
                     
                 if same_start and first_mouse1:
-                    #print start_state,end_state, op_idx
-                    #print start_state,end_state,index
-                    #print self.sd[mouse1_indices[i-2],mouse1],self.sd[s,mouse1], (2*self.sd[mouse1_indices[i-2],mouse1]-self.sd[s,mouse1]-1)%8+1,followed,go_oposite
+
                     if followed:
                         #####POPRAWIC
                         #print(np.ceil((period1.index(self.sd[mouse1][start]))/self.fs))
@@ -464,6 +461,72 @@ class Experiment(object):
         FAPmatrix = np.apply_along_axis(FAprobablity, 3, rawFA)
         return FAPmatrix
     
+    def plotTubeDominanceRasters(self,name=None,mice=[]):
+        
+        if not name:
+            name = "TubeDominance_"+self.fname_ending
+        subdirectory = 'RasterPlots'
+    
+        new_path = utils.check_directory(self.directory,subdirectory)
+        fig = plt.figure(figsize=(12,12))
+        ax = fig.add_subplot(111, aspect='equal')
+        print(mice)
+        if name:
+            plt.suptitle(name, fontsize=14, fontweight='bold')
+
+        n_s,n_l,n_f = self.tube_dominance_matrix.shape
+        
+        for s in range(n_s): #phases
+            
+            plt.text(0.06+s*0.125, 1.025,self.cf.sections()[s][:-1], horizontalalignment='center', verticalalignment='center', fontsize=10,  transform = ax.transAxes)
+            # MakeRelationGraph(FAM[s,:,:],IPP[s,:,:],exp,s,key,directory,scalefactor)
+            _TDT = self.tube_dominance_matrix[s,:,:]
+            print(_TDT)
+            pair_labels = []
+            pos = 0
+            for i in range(n_l): #mice
+                
+                for j in range(i,n_f): #mice
+                
+                    if i!=j and  np.isclose(_TDT[i,j],1-_TDT[j,i]):
+                        
+                        if _TDT[i,j] > 0.5:
+                            ax.add_patch(patches.Rectangle((
+                                s, -1*pos),1 , 1,facecolor=(1,0,0,0.5*np.round(_TDT[i,j],2))))
+                            #print(str(i)+'|'+str(j),_TDT[i,j],_TDT[j,i])
+                        elif _TDT[i,j] < 0.5:
+                            ax.add_patch(patches.Rectangle((
+                                s, -1*pos),1 , 1,facecolor=(0,0,1,0.5*np.round(1-_TDT[i,j],2))))
+                            
+                            #print(str(i)+'|'+str(j),_TDT[i,j],_TDT[j,i])
+                        else:
+                            ax.add_patch(patches.Rectangle((
+                                s, -1*pos),1 , 1,facecolor=(0.5,.5,.5,.5)))#grey patch if both equal and 0.5
+                            #print(str(i)+'|'+str(j),_TDT[i,j],_TDT[j,i])
+                    
+                            
+                    if i!=j:
+                        if not mice:
+                            pair_labels.append(str(j+1)+'|'+str(i+1))
+                        else:
+                            pair_labels.append(mice[j]+'|'+mice[i])
+                        pos+=1
+            for i in range(8-n_s):
+                ax.add_patch(patches.Rectangle((
+                                        n_s+i, -pos+1),1, pos,facecolor="lightgrey"))
+        plt.axis([0,8,-pos+1,1])
+        print(new_path,name)
+        fig.subplots_adjust(left=0.25)
+
+        ax.set_aspect('auto')
+        ax.xaxis.grid()
+        ax.xaxis.set_ticklabels([])
+        ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(pos)])
+        ax.set_yticklabels(pair_labels,fontsize=10)
+        plt.xlabel("session")
+        plt.ylabel("following strength in pair")
+        plt.savefig(os.path.join(new_path,name+'.png'),transparent=False, bbox_inches=None, pad_inches=3,frameon=None)
+        # plt.show()
         
 def createRandomExpepiments(paths,core='Random_test' ):
     if not os.path.exists('../PreprocessedData/RandomData/'):

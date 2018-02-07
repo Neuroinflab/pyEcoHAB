@@ -166,14 +166,14 @@ def oneRasterPlot(directory,FAM,IPP,phases,name,scalefactor,mice=[],to_file=True
                     if not mice:
                         pair_labels.append(str(i+1)+'|'+str(j+1))
                     else:
-                        pair_labels.append(mice[j]+'|'+mice[i])
+                        pair_labels.append(mice[i]+'|'+mice[j])
                     pos+=1
         for i in range(8-n_s):
             ax.add_patch(patches.Rectangle((
                                         n_s+i, -pos+1),1, pos,facecolor="lightgrey"))
     plt.axis([0,8,-pos+1,1])
     #plt.tight_layout()
-
+    fig.subplots_adjust(left=0.25)
     ax.set_aspect('auto')
     ax.xaxis.grid()
     ax.xaxis.set_ticklabels([])
