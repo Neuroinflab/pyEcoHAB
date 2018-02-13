@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.colors as mcol
 import matplotlib.patches as patches
-
+import numpy.random
 
 class Experiment(object):
     """Class, which represent data from one of the experiments"""
@@ -91,13 +91,17 @@ class Experiment(object):
         self.ehs = EcoHab.EcoHabSessions9states(path=self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0,how_many_appearances=how_many_appearances,factor=factor,remove_mice=tags)
         self._remove_phases(mask) 
         self.fs = self.ehs.fs
-        self.sd =  self.ehs.signal_data
+
        
         mice = list(self.ehs.mice)
         
         self.mice = filter(lambda x: len(self.ehs.getstarttimes(x)) > 30, mice)
         
-                    
+        self.sd = {}
+        # for mouse in self.mice:
+        #     self.sd[mouse] = np.array(self.ehs.signal_data[mouse],dtype=np.int)
+        # self.sd['time'] = self.ehs.signal_data['time']
+        self.sd = self.ehs.signal_data.copy()
         self.lm = len(self.mice)
 
         if mask:
@@ -110,18 +114,21 @@ class Experiment(object):
         self.fname_ending = which_phase
         
         self.phases = None
-
+        self.remove_zeros()
+        self.state_probabilities = {}
+        
+        
     def calculate_phases(self,window='default',which_phase='ALL'):
         
         self.tstart, self.tend = self.cf.gettime('ALL')
-        
+        sd = self.ehs.signal_data
         if window=='default':
             sessions = filter(lambda x: x.endswith('dark') or x.endswith('light'), self.cf.sections())
             self.phases = [(self.cf.gettime(sec)[0]-self.tstart ,self.cf.gettime(sec)[1]-self.tstart) for sec in sessions]
         else:
             if isinstance(window,float) or isinstance(window,int):
                 phase_nb = int(np.ceil((self.t_end-self.t_start)/(window*3600)))
-                self.phases = [(i*window*3600,np.min([(i+1)*window*3600,len(self.sd[self.mice[0]])])) for i in range(phase_nb)]
+                self.phases = [(i*window*3600,np.min([(i+1)*window*3600,len(sd[self.mice[0]])])) for i in range(phase_nb)]
             elif isinstance(window, list):
                 self.phases = [(st*window[0]*3600,(st+1)*window[0]*3600) for st in window[1]]
             else:
@@ -166,6 +173,7 @@ class Experiment(object):
                 ts, te = self.phases[s]
                 print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
                 self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
+                self.independent_data_comparison(ts+self.t_start,te+self.t_start)
                 np.save(new_fname_patterns,self.interactions)
                 np.save(new_fname_fpatterns,self.fpatterns)
                 np.save(new_fname_opatterns,self.opatterns)
@@ -176,7 +184,8 @@ class Experiment(object):
         
         self.calculate_phases(window=window,which_phase=which_phase)
         self.tube_dominance_matrix = np.zeros((len(self.phases),self.lm,self.lm))
-        new_path = os.path.join(self.directory,'PreprocessedData/IteractionsData/')
+        new_path = utils.check_directory(self.directory,'PreprocessedData/IteractionsData/')
+        
         new_fname_ = os.path.join(new_path, 'Patterns_%s.npy'%self.fname_ending)
         new_fname_mice = os.path.join(new_path, 'mice_cut_%s_%s.npy'%(self.fname_ending,which_phase))
   
@@ -196,15 +205,16 @@ class Experiment(object):
         for ii, mouse1 in enumerate(self.mice):
             for jj,mouse2 in enumerate(self.mice):
                 if ii < jj:
-                    imatrix[ii,jj,:,:],patterns = self.findpatterns((ii,jj),ts, te)
+                    imatrix[ii,jj,:,:],patterns = self.findpatterns(ii,jj,ts, te)
                     self.fpatterns+=patterns[0]
                     self.opatterns+=patterns[1]
-                    imatrix[jj,ii,:,:],patterns = self.findpatterns((jj,ii),ts, te)
+                    imatrix[jj,ii,:,:],patterns = self.findpatterns(jj,ii,ts, te)
                     self.fpatterns+=patterns[0]
                     self.opatterns+=patterns[1]
         return imatrix
     
     def validatePatterns(self,plots_nr = 9, trange = [-3,3]):
+        sd = self.ehs.signal_data
         size = np.ceil(np.sqrt(plots_nr))
         t = np.arange(trange[0],trange[1],1.0/self.fs)
         frandom_idx = [np.random.randint(0,len(self.fpatterns)-1) for i in range(plots_nr)]
@@ -218,8 +228,8 @@ class Experiment(object):
             ax.set_title("%s|%s|t=%s"%(ii,jj,s*1./self.fs))
             mouse1 = self.mice[ii]
             mouse2 = self.mice[jj]
-            plt.plot(t,self.sd[mouse1][s-3*self.fs:s+3*self.fs]-0.05,'ro',label="leader")
-            plt.plot(t,self.sd[mouse2][s-3*self.fs:s+3*self.fs]+0.05,'bo',label="follower")
+            plt.plot(t,sd[mouse1][s-3*self.fs:s+3*self.fs]-0.05,'ro',label="leader")
+            plt.plot(t,sd[mouse2][s-3*self.fs:s+3*self.fs]+0.05,'bo',label="follower")
             plt.axis([-3.1,3.1,-0.5,9.5])
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         plt.show()
@@ -232,8 +242,8 @@ class Experiment(object):
             mouse1 = self.mice[ii]
             mouse2 = self.mice[jj]
             ax.set_title("%s|%s|t=%s"%(ii,jj,s*1./self.fs))
-            plt.plot(t,self.sd[mouse1][s-3*self.fs:s+3*self.fs]-0.05,'ro',label="leader")
-            plt.plot(t,self.sd[mouse2][s-3*self.fs:s+3*self.fs]+0.05,'bo',label="follower")
+            plt.plot(t,sd[mouse1][s-3*self.fs:s+3*self.fs]-0.05,'ro',label="leader")
+            plt.plot(t,sd[mouse2][s-3*self.fs:s+3*self.fs]+0.05,'bo',label="follower")
             plt.axis([-3.1,3.1,-0.5,9.5])
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         plt.show()
@@ -260,8 +270,8 @@ class Experiment(object):
 
 
     def mouse_indices(self, mouse1, t1,t2):
-        
-        mouse1_indices = np.where(((np.roll(self.sd[mouse1], 1) - self.sd[mouse1]) != 0))[0]
+        sd = self.ehs.signal_data
+        mouse1_indices = np.where(((np.roll(sd[mouse1], 1) - sd[mouse1]) != 0))[0]
         try:
             mouse1_idx_start = np.where(mouse1_indices > t1*self.fs)[0][0]
         except IndexError:
@@ -271,13 +281,47 @@ class Experiment(object):
             mouse1_idx_stop =  np.where(mouse1_indices < t2*self.fs)[0][-1]
         except IndexError:
             return None
-
         return [mouse1_idx_start,mouse1_idx_stop,mouse1_indices]
+
+
+    def plot_all(self,t1,t2):
+        sd = self.ehs.signal_data
+        fig = plt.figure()
+        ax = []
+        lm = len(self.mice)
+        if lm < 4:
+            how_many = lm
+            nrows = 1
+            ncolumns = how_many
+        else:
+            if lm % 3:
+                how_many = ((lm + 1) % 3 == 0)*(lm + 1) + ((lm + 2) % 3 == 0)*(lm+2)
+            else:
+                how_many = lm
+                    
+            nrows = how_many//3
+            ncolumns = 3
+            k = 0
+    
+            for i in range(nrows):
+                for j in range(ncolumns):
+                    if k < lm:
+                        ax.append(fig.add_subplot(nrows,ncolumns,k+1))
+                        print(k)
+                        mouse = self.mice[k]
+                        sig = sd[mouse][t1*self.fs:t2*self.fs]
+                        time = np.linspace(t1,t2,len(sig))
+                        ax[k].plot(time,sig,'dk')
+                        ax[k].set_title(mouse)
+                        ax[k].set_xlabel('time [s]')
+                        ax[k].set_ylabel('State')
+                        k = k+1                        
+                        print(k)
 
     def calculate_tube_dominance_matrix(self,ts, te):
         """Calculates fvalue matrix for the given period from ts to te
         """
-  
+        self.plot_all(ts,te)
         imatrix = np.zeros((self.lm,self.lm))
         for ii, mouse1 in enumerate(self.mice):
             for jj,mouse2 in enumerate(self.mice):
@@ -298,7 +342,7 @@ class Experiment(object):
         Effectively this function checks how many times mouse2 domineered over mouse1.
         """
         dominance_stats = 0
-        
+        sd = self.ehs.signal_data
         try:
             [mouse1_idx_start,mouse1_idx_stop,mouse1_indices] = self.mouse_indices(mouse1, t1,t2)
         except ValueError:
@@ -316,9 +360,9 @@ class Experiment(object):
 
             start = mouse1_indices[i-2]
 
-            start_state = int(self.sd[mouse1][start]) #from start to mouse1_indices[i-1]-1
-            middle_state = int(self.sd[mouse1][mouse1_indices[i-1]])#from mouse1_indices[i-1] to end-1
-            end_state = int(self.sd[mouse1][end])#from end
+            start_state = int(sd[mouse1][start]) #from start to mouse1_indices[i-1]-1
+            middle_state = int(sd[mouse1][mouse1_indices[i-1]])#from mouse1_indices[i-1] to end-1
+            end_state = int(sd[mouse1][end])#from end
            
             
             if start_state != end_state:
@@ -330,8 +374,8 @@ class Experiment(object):
             if not start_state*middle_state*end_state:
                 continue
             try:
-                end_state_mouse_2 = self.sd[mouse2][end-1]
-                post_end_state_mouse_2 = self.sd[mouse2][end]
+                end_state_mouse_2 = sd[mouse2][end-1]
+                post_end_state_mouse_2 = sd[mouse2][end]
             except IndexError:
                 print("Index error")
                 return dominance_stats
@@ -346,9 +390,9 @@ class Experiment(object):
             idx = end-1
             while True:
                 idx += -1
-                if end_state_mouse_2 != self.sd[mouse2][idx]:
+                if end_state_mouse_2 != sd[mouse2][idx]:
                     t_middle_end = idx
-                    middle_state_mouse2 = self.sd[mouse2][idx]
+                    middle_state_mouse2 = sd[mouse2][idx]
                     break
                 if idx < self.fs*t1:
                     t_middle_end = 0
@@ -363,14 +407,13 @@ class Experiment(object):
             
             
         return dominance_stats
-    def findpatterns(self, (ii,jj),t1, t2):
-        
-        fs = self.fs
-
+    def findpatterns(self,ii,jj,t1, t2):
+    
+        sd = self.ehs.signal_data
         detected_idx = [[],[]]
         mouse1 = self.mice[ii]
         mouse2 = self.mice[jj]
-
+    
         follow_stat = self.calculate_mouse_stats(mouse2)
         #print(follow_stat)
         try:
@@ -387,13 +430,13 @@ class Experiment(object):
             if i < 2:
                 continue
 
-            start_state = int(self.sd[mouse1][mouse1_indices[i-2]])
-            middle_state = int(self.sd[mouse1][mouse1_indices[i-1]])
-            end_state = int(self.sd[mouse1][start])
+            start_state = int(sd[mouse1][mouse1_indices[i-2]])
+            middle_state = int(sd[mouse1][mouse1_indices[i-1]])
+            end_state = int(sd[mouse1][start])
             # if abs(start_state-middle_state) !=1 or abs(middle_state-end_state)!=1:
             #     continue
             #print(start_state,middle_state,end_state)
-            end = start + self.treshold*fs
+            end = start + self.treshold*self.fs
 
             unknown_state = end_state == 0 or middle_state == 0 or start_state == 0
             
@@ -404,11 +447,11 @@ class Experiment(object):
             
             try:
                 
-                period1 = list(self.sd[mouse2][start:end])
+                period1 = list(sd[mouse2][start:end])
                 
-                period2 = list(self.sd[mouse2][start-2*fs:start])
+                period2 = list(sd[mouse2][start-2*self.fs:start])
 
-                period3 = list(self.sd[mouse2][start-int(0.1*fs):start])
+                period3 = list(sd[mouse2][start-int(0.1*self.fs):start])
               
                 op_idx = (2*start_state-end_state-1)%8+1 #opposite direction
                 
@@ -429,11 +472,11 @@ class Experiment(object):
 
                     if followed:
                         #####POPRAWIC
-                        #print(np.ceil((period1.index(self.sd[mouse1][start]))/self.fs))
+                        #print(np.ceil((period1.index(sd[mouse1][start]))/self.fs))
                         if self.fols!=None:
                             self.fols[np.ceil((period1.index(end_state))/self.fs)]+=1
                         follow_stat[str(start_state)+str(end_state)][0] += 1 
-                        #print p, self.sd[mouse1_indices[i-2],mouse1],[index]
+                        #print p, sd[mouse1_indices[i-2],mouse1],[index]
                         detected_idx[0].append((ii,jj,start))
 
                     elif go_oposite:
@@ -470,7 +513,6 @@ class Experiment(object):
         new_path = utils.check_directory(self.directory,subdirectory)
         fig = plt.figure(figsize=(12,12))
         ax = fig.add_subplot(111, aspect='equal')
-        print(mice)
         if name:
             plt.suptitle(name, fontsize=14, fontweight='bold')
 
@@ -481,7 +523,6 @@ class Experiment(object):
             plt.text(0.06+s*0.125, 1.025,self.cf.sections()[s], horizontalalignment='center', verticalalignment='center', fontsize=10,  transform = ax.transAxes)
             # MakeRelationGraph(FAM[s,:,:],IPP[s,:,:],exp,s,key,directory,scalefactor)
             _TDT = self.tube_dominance_matrix[s,:,:]
-            print(_TDT)
             pair_labels = []
             pos = 0
             for i in range(n_l): #mice
@@ -493,16 +534,13 @@ class Experiment(object):
                         if _TDT[i,j] > 0.5:
                             ax.add_patch(patches.Rectangle((
                                 s, -1*pos),1 , 1,facecolor=(1,0,0,0.5*np.round(_TDT[i,j],2))))
-                            #print(str(i)+'|'+str(j),_TDT[i,j],_TDT[j,i])
                         elif _TDT[i,j] < 0.5:
                             ax.add_patch(patches.Rectangle((
                                 s, -1*pos),1 , 1,facecolor=(0,0,1,0.5*np.round(1-_TDT[i,j],2))))
-                            
-                            #print(str(i)+'|'+str(j),_TDT[i,j],_TDT[j,i])
                         else:
                             ax.add_patch(patches.Rectangle((
                                 s, -1*pos),1 , 1,facecolor=(0.5,.5,.5,.5)))#grey patch if both equal and 0.5
-                            #print(str(i)+'|'+str(j),_TDT[i,j],_TDT[j,i])
+
                     
                             
                     if i!=j:
@@ -515,7 +553,6 @@ class Experiment(object):
                 ax.add_patch(patches.Rectangle((
                                         n_s+i, -pos+1),1, pos,facecolor="lightgrey"))
         plt.axis([0,8,-pos+1,1])
-        print(new_path,name)
         fig.subplots_adjust(left=0.25)
 
         ax.set_aspect('auto')
@@ -527,6 +564,86 @@ class Experiment(object):
         plt.ylabel("following strength in pair")
         plt.savefig(os.path.join(new_path,name+'.png'),transparent=False, bbox_inches=None, pad_inches=3,frameon=None)
         # plt.show()
+ 
+    def remove_zeros(self):
+        indices = set() #set of indices, where position is zero
+        for mouse in self.mice:
+            zeros = np.where(self.sd[mouse] == 0)[0]
+            if len(zeros):
+                indices.update(set(zeros))
+        indices = sorted(list(indices))
+        mask = np.ones(len(self.sd['time']), dtype=bool)
+        mask[indices] = False
+        for key in self.sd.keys():
+            self.sd[key] = self.sd[key][mask]
+
+    def get_mask(self, starttime,endtime):
+        arr = self.sd['time']
+        idcs = np.where((arr >= starttime) & (arr < endtime))[0]
+        if len(idcs) >= 2:
+            return (idcs[0], idcs[-1] + 1)
+        if len(idcs) == 1:
+            return (idcs[0], idcs[0] + 1)
+        return (0,0)
+         
+    def single_state_probability(self,mouse,starttime,endtime):
+        result = np.zeros((8,))
+        _mask_slice = self.get_mask(starttime,endtime)
+        for i in range(1,9):
+            result[i-1] += len(np.where(self.sd[mouse][_mask_slice[0]:_mask_slice[1]] == i)[0])/len(self.sd[mouse][_mask_slice[0]:_mask_slice[1]])
+        return result
+
+    def vector_state_probability(self,signal,starttime,endtime):
+        shape = tuple([8 for i in self.mice])
+        print(shape)
+        result = np.empty(shape)
+        _mask_slice = self.get_mask(starttime,endtime)
+        length = len(signal['time'][_mask_slice[0]:_mask_slice[1]])
+        print(length)
+        new_signal = np.empty((length,len(self.mice)),dtype=np.int)
+        for i,mouse in enumerate(self.mice):
+            new_signal[:,i] = np.array(signal[mouse][_mask_slice[0]:_mask_slice[1]],dtype=int)
+        for row in new_signal:
+            print(row)
+            result[row-1] += 1
+        return result/length
+    
+    def generate_independent_data_sequences(self,starttime,endtime):
+        probabilities = {}
+        for mouse in self.mice:
+            probabilities[mouse] = self.single_state_probability(mouse,starttime,endtime)
+        mask = self.get_mask(starttime,endtime)
+        length = len(self.sd['time'][mask[0]:mask[1]])
+        surrogate_data = {}
+        positions = [int(x) for x in range(1,9)]
+        for mouse in self.mice:
+            surrogate_data[mouse] = numpy.random.choice(positions,length,p=probabilities[mouse])
+
+        print('generated surrogate data')
+        surrogate_data['time'] = np.linspace(starttime,endtime,length)
+        return surrogate_data
+
+
+    def independent_data_comparison(self,starttime,endtime):
+        sur_data = self.generate_independent_data_sequences(starttime,endtime)
+        independent_states = self.vector_state_probability(sur_data,starttime,endtime)
+        sur_data_vec = independent_states[np.where(independent_states !=0)]
+        independent_states = sur_data_vec.sort()
+        print(starttime,endtime,(endtime-starttime)/3600)
+        states = self.vector_state_probability(self.sd,starttime,endtime)
+        print('where')
+        non_zeros = states[np.where(states !=0)]
+        states = non_zeros.sort()
+        print(states)
+        
+
+        plt.figure()
+        plt.semilogy(independent_states,label='Independent model')
+        plt.semilogy(states, label='Empirical')
+        plt.xlabel('Location pattern rank')
+        plt.ylabel('Location pattern probability')
+        plt.show()
+        
         
 def createRandomExpepiments(paths,core='Random_test' ):
     if not os.path.exists('../PreprocessedData/RandomData/'):
