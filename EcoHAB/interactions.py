@@ -3,7 +3,7 @@
 """
 Created on Thu Oct 27 12:48:42 2016
 
-@author: Jan Maka
+@author: Jan Maka, Asia Jędrzejewska-Szmek
 """
 #EcoHAB libraries
 from __future__ import division,print_function
@@ -81,13 +81,13 @@ class Experiment(object):
             os.makedirs(self.directory)
 
         self.cf = ExperimentConfigFile(self.path)
-        
+       
         if which_phase and mask == None:
             try:
                 mask = self.cf.gettime(which_phase)
             except ConfigParser.NoSectionError:
                 mask = None
-        
+        print(mask)
         self.ehs = EcoHab.EcoHabSessions9states(path=self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0,how_many_appearances=how_many_appearances,factor=factor,remove_mice=tags)
         self._remove_phases(mask) 
         self.fs = self.ehs.fs
@@ -104,19 +104,15 @@ class Experiment(object):
         self.sd = self.ehs.signal_data.copy()
         self.lm = len(self.mice)
 
-        if mask:
-            self.t_start = self.ehs.data['AbsStartTimecode'][0]
-            self.t_end = self.ehs.data['AbsStartTimecode'][-1]
-        else:
-            self.t_start = 0
-            self.t_end = len(self.ehs.signal_data[self.mice[0]])/self.fs
-
+       
+        self.t_start = self.ehs.data['AbsStartTimecode'][0]
+        self.t_end = self.ehs.data['AbsStartTimecode'][-1]
+        
         self.fname_ending = which_phase
         
         self.phases = None
         self.remove_zeros()
-        self.state_probabilities = {}
-        
+        self.calculate_all_states()
         
     def calculate_phases(self,window='default',which_phase='ALL'):
         
@@ -147,8 +143,8 @@ class Experiment(object):
         self.fpatterns = []
         self.opatterns = []
             
-        self.f = np.zeros((len(self.mice),len(self.mice),len(self.phases)))
-        self.interactions = np.zeros((len(self.phases),len(self.mice),len(self.mice),8,3))
+        self.f = np.zeros((self.lm,self.lm,len(self.phases)))
+        self.interactions = np.zeros((len(self.phases),self.lm,self.lm,8,3))
         self.f_sum = np.zeros((len(self.phases),self.lm))
                               
         new_path = os.path.join(self.directory,'PreprocessedData/IteractionsData/')
@@ -168,12 +164,21 @@ class Experiment(object):
             self.opatterns = np.load(new_fname_opatterns)
             self.mice_list =  np.load(new_fname_mice)
         else:
-        
+            phases = self.cf.sections()
+           
             for s in range(len(self.phases)):
                 ts, te = self.phases[s]
+                sttime,endtime = self.cf.gettime(phases[s])
+                print(sttime,ts+self.tstart)
+                if np.isclose(sttime,ts+self.tstart):
+                    title = phases[s]
+                else:
+                    title = ""
                 print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
+                print(title)
                 self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
-                self.independent_data_comparison(ts+self.t_start,te+self.t_start)
+                #self.independent_data_comparison(ts+self.tstart,te+self.tstart,title=title)
+                self.mutual_information(ts+self.tstart,te+self.tstart)
                 np.save(new_fname_patterns,self.interactions)
                 np.save(new_fname_fpatterns,self.fpatterns)
                 np.save(new_fname_opatterns,self.opatterns)
@@ -194,7 +199,6 @@ class Experiment(object):
             print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
             self.tube_dominance_matrix[s,:,:] = self.calculate_tube_dominance_matrix(ts, te)
             
-
         np.save(new_fname_mice,self.mice)
         np.save(new_fname_,self.tube_dominance_matrix)
             
@@ -288,7 +292,7 @@ class Experiment(object):
         sd = self.ehs.signal_data
         fig = plt.figure()
         ax = []
-        lm = len(self.mice)
+        lm = self.lm
         if lm < 4:
             how_many = lm
             nrows = 1
@@ -307,7 +311,6 @@ class Experiment(object):
                 for j in range(ncolumns):
                     if k < lm:
                         ax.append(fig.add_subplot(nrows,ncolumns,k+1))
-                        print(k)
                         mouse = self.mice[k]
                         sig = sd[mouse][t1*self.fs:t2*self.fs]
                         time = np.linspace(t1,t2,len(sig))
@@ -316,7 +319,6 @@ class Experiment(object):
                         ax[k].set_xlabel('time [s]')
                         ax[k].set_ylabel('State')
                         k = k+1                        
-                        print(k)
 
     def calculate_tube_dominance_matrix(self,ts, te):
         """Calculates fvalue matrix for the given period from ts to te
@@ -418,7 +420,7 @@ class Experiment(object):
         #print(follow_stat)
         try:
             [mouse1_idx_start,mouse1_idx_stop,mouse1_indices] = self.mouse_indices(mouse1, t1,t2)
-        except ValueError:
+        except (TypeError,ValueError):
             return np.array(follow_stat.values()), detected_idx
             
         i = mouse1_idx_start - 1
@@ -577,8 +579,8 @@ class Experiment(object):
         for key in self.sd.keys():
             self.sd[key] = self.sd[key][mask]
 
-    def get_mask(self, starttime,endtime):
-        arr = self.sd['time']
+    def get_mask(self,signal, starttime,endtime):
+        arr = signal['time']
         idcs = np.where((arr >= starttime) & (arr < endtime))[0]
         if len(idcs) >= 2:
             return (idcs[0], idcs[-1] + 1)
@@ -588,32 +590,39 @@ class Experiment(object):
          
     def single_state_probability(self,mouse,starttime,endtime):
         result = np.zeros((8,))
-        _mask_slice = self.get_mask(starttime,endtime)
+        _mask_slice = self.get_mask(self.sd,starttime,endtime)
         for i in range(1,9):
-            result[i-1] += len(np.where(self.sd[mouse][_mask_slice[0]:_mask_slice[1]] == i)[0])/len(self.sd[mouse][_mask_slice[0]:_mask_slice[1]])
-        return result
+            result[i-1] += len(np.where(self.sd[mouse][_mask_slice[0]:_mask_slice[1]] == i)[0])
+        if len(self.sd[mouse][_mask_slice[0]:_mask_slice[1]]):
+            return result/len(self.sd[mouse][_mask_slice[0]:_mask_slice[1]])
+        return []
 
     def vector_state_probability(self,signal,starttime,endtime):
-        shape = tuple([8 for i in self.mice])
-        print(shape)
-        result = np.empty(shape)
-        _mask_slice = self.get_mask(starttime,endtime)
-        length = len(signal['time'][_mask_slice[0]:_mask_slice[1]])
-        print(length)
-        new_signal = np.empty((length,len(self.mice)),dtype=np.int)
+        shape = int(8**self.lm)
+        result = np.empty((shape,))
+        _mask_slice = self.get_mask(signal,starttime,endtime)
+        length = _mask_slice[1]-_mask_slice[0]
+        new_signal = np.empty((length,self.lm),dtype=np.int)
         for i,mouse in enumerate(self.mice):
             new_signal[:,i] = np.array(signal[mouse][_mask_slice[0]:_mask_slice[1]],dtype=int)
+            
+        basis = np.array([8**i for i, mouse in enumerate(self.mice)],dtype=np.int)
+        print(length)
         for row in new_signal:
-            print(row)
-            result[row-1] += 1
+            indx = ((row-1)*basis).sum()
+            result[indx] += 1
+        
         return result/length
     
     def generate_independent_data_sequences(self,starttime,endtime):
         probabilities = {}
         for mouse in self.mice:
             probabilities[mouse] = self.single_state_probability(mouse,starttime,endtime)
-        mask = self.get_mask(starttime,endtime)
-        length = len(self.sd['time'][mask[0]:mask[1]])
+            if not len(probabilities[mouse]):
+                return []
+        print(probabilities)
+        mask = self.get_mask(self.sd,starttime,endtime)
+        length = mask[1]-mask[0]
         surrogate_data = {}
         positions = [int(x) for x in range(1,9)]
         for mouse in self.mice:
@@ -624,27 +633,121 @@ class Experiment(object):
         return surrogate_data
 
 
-    def independent_data_comparison(self,starttime,endtime):
+    def independent_data_comparison(self,starttime,endtime,title=''):
         sur_data = self.generate_independent_data_sequences(starttime,endtime)
+        if not len(sur_data):
+            return
         independent_states = self.vector_state_probability(sur_data,starttime,endtime)
-        sur_data_vec = independent_states[np.where(independent_states !=0)]
-        independent_states = sur_data_vec.sort()
-        print(starttime,endtime,(endtime-starttime)/3600)
         states = self.vector_state_probability(self.sd,starttime,endtime)
-        print('where')
-        non_zeros = states[np.where(states !=0)]
-        states = non_zeros.sort()
-        print(states)
+        non_zero = np.where(np.array(independent_states)!=0)[0]
+        independent_states = independent_states[non_zero]
         
-
-        plt.figure()
-        plt.semilogy(independent_states,label='Independent model')
-        plt.semilogy(states, label='Empirical')
-        plt.xlabel('Location pattern rank')
-        plt.ylabel('Location pattern probability')
+        independent_states = np.sort(independent_states)[::-1]
+        non_zero_states =  np.where(np.array(states)!=0)[0]
+        states = states[non_zero_states]
+        states = np.sort(states)[::-1]
+        
+        return states, independent_states
+    
+    def plot_independent_data_comparison(self,states, independent_states):
+        
+        rank = np.linspace(len(non_zero),0,len(non_zero))
+        rank_states = np.linspace(len(non_zero_states),0,len(non_zero_states))
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        ax.semilogy(rank,independent_states[::-1],'k',label='Independent model')
+        ax.semilogy(rank_states,states[::-1],'r', label='Empirical')
+        ax.set_xlabel('Location pattern rank')
+        ax.set_ylabel('Location pattern probability')
+        if title:
+            ax.set_title(title)
+        ax.legend(loc=1)
         plt.show()
         
+    def plot_heat_maps(self,result,name,subdirectory=None,vmax=None,vmin=None,xticks=None,yticks=None):
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        cax = ax.imshow(result,interpolation='none',aspect='auto',cmap="viridis",origin="lower")#,extent=[1,8,1,8])
+        cbar = fig.colorbar(cax)
+        if subdirectory:
+            dir_name = utils.check_directory(self.directory,subdirectory)
+            new_name = os.path.join(dir_name,name)
+        else:
+            new_name = os.path.join(self.directory,name)
+        fig.savefig(new_name+'.png',transparent=False, bbox_inches=None, pad_inches=2,frameon=None)
+    def mutual_probability(self,mouse1,mouse2,starttime,endtime):
         
+        result = np.zeros((8,8))
+        _mask_slice = self.get_mask(self.sd,starttime,endtime)
+        m1_sig = self.sd[mouse1][_mask_slice[0]:_mask_slice[1]]
+        m2_sig = self.sd[mouse2][_mask_slice[0]:_mask_slice[1]]
+        
+        for  i,x in enumerate(m1_sig):
+            result[x-1,m2_sig[i]-1] += 1
+            
+        normalization = result.sum()
+       
+        if normalization:
+            return result/normalization
+        return []
+
+    def mutual_information_mouse_pair(self,mouse1,mouse2,starttime,endtime):
+        "Iij = sumxy(pij(x,y)*log2(pij(x,y)/(pi(x)*pj(y))))"
+        pm1 = self.single_state_probability(mouse1,starttime,endtime)
+        pm2 = self.single_state_probability(mouse2,starttime,endtime)
+        pm1pm2 = self.mutual_probability(mouse1,mouse2,starttime,endtime)
+        
+        Iij = 0
+        if len(pm1) and len(pm2):
+            for i in range(8):
+                for j in range(8):
+                    #print(i+1,j+1,pm1pm2[i,j])
+                    if pm1pm2[i,j]:
+                        Iij += pm1pm2[i,j]*np.log(pm1pm2[i,j]/(pm1[i]*pm2[j]))
+        return Iij
+
+    def mutual_information(self,starttime,endtime):
+        
+        result = np.zeros((self.lm,self.lm))
+        
+        for i,mouse1 in enumerate(self.mice):
+            for j,mouse2 in enumerate(self.mice):
+                if i > j:
+                    result[i,j] = self.mutual_information_mouse_pair(mouse1,mouse2,starttime,endtime)
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+
+        cax = ax.imshow(result,interpolation='none',aspect='auto',cmap="viridis",origin="lower")#,extent=[1,8,1,8])
+        cbar = fig.colorbar(cax)
+        ax.get_yaxis().set_ticks([i for i,x in enumerate(self.mice)])
+        ax.get_xaxis().set_ticks([i for i,x in enumerate(self.mice)])
+        ax.set_xticklabels(self.mice)
+        ax.set_yticklabels(self.mice)
+        print(self.mice)
+        for label in ax.xaxis.get_ticklabels():
+            label.set_rotation(90)
+        fig.subplots_adjust(left=0.2)
+        fig.subplots_adjust(bottom=0.3)
+        plt.show()
+        return result
+
+    def maximum_entropy_distribution(self,positions,alpha,beta,Z):
+        mice = [x for x in range(self.mice)]
+        linear = alpha[mice,positions-1].sum()
+        correlations = 0.5*beta[mice,positions-1,mice,positions-1].sum()
+        return np.exp(linear+correlations)/Z
+    
+    def calculate_all_states(self):
+        state_no = np.linspace(0,8**self.lm-1,8**self.lm,dtype=int)
+        basis = [8**i for i in range(self.lm)][::-1]
+        self.all_states = np.zeros((8**self.lm,self.lm),dtype=int)
+        for j,n in enumerate(basis):
+            self.all_states[:,j] = state_no//n
+            state_no = state_no - self.all_states[:,j]*n
+        self.all_states +=1
+
+        
+    
 def createRandomExpepiments(paths,core='Random_test' ):
     if not os.path.exists('../PreprocessedData/RandomData/'):
         os.makedirs('../PreprocessedData/RandomData/')
