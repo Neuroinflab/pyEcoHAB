@@ -1,4 +1,18 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Feb 16 2018
+
+@author: Asia Jędrzejewska-Szmek
+"""
+
+#EcoHAB libraries
+from __future__ import division,print_function
+
 import numpy as np
+import numpy.random
+import interactions
+
 class MaximumEntropy:
 
     def __init__(self,data):
@@ -7,35 +21,39 @@ class MaximumEntropy:
         """
         self.data = data
         self.mice = data.keys()
-        self.mice.pop("time")
+        self.mice.remove("time")
         self.lm = len(self.mice)
         self.calculate_all_states()
         
     def maximum_entropy_distribution(self,positions,alpha,beta,Z):
-        mice = [x for x in range(self.mice)]
+        mice = [x for x in range(self.lm)]
         linear = alpha[mice,positions-1].sum()
         fij = np.zeros((self.lm,self.lm,8,8))
+        
         for m1 in mice:
-            new_mice = mice.copy()
+            new_mice = mice[:]
             new_mice.remove(m1)
-            fij[m1,new_mice,positions[m1],positions[new_mice]] = 1
+            fij[m1,new_mice,positions[m1]-1,positions[new_mice]-1] = 1
             
-        correlations += 0.5*beta*fij.sum()
+        correlations = 0.5*(beta*fij).sum()
+        
         return np.exp(linear+correlations)/Z
 
     def maximum_entropy_distribution_array(self,positions,alpha,beta,Z):
-        mice = [x for x in range(self.mice)]
-        new_alpha = np.ones((self.lm,8,positions.shape[1]))*alpha[:,:,None]
+        mice = [x for x in range(self.lm)]
+
+        new_alpha = np.ones((self.lm,8,positions.shape[0]))*alpha[:,:,None]
         linear = alpha[mice,positions-1].sum(axis=(0,1))
-        correlations = np.zeros((positions.shape[1],))
+        correlations = np.zeros((positions.shape[0],))
         for i, positions in enumerate(self.all_states):
             fij = np.zeros((self.lm,self.lm,8,8))
             for m1 in mice:
-                new_mice = mice.copy()
+                new_mice = mice[:]
                 new_mice.remove(m1)
-                fij[m1,new_mice,positions[m1],positions[new_mice]] = 1
+                fij[m1,new_mice,positions[m1]-1,positions[new_mice]-1] = 1
             
-            correlations[i] += 0.5*beta*fij.sum()
+            correlations[i] += 0.5*(beta*fij).sum()
+        
         return np.exp(linear+correlations)/Z
     
     def calculate_all_states(self):
@@ -48,11 +66,24 @@ class MaximumEntropy:
         self.all_states +=1
 
     def calculate_Z(self,alpha,beta):
-        
-        Z = self.maximum_entropy_distribution_array(self.all_states,alpha,beta,1)
-        return Z.sum()
+        Z = 0
+        for position in self.all_states:
+            m = self.maximum_entropy_distribution(position,alpha,beta,1)
+            Z += m
+            print(m)
+            
+        return Z
         
 class InformationTheoryMethods:
+    def __init__(self,data,config):
+        self.sd = data
+        self.config = config
+        self.mice = self.sd.keys()
+        self.mice.remove('time')
+        self.lm = len(self.mice)
+        self.remove_zeros()
+        
+    
     def remove_zeros(self):
         indices = set() #set of indices, where position is zero
         for mouse in self.mice:
@@ -281,3 +312,62 @@ class InformationTheoryMethods:
         fig.subplots_adjust(bottom=0.3)
         plt.show()
         return result
+
+    
+if __name__ == '__main__':
+    mice = ['AA','BB','CC','DD']
+    data = {}
+    probabilities = {}
+    positions = [i for i in range(1,9)]
+    for mouse in mice:
+        probabilities[mouse] = .125*np.ones((8,))
+    for mouse in mice:
+        data[mouse] = numpy.random.choice(positions,20,p=probabilities[mouse])
+    data['time'] = np.linspace(0,2,20)
+    E = MaximumEntropy(data)
+    print(E.all_states)
+    alpha = np.ones((E.lm,8))
+    beta = np.ones((E.lm,E.lm,8,8))
+    Z = E.calculate_Z(alpha,beta)
+    print(Z)
+    
+    # sttime,endtime = self.cf.gettime(phases[s])
+    # print(sttime,ts+self.tstart)
+    # if np.isclose(sttime,ts+self.tstart):
+    #     title = phases[s]
+    # else:
+    #     title = ""
+    # print(title)
+    # self.mutual_information(ts+self.tstart,te+self.tstart)
+    # antenna_pos = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":{'1':1,'2':5,'3':3,'4':6,'5':4,'6':2,'7':7,'8':8},
+    #                "/home/jszmek/EcoHAB_data_November/long_experiment_WT":{'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8}
+    # }
+    # # if len(sys.argv) < 2:
+    # #     sys.exit("No data directory given")
+    # a_dirs  = ["/home/jszmek/EcoHAB_data_November/long_experiment_WT","/home/jszmek/EcoHAB_data_November/long_experiment_KO"]#["/home/jszmek/EcoHAB_data_November/long_experiment_WT"]#
+    # #[0,1507905985.0]
+    # masks = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":[],#[0,1508410232],[1508410232.,1508740930.0]],
+    #          "/home/jszmek/EcoHAB_data_November/long_experiment_WT":[]}
+    # phases = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":["BEGINNING","MIDDLE"],
+    #           "/home/jszmek/EcoHAB_data_November/long_experiment_WT":["MIDDLE","BEGINNING"]}
+    # ts = 3   
+    # window=12
+    # IPP = {}
+    # FAM = {}
+    # sections = {}
+    # directories = {}
+    # endings = {}
+    # mice = {}
+    # for a_dir in a_dirs:
+    #     IPP[a_dir] = []
+    #     FAM[a_dir] = []
+    #     sections[a_dir] = []
+    #     directories[a_dir] = []
+    #     endings[a_dir] = []
+    #     mice[a_dir] = []
+    #     if masks[a_dir] == []:
+    #         for phase in phases[a_dir]:
+    #             E = interactions.Experiment(a_dir,_ant_pos=antenna_pos[a_dir],which_phase=phase)#,mask=m1)
+    #             mouse_positions = E.sd
+    #             config = E.cf
+    #             I = InformationTheoryMethods(mouse_positions,config)

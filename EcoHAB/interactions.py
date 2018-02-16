@@ -111,8 +111,6 @@ class Experiment:
         self.fname_ending = which_phase
         
         self.phases = None
-        self.remove_zeros()
-        self.calculate_all_states()
         
     def calculate_phases(self,window='default',which_phase='ALL'):
         
@@ -168,17 +166,8 @@ class Experiment:
            
             for s in range(len(self.phases)):
                 ts, te = self.phases[s]
-                sttime,endtime = self.cf.gettime(phases[s])
-                print(sttime,ts+self.tstart)
-                if np.isclose(sttime,ts+self.tstart):
-                    title = phases[s]
-                else:
-                    title = ""
                 print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
-                print(title)
                 self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
-                #self.independent_data_comparison(ts+self.tstart,te+self.tstart,title=title)
-                self.mutual_information(ts+self.tstart,te+self.tstart)
                 np.save(new_fname_patterns,self.interactions)
                 np.save(new_fname_fpatterns,self.fpatterns)
                 np.save(new_fname_opatterns,self.opatterns)
@@ -287,7 +276,7 @@ class Experiment:
             return None
         return [mouse1_idx_start,mouse1_idx_stop,mouse1_indices]
 
-     def plot_heat_maps(self,result,name,xlabels=None,ylabels=None,subdirectory=None,vmax=None,vmin=None,xticks=None,yticks=None):
+    def plot_heat_maps(self,result,name,xlabels=None,ylabels=None,subdirectory=None,vmax=None,vmin=None,xticks=None,yticks=None):
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         cax = ax.imshow(result,interpolation='none',aspect='auto',cmap="viridis",origin="lower")#,extent=[1,8,1,8])
