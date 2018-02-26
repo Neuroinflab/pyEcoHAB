@@ -80,85 +80,96 @@ if __name__ == '__main__':
     allresults = {}
 
     # plt.set_cmap('option_d')
+    for remove_mouse in [None,'0065-013665705']:
+        for path in datasets[datarange]:
+            alldeltas[path] = {}
+            allratios[path] = {}
+            allresults[path] = {}
+            if remove_mouse:
+                ehd = EcoHab.EcoHabData(path=path, _ant_pos=antenna_positions[path],remove_mice=[remove_mouse])
+            else:
+                ehd = EcoHab.EcoHabData(path=path, _ant_pos=antenna_positions[path])
 
-    for path in datasets[datarange]:
-        alldeltas[path] = {}
-        allratios[path] = {}
-        allresults[path] = {}
-        ehd = EcoHab.EcoHabData(path, _ant_pos=antenna_positions[path],remove_mice=['0065-0136657055'])
-        ehs = EcoHab.EcoHabSessions(ehd)
+            ehs = EcoHab.EcoHabSessions(ehd)
 
-        cf = ExperimentConfigFile(path)
-        tstart, tend = cf.gettime('ALL')
-        mice = list(ehd.mice)
-        mice = filter(lambda x: len(ehs.getstarttimes(x)) > 30, mice)
+            cf = ExperimentConfigFile(path)
+            tstart, tend = cf.gettime('ALL')
+            mice = list(ehd.mice)
+            mice = filter(lambda x: len(ehs.getstarttimes(x)) > 30, mice)
     
 
     
-        phases = filter(lambda x: x.endswith('dark'), cf.sections())
-        # phases = ['SNIFF 1 dark']
-        # phases = filter(lambda x: x.endswith('dark') or x.endswith('light'), cf.sections())
-        for sec in phases:
-            data = prepare_data(ehs, mice, cf.gettime(sec))
-        
-            results = np.zeros((len(mice), len(mice)))
-            results_exp = np.zeros((len(mice), len(mice)))
-            for ii in range(len(mice)):
-                for jj in range(len(mice)):
-                    if ii < jj:
-                        print ii, jj
-                        res = mice_together(data, mice[ii], mice[jj])
-                        results[ii, jj] = res[0]
-                        results_exp[ii, jj] = res[1]
+            phases = filter(lambda x: x.endswith('dark'), cf.sections())
+            # phases = ['SNIFF 1 dark']
+            # phases = filter(lambda x: x.endswith('dark') or x.endswith('light'), cf.sections())
+            for sec in phases:
+                data = prepare_data(ehs, mice, cf.gettime(sec))
+                
+                results = np.zeros((len(mice), len(mice)))
+                results_exp = np.zeros((len(mice), len(mice)))
+                for ii in range(len(mice)):
+                    for jj in range(len(mice)):
+                        if ii < jj:
+                            print ii, jj
+                            res = mice_together(data, mice[ii], mice[jj])
+                            results[ii, jj] = res[0]
+                            results_exp[ii, jj] = res[1]
 
-            plt.figure(figsize=(10, 6))
-            plt.subplot(221)
-            plt.imshow(results, vmin=0, vmax=0.5,interpolation='none')
-            plt.xticks([])
-            plt.yticks([])
-            plt.title('% time together')
-            plt.subplot(222)
-            plt.imshow(results_exp, vmin=0, vmax=0.5,interpolation='none')
-            plt.xticks([])
-            plt.yticks([])
-            plt.title('Expected % time together')
-            deltas = results[results > 0] - results_exp[results > 0]
-            alldeltas[path][sec] = deltas
-            ratios = results[results > 0] / results_exp[results > 0]
-            allratios[path][sec] = ratios
-            allresults[path][sec] = results[results > 0]
-            plt.subplot(223)
-            try:
-                # plt.imshow(results - results_exp, vmin=-max(np.abs(deltas)),
-                #  vmax=max(np.abs(deltas)))
-                plt.imshow(results - results_exp, vmin=-0.25, vmax=0.25,interpolation='none')
-                plt.xticks([])
-                plt.yticks([])
-            except ValueError:
-                pass
-            plt.title('Excess % time together')
-            plt.colorbar()
-            plt.subplot(224)
-            try:
-                plt.hist(deltas)
-            except ValueError:
-                pass
-            plt.title('Histogram of excess % time together')
-            plt.xlim([-0.1, 0.3])
-            plt.suptitle(path)
-            
-            plt.savefig('friends_%s_%s.pdf' %(path.translate(None, '/'), sec))
-            plt.savefig('friends_%s_%s.png' %(path.translate(None, '/'), sec), dpi=300)
-            np.savetxt('%s_results_removed_mouse_%s.csv' %(path, sec), results, fmt='%.6f', delimiter=';')
-            np.savetxt('%s_results_exp_removed_mouse_%s.csv' %(path, sec), results_exp,
-                    fmt='%.6f', delimiter=';')
-            np.savetxt('%s_results_final_removed_mouse_%s.csv' %(path, sec), results-results_exp, 
-                    fmt='%.6f', delimiter=';')
-        # np.save('alldeltas_EH_new_%s.npy' %path, alldeltas[path])
-        # np.save('allratios_EH_new_%s.npy' %path, allratios[path])
-        # np.save('allesults_EH_new_%s.npy' %path, allresults[path])
-            
+                fig = plt.figure(figsize=(10, 6))
+                ax = []
+                for i in range(1,5):
+                    ax.append(fig.add_subplot(2,2,i))
+                ax[0].imshow(results, vmin=0, vmax=0.5,interpolation='none')
+                ax[0].set_xticks([])
+                ax[0].set_yticks([])
+                ax[0].set_title('% time together')
+                ax[1].imshow(results_exp, vmin=0, vmax=0.5,interpolation='none')
+                ax[1].set_xticks([])
+                ax[1].set_yticks([])
+                ax[1].set_title('Expected % time together')
+                deltas = results[results > 0] - results_exp[results > 0]
+                alldeltas[path][sec] = deltas
+                ratios = results[results > 0] / results_exp[results > 0]
+                allratios[path][sec] = ratios
+                allresults[path][sec] = results[results > 0]
+                plt.subplot(223)
+                try:
+                    # plt.imshow(results - results_exp, vmin=-max(np.abs(deltas)),
+                    #  vmax=max(np.abs(deltas)))
+                    im = ax[2].imshow(results - results_exp, vmin=-0.25, vmax=0.25,interpolation='none')
+                    ax[2].set_title('Excess % time together')
+                    cbar = fig.colorbar(im)
+                    ax[2].yaxis.tick_left()
+                    ax[2].get_yaxis().set_ticks([i for i,x in enumerate(mice)])
+                    ax[2].get_xaxis().set_ticks([i for i,x in enumerate(mice)])
+                    ax[2].set_xticklabels(mice)
+                    ax[2].set_yticklabels(mice)
+                    for label in ax[2].xaxis.get_ticklabels():
+                        label.set_rotation(90)
 
-    # np.save('alldeltas.npy', alldeltas)
-    # np.save('allratios.npy', allratios)
-    # np.save('allesults.npy', allresults)
+                except ValueError:
+                    pass
+
+                try:
+                    ax[3].hist(deltas)
+                except ValueError:
+                    pass
+                ax[3].set_title('Histogram of excess % time together')
+                ax[3].set_xlim([-0.1, 0.3])
+                ax[3].get_xaxis().set_ticks([-0.1,0.,0.1,0.2,0.3])
+                ax[3].set_xticklabels([-0.1,0.,0.1,0.2,0.3])
+                
+                
+                fig.suptitle(sec)
+                fig.subplots_adjust(left=0.3)
+                fig.subplots_adjust(bottom=0.3)
+                fig.subplots_adjust(wspace=0.25)
+                fig.subplots_adjust(hspace=0.3)
+                
+                
+                fig.savefig('friends_%s_%s_remove_%s.pdf' %(path.translate(None, '/'), sec,remove_mouse))
+                fig.savefig('friends_%s_%s_remove_%s.png' %(path.translate(None, '/'), sec,remove_mouse), dpi=300)
+                np.savetxt('%s_results_removed_mouse_%s_remove_%s.csv' %(path, sec, remove_mouse), results, fmt='%.6f', delimiter=';')
+                np.savetxt('%s_results_exp_removed_mouse_%s_remove_%s.csv' %(path, sec, remove_mouse), results_exp,
+                           fmt='%.6f', delimiter=';')
+                np.savetxt('%s_results_final_removed_mouse_%s_remove_%s.csv' %(path, sec, remove_mouse), results-results_exp, fmt='%.6f', delimiter=';')
