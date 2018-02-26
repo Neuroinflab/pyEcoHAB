@@ -9,7 +9,10 @@ Created on Fri Feb 16 2018
 #EcoHAB libraries
 from __future__ import division,print_function
 
+import utils
+import os
 import numpy as np
+import matplotlib.pyplot as plt
 import numpy.random
 import interactions
 
@@ -75,13 +78,14 @@ class MaximumEntropy:
         return Z
         
 class InformationTheoryMethods:
-    def __init__(self,data,config):
+    def __init__(self,data,config,directory):
         self.sd = data
         self.config = config
         self.mice = self.sd.keys()
         self.mice.remove('time')
         self.lm = len(self.mice)
         self.remove_zeros()
+        self.directory = directory
         
     
     def remove_zeros(self):
@@ -150,7 +154,7 @@ class InformationTheoryMethods:
         return surrogate_data
 
 
-    def independent_data_comparison(self,starttime,endtime,title=''):
+    def independent_data_comparison(self,starttime,endtime):
         sur_data = self.generate_independent_data_sequences(starttime,endtime)
         if not len(sur_data):
             return
@@ -166,10 +170,10 @@ class InformationTheoryMethods:
         
         return states, independent_states
     
-    def plot_independent_data_comparison(self,states, independent_states):
+    def plot_independent_data_comparison(self,states, independent_states,title=''):
         
-        rank = np.linspace(len(non_zero),0,len(non_zero))
-        rank_states = np.linspace(len(non_zero_states),0,len(non_zero_states))
+        rank = np.linspace(len(independent_states),0,len(independent_states))
+        rank_states = np.linspace(len(states),0,len(states))
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
         ax.semilogy(rank,independent_states[::-1],'k',label='Independent model')
@@ -219,23 +223,23 @@ class InformationTheoryMethods:
 
     def mutual_information_mouse_pair(self,mouse1,mouse2,starttime,endtime):
         "Iij = sumxy(pij(x,y)*log2(pij(x,y)/(pi(x)*pj(y))))"
-        pm1 = self.single_state_probability(mouse1,starttime,endtime)
+        pm1 = np.array(self.single_state_probability(mouse1,starttime,endtime))
         pm2 = self.single_state_probability(mouse2,starttime,endtime)
         pm1pm2 = self.mutual_probability(mouse1,mouse2,starttime,endtime)
-        
+        hm1 = -sum(pm1*np.log(pm1))
         Iij = 0
         if len(pm1) and len(pm2):
             for i in range(8):
                 for j in range(8):
                     #print(i+1,j+1,pm1pm2[i,j])
                     if pm1pm2[i,j]:
-                        Iij += pm1pm2[i,j]*np.log(pm1pm2[i,j]/(pm1[i]*pm2[j]))
-        return Iij
+                        Iij += -pm1pm2[i,j]*np.log(pm1pm2[i,j]/(pm1[j]))
+        return 1-Iij/hm1
 
-    def mutual_information(self,starttime,endtime):
-        
+    def mutual_information(self,starttime,endtime,title):
+        subdirectory = 'MutualInformation'
         result = np.zeros((self.lm,self.lm))
-        
+        name = title.strip(' ')
         for i,mouse1 in enumerate(self.mice):
             for j,mouse2 in enumerate(self.mice):
                 if i > j:
@@ -250,12 +254,18 @@ class InformationTheoryMethods:
         ax.get_xaxis().set_ticks([i for i,x in enumerate(self.mice)])
         ax.set_xticklabels(self.mice)
         ax.set_yticklabels(self.mice)
-   
+        for label in ax.xaxis.get_ticklabels():
+            label.set_rotation(90)
+
+        if title:
+            ax.set_title(title)
         if subdirectory:
             dir_name = utils.check_directory(self.directory,subdirectory)
             new_name = os.path.join(dir_name,name)
         else:
             new_name = os.path.join(self.directory,name)
+        fig.subplots_adjust(left=0.3)
+        fig.subplots_adjust(bottom=0.3)
         fig.savefig(new_name+'.png',transparent=False, bbox_inches=None, pad_inches=2,frameon=None)
     def mutual_probability(self,mouse1,mouse2,starttime,endtime):
         
@@ -288,48 +298,24 @@ class InformationTheoryMethods:
                         Iij += pm1pm2[i,j]*np.log(pm1pm2[i,j]/(pm1[i]*pm2[j]))
         return Iij
 
-    def mutual_information(self,starttime,endtime):
-        
-        result = np.zeros((self.lm,self.lm))
-        
-        for i,mouse1 in enumerate(self.mice):
-            for j,mouse2 in enumerate(self.mice):
-                if i > j:
-                    result[i,j] = self.mutual_information_mouse_pair(mouse1,mouse2,starttime,endtime)
-        fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
-
-        cax = ax.imshow(result,interpolation='none',aspect='auto',cmap="viridis",origin="lower")#,extent=[1,8,1,8])
-        cbar = fig.colorbar(cax)
-        ax.get_yaxis().set_ticks([i for i,x in enumerate(self.mice)])
-        ax.get_xaxis().set_ticks([i for i,x in enumerate(self.mice)])
-        ax.set_xticklabels(self.mice)
-        ax.set_yticklabels(self.mice)
-  
-        for label in ax.xaxis.get_ticklabels():
-            label.set_rotation(90)
-        fig.subplots_adjust(left=0.2)
-        fig.subplots_adjust(bottom=0.3)
-        plt.show()
-        return result
 
     
 if __name__ == '__main__':
-    mice = ['AA','BB','CC','DD']
-    data = {}
-    probabilities = {}
-    positions = [i for i in range(1,9)]
-    for mouse in mice:
-        probabilities[mouse] = .125*np.ones((8,))
-    for mouse in mice:
-        data[mouse] = numpy.random.choice(positions,20,p=probabilities[mouse])
-    data['time'] = np.linspace(0,2,20)
-    E = MaximumEntropy(data)
-    print(E.all_states)
-    alpha = np.ones((E.lm,8))
-    beta = np.ones((E.lm,E.lm,8,8))
-    Z = E.calculate_Z(alpha,beta)
-    print(Z)
+    #mice = ['AA','BB','CC','DD']
+    #data = {}
+    #probabilities = {}
+    #positions = [i for i in range(1,9)]
+    #for mouse in mice:
+    #    probabilities[mouse] = .125*np.ones((8,))
+    #for mouse in mice:
+    #    data[mouse] = numpy.random.choice(positions,20,p=probabilities[mouse])
+    #data['time'] = np.linspace(0,2,20)
+    #E = MaximumEntropy(data)
+    #print(E.all_states)
+    #alpha = np.ones((E.lm,8))
+    #beta = np.ones((E.lm,E.lm,8,8))
+    #Z = E.calculate_Z(alpha,beta)
+    #print(Z)
     
     # sttime,endtime = self.cf.gettime(phases[s])
     # print(sttime,ts+self.tstart)
@@ -339,35 +325,31 @@ if __name__ == '__main__':
     #     title = ""
     # print(title)
     # self.mutual_information(ts+self.tstart,te+self.tstart)
-    # antenna_pos = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":{'1':1,'2':5,'3':3,'4':6,'5':4,'6':2,'7':7,'8':8},
-    #                "/home/jszmek/EcoHAB_data_November/long_experiment_WT":{'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8}
-    # }
-    # # if len(sys.argv) < 2:
-    # #     sys.exit("No data directory given")
-    # a_dirs  = ["/home/jszmek/EcoHAB_data_November/long_experiment_WT","/home/jszmek/EcoHAB_data_November/long_experiment_KO"]#["/home/jszmek/EcoHAB_data_November/long_experiment_WT"]#
-    # #[0,1507905985.0]
-    # masks = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":[],#[0,1508410232],[1508410232.,1508740930.0]],
-    #          "/home/jszmek/EcoHAB_data_November/long_experiment_WT":[]}
-    # phases = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":["BEGINNING","MIDDLE"],
-    #           "/home/jszmek/EcoHAB_data_November/long_experiment_WT":["MIDDLE","BEGINNING"]}
-    # ts = 3   
-    # window=12
-    # IPP = {}
-    # FAM = {}
-    # sections = {}
-    # directories = {}
-    # endings = {}
-    # mice = {}
-    # for a_dir in a_dirs:
-    #     IPP[a_dir] = []
-    #     FAM[a_dir] = []
-    #     sections[a_dir] = []
-    #     directories[a_dir] = []
-    #     endings[a_dir] = []
-    #     mice[a_dir] = []
-    #     if masks[a_dir] == []:
-    #         for phase in phases[a_dir]:
-    #             E = interactions.Experiment(a_dir,_ant_pos=antenna_pos[a_dir],which_phase=phase)#,mask=m1)
-    #             mouse_positions = E.sd
-    #             config = E.cf
-    #             I = InformationTheoryMethods(mouse_positions,config)
+    antenna_pos = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":{'1':1,'2':5,'3':3,'4':6,'5':4,'6':2,'7':7,'8':8},
+                   "/home/jszmek/EcoHAB_data_November/long_experiment_WT":{'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8}
+    }
+    # if len(sys.argv) < 2:
+    #     sys.exit("No data directory given")
+    a_dirs  = ["/home/jszmek/EcoHAB_data_November/long_experiment_WT","/home/jszmek/EcoHAB_data_November/long_experiment_KO"]#["/home/jszmek/EcoHAB_data_November/long_experiment_WT"]#
+  
+    masks = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":[],#[0,1508410232],[1508410232.,1508740930.0]],
+             "/home/jszmek/EcoHAB_data_November/long_experiment_WT":[]}
+    phases = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":["BEGINNING","MIDDLE"],
+              "/home/jszmek/EcoHAB_data_November/long_experiment_WT":["MIDDLE","BEGINNING"]}
+    ts = 3   
+    window=12
+    for a_dir in a_dirs:
+        if masks[a_dir] == []:
+            for phase in phases[a_dir]:
+                E = interactions.Experiment(a_dir,_ant_pos=antenna_pos[a_dir],which_phase=phase)#,mask=m1)
+                E.calculate_phases()
+                mouse_positions = E.sd
+                config = E.cf
+                I = InformationTheoryMethods(mouse_positions,config,E.directory)
+                ts,te = E.phases[1]
+                ts += E.t_start
+                te += E.t_start
+                print(ts,te,config.sections()[0])
+                #states, independent_states = I.independent_data_comparison(ts,te)
+                #I.plot_independent_data_comparison(states,independent_states,title=config.sections()[0])
+                I.mutual_information(ts,te,config.sections()[0])
