@@ -699,11 +699,15 @@ class EcoHabSessions9states(Data,IEcoHabSession):
         self.t_end_exp = np.max(self._ehd.data['Time'])
         t = np.arange(self.t_start_exp,self.t_end_exp,1/self.fs)
         self.signal_data = {}
+        self.signal_data['time'] = t
         for mouse in self.mice:
             self.signal_data[mouse] = np.zeros(len(t),dtype=np.int8)          
         
         self.statistics = self._calculate_visitis(compensate_for_lost_antenna=compensate_for_lost_antenna)
-        
+
+
+            
+            
     def mask_data(self, *args):
         """mask_data(endtime) or mask_data(starttime, endtime)
         All future queries will be clipped to the visits starting between
