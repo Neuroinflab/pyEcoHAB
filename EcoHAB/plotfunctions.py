@@ -408,7 +408,7 @@ def plotphist(data,names,colors,to_file = True,directory = 'Interactions',vrange
     #plt.show()
     return stats    
 
-def plot_graph(FAPmatrix,k,sections,directory):
+def plot_graph(FAPmatrix,k,sections,directory,labels=None):
     
     def scaling(p):
         if p<0.05 and p>0:
@@ -432,7 +432,12 @@ def plot_graph(FAPmatrix,k,sections,directory):
     edge_colors = [conn[i][0] for i in range(len(conn))]
     size = 10
     pos=nx.circular_layout(G)
-    node_labels = {node:node for node in G.nodes()}     
+    if labels:
+        node_labels = {}
+        for i,node in enumerate(G.nodes()):
+            node_labels[node] = labels[i]
+    else:
+        node_labels = {node:node for node in G.nodes()}     
     fig = plt.figure(figsize=(10*size,10*size)) 
     ax = fig.add_subplot(111, aspect='equal')
     #fig.suptitle(self.path, fontsize=14*size, fontweight='bold')
