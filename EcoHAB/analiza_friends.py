@@ -12,7 +12,9 @@ from analiza1 import smells, antenna_positions
 
 datarange = slice(0, 10, None)
 datasets = [
-    '/home/jszmek/EcoHAB_data_November/Maciek_01_30_2018'
+    '/home/jszmek/EcoHAB_data_November/Maciek_01_30_2018',
+    '/home/jszmek/EcoHAB_data_November/Maciek_social_structure_16.01',
+    '/home/jszmek/EcoHAB_data_November/Maciek_social_structure_19.01.18_rep_II'
     ]
 
 # # address = {1: 4, 2: 1, 3: 1, 4: 2, 5: 2, 6: 3, 7: 3, 8: 4}
@@ -110,7 +112,7 @@ if __name__ == '__main__':
                 for ii in range(len(mice)):
                     for jj in range(len(mice)):
                         if ii < jj:
-                            print ii, jj
+                            print ii, jj, mice[ii], mice[jj]
                             res = mice_together(data, mice[ii], mice[jj])
                             results[ii, jj] = res[0]
                             results_exp[ii, jj] = res[1]
@@ -166,10 +168,13 @@ if __name__ == '__main__':
                 fig.subplots_adjust(wspace=0.25)
                 fig.subplots_adjust(hspace=0.3)
                 
-                
+                print(path)
+                header = ''
+                for mouse in mice:
+                    header+= mouse+';'
                 fig.savefig('friends_%s_%s_remove_%s.pdf' %(path.translate(None, '/'), sec,remove_mouse))
                 fig.savefig('friends_%s_%s_remove_%s.png' %(path.translate(None, '/'), sec,remove_mouse), dpi=300)
-                np.savetxt('%s_results_removed_mouse_%s_remove_%s.csv' %(path, sec, remove_mouse), results, fmt='%.6f', delimiter=';')
+                np.savetxt('%s_results_removed_mouse_%s_remove_%s.csv' %(path, sec, remove_mouse), results, fmt='%.6f', delimiter=';',header=header,comments='')
                 np.savetxt('%s_results_exp_removed_mouse_%s_remove_%s.csv' %(path, sec, remove_mouse), results_exp,
-                           fmt='%.6f', delimiter=';')
-                np.savetxt('%s_results_final_removed_mouse_%s_remove_%s.csv' %(path, sec, remove_mouse), results-results_exp, fmt='%.6f', delimiter=';')
+                           fmt='%.6f', delimiter=';',header=header,comments='')
+                np.savetxt('%s_results_final_removed_mouse_%s_remove_%s.csv' %(path, sec, remove_mouse), results-results_exp, fmt='%.6f', delimiter=';',header=header,comments='')

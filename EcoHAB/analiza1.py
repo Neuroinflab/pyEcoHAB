@@ -16,7 +16,10 @@ datarange = slice(50, 51, None)
 # address = {1: 4, 2: 1, 3: 1, 4: 2, 5: 2, 6: 3, 7: 3, 8: 4}
 smells = {'/home/jszmek/EcoHAB_data_November/Maciek_01_30_2018': {'soc': 3, 'nsoc': 1},}
 antenna_positions = {'/home/jszmek/EcoHAB_data_November/Maciek_01_30_2018':None,
+                     '/home/jszmek/EcoHAB_data_November/Maciek_social_structure_16.01':None,
+                     '/home/jszmek/EcoHAB_data_November/Maciek_social_structure_19.01.18_rep_II':None,
             }
+
 
 def plot_files(ehd, ax=None):
     """Plot which files were loaded."""
