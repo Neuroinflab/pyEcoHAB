@@ -87,7 +87,6 @@ class Experiment:
                 mask = self.cf.gettime(which_phase)
             except ConfigParser.NoSectionError:
                 mask = None
-        print(mask)
         self.ehs = EcoHab.EcoHabSessions9states(path=self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0,how_many_appearances=how_many_appearances,factor=factor,remove_mice=tags)
         self._remove_phases(mask) 
         self.fs = self.ehs.fs
@@ -186,11 +185,107 @@ class Experiment:
         for s in range(len(self.phases)):
             ts, te = self.phases[s]
             print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
-            self.tube_dominance_matrix[s,:,:] = self.calculate_tube_dominance_matrix(ts, te)
+            self.tube_dominance_matrix[s,:,:] = self.calculate_tube_dominance_matrix(ts, te,normalize=False)
             
         np.save(new_fname_mice,self.mice)
         np.save(new_fname_,self.tube_dominance_matrix)
+
+    def calculate_tube_dominance_matrix(self,ts, te,normalize):
+        """
+        Calculates tube dominance matrix for the given period from ts to te
+        check_tube_dominance(mouse1,mouse2,t1,t2) checks if mouse2
+        dominates over mouse 1. That is why mice are switched in the
+        loop.
+
+        """
+        self.plot_all(ts,te)
+        imatrix = np.zeros((self.lm,self.lm))
+        for ii, mouse1 in enumerate(self.mice):
+            for jj,mouse2 in enumerate(self.mice):
+                if ii < jj:
+                    imatrix[ii,jj] = self.check_tube_dominance(mouse2,mouse1,ts, te)
+                    imatrix[jj,ii] = self.check_tube_dominance(mouse1,mouse2,ts, te)
+                    total = imatrix[ii,jj] + imatrix[jj,ii]
+                    if normalize:
+                        if total:
+                            imatrix[ii,jj] = imatrix[ii,jj]/total
+                            imatrix[jj,ii] = imatrix[jj,ii]/total
+        return imatrix
+        
+    def check_tube_dominance(self, mouse1,mouse2,t1, t2):
+        """
+        This is an implementation of the tube dominance test, where two mice are placed on opposite sides of a tube
+        and one of the mice forces its opponent out of the tube. The test checks if mouse1 entered a tube and backed
+        out and if mouse2 remains in the tube and entered the tube from the other side.
+        Effectively this function checks how many times mouse2 domineered over mouse1.
+        """
+        dominance_stats = 0
+        sd = self.ehs.signal_data
+        try:
+            [mouse1_idx_start,mouse1_idx_stop,mouse1_indices] = self.mouse_indices(mouse1, t1,t2)
+        except ValueError:
+            return dominance_stats
+
+                
+        i = mouse1_idx_start - 1
+       
+        for end in mouse1_indices[mouse1_idx_start:mouse1_idx_stop+1]:
             
+            i = i + 1
+            
+            if i < 2:
+                continue
+
+            start = mouse1_indices[i-2]
+
+            start_state = int(sd[mouse1][start]) #from start to mouse1_indices[i-1]-1
+            middle_state = int(sd[mouse1][mouse1_indices[i-1]])#from mouse1_indices[i-1] to end-1
+            end_state = int(sd[mouse1][end])#from end
+           
+            
+            if start_state != end_state:
+                continue
+
+            if not middle_state %2:
+                continue
+            
+            if not start_state*middle_state*end_state:
+                continue
+            try:
+                end_state_mouse_2 = sd[mouse2][end-1]
+                post_end_state_mouse_2 = sd[mouse2][end]
+            except IndexError:
+                print("Index error")
+                return dominance_stats
+            
+            
+            if end_state_mouse_2 != middle_state or post_end_state_mouse_2 != middle_state:
+            
+                continue
+            
+            #find previous state
+                
+            idx = end-1
+            while True:
+                idx += -1
+                if end_state_mouse_2 != sd[mouse2][idx]:
+                    t_middle_end = idx
+                    middle_state_mouse2 = sd[mouse2][idx]
+                    break
+                if idx < self.fs*t1:
+                    t_middle_end = 0
+                    middle_state_mouse2 = 0
+                    break
+                
+            
+            if not middle_state_mouse2 or middle_state_mouse2 == start_state:
+                continue
+            
+            dominance_stats +=1
+            
+            
+        return dominance_stats
+
     def interaction_matrix(self,ts, te):
         """Calculates fvalue matrix for the given period from ts to te
         """
@@ -276,147 +371,9 @@ class Experiment:
             return None
         return [mouse1_idx_start,mouse1_idx_stop,mouse1_indices]
 
-    def plot_heat_maps(self,result,name,xlabels=None,ylabels=None,subdirectory=None,vmax=None,vmin=None,xticks=None,yticks=None):
-        fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
-        cax = ax.imshow(result,interpolation='none',aspect='auto',cmap="viridis",origin="lower")#,extent=[1,8,1,8])
-        cbar = fig.colorbar(cax)
-        if not xlabels:
-            xlabels = self.mice
-        if not ylabels:
-            ylabels = self.mice
-        ax.get_yaxis().set_ticks([i for i,x in enumerate(ylabels)])
-        ax.get_xaxis().set_ticks([i for i,x in enumerate(xlabels)])
-        ax.set_xticklabels(xlabels)
-        ax.set_yticklabels(ylabels)
-        
-        if subdirectory:
-            dir_name = utils.check_directory(self.directory,subdirectory)
-            new_name = os.path.join(dir_name,name)
-        else:
-            new_name = os.path.join(self.directory,name)
-        fig.savefig(new_name+'.png',transparent=False, bbox_inches=None, pad_inches=2,frameon=None)
-    def plot_all(self,t1,t2):
-        sd = self.ehs.signal_data
-        fig = plt.figure()
-        ax = []
-        lm = self.lm
-        if lm < 4:
-            how_many = lm
-            nrows = 1
-            ncolumns = how_many
-        else:
-            if lm % 3:
-                how_many = ((lm + 1) % 3 == 0)*(lm + 1) + ((lm + 2) % 3 == 0)*(lm+2)
-            else:
-                how_many = lm
-                    
-            nrows = how_many//3
-            ncolumns = 3
-            k = 0
     
-            for i in range(nrows):
-                for j in range(ncolumns):
-                    if k < lm:
-                        ax.append(fig.add_subplot(nrows,ncolumns,k+1))
-                        mouse = self.mice[k]
-                        sig = sd[mouse][t1*self.fs:t2*self.fs]
-                        time = np.linspace(t1,t2,len(sig))
-                        ax[k].plot(time,sig,'dk')
-                        ax[k].set_title(mouse)
-                        ax[k].set_xlabel('time [s]')
-                        ax[k].set_ylabel('State')
-                        k = k+1                        
 
-    def calculate_tube_dominance_matrix(self,ts, te):
-        """Calculates fvalue matrix for the given period from ts to te
-        """
-        self.plot_all(ts,te)
-        imatrix = np.zeros((self.lm,self.lm))
-        for ii, mouse1 in enumerate(self.mice):
-            for jj,mouse2 in enumerate(self.mice):
-                if ii < jj:
-                    imatrix[ii,jj] = self.check_tube_dominance((mouse1,mouse2),ts, te)
-                    imatrix[jj,ii] = self.check_tube_dominance((mouse2,mouse1),ts, te)
-                    total = imatrix[ii,jj] + imatrix[jj,ii]
-                    if total:
-                        imatrix[ii,jj] = imatrix[ii,jj]/total
-                        imatrix[jj,ii] = imatrix[jj,ii]/total
-        return imatrix
     
-    def check_tube_dominance(self, (mouse1,mouse2),t1, t2):
-        """
-        This is an implementation of the tube dominance test, where two mice are placed on opposite sides of a tube
-        and one of the mice forces its opponent out of the tube. The test checks if mouse1 entered a tube and backed
-        out and if mouse2 remains in the tube and entered the tube from the other side.
-        Effectively this function checks how many times mouse2 domineered over mouse1.
-        """
-        dominance_stats = 0
-        sd = self.ehs.signal_data
-        try:
-            [mouse1_idx_start,mouse1_idx_stop,mouse1_indices] = self.mouse_indices(mouse1, t1,t2)
-        except ValueError:
-            return dominance_stats
-
-                
-        i = mouse1_idx_start - 1
-       
-        for end in mouse1_indices[mouse1_idx_start:mouse1_idx_stop+1]:
-            
-            i = i + 1
-            
-            if i < 2:
-                continue
-
-            start = mouse1_indices[i-2]
-
-            start_state = int(sd[mouse1][start]) #from start to mouse1_indices[i-1]-1
-            middle_state = int(sd[mouse1][mouse1_indices[i-1]])#from mouse1_indices[i-1] to end-1
-            end_state = int(sd[mouse1][end])#from end
-           
-            
-            if start_state != end_state:
-                continue
-
-            if not middle_state %2:
-                continue
-            
-            if not start_state*middle_state*end_state:
-                continue
-            try:
-                end_state_mouse_2 = sd[mouse2][end-1]
-                post_end_state_mouse_2 = sd[mouse2][end]
-            except IndexError:
-                print("Index error")
-                return dominance_stats
-            
-            
-            if end_state_mouse_2 != middle_state or post_end_state_mouse_2 != middle_state:
-            
-                continue
-            
-            #find previous state
-                
-            idx = end-1
-            while True:
-                idx += -1
-                if end_state_mouse_2 != sd[mouse2][idx]:
-                    t_middle_end = idx
-                    middle_state_mouse2 = sd[mouse2][idx]
-                    break
-                if idx < self.fs*t1:
-                    t_middle_end = 0
-                    middle_state_mouse2 = 0
-                    break
-                
-            
-            if not middle_state_mouse2 or middle_state_mouse2 == start_state:
-                continue
-            
-            dominance_stats +=1
-            
-            
-        return dominance_stats
     def findpatterns(self,ii,jj,t1, t2):
     
         sd = self.ehs.signal_data
@@ -513,7 +470,43 @@ class Experiment:
         rawFA = np.sum(patterns[:,:,:,:,:2] ,axis=3,dtype = 'float32')
         FAPmatrix = np.apply_along_axis(FAprobablity, 3, rawFA)
         return FAPmatrix
+
     
+    def normalize(self,matrix):
+        nx,ny = matrix.shape
+        for i in range(nx):
+            for j in range(i+1,ny):
+                total = matrix[i,j]+matrix[j,i]
+                if total:
+                    matrix[i,j] /= total
+                    matrix[j,i] /= total
+        return matrix
+    
+    def write_following_avoiding_to_file(self,names=None):
+        
+        fname_1 = 'Following_'
+        fname_2 = 'Avoiding_'
+        subdirectory = 'RasterPlots'
+        
+        new_path = utils.check_directory(self.directory,subdirectory)
+
+        following = self.InteractionsPerPair(0,1)
+        avoiding = self.InteractionsPerPair(1,2)
+        
+        n_s = following.shape[0]
+
+        for s in range(n_s):
+            ff = following[s,:,:]
+            av = avoiding[s,:,:]
+            new_fname_1 = fname_1+self.cf.sections()[s]+'.csv'
+            new_fname_2 = fname_2+self.cf.sections()[s]+'.csv'
+            f = open(os.path.join(new_path,new_fname_1),'w')
+            self.write_single_matrix_csv(ff,f)
+            f = open(os.path.join(new_path,new_fname_2),'w')
+            self.write_single_matrix_csv(av,f)
+                          
+        
+        
     def plotTubeDominanceRasters(self,name=None,mice=[]):
         
         if not name:
@@ -529,10 +522,15 @@ class Experiment:
         n_s,n_l,n_f = self.tube_dominance_matrix.shape
         
         for s in range(n_s): #phases
-            
+            _TDT = self.tube_dominance_matrix[s,:,:]
+            new_fname = 'Tube_dominance_'+self.cf.sections()[s]+'.csv'
+            f = open(os.path.join(new_path,new_fname),'w')
+            self.write_single_matrix_csv(_TDT,f)
+            if len(np.where(_TDT>1)[0]):
+                _TDT = self.normalize(_TDT)
             plt.text(0.06+s*0.125, 1.025,self.cf.sections()[s], horizontalalignment='center', verticalalignment='center', fontsize=10,  transform = ax.transAxes)
             # MakeRelationGraph(FAM[s,:,:],IPP[s,:,:],exp,s,key,directory,scalefactor)
-            _TDT = self.tube_dominance_matrix[s,:,:]
+            
             pair_labels = []
             pos = 0
             for i in range(n_l): #mice
@@ -555,9 +553,9 @@ class Experiment:
                             
                     if i!=j:
                         if not mice:
-                            pair_labels.append(str(j+1)+'|'+str(i+1))
+                            pair_labels.append(str(i+1)+'|'+str(j+1))
                         else:
-                            pair_labels.append(mice[j]+'|'+mice[i])
+                            pair_labels.append(mice[i]+'|'+mice[j])
                         pos+=1
             for i in range(8-n_s):
                 ax.add_patch(patches.Rectangle((
@@ -574,26 +572,73 @@ class Experiment:
         plt.ylabel("following strength in pair")
         plt.savefig(os.path.join(new_path,name+'.png'),transparent=False, bbox_inches=None, pad_inches=3,frameon=None)
         # plt.show()
-        def remove_zeros(self):
-            indices = set() #set of indices, where position is zero
+        
+    def plot_heat_maps(self,result,name,xlabels=None,ylabels=None,subdirectory=None,vmax=None,vmin=None,xticks=None,yticks=None):
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        cax = ax.imshow(result,interpolation='none',aspect='auto',cmap="viridis",origin="lower")#,extent=[1,8,1,8])
+        cbar = fig.colorbar(cax)
+        if not xlabels:
+            xlabels = self.mice
+        if not ylabels:
+            ylabels = self.mice
+        ax.get_yaxis().set_ticks([i for i,x in enumerate(ylabels)])
+        ax.get_xaxis().set_ticks([i for i,x in enumerate(xlabels)])
+        ax.set_xticklabels(xlabels)
+        ax.set_yticklabels(ylabels)
+        
+        if subdirectory:
+            dir_name = utils.check_directory(self.directory,subdirectory)
+            new_name = os.path.join(dir_name,name)
+        else:
+            new_name = os.path.join(self.directory,name)
+        fig.savefig(new_name+'.png',transparent=False, bbox_inches=None, pad_inches=2,frameon=None)
+        
+    def plot_all(self,t1,t2):
+        sd = self.ehs.signal_data
+        fig = plt.figure()
+        ax = []
+        lm = self.lm
+        if lm < 4:
+            how_many = lm
+            nrows = 1
+            ncolumns = how_many
+        else:
+            if lm % 3:
+                how_many = ((lm + 1) % 3 == 0)*(lm + 1) + ((lm + 2) % 3 == 0)*(lm+2)
+            else:
+                how_many = lm
+                    
+            nrows = how_many//3
+            ncolumns = 3
+            k = 0
+    
+            for i in range(nrows):
+                for j in range(ncolumns):
+                    if k < lm:
+                        ax.append(fig.add_subplot(nrows,ncolumns,k+1))
+                        mouse = self.mice[k]
+                        sig = sd[mouse][t1*self.fs:t2*self.fs]
+                        time = np.linspace(t1,t2,len(sig))
+                        ax[k].plot(time,sig,'dk')
+                        ax[k].set_title(mouse)
+                        ax[k].set_xlabel('time [s]')
+                        ax[k].set_ylabel('State')
+                        k = k+1                        
+    def write_single_matrix_csv(self,matrix,f,headers=''):
+        
+        if not headers:
+            headers = ''
             for mouse in self.mice:
-                zeros = np.where(self.sd[mouse] == 0)[0]
-                if len(zeros):
-                    indices.update(set(zeros))
-            indices = sorted(list(indices))
-            mask = np.ones(len(self.sd['time']), dtype=bool)
-            mask[indices] = False
-            for key in self.sd.keys():
-                self.sd[key] = self.sd[key][mask]
-        def get_mask(self,signal, starttime,endtime):
-            arr = signal['time']
-            idcs = np.where((arr >= starttime) & (arr < endtime))[0]
-            if len(idcs) >= 2:
-                return (idcs[0], idcs[-1] + 1)
-            if len(idcs) == 1:
-                return (idcs[0], idcs[0] + 1)
-            return (0,0)
+                headers += ';'+mouse
+        f.write(headers+'\n')
 
+        for i,row in enumerate(matrix):
+            line = self.mice[i]
+            for col in row:
+                line += ';'+str(col)
+            f.write(line+'\n')
+        f.close()
     
 def createRandomExpepiments(paths,core='Random_test' ):
     if not os.path.exists('../PreprocessedData/RandomData/'):
