@@ -431,12 +431,16 @@ def plot_graph(FAPmatrix,k,sections,directory,labels=None):
         G.add_edges_from([(conn[i][1],conn[i][2])], weight=conn[i][0])
     edge_colors = [conn[i][0] for i in range(len(conn))]
     size = 10
-    pos=nx.circular_layout(G)
+    pos = nx.circular_layout(G)
+    headers = ''
     if labels:
         node_labels = {}
+        headers = ';'
         for i,node in enumerate(G.nodes()):
             node_labels[node] = labels[i]
+            headers += labels[i]+';'
     else:
+        
         node_labels = {node:node for node in G.nodes()}     
     fig = plt.figure(figsize=(10*size,10*size)) 
     ax = fig.add_subplot(111, aspect='equal')
@@ -457,7 +461,18 @@ def plot_graph(FAPmatrix,k,sections,directory,labels=None):
             ax.add_patch(p)
     
     #plt.show()
-    #plt.close(fig)    
+    #plt.close(fig)
+    if headers:
+        save_file = u'%s/Interactions_graph_%s.csv'%(directory,sections[k])
+        f = open(save_file,'w')
+        f.write(headers+'\n')
+        for i,l in enumerate(G.nodes()):
+            f.write(labels[i]+';')
+            for j, lab in enumerate(labels): 
+                f.write(str(FAPmatrix[k,i,j])+';')
+            f.write('\n')
+        f.close()
+    
     plt.savefig('%s/Interactions_graph_%s.png'%(directory,sections[k]))
     ##plt.show()
     plt.close(fig) 
