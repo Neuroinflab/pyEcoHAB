@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-                                                                                                   
+# -*- coding: utf-8 -*-
+from __future__ import print_function,division
 import EcoHab
 import numpy as np
 import matplotlib.pyplot as plt
@@ -34,18 +35,21 @@ datasets = [
 #             'C57 CTRL EH (4) 30.07.14': {'7': 1, '8': 2, '4': 3, '3': 4, '1': 5, '2': 6, '6': 7, '5': 8},
 #             'C57 CTRL EH (5) 20.11.14': None,
 #             }
+def intervals(data_mice, mouse,address):
+    return [[s, e] for a, s, e in data_mice[mouse] if a == address]
 
 def mouse_alone(data_mice,address):
     ints = {}
     empty = 0
     for mouse in data_mice.keys():
-        ints[mouse] = [[s, e] for a, s, e in data_mice[mouse] if a == address]
+        ints[mouse] = intervals(data_mice,mouse,address)
         if not len(ints[mouse]):
             del ints[mouse]
-    
+    result = {}
+    for mouse in data_mice.keys():
+        result[mouse] = 0
     if ints == {}:
-        return
-    print(address)
+        return result
     for mouse in ints.keys():
         other_mice = ints.keys()
         other_mice.remove(mouse)
@@ -55,6 +59,8 @@ def mouse_alone(data_mice,address):
             for other_mouse in other_mice:
                 j = 0
                 remove = False
+                if not len(ints[other_mouse]):
+                    continue
                 while True:
                     original_s, original_e = ints[mouse][i]
                     other_s, other_e = ints[other_mouse][j]
@@ -90,9 +96,9 @@ def mouse_alone(data_mice,address):
             if i >= len(ints[mouse]):
                 break
         
-    result = {}
+   
     for mouse in ints.keys():
-        result[mouse] = sum([(e-s) for s,e in ints[mouse]])
+        result[mouse] = sum([e-s for s,e in ints[mouse]])
         
     return result
 
@@ -106,8 +112,8 @@ def interval_overlap(int1, int2):
 
 def mice_overlap(data_mice, m1, m2, address):
     """Return time overlap of mice m1 and m2 in cage <address>."""
-    ints1 = [(s, e) for a, s, e in data_mice[m1] if a == address]
-    ints2 = [(s, e) for a, s, e in data_mice[m2] if a == address]
+    ints1 = intervals(data_mice, m1,address)
+    ints2 = intervals(data_mice, m2,address)
     durs1 = [x[1] - x[0] for x in ints1]
     durs2 = [x[1] - x[0] for x in ints2]
     total = 0.
@@ -142,6 +148,38 @@ def prepare_data(ehs, mice, times, margin=12*3600.):
                 data_mm.append((ad, max(st, t1), min(en, t2)))
         data[mm] = data_mm
     return data
+
+def calculate_total_time(intervals):
+    return sum([e-s for s,e in intervals])
+
+def total_time_results(mice_data,mice):
+    result = np.zeros((4,len(mice)))
+    for address in [1,2,3,4]:
+        for i,mouse in enumerate(mice):
+            ints = intervals(mice_data,mouse,address)
+            result[address-1,i] = calculate_total_time(ints)
+    return result
+
+def test_results(data_mice,mice):
+    #For surrogate data
+    total_time_spent = total_time_results(data_mice,mice)
+    alone = np.zeros((4,len(mice)))
+    time_together = np.zeros((4,len(mice),len(mice)))
+    for i,address in enumerate([1, 2, 3, 4]):
+        mouse_alone_dictionary = mouse_alone(data_mice,address)
+        for j, mouse in enumerate(mice):
+            alone[i,j] = mouse_alone_dictionary[mouse]
+            for k, other_mouse in enumerate(mice[j+1:]):
+                time_together[i,j,j+1+k] = mice_overlap(data_mice, mouse, other_mouse, address)[0]
+                time_together[i,j+1+k,j] = time_together[i,j,j+1+k]
+            print(alone[i,j],total_time_spent[i,j])
+def write_cvs_alone(alone,address,directory,phase):
+    fname =  os.path.join(directory,'Mice_alone_%d_%s.csv'%(address,phase))
+    f = open(fname,'w')
+    for mouse in alone.keys():
+        f.write(mouse+';'+str(alone[mouse])+'\n')
+    f.close()
+
 
 if __name__ == '__main__':
 
@@ -180,7 +218,7 @@ if __name__ == '__main__':
                 os.makedirs(directory)
             for sec in phases:
                 data = prepare_data(ehs, mice, cf.gettime(sec))
-                
+
                 results = np.zeros((len(mice), len(mice)))
                 results_exp = np.zeros((len(mice), len(mice)))
                 for ii in range(len(mice)):
@@ -193,14 +231,11 @@ if __name__ == '__main__':
                 ax = []
                 single_times = {}
                 for i in range(1,5):
-                    single_times[i] = mouse_alone(data,i)
-                    if single_times[i]:
-                        for mouse in single_times[i].keys():
-                            print(i, mouse, single_times[i][mouse])
-                    
                     ax.append(fig.add_subplot(2,2,i))
-
-                
+                    alone = mouse_alone(data,i)
+                    write_cvs_alone(alone,i,directory,sec)
+     
+                test_results(data,mice)
                 ax[0].imshow(results, vmin=0, vmax=0.5,interpolation='none')
                 ax[0].set_xticks([])
                 ax[0].set_yticks([])
@@ -248,7 +283,6 @@ if __name__ == '__main__':
                 fig.subplots_adjust(wspace=0.25)
                 fig.subplots_adjust(hspace=0.3)
                 
-                print(path)
                 header = ''
                 for mouse in mice:
                     header+= mouse+';'
