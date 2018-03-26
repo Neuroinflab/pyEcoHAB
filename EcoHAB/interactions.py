@@ -27,7 +27,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.colors as mcol
 import matplotlib.patches as patches
 import numpy.random
-
+import plotfunctions
 class Experiment:
     """Class, which represent data from one of the experiments"""
     def _fix_config(self):
@@ -42,17 +42,33 @@ class Experiment:
                 
         t_min = np.argmin(tstarts)
         t_max = np.argmax(tends)
-        if 'ALL' in phases :
+        if 'ALL' not in phases :
+            self.cf.add_section('ALL')
             
-            startdate = self.cf.get(phases[t_min],'startdate')
-            starttime = self.cf.get(phases[t_min],'starttime')
-            enddate = self.cf.get(phases[t_max],'enddate')
-            endtime = self.cf.get(phases[t_max],'endtime')
-            
-            self.cf.set('ALL','startdate',startdate)
-            self.cf.set('ALL','starttime',starttime)
-            self.cf.set('ALL','enddate',enddate)
-            self.cf.set('ALL','endtime',endtime)
+        startdate = self.cf.get(phases[t_min],'startdate')
+        starttime = self.cf.get(phases[t_min],'starttime')
+        enddate = self.cf.get(phases[t_max],'enddate')
+        endtime = self.cf.get(phases[t_max],'endtime')
+        
+        self.cf.set('ALL','startdate',startdate)
+        self.cf.set('ALL','starttime',starttime)
+        self.cf.set('ALL','enddate',enddate)
+        self.cf.set('ALL','endtime',endtime)
+
+    def _merge_config(self,other_experiment):
+        for phase in other_experiment.cf.sections():
+            if phase != 'ALL':
+                self.cf.add_section(phase)
+                startdate = other_experiment.cf.get(phase,'startdate')
+                starttime = other_experiment.cf.get(phase,'starttime')
+                enddate = other_experiment.cf.get(phase,'enddate')
+                endtime = other_experiment.cf.get(phase,'endtime')
+                
+                self.cf.set(phase,'startdate',startdate)
+                self.cf.set(phase,'starttime',starttime)
+                self.cf.set(phase,'enddate',enddate)
+                self.cf.set(phase,'endtime',endtime)
+        self._fix_config()
             
     def _remove_phases(self,mask):
         if mask:
@@ -64,7 +80,7 @@ class Experiment:
                     self.cf.remove_section(phase)
  
             self._fix_config()
-
+    
     def __init__(self, path,**kwargs):#_ant_pos=None,which_phase='ALL',mask=None,from_file=False):
         
         self.path = path
@@ -90,17 +106,14 @@ class Experiment:
         self.ehs = EcoHab.EcoHabSessions9states(path=self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0,how_many_appearances=how_many_appearances,factor=factor,remove_mice=tags)
         self._remove_phases(mask) 
         self.fs = self.ehs.fs
-
        
         mice = list(self.ehs.mice)
         
         self.mice = filter(lambda x: len(self.ehs.getstarttimes(x)) > 30, mice)
         
-        self.sd = {}
         # for mouse in self.mice:
         #     self.sd[mouse] = np.array(self.ehs.signal_data[mouse],dtype=np.int)
         # self.sd['time'] = self.ehs.signal_data['time']
-        self.sd = self.ehs.signal_data.copy()
         self.lm = len(self.mice)
 
        
@@ -110,14 +123,54 @@ class Experiment:
         self.fname_ending = which_phase
         
         self.phases = None
+
+    def add_mouse_data(self,other_experiment):
+        other_sd = other_experiment.ehs.signal_data
+        for mouse in other_experiment.mice:
+            if mouse in self.ehs.signal_data:
+                np.concatenate((self.ehs.signal_data[mouse],other_sd[mouse]))
+            else:
+                self.ehs.signal_data[mouse] = other_sd[mouse]
+            
+        np.concatenate((self.ehs.signal_data['time'],other_sd['time']))
+        self.ehs.data['Address'].extend(other_experiment.ehs.data['Address'])
+        self.ehs.data['Tag'].extend(other_experiment.ehs.data['Tag'])
+        self.ehs.data['AbsStartTimecode'].extend(other_experiment.ehs.data['AbsStartTimecode'])
+        self.ehs.data['AbsEndTimecode'].extend(other_experiment.ehs.data['AbsEndTimecode'])
+        self.ehs.data['VisitDuration'].extend(other_experiment.ehs.data['VisitDuration'])
+        self.ehs.data['ValidVisitSolution'].extend(other_experiment.ehs.data['ValidVisitSolution'])
+                                                   
+    def merge_experiment(self,other_experiment, same_mice=True):
+        """This is only supposed to be used with one experiment (or an
+        experiment with the same mice), when e.g. the antennae setup has
+        changed.
+        
+        """
+        other_cf = other_experiment.cf
+        assert self.ehs.fs == other_experiment.ehs.fs
+        if same_mice:
+            assert self.mice==other_experiment.mice
+        else:
+            self.mice.append(other_experiment.mice)
+        self.add_mouse_data(other_experiment)
+        self.ehs.mice = self.mice
+        self.lm = len(self.mice)
+        self.ehs.t_start_exp = np.min(self.ehs.data['AbsStartTimecode'])
+        self.ehs.t_end_exp = np.max(self.ehs.data['AbsStartTimecode'])    
+        self._merge_config(other_experiment)
+        self.t_start = min(self.ehs.data['AbsStartTimecode'])
+        self.t_end = max(self.ehs.data['AbsStartTimecode'])
+        self.fname_ending = self.fname_ending + "_"+other_experiment.fname_ending+"_merged_"
         
     def calculate_phases(self,window='default',which_phase='ALL'):
         
         self.tstart, self.tend = self.cf.gettime('ALL')
         sd = self.ehs.signal_data
-        if window=='default':
+        if window == 'default':
             sessions = filter(lambda x: x.endswith('dark') or x.endswith('light'), self.cf.sections())
             self.phases = [(self.cf.gettime(sec)[0]-self.tstart ,self.cf.gettime(sec)[1]-self.tstart) for sec in sessions]
+        elif window == "ALL":
+            self.phases = [[0, int(np.ceil(self.tend-self.tstart))]]
         else:
             if isinstance(window,float) or isinstance(window,int):
                 phase_nb = int(np.ceil((self.t_end-self.t_start)/(window*3600)))
@@ -161,9 +214,11 @@ class Experiment:
             self.opatterns = np.load(new_fname_opatterns)
             self.mice_list =  np.load(new_fname_mice)
         else:
+            
             phases = self.cf.sections()
            
             for s in range(len(self.phases)):
+               
                 ts, te = self.phases[s]
                 print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
                 self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
@@ -482,10 +537,13 @@ class Experiment:
                     matrix[j,i] /= total
         return matrix
     
-    def write_following_avoiding_to_file(self,names=None):
-        
-        fname_1 = 'Following_'
-        fname_2 = 'Avoiding_'
+    def write_following_avoiding_to_file(self,names=None,phases=None,fname=None):
+        if fname:
+            fname_1 = fname+'_following_%s.csv'
+            fname_2 = fname+'_avoiding_%s.csv'
+        else:
+            fname_1 = 'Following_%s.csv'
+            fname_2 = 'Avoiding_%s.csv'
         subdirectory = 'RasterPlots'
         
         new_path = utils.check_directory(self.directory,subdirectory)
@@ -494,12 +552,14 @@ class Experiment:
         avoiding = self.InteractionsPerPair(1,2)
         
         n_s = following.shape[0]
-
+        print(n_s)
+        if not phases:
+            phases = self.cf.sections()
         for s in range(n_s):
             ff = following[s,:,:]
             av = avoiding[s,:,:]
-            new_fname_1 = fname_1+self.cf.sections()[s]+'.csv'
-            new_fname_2 = fname_2+self.cf.sections()[s]+'.csv'
+            new_fname_1 = fname_1%phases[s]
+            new_fname_2 = fname_2%phases[s]
             f = open(os.path.join(new_path,new_fname_1),'w')
             self.write_single_matrix_csv(ff,f)
             f = open(os.path.join(new_path,new_fname_2),'w')
@@ -833,76 +893,48 @@ def follsactive(FAM):
 
 
 if __name__ == "__main__":
-    ts = 3
-    experiments = load_experiments_info("experiments_desc.csv")
-    comparisons = load_comparisons_info("comparisons.csv")
-    #print(experiments)
-    #print comparisons.keys()
-    ##for i in comparisons:
-    ##    names, colors = group_data(i,comparisons,experiments, color_lst = ["red","green", "blue"])
-    #    print names
-    #    preprocessData(names,window = 12,ts=3)
-    names, colors = group_data('KO-WT|mouse|FX|females|1',comparisons,experiments, color_lst = ["red","green", "blue"])
-    #names, colors = group_data('VPA-CTRL-NaCl|mouse|C57|males|1',comparisons,experiments, color_lst = ["red","green", "blue"])
-    
-    #createRandomExpepiments(exp_paths)
-    #Interpersec(names,ts=200)
-    IPP, FPP, APP, FAM, directories, phases = preprocessData(names,window=12,ts=ts)
-    print(IPP.keys())
-    
-    
-    scalefactor = np.max([np.max(IPP["KO"][path]) for path in IPP["KO"]]+[np.max(IPP["WT"][path]) for path in IPP["WT"]])
-    for key in IPP:
-        for path in IPP[key]:
-            oneRasterPlot(directories[key][path],FAM[key][path],IPP[key][path],phases[key][path],'Interactions',scalefactor)
+    antenna_pos = {
+        "/home/jszmek/EcoHAB_data_November/long_experiment_KO":{'1':1,'2':5,'3':3,'4':6,'5':4,'6':2,'7':7,'8':8},
+        "/home/jszmek/EcoHAB_data_November/long_experiment_WT":{'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8}
+}
+    a_dirs  = ["/home/jszmek/EcoHAB_data_November/long_experiment_KO","/home/jszmek/EcoHAB_data_November/long_experiment_WT"]
 
-        #oneRasterPlot(directories[key],FAM[key],FPP[key],phases[key],'Following',scalefactor)
+    phases = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":["BEGINNING","MIDDLE"],
+         "/home/jszmek/EcoHAB_data_November/long_experiment_WT":[]}
+    #compensate_for_lost_antenna=True
+    ts = 3   
+    window=12
+    IPP = {}
+    FAM = {}
+    sections = {}
+    directories = {}
+    endings = {}
+    for a_dir in a_dirs:
+        if a_dir == "/home/jszmek/EcoHAB_data_November/long_experiment_KO":
+            E1 = Experiment(a_dir,_ant_pos=antenna_pos[a_dir],which_phase="BEGINNING", compensate_for_lost_antenna=True)
+            E2 = Experiment(a_dir,_ant_pos=antenna_pos[a_dir],which_phase="MIDDLE", compensate_for_lost_antenna=True)
+            E1.merge_experiment(E2)
+        else:
+             E1 = Experiment(a_dir,_ant_pos=antenna_pos[a_dir], compensate_for_lost_antenna=True)
+        E1.calculate_fvalue(window="ALL", treshold=ts)
+        IPP[a_dir] = [E1.InteractionsPerPair(0,2)]
+        FAM[a_dir] = [E1.FollowingAvoidingMatrix()]
+        sections[a_dir] = [E1.cf.sections()]
+        directories[a_dir] = [E1.directory]
+        endings[a_dir] = ["ALL"]
+        E1.write_following_avoiding_to_file(fname=a_dir.split('/')[-1],phases=['ALL'])
+    scalefactor = 0
 
-        #oneRasterPlot(directories[key],FAM[key],APP[key],phases[key],'Avoiding',scalefactor)
+    for a_dir in a_dirs:
+        maxi = 0
+        
+        for ipp in IPP[a_dir]:
+            if np.max(ipp) > maxi:
+                maxi = np.max(ipp)
+        scalefactor += maxi
 
-        #plot_graph(FAM[key],1, base_name = 'following_graph', nr='')
-
-    result = []
-    pair_inc = []
-    pair_long = []
-    
-    # stats = {}
-    # stats["KO"] = {}
-    # stats["KO"]["SLD"] = []
-    # stats["KO"]["NFD"] = []
-    # stats["KO"]["SLA"] = []
-    # stats["KO"]["NFA"] = []
-    # for i in range(3):
-    #     _FAM=FAM["KO"][i]
-    #     LSD, LSA = longest_sequence(_FAM)
-    #     FSD, FSA = follsactive(_FAM)
-    #     stats["KO"]["SLA"]+=LSA
-    #     stats["KO"]["NFA"]+=FSA
-    #     stats["KO"]["NFD"]+=FSD
-    #     stats["KO"]["SLD"]+=LSD
-    #     print(np.mean(LSA), np.mean(FSA), FAM["KO"][i].shape[2])
-    #     #plt.hist(LSD)
-    #     #plt.hist(FSD)
-    #     ###plt.show()
-    # print('#####################WT#######################')
-    # stats["WT"] = {}
-    # stats["WT"]["SLD"] = []
-    # stats["WT"]["NFD"] = []
-    # stats["WT"]["SLA"] = []
-    # stats["WT"]["NFA"] = []
-    # for i in range(4):
-    #     _FAM=FAM["WT"][i]
-    #     LSD, LSA = longest_sequence(_FAM)
-    #     FSD, FSA = follsactive(_FAM)
-    #     stats["WT"]["SLA"]+=LSA
-    #     stats["WT"]["NFA"]+=FSA
-    #     stats["WT"]["NFD"]+=FSD
-    #     stats["WT"]["SLD"]+=LSD
-    
-    #    plt.hist(LSA)
-    #    plt.hist(FSA)
-    #    ##plt.show()
-    
-    
-    
-    
+    for a_dir in a_dirs:
+        for i, ipp in enumerate(IPP[a_dir]):
+            oneRasterPlot(directories[a_dir][i],FAM[a_dir][i],ipp,sections[a_dir][i],'Interactions_ts_'+str(ts)+'_s_'+endings[a_dir][i],scalefactor)
+            for k,l in enumerate(FAM[a_dir][i]):
+                plotfunctions.plot_graph(FAM[a_dir][i],k,[["ALL"]],directories[a_dir][i])
