@@ -163,4 +163,5 @@ antenna_positions = {'/home/jszmek/EcoHAB/RawData/BALB EH (1) 06.03.14': None,
             '/home/jszmek/EcoHAB/RawData/FX KO  females EH Lab 2 (1) - powtorzenie 2. - 22.05.16': None,
             '/home/jszmek/EcoHAB/RawData/PV Cre males HT EH (1) 09.06.16': None,
             '/home/jszmek/EcoHAB/RawData/Random_test': None,
+            "/home/jszmek/EcoHAB_data_November/long_experiment_WT":{'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8}
             }

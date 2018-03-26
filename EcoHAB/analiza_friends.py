@@ -12,18 +12,19 @@ import os
 import utils
 ### How much time mice spend with each other
 
-
 datarange = slice(0, 10, None)
 datasets = [
-    "/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/Social structure males 02.03/",
-    #' /home/jszmek/EcoHAB_data_November/Maciek_01_30_2018',
-    # '/home/jszmek/EcoHAB_data_November/Maciek_social_structure_16.01',
-    # '/home/jszmek/EcoHAB_data_November/Maciek_social_structure_19.01.18_rep_II',
-     # '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_dominance_swiss_webster_dominant_remove_12.02.18',
-     # '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_16.01',
-     # '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_19.01.18_rep_II',
-     # '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_swiss_webster_ctrl_05.02.18',
-
+    # "/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/Social structure males 02.03/",
+    
+    #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_dominance_swiss_webster_dominant_remove_12.02.18',
+    #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_16.01',
+    #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_19.01.18_rep_II',
+    #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_swiss_webster_ctrl_05.02.18',
+    "/home/jszmek/EcoHAB_data_November/C57 males rep 2/",
+    "/home/jszmek/EcoHAB_data_November/BTBR males/",
+    "/home/jszmek/EcoHAB_data_November/long_experiment_WT",
+    "/home/jszmek/EcoHAB_data_November/long_experiment_KO",
+    
     ]
 
 # # address = {1: 4, 2: 1, 3: 1, 4: 2, 5: 2, 6: 3, 7: 3, 8: 4}
@@ -35,6 +36,16 @@ datasets = [
 #             'C57 CTRL EH (4) 30.07.14': {'7': 1, '8': 2, '4': 3, '3': 4, '1': 5, '2': 6, '6': 7, '5': 8},
 #             'C57 CTRL EH (5) 20.11.14': None,
 #             }
+
+remove_tags = {
+    "/home/jszmek/EcoHAB_data_November/C57 males rep 2/":["0065-0161984735"],
+    "/home/jszmek/EcoHAB_data_November/BTBR males/":["0065-0136658439",
+                                                             "0065-0141855614"]
+}
+how_many_appearances = {
+    "/home/jszmek/EcoHAB_data_November/C57 males rep 2/":1000,
+    "/home/jszmek/EcoHAB_data_November/BTBR males/":500
+}
 def intervals(data_mice, mouse,address):
     return [[s, e] for a, s, e in data_mice[mouse] if a == address]
 
@@ -172,9 +183,9 @@ def test_results(data_mice,mice):
             for k, other_mouse in enumerate(mice[j+1:]):
                 time_together[i,j,j+1+k] = mice_overlap(data_mice, mouse, other_mouse, address)[0]
                 time_together[i,j+1+k,j] = time_together[i,j,j+1+k]
-            print(alone[i,j],total_time_spent[i,j])
+
 def write_cvs_alone(alone,address,directory,phase):
-    fname =  os.path.join(directory,'Mice_alone_%d_%s.csv'%(address,phase))
+    fname =  os.path.join(directory,'Mouse_alone_in_%d_phase_%s.csv'%(address,phase))
     f = open(fname,'w')
     for mouse in alone.keys():
         f.write(mouse+';'+str(alone[mouse])+'\n')
@@ -189,106 +200,110 @@ if __name__ == '__main__':
     allresults = {}
 
     # plt.set_cmap('option_d')
-    for remove_mouse in [None,'0065-013665705']:
-        for path in datasets[datarange]:
-            alldeltas[path] = {}
-            allratios[path] = {}
-            allresults[path] = {}
-            if path not in antenna_positions:
-                antenna_positions[path] = None
-            if remove_mouse:
-                ehd = EcoHab.EcoHabData(path=path, _ant_pos=antenna_positions[path],remove_mice=[remove_mouse])
-            else:
-                ehd = EcoHab.EcoHabData(path=path, _ant_pos=antenna_positions[path])
 
-            ehs = EcoHab.EcoHabSessions(ehd)
+    for path in datasets[datarange]:
+        alldeltas[path] = {}
+        allratios[path] = {}
+        allresults[path] = {}
+        if path in remove_tags:
+            remove_mouse = remove_tags[path]
+        else:
+            remove_mouse = None
+        if path not in antenna_positions:
+            antenna_positions[path] = None
+        if remove_mouse:
+            ehd = EcoHab.EcoHabData(path=path, _ant_pos=antenna_positions[path],remove_mice=remove_mouse,how_many_appearances=how_many_appearances[path])
+        else:
+            ehd = EcoHab.EcoHabData(path=path, _ant_pos=antenna_positions[path])
 
-            cf = ExperimentConfigFile(path)
-            tstart, tend = cf.gettime('ALL')
-            mice = list(ehd.mice)
-            mice = filter(lambda x: len(ehs.getstarttimes(x)) > 30, mice)
+        ehs = EcoHab.EcoHabSessions(ehd)
+
+        cf = ExperimentConfigFile(path)
+        tstart, tend = cf.gettime('ALL')
+        mice = list(ehd.mice)
+        mice = filter(lambda x: len(ehs.getstarttimes(x)) > 30, mice)
     
+        print(remove_mouse,mice)
+        
+        phases = filter(lambda x: x.endswith('dark'), cf.sections())
+        # phases = ['SNIFF 1 dark']
+        # phases = filter(lambda x: x.endswith('dark') or x.endswith('light'), cf.sections())
+        directory = utils.results_path(path)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        for sec in phases:
+            data = prepare_data(ehs, mice, cf.gettime(sec))
 
-    
-            phases = filter(lambda x: x.endswith('dark'), cf.sections())
-            # phases = ['SNIFF 1 dark']
-            # phases = filter(lambda x: x.endswith('dark') or x.endswith('light'), cf.sections())
-            directory = utils.results_path(path)
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            for sec in phases:
-                data = prepare_data(ehs, mice, cf.gettime(sec))
-
-                results = np.zeros((len(mice), len(mice)))
-                results_exp = np.zeros((len(mice), len(mice)))
-                for ii in range(len(mice)):
-                    for jj in range(len(mice)):
-                        if ii < jj:
-                            res = mice_together(data, mice[ii], mice[jj])
-                            results[ii, jj] = res[0]
-                            results_exp[ii, jj] = res[1]
-                fig = plt.figure(figsize=(10, 6))
-                ax = []
-                single_times = {}
-                for i in range(1,5):
-                    ax.append(fig.add_subplot(2,2,i))
-                    alone = mouse_alone(data,i)
-                    write_cvs_alone(alone,i,directory,sec)
+            results = np.zeros((len(mice), len(mice)))
+            results_exp = np.zeros((len(mice), len(mice)))
+            for ii in range(len(mice)):
+                for jj in range(len(mice)):
+                    if ii < jj:
+                        res = mice_together(data, mice[ii], mice[jj])
+                        results[ii, jj] = res[0]
+                        results_exp[ii, jj] = res[1]
+            fig = plt.figure(figsize=(10, 6))
+            ax = []
+            single_times = {}
+            for i in range(1,5):
+                ax.append(fig.add_subplot(2,2,i))
+                alone = mouse_alone(data,i)
+                write_cvs_alone(alone,i,directory,sec)
      
-                test_results(data,mice)
-                ax[0].imshow(results, vmin=0, vmax=0.5,interpolation='none')
-                ax[0].set_xticks([])
-                ax[0].set_yticks([])
-                ax[0].set_title('% time together')
-                ax[1].imshow(results_exp, vmin=0, vmax=0.5,interpolation='none')
-                ax[1].set_xticks([])
-                ax[1].set_yticks([])
-                ax[1].set_title('Expected % time together')
-                deltas = results[results > 0] - results_exp[results > 0]
-                alldeltas[path][sec] = deltas
-                ratios = results[results > 0] / results_exp[results > 0]
-                allratios[path][sec] = ratios
-                allresults[path][sec] = results[results > 0]
-                plt.subplot(223)
-                try:
-                    # plt.imshow(results - results_exp, vmin=-max(np.abs(deltas)),
-                    #  vmax=max(np.abs(deltas)))
-                    im = ax[2].imshow(results - results_exp, vmin=-0.25, vmax=0.25,interpolation='none')
-                    ax[2].set_title('Excess % time together')
-                    cbar = fig.colorbar(im)
-                    ax[2].yaxis.tick_left()
-                    ax[2].get_yaxis().set_ticks([i for i,x in enumerate(mice)])
-                    ax[2].get_xaxis().set_ticks([i for i,x in enumerate(mice)])
-                    ax[2].set_xticklabels(mice)
-                    ax[2].set_yticklabels(mice)
-                    for label in ax[2].xaxis.get_ticklabels():
-                        label.set_rotation(90)
+            #test_results(data,mice)
+            ax[0].imshow(results, vmin=0, vmax=0.5,interpolation='none')
+            ax[0].set_xticks([])
+            ax[0].set_yticks([])
+            ax[0].set_title('% time together')
+            ax[1].imshow(results_exp, vmin=0, vmax=0.5,interpolation='none')
+            ax[1].set_xticks([])
+            ax[1].set_yticks([])
+            ax[1].set_title('Expected % time together')
+            deltas = results[results > 0] - results_exp[results > 0]
+            alldeltas[path][sec] = deltas
+            ratios = results[results > 0] / results_exp[results > 0]
+            allratios[path][sec] = ratios
+            allresults[path][sec] = results[results > 0]
+            plt.subplot(223)
+            try:
+                # plt.imshow(results - results_exp, vmin=-max(np.abs(deltas)),
+                #  vmax=max(np.abs(deltas)))
+                im = ax[2].imshow(results - results_exp, vmin=-0.25, vmax=0.25,interpolation='none')
+                ax[2].set_title('Excess % time together')
+                cbar = fig.colorbar(im)
+                ax[2].yaxis.tick_left()
+                ax[2].get_yaxis().set_ticks([i for i,x in enumerate(mice)])
+                ax[2].get_xaxis().set_ticks([i for i,x in enumerate(mice)])
+                ax[2].set_xticklabels(mice)
+                ax[2].set_yticklabels(mice)
+                for label in ax[2].xaxis.get_ticklabels():
+                    label.set_rotation(90)
 
-                except ValueError:
-                    pass
+            except ValueError:
+                pass
 
-                try:
-                    ax[3].hist(deltas)
-                except ValueError:
-                    pass
-                ax[3].set_title('Histogram of excess % time together')
-                ax[3].set_xlim([-0.1, 0.3])
-                ax[3].get_xaxis().set_ticks([-0.1,0.,0.1,0.2,0.3])
-                ax[3].set_xticklabels([-0.1,0.,0.1,0.2,0.3])
+            try:
+                ax[3].hist(deltas)
+            except ValueError:
+                pass
+            ax[3].set_title('Histogram of excess % time together')
+            ax[3].set_xlim([-0.1, 0.3])
+            ax[3].get_xaxis().set_ticks([-0.1,0.,0.1,0.2,0.3])
+            ax[3].set_xticklabels([-0.1,0.,0.1,0.2,0.3])
                 
                 
-                fig.suptitle(sec)
-                fig.subplots_adjust(left=0.3)
-                fig.subplots_adjust(bottom=0.3)
-                fig.subplots_adjust(wspace=0.25)
-                fig.subplots_adjust(hspace=0.3)
-                
-                header = ''
-                for mouse in mice:
-                    header+= mouse+';'
-                fig.savefig('%s/friends_%s_remove_%s.pdf' %(directory, sec,remove_mouse))
-                fig.savefig('%s/friends_%s_remove_%s.png' %(directory, sec,remove_mouse), dpi=300)
-                np.savetxt('%s/results_removed_mouse_%s_remove_%s.csv' %(directory, sec, remove_mouse), results, fmt='%.6f', delimiter=';',header=header,comments='')
-                np.savetxt('%s/results_exp_removed_mouse_%s_remove_%s.csv' %(directory, sec, remove_mouse), results_exp,
+            fig.suptitle(sec)
+            fig.subplots_adjust(left=0.3)
+            fig.subplots_adjust(bottom=0.3)
+            fig.subplots_adjust(wspace=0.25)
+            fig.subplots_adjust(hspace=0.3)
+            
+            header = ''
+            for mouse in mice:
+                header+= mouse+';'
+            fig.savefig('%s/friends_%s_remove_%s.pdf' %(directory, sec,remove_mouse))
+            fig.savefig('%s/friends_%s_remove_%s.png' %(directory, sec,remove_mouse), dpi=300)
+            np.savetxt('%s/results_removed_mouse_%s_remove_%s.csv' %(directory, sec, remove_mouse), results, fmt='%.6f', delimiter=';',header=header,comments='')
+            np.savetxt('%s/results_exp_removed_mouse_%s_remove_%s.csv' %(directory, sec, remove_mouse), results_exp,
                            fmt='%.6f', delimiter=';',header=header,comments='')
-                np.savetxt('%s/results_final_removed_mouse_%s_remove_%s.csv' %(directory, sec, remove_mouse), results-results_exp, fmt='%.6f', delimiter=';',header=header,comments='')
+            np.savetxt('%s/results_final_removed_mouse_%s_remove_%s.csv' %(directory, sec, remove_mouse), results-results_exp, fmt='%.6f', delimiter=';',header=header,comments='')
