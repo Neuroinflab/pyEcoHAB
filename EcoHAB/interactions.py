@@ -35,11 +35,10 @@ class Experiment:
         tends = []
         phases = self.cf.sections()
         for phase in phases:
-            if 'dark' in phase or 'light' in phase:
+            if 'dark' in phase or 'light' in phase or 'DARK' in phase or 'LIGHT' in phase:
                 st, en = self.cf.gettime(phase)
                 tstarts.append(st)
                 tends.append(en)
-                
         t_min = np.argmin(tstarts)
         t_max = np.argmax(tends)
         if 'ALL' not in phases :
@@ -278,7 +277,7 @@ class Experiment:
         sd = self.ehs.signal_data
         try:
             [mouse1_idx_start,mouse1_idx_stop,mouse1_indices] = self.mouse_indices(mouse1, t1,t2)
-        except ValueError:
+        except (ValueError, TypeError):
             return dominance_stats
 
                 

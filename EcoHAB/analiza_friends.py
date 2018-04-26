@@ -20,10 +20,13 @@ datasets = [
     #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_16.01',
     #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_19.01.18_rep_II',
     #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_swiss_webster_ctrl_05.02.18',
-    "/home/jszmek/EcoHAB_data_November/C57 males rep 2/",
-    "/home/jszmek/EcoHAB_data_November/BTBR males/",
-    "/home/jszmek/EcoHAB_data_November/long_experiment_WT",
-    "/home/jszmek/EcoHAB_data_November/long_experiment_KO",
+    "/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/",
+    # "/home/jszmek/EcoHAB_data_November/C57 TIMP rep 2/",
+    # "/home/jszmek/EcoHAB_data_November/C57 males rep 2/",
+    # "/home/jszmek/EcoHAB_data_November/C57 males TIMP/",
+    # "/home/jszmek/EcoHAB_data_November/BTBR males/",
+    # "/home/jszmek/EcoHAB_data_November/long_experiment_WT",
+    # "/home/jszmek/EcoHAB_data_November/long_experiment_KO",
     
     ]
 
@@ -222,10 +225,12 @@ if __name__ == '__main__':
         tstart, tend = cf.gettime('ALL')
         mice = list(ehd.mice)
         mice = filter(lambda x: len(ehs.getstarttimes(x)) > 30, mice)
+        label_mice = [mouse[-4:] for mouse in mice]
+        print(label_mice)
     
         print(remove_mouse,mice)
         
-        phases = filter(lambda x: x.endswith('dark'), cf.sections())
+        phases = filter(lambda x: x.endswith('dark') or x.endswith('DARK'), cf.sections())
         # phases = ['SNIFF 1 dark']
         # phases = filter(lambda x: x.endswith('dark') or x.endswith('light'), cf.sections())
         directory = utils.results_path(path)
@@ -274,8 +279,8 @@ if __name__ == '__main__':
                 ax[2].yaxis.tick_left()
                 ax[2].get_yaxis().set_ticks([i for i,x in enumerate(mice)])
                 ax[2].get_xaxis().set_ticks([i for i,x in enumerate(mice)])
-                ax[2].set_xticklabels(mice)
-                ax[2].set_yticklabels(mice)
+                ax[2].set_xticklabels(label_mice)
+                ax[2].set_yticklabels(label_mice)
                 for label in ax[2].xaxis.get_ticklabels():
                     label.set_rotation(90)
 
