@@ -16,20 +16,26 @@ a_dirs  = [
     #"/home/jszmek/EcoHAB_data_November/Maciek_01_30_2018",
     #"/home/jszmek/EcoHAB_data_November/Maciek_social_structure_16.01",
     #"/home/jszmek/EcoHAB_data_November/Maciek_social_structure_19.01.18_rep_II",
-    "/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/Social structure males 02.03/",
-    '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_dominance_swiss_webster_dominant_remove_12.02.18',
-    '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_16.01',
-    '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_19.01.18_rep_II',
-    '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_swiss_webster_ctrl_05.02.18',
+    # "/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/Social structure males 02.03/",
+    # '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_dominance_swiss_webster_dominant_remove_12.02.18',
+    # '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_16.01',
+    # '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_19.01.18_rep_II',
+    # '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_swiss_webster_ctrl_05.02.18',
+    "/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/",
+    # '/home/jszmek/EcoHAB_data_November/C57 TIMP rep 2/',
+    # '/home/jszmek/EcoHAB_data_November/C57 males TIMP/',
+    
 ]
 
 masks = {"/home/jszmek/EcoHAB_data_November/Maciek_01_30_2018":[],
          "/home/jszmek/EcoHAB_data_November/Maciek_social_structure_16.01":[],
          "/home/jszmek/EcoHAB_data_November/Maciek_social_structure_19.01.18_rep_II":[],
+         "/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/":[]
 }
 phases = {"/home/jszmek/EcoHAB_data_November/Maciek_01_30_2018":["ALL"],
           "/home/jszmek/EcoHAB_data_November/Maciek_social_structure_16.01":['ALL'],
-              "/home/jszmek/EcoHAB_data_November/Maciek_social_structure_19.01.18_rep_II":['ALL']
+              "/home/jszmek/EcoHAB_data_November/Maciek_social_structure_19.01.18_rep_II":['ALL'],
+           "/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/":['11thDAY','END','BEGINNING','MIDDLE',],
 }
 
 ts = 3   
@@ -48,10 +54,7 @@ for a_dir in a_dirs:
     directories[a_dir] = []
     endings[a_dir] = []
     mice[a_dir] = []
-    if a_dir not in masks:
-        masks[a_dir] = []
-    if a_dir not in phases:
-        phases[a_dir] = ['ALL']
+    
     if a_dir not in antenna_pos:
         antenna_pos[a_dir] = {'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8}
     if masks[a_dir] == []:
@@ -60,7 +63,7 @@ for a_dir in a_dirs:
            
             
             E = interactions.Experiment(a_dir,_ant_pos=antenna_pos[a_dir],which_phase=phase,remove_mice=['0065-0136657055'] )
-            mouse_positions = E.sd
+          
             fname = 'Interactions_' + E.fname_ending
             E.tube_dominance_test(window=window)
             E.plotTubeDominanceRasters(mice=E.mice)
@@ -79,9 +82,10 @@ for a_dir in a_dirs:
     else:
         for mask in masks[a_dir]:
             E = interactions.Experiment(a_dir,_ant_pos=antenna_pos[a_dir],mask=mask)
-            mouse_positions = E.sd
+          
             fname = 'Interactions_' + E.fname_ending
-
+            E.tube_dominance_test(window=window)
+            E.plotTubeDominanceRasters(mice=E.mice)
             E.calculate_fvalue(window=window, treshold=ts, force=True)
             IPP[a_dir].append(E.InteractionsPerPair(0,2))
             FAM[a_dir].append(E.FollowingAvoidingMatrix())
