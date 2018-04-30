@@ -308,7 +308,7 @@ if __name__ == '__main__':
                 header+= mouse+';'
             fig.savefig('%s/friends_%s_remove_%s.pdf' %(directory, sec,remove_mouse))
             fig.savefig('%s/friends_%s_remove_%s.png' %(directory, sec,remove_mouse), dpi=300)
-            np.savetxt('%s/results_removed_mouse_%s_remove_%s.csv' %(directory, sec, remove_mouse), results, fmt='%.6f', delimiter=';',header=header,comments='')
-            np.savetxt('%s/results_exp_removed_mouse_%s_remove_%s.csv' %(directory, sec, remove_mouse), results_exp,
+            np.savetxt('%s/results_%s_remove_%s.csv' %(directory, sec, remove_mouse), results, fmt='%.6f', delimiter=';',header=header,comments='')
+            np.savetxt('%s/results_exp_%s_remove_%s.csv' %(directory, sec, remove_mouse), results_exp,
                            fmt='%.6f', delimiter=';',header=header,comments='')
-            np.savetxt('%s/results_final_removed_mouse_%s_remove_%s.csv' %(directory, sec, remove_mouse), results-results_exp, fmt='%.6f', delimiter=';',header=header,comments='')
+            np.savetxt('%s/results_final_%s_remove_%s.csv' %(directory, sec, remove_mouse), results-results_exp, fmt='%.6f', delimiter=';',header=header,comments='')
