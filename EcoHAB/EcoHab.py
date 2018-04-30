@@ -362,7 +362,7 @@ class EcoHabSessions(IEcoHabSession):
     def __init__(self, ehd, **kwargs):
         
         self._ehd = ehd
-        
+        self.mice = self._ehd.mice
         self.mask = None
         self._mask_slice = None
         # No longer used after 14 May 2014

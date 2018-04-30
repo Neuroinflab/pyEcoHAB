@@ -14,31 +14,49 @@ import utils
 datarange = slice(10, 11, None)
 datasets = {
     #'long':'/home/jszmek/EcoHAB_data_November/long_experiment_WT',
-    'standard':'/home/jszmek/EcoHAB_data_November/standard_known_stimulus_WT',
+    #'standard':'/home/jszmek/EcoHAB_data_November/standard_known_stimulus_WT',
+    'maciek_long':'/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/',
 }
 smells = {
     'long': {'soc': 3, 'nsoc': 1},
-    'standard': {'soc': 3, 'nsoc': 1}
+    'standard': {'soc': 3, 'nsoc': 1},
+    'maciek_long':{'soc': 3, 'nsoc': 1},
 }
 antenna_positions = {
     'long': None,
     'standard': None,
+    'maciek_long':None,
 }
 headers = {'soc':['Number of visits to social smell (box %d)\n','Total time with social smell (box %d), seconds\n'],
            'nsoc':['Number of visits to non-social smell (box %d)\n','Total time with non-social smell (box %d), seconds\n',]}
+cages = {'maciek_long': {'1':1,'2':2,'3':3,'4':4}}
 
+basic = ['Number of visits to box %d\n','Total time in box %d, seconds\n']
 
+all_chambers_header = {'maciek_long':{}}
+for key in cages['maciek_long']:
+    all_chambers_header['maciek_long'][key] = basic
 
-    
-def visits(mouse_address,mouse_durations, key, stim_type):
-    result = []
-    for address,t in  zip(mouse_address, mouse_durations):
-        if address == smells[key][stim_type]:
-            result.append(t)
-    return result
+def write_single_chamber(f, header, heads, address, mice, phases, time, data_stim ):
+    for j,h in enumerate(heads):
+        f.write(h%address)
+        f.write(header+'\n')
+        
+        for i, mouse in enumerate(mice):
+            
+            lines = [mouse for i in data_stim[j][phases[0]][mouse]]
+            
+            for phase in phases:
+                for k,t in enumerate(time[phase]):
+                    if phase == phases[0]:
+                        lines[k] += ',%3.2f'%(t/3600)
+                    lines[k] += ','+str(data_stim[j][phase][mouse][k])
+                                                                
+            for line in lines:
+                f.write(line+'\n')
 
-def save_data_cvs(data,fname,path,key):
-
+def save_data_cvs(data,fname,path,which,headers):
+    #which = smells[key]
     if not os.path.exists(path):
         os.makedirs(path)
     fname = os.path.join(path,fname)
@@ -50,34 +68,120 @@ def save_data_cvs(data,fname,path,key):
     for phase in phases:
         header += ',\"'+phase+"\""
   
-    for stim in ['soc','nsoc']:
-        
-          for j,h in enumerate(headers[stim]):
+    for stim in which.keys():
+        heads = headers[stim]
+        write_single_chamber(f,header, heads, which[stim], mice, phases, data['time'], data[stim])
+    
+def get_visits(mouse_address,mouse_durations,stim_address):
+    result = []
+    for address,t in  zip(mouse_address, mouse_durations):
+        if address == stim_address:
+            result.append(t)
+    return result
 
-            f.write(h%smells[key][stim])
-            f.write(header+'\n')
+def initialize_data(cf,chamber_dict):
+    phases = find_phases(cf)
+    visits = {}
+    times = {}
+    tt = phase_dictionary(cf)
+    for key in chamber_dict:
+        visits[key] = phase_dictionary(cf)
+        times[key] = phase_dictionary(cf)
+ 
+    return visits, times, tt
+
+def find_phases(cf):
+    return [phase for phase in cf.sections() if 'dark' in phase or 'light' in phase]
+
+def phase_dictionary(cf):
+    return dict([(phase, []) for phase in find_phases(cf)])
+
+def phase_dictionary_phases(phases):
+    return dict([(phase, []) for phase in phases])
+
+def mouse_dict(mice):
+    return dict([(mm, []) for mm in mice])
+
+def loop_through_mice(v, t, address, ehs):
+    for mouse in ehs.mice:
+        mouse_address = ehs.getaddresses(mouse)
+        mouse_durations = ehs.getdurations(mouse)
+        v[mouse].append(mouse_address.count(address))
+        t[mouse].append(get_visits(mouse_address,mouse_durations, address))
+
+def loop_through(visits,times,tt,cf,ehs,chamber_dict,binsize):
+    phases = find_phases(cf)
+    tstart, tend = cf.gettime('ALL')
+    i = 0
+
+    for key in chamber_dict:  
+        for phase in phases:
+            visits[key][phase] = mouse_dict(ehs.mice)
+            times[key][phase] = mouse_dict(ehs.mice)
+    
+
+    for phase in phases:
+        time_start, phase_end = cf.gettime(phase)
+        time = time_start
+            
+        while time < phase_end:
+            ehs.unmask_data()
+            ehs.mask_data(time, time + binsize)
+            for key in chamber_dict:  
+                loop_through_mice(visits[key][phase], times[key][phase], chamber_dict[key], ehs)
+
+            tt[phase].append((time-time_start)*binsize/3600.)
+            time += binsize
+                
+def results_to_array(visits,times):
+    for key in visits:
+        for phase in visits[key]:
+            for mouse in visits[key][phase]:
+                visits[key][phase][mouse] = np.array(visits[key][phase][mouse])
+                times[key][phase][mouse] = np.array(times[key][phase][mouse])
+                
+
+def get_time_spent_in_each_chamber(ehs,cf,chamber_dict,binsize):
+    
+    visits, times, tt = initialize_data(cf,chamber_dict)
+    loop_through(visits,times,tt,cf,ehs,chamber_dict,binsize)   
+    results_to_array(visits,times)
+    out = {}
+    for key in visits:
+        out[key] = [visits[key], times[key]]
+    out['time'] = tt
+    out['mice'] = ehs.mice
+    out['phases'] = find_phases(cf)
+    return out
+
+def sum_data(data):
+    phases = data.pop('phases')
+    mice = data.pop('mice')
+    time = data.pop('time')
+    st = {}
+    new_data = {'phases':phases, 'mice':mice, 'time':time}
+    for key in data:
+        st[key] = phase_dictionary_phases(phases)
+        new_data[key] = []
+        new_data[key].append(data[key][0])
+        new_data[key].append(st[key])
+        for phase in phases:
+            st[key][phase] = mouse_dict(mice)
             for mouse in mice:
-                lines = [mouse for i in data[stim][j][phases[0]][mouse]]
-                for phase in phases:
-                    if phase != 'ALL':
-                        for k,time in enumerate(data['time'][phase]):
-                            if phase == phases[0]:
-                                lines[k] += ',%3.2f'%(time/3600)
-                            lines[k] += ','+str(data[stim][j][phase][mouse][k])
-                                                                
-                for line in lines:
-                    f.write(line)
-                    f.write('\n')
-
+                st[key][phase][mouse] = np.zeros((len(time[phase])))
+                for k, t in enumerate(time[phase]):
+                    st[key][phase][mouse][k] = sum(data[key][1][phase][mouse][k])
+    return new_data
+        
 def get_time_spent(ehs,cf,key,binsize=12*3600):
   
     tstart, tend = cf.gettime('ALL')
-    phases = cf.sections()
-    nsoc = dict([(phase, []) for phase in phases])
-    soc = dict([(phase, []) for phase in phases])
-    t_nsoc = dict([(phase, []) for phase in phases])
-    t_soc = dict([(phase, []) for phase in phases])
-    tt =  dict([(phase, []) for phase in phases])
+    phases = find_phases(cf)
+    nsoc = phase_dictionary(cf)
+    soc = phase_dictionary(cf)
+    t_nsoc = phase_dictionary(cf)
+    t_soc = phase_dictionary(cf)
+    tt =  phase_dictionary(cf)
     
     for phase in phases:
         nsoc[phase] = dict([(mm, []) for mm in ehs.mice])
@@ -96,10 +200,9 @@ def get_time_spent(ehs,cf,key,binsize=12*3600):
  
                 nsoc[phase][mouse].append(mouse_address.count(smells[key]['nsoc']))
                 soc[phase][mouse].append(mouse_address.count(smells[key]['soc']))
-                t_nsoc[phase][mouse].append(visits(mouse_address,mouse_durations, key, 'nsoc'))
-                t_soc[phase][mouse].append(visits(mouse_address,mouse_durations, key, 'soc'))
+                t_nsoc[phase][mouse].append(get_visits(mouse_address,mouse_durations, smells[key]['nsoc']))
+                t_soc[phase][mouse].append(get_visits(mouse_address,mouse_durations, smells[key][ 'soc']))
                 
-                #print  nsoc[phase][mouse],soc[phase][mouse], len(t_nsoc[phase][mouse]),len(t_soc[phase][mouse])
             tt[phase].append((time-time_start)*binsize/3600.)
             time += binsize
  
@@ -113,16 +216,15 @@ def get_time_spent(ehs,cf,key,binsize=12*3600):
     return {'nsoc':[nsoc,t_nsoc], 'soc':[soc,t_soc],'time':tt,'mice':ehs.mice,'phases':phases}
 
 def sum_times(data):
-    
     phases = data['phases']
     mice = data['mice']
-    sum_t_soc = dict([(phase, []) for phase in phases])
-    sum_t_nsoc = dict([(phase, []) for phase in phases])
+    sum_t_soc = phase_dictionary_phases(phases)
+    sum_t_nsoc = phase_dictionary_phases(phases)
 
     for phase in phases:
 
-        sum_t_soc[phase] = dict([(mouse, []) for mouse in mice])
-        sum_t_nsoc[phase] = dict([(mouse, []) for mouse in mice])
+        sum_t_soc[phase] = mouse_dict(mice)
+        sum_t_nsoc[phase] = mouse_dict(mice)
           
         for mouse in mice:
 
@@ -149,8 +251,8 @@ def approach_to_social(data,fname=None,path=None):
     times_nsoc = data['nsoc'][1]
     times_soc = data['soc'][1]
     phases = data['phases']
-    last_phase_before_stimulus = [phase for phase in phases if 'EMPTY' in phase and 'dark' in phase][-1]
-    first_phase_after_stimulus = [phase for phase in phases if 'SNIFF' in phase and 'dark' in phase][0]
+    last_phase_before_stimulus = [phase for phase in phases if 'EMPTY' in phase and 'dark' in phase or 'EMPTY' in phase and 'DARK' in phase][-1]
+    first_phase_after_stimulus = [phase for phase in phases if 'SNIFF' in phase and 'dark' in phase or 'SNIFF' in phase and 'DARK' in phase][0]
 
     mice = data['mice']
     mice_no = len(mice)
@@ -188,25 +290,24 @@ if __name__ == '__main__':
     binsizes = [12 * 3600., 2 * 3600., 1 * 3600.,1.5*3600,3600/4]
     bintitles = ['12', '2', '1']
     standard_ant_pos = {'1': 5, '2': 6, '3': 7, '4': 8, '5': 1, '6': 2, '7': 3, '8': 4}
-    for binsize in binsizes:
-        for key in datasets:
-            path1 = datasets[key]
-            ehd = EcoHab.EcoHabData(path1,__ant_pos=standard_ant_pos)
-            print(ehd.__ant_pos)
-            ehs = EcoHab.EcoHabSessions(ehd)
-            cf = ExperimentConfigFile(path1)
-            tstart, tend = cf.gettime('ALL')
-            
+
+    for key in datasets:
+        path1 = datasets[key]
+        ehd = EcoHab.EcoHabData(path=path1,_ant_pos=antenna_positions[key])
+        ehs = EcoHab.EcoHabSessions(ehd)
+        cf1 = ExperimentConfigFile(path1)
+        tstart, tend = cf1.gettime('ALL')
+        for binsize in binsizes:
             print('Binsize ',binsize/3600)
-            data = get_time_spent(ehs,cf,key,binsize=binsize)
+            data = get_time_spent(ehs,cf1,key,binsize=binsize)
             data = sum_times(data)
             path = utils.results_path(path1)
             fname = 'collective_results_social_non_social_binsize_%f_h.csv'%(binsize/3600)
-            print(path1,path)
-            save_data_cvs(data,fname,path,key)
-            fname =  'AtS_%f_h.csv'%(binsize/3600)
-            approach_to_social(data,fname,path)
-        #print data
+            fname_all_chambers = 'collective_results_all_chambers_binsize_%f_h.csv'%(binsize/3600)
+            save_data_cvs(data,fname,path,smells[key],headers)
+            data = get_time_spent_in_each_chamber(ehs, cf1, cages[key], binsize=binsize)
+            data = sum_data(data)
+            save_data_cvs(data, fname_all_chambers, path, cages[key], all_chambers_header[key])
         
         
 
