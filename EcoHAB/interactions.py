@@ -29,7 +29,7 @@ import matplotlib.patches as patches
 import numpy.random
 import plotfunctions
 class Experiment:
-    """Class, which represent data from one of the experiments"""
+    """Class, which represent data from one experiment"""
     def _fix_config(self):
         tstarts = []
         tends = []
@@ -80,66 +80,66 @@ class Experiment:
  
             self._fix_config()
     
-    def __init__(self, path,**kwargs):#_ant_pos=None,which_phase='ALL',mask=None,from_file=False):
-        
+    def __init__(self, path,**kwargs):
         self.path = path
-        _ant_pos = kwargs.pop('_ant_pos',None)
-        which_phase = kwargs.pop('which_phase','ALL')
-        mask = kwargs.pop('mask',None)
-        from_file = kwargs.pop('from_file',False)
-        how_many_appearances = kwargs.pop('how_many_appearances',1000)
-        factor = kwargs.pop('factor',2)
-        tags = kwargs.pop('remove_mice',[])
+        _ant_pos = kwargs.pop('_ant_pos', None)
+        which_phase = kwargs.pop('which_phase', 'ALL')
+        mask = kwargs.pop('mask', None)
+        from_file = kwargs.pop('from_file', False)
+        h_m_a = kwargs.pop('how_many_appearances', 1000)
+        factor = kwargs.pop('factor', 2)
+        tags = kwargs.pop('remove_mice', [])
+        if kwargs:
+            raise Exception('Too many arguments for class Experiment')
         self.directory = utils.results_path(path)
         self.from_file = from_file
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
-
         self.cf = ExperimentConfigFile(self.path)
-       
         if which_phase and mask == None:
             try:
                 mask = self.cf.gettime(which_phase)
             except ConfigParser.NoSectionError:
                 mask = None
-        self.ehs = EcoHab.EcoHabSessions9states(path=self.path, _ant_pos=_ant_pos,mask=mask,shortest_session_threshold=0,how_many_appearances=how_many_appearances,factor=factor,remove_mice=tags)
+        self.ehs = EcoHab.EcoHabSessions9states(path=self.path,
+                                                _ant_pos=_ant_pos,
+                                                mask=mask,
+                                                shortest_session_threshold=0,
+                                                how_many_appearances=h_m_a,
+                                                factor=factor,
+                                                remove_mice=tags)
         self._remove_phases(mask) 
         self.fs = self.ehs.fs
-       
         mice = list(self.ehs.mice)
-        
         self.mice = filter(lambda x: len(self.ehs.getstarttimes(x)) > 30, mice)
-        
-        # for mouse in self.mice:
-        #     self.sd[mouse] = np.array(self.ehs.signal_data[mouse],dtype=np.int)
-        # self.sd['time'] = self.ehs.signal_data['time']
         self.lm = len(self.mice)
-
-       
         self.t_start = self.ehs.data['AbsStartTimecode'][0]
         self.t_end = self.ehs.data['AbsStartTimecode'][-1]
-        
         self.fname_ending = which_phase
-        
         self.phases = None
+        self.key_list = ['Address',
+                         'Tag',
+                         'AbsStartTimecode',
+                         'AbsEndTimecode',
+                         'VisitDuration',
+                         'ValidVisitSolution']
 
-    def add_mouse_data(self,other_experiment):
+    def add_mouse_data(self, other_experiment):
         other_sd = other_experiment.ehs.signal_data
         for mouse in other_experiment.mice:
             if mouse in self.ehs.signal_data:
-                np.concatenate((self.ehs.signal_data[mouse],other_sd[mouse]))
+                np.concatenate((self.ehs.signal_data[mouse],
+                                other_sd[mouse]))
             else:
                 self.ehs.signal_data[mouse] = other_sd[mouse]
             
-        np.concatenate((self.ehs.signal_data['time'],other_sd['time']))
-        self.ehs.data['Address'].extend(other_experiment.ehs.data['Address'])
-        self.ehs.data['Tag'].extend(other_experiment.ehs.data['Tag'])
-        self.ehs.data['AbsStartTimecode'].extend(other_experiment.ehs.data['AbsStartTimecode'])
-        self.ehs.data['AbsEndTimecode'].extend(other_experiment.ehs.data['AbsEndTimecode'])
-        self.ehs.data['VisitDuration'].extend(other_experiment.ehs.data['VisitDuration'])
-        self.ehs.data['ValidVisitSolution'].extend(other_experiment.ehs.data['ValidVisitSolution'])
+        np.concatenate((self.ehs.signal_data['time'],
+                        other_sd['time']))
+        
+        for key in self.key_list:
+            self.ehs.data[key].extend(other_experiment.ehs.data[key])
                                                    
-    def merge_experiment(self,other_experiment, same_mice=True):
+    def merge_experiment(self, other_experiment, same_mice=True):
         """This is only supposed to be used with one experiment (or an
         experiment with the same mice), when e.g. the antennae setup has
         changed.
@@ -159,90 +159,113 @@ class Experiment:
         self._merge_config(other_experiment)
         self.t_start = min(self.ehs.data['AbsStartTimecode'])
         self.t_end = max(self.ehs.data['AbsStartTimecode'])
-        self.fname_ending = self.fname_ending + "_"+other_experiment.fname_ending+"_merged_"
-        
-    def calculate_phases(self,window='default',which_phase='ALL'):
-        
+        add = "_"+other_experiment.fname_ending+"_merged_"
+        self.fname_ending = self.fname_ending + add
+
+    def calculate_phases(self, window='default', which_phase='ALL'):
         self.tstart, self.tend = self.cf.gettime('ALL')
         sd = self.ehs.signal_data
         if window == 'default':
-            sessions = filter(lambda x: x.endswith('dark') or x.endswith('light'), self.cf.sections())
-            self.phases = [(self.cf.gettime(sec)[0]-self.tstart ,self.cf.gettime(sec)[1]-self.tstart) for sec in sessions]
+            sessions = filter(lambda x: x.endswith('dark')
+                              or x.endswith('light'),
+                              self.cf.sections())
+            self.phases = [(self.cf.gettime(sec)[0]-self.tstart ,
+                            self.cf.gettime(sec)[1]-self.tstart)
+                           for sec in sessions]
         elif window == "ALL":
             self.phases = [[0, int(np.ceil(self.tend-self.tstart))]]
         else:
             if isinstance(window,float) or isinstance(window,int):
-                phase_nb = int(np.ceil((self.t_end-self.t_start)/(window*3600)))
-                self.phases = [(i*window*3600,np.min([(i+1)*window*3600,len(sd[self.mice[0]])])) for i in range(phase_nb)]
+                phase_nb = int(np.ceil((self.t_end - self.t_start)/(window*3600)))
+                self.phases = [(i*window*3600,
+                                np.min([(i+1)*window*3600,
+                                        len(sd[self.mice[0]])]))
+                               for i in range(phase_nb)]
             elif isinstance(window, list):
-                self.phases = [(st*window[0]*3600,(st+1)*window[0]*3600) for st in window[1]]
+                self.phases = [(st*window[0]*3600,
+                                (st+1)*window[0]*3600) for st in window[1]]
             else:
                 raise TypeError
-        
        
-    def calculate_fvalue(self,window='default',treshold = 2, force=False,fols=None,ops=None,which_phase='ALL'):
-        
-        self.calculate_phases(window=window,which_phase=which_phase)
-        
+    def calculate_fvalue(self,
+                         window='default',
+                         treshold=2,
+                         force=False,
+                         fols=None,
+                         ops=None,
+                         which_phase='ALL'):
+        self.calculate_phases(window=window, which_phase=which_phase)
         self.fols = fols
         self.ops = ops
         self.treshold = treshold
- 
-        
         self.fpatterns = []
         self.opatterns = []
-            
-        self.f = np.zeros((self.lm,self.lm,len(self.phases)))
-        self.interactions = np.zeros((len(self.phases),self.lm,self.lm,8,3))
-        self.f_sum = np.zeros((len(self.phases),self.lm))
-                              
-        new_path = os.path.join(self.directory,'PreprocessedData/IteractionsData/')
-    
-        new_fname_patterns = os.path.join(new_path, 'Patterns_cut_%s_%s.npy'%(self.fname_ending,which_phase))
-        new_fname_fpatterns = os.path.join(new_path, 'fpatterns_cut_%s_%s.npy'%(self.fname_ending,which_phase))
-        new_fname_opatterns = os.path.join(new_path, 'opatterns_cut_%s_%s.npy'%(self.fname_ending,which_phase))
-        new_fname_mice = os.path.join(new_path, 'mice_cut_%s_%s.npy'%(self.fname_ending,which_phase))
+        l = len(self.phases)
+        self.f = np.zeros((self.lm, self.lm, l))
+        self.interactions = np.zeros((l, self.lm, self.lm, 8, 3))
+        self.f_sum = np.zeros((l,self.lm))
+        new_path = os.path.join(self.directory,
+                                'PreprocessedData/IteractionsData/')
+        new_fname_patterns = os.path.join(new_path,
+                                          'Patterns_cut_%s_%s.npy' % (self.fname_ending,
+                                                                      which_phase))
+        new_fname_fpatterns = os.path.join(new_path,
+                                           'fpatterns_cut_%s_%s.npy' % (self.fname_ending,
+                                                                        which_phase))
+        new_fname_opatterns = os.path.join(new_path,
+                                           'opatterns_cut_%s_%s.npy' % (self.fname_ending,
+                                                                        which_phase))
+        new_fname_mice = os.path.join(new_path,
+                                      'mice_cut_%s_%s.npy' % (self.fname_ending,
+                                                              which_phase))
         
         if not os.path.exists(os.path.dirname(new_path)):
             os.makedirs(os.path.dirname(new_path))
-    
         if self.from_file:
-            
             self.interactions = np.load(new_fname_patterns)
             self.fpatterns = np.load(new_fname_fpatterns)
             self.opatterns = np.load(new_fname_opatterns)
             self.mice_list =  np.load(new_fname_mice)
         else:
-            
-            phases = self.cf.sections()
-           
             for s in range(len(self.phases)):
-               
                 ts, te = self.phases[s]
-                print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
-                self.interactions[s,:,:,:,:] = self.interaction_matrix(ts, te)
-                np.save(new_fname_patterns,self.interactions)
-                np.save(new_fname_fpatterns,self.fpatterns)
-                np.save(new_fname_opatterns,self.opatterns)
-                np.save(new_fname_mice,self.mice)
+                print('Phase %s. from %sh, to %sh'%(s + 1,
+                                                    np.round(ts/3600., 2),
+                                                    np.round(te/3600., 2)))
+                self.interactions[s, :, :, :, :] = self.interaction_matrix(ts,
+                                                                           te)
+                np.save(new_fname_patterns, self.interactions)
+                np.save(new_fname_fpatterns, self.fpatterns)
+                np.save(new_fname_opatterns, self.opatterns)
+                np.save(new_fname_mice, self.mice)
         return self.f
 
-    def tube_dominance_test(self,window='default',which_phase='ALL'):
-        
-        self.calculate_phases(window=window,which_phase=which_phase)
-        self.tube_dominance_matrix = np.zeros((len(self.phases),self.lm,self.lm))
-        new_path = utils.check_directory(self.directory,'PreprocessedData/IteractionsData/')
-        
-        new_fname_ = os.path.join(new_path, 'Patterns_%s.npy'%self.fname_ending)
-        new_fname_mice = os.path.join(new_path, 'mice_cut_%s_%s.npy'%(self.fname_ending,which_phase))
-  
+    def tube_dominance_test(self,
+                            window='default',
+                            which_phase='ALL'):
+        self.calculate_phases(window=window,
+                              which_phase=
+                              which_phase)
+        self.tube_dominance_matrix = np.zeros((len(self.phases),
+                                               self.lm,
+                                               self.lm))
+        new_path = utils.check_directory(self.directory,
+                                         'PreprocessedData/IteractionsData/')
+        new_fname_ = os.path.join(new_path,
+                                  'Patterns_%s.npy' % self.fname_ending)
+        new_fname_mice = os.path.join(new_path,
+                                      'mice_cut_%s_%s.npy' % (self.fname_ending,
+                                                              which_phase))
         for s in range(len(self.phases)):
             ts, te = self.phases[s]
-            print('Phase %s. from %sh, to %sh'%(s+1,np.round(ts/3600.,2), np.round(te/3600.,2)))
-            self.tube_dominance_matrix[s,:,:] = self.calculate_tube_dominance_matrix(ts, te,normalize=False)
+            print('Phase %s. from %sh, to %sh'%(s + 1,
+                                                np.round(ts/3600., 2),
+                                                np.round(te/3600., 2)))
+            out = self.calculate_tube_dominance_matrix(ts, te, normalize=False)
+            self.tube_dominance_matrix[s, :, :] = out
             
-        np.save(new_fname_mice,self.mice)
-        np.save(new_fname_,self.tube_dominance_matrix)
+        np.save(new_fname_mice, self.mice)
+        np.save(new_fname_, self.tube_dominance_matrix)
 
     def calculate_tube_dominance_matrix(self,ts, te,normalize):
         """
@@ -252,57 +275,57 @@ class Experiment:
         loop.
 
         """
-        self.plot_all(ts,te)
-        imatrix = np.zeros((self.lm,self.lm))
+        self.plot_all(ts, te)
+        imatrix = np.zeros((self.lm, self.lm))
         for ii, mouse1 in enumerate(self.mice):
             for jj,mouse2 in enumerate(self.mice):
                 if ii < jj:
-                    imatrix[ii,jj] = self.check_tube_dominance(mouse2,mouse1,ts, te)
-                    imatrix[jj,ii] = self.check_tube_dominance(mouse1,mouse2,ts, te)
-                    total = imatrix[ii,jj] + imatrix[jj,ii]
+                    imatrix[ii, jj] = self.check_tube_dominance(mouse2,
+                                                                mouse1,
+                                                                ts,
+                                                                te)
+                    imatrix[jj, ii] = self.check_tube_dominance(mouse1,
+                                                                mouse2,
+                                                                ts,
+                                                                te)
+                    total = imatrix[ii, jj] + imatrix[jj, ii]
                     if normalize:
                         if total:
-                            imatrix[ii,jj] = imatrix[ii,jj]/total
-                            imatrix[jj,ii] = imatrix[jj,ii]/total
+                            imatrix[ii, jj] = imatrix[ii, jj]/total
+                            imatrix[jj, ii] = imatrix[jj, ii]/total
         return imatrix
         
-    def check_tube_dominance(self, mouse1,mouse2,t1, t2):
+    def check_tube_dominance(self, mouse1, mouse2, t1, t2):
         """
-        This is an implementation of the tube dominance test, where two mice are placed on opposite sides of a tube
-        and one of the mice forces its opponent out of the tube. The test checks if mouse1 entered a tube and backed
-        out and if mouse2 remains in the tube and entered the tube from the other side.
-        Effectively this function checks how many times mouse2 domineered over mouse1.
+        This is an implementation of the tube dominance test,
+        where two mice are placed on opposite sides of a tube
+        and one of the mice forces its opponent out of the tube.
+        The test checks if mouse1 entered a tube and backed
+        out and if mouse2 remains in the tube and entered the tube
+        from the other side. Effectively this function checks
+        how many times mouse2 domineered over mouse1.
         """
         dominance_stats = 0
         sd = self.ehs.signal_data
         try:
-            [mouse1_idx_start,mouse1_idx_stop,mouse1_indices] = self.mouse_indices(mouse1, t1,t2)
+            [mouse1_idx_start,
+             mouse1_idx_stop,
+             mouse1_indices] = self.mouse_indices(mouse1, t1, t2)
         except (ValueError, TypeError):
             return dominance_stats
-
-                
         i = mouse1_idx_start - 1
-       
         for end in mouse1_indices[mouse1_idx_start:mouse1_idx_stop+1]:
-            
             i = i + 1
-            
             if i < 2:
                 continue
-
             start = mouse1_indices[i-2]
-
             start_state = int(sd[mouse1][start]) #from start to mouse1_indices[i-1]-1
             middle_state = int(sd[mouse1][mouse1_indices[i-1]])#from mouse1_indices[i-1] to end-1
             end_state = int(sd[mouse1][end])#from end
-           
-            
             if start_state != end_state:
                 continue
-
             if not middle_state %2:
                 continue
-            
             if not start_state*middle_state*end_state:
                 continue
             try:
@@ -311,15 +334,10 @@ class Experiment:
             except IndexError:
                 print("Index error")
                 return dominance_stats
-            
-            
             if end_state_mouse_2 != middle_state or post_end_state_mouse_2 != middle_state:
-            
                 continue
-            
             #find previous state
-                
-            idx = end-1
+            idx = end - 1
             while True:
                 idx += -1
                 if end_state_mouse_2 != sd[mouse2][idx]:
@@ -330,17 +348,13 @@ class Experiment:
                     t_middle_end = 0
                     middle_state_mouse2 = 0
                     break
-                
-            
+
             if not middle_state_mouse2 or middle_state_mouse2 == start_state:
                 continue
-            
             dominance_stats +=1
-            
-            
         return dominance_stats
 
-    def interaction_matrix(self,ts, te):
+    def interaction_matrix(self, ts, te):
         """Calculates fvalue matrix for the given period from ts to te
         """
         imatrix = np.zeros((self.lm,self.lm,8,3))
