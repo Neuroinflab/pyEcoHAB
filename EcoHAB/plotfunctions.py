@@ -125,7 +125,79 @@ def forceAspect(ax,aspect=1):
     extent =  im[0].get_extent()
     ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
 
-def oneRasterPlot(directory,FAM,IPP,phases,name,scalefactor,mice=[],to_file=True):
+def make_RasterPlot(directory,
+                    FAM,
+                    phases,
+                    name,
+                    old_mice,
+                    to_file=True,
+                    vmin=None,
+                    vmax=None,
+                    title=None):
+    mice = [mouse[5:] for mouse in old_mice]
+    subdirectory = 'RasterPlots'
+    new_path = utils.check_directory(directory, subdirectory)
+    fig = plt.figure(figsize=(12, 12))
+    ax = fig.add_subplot(111, aspect='equal')
+    if title:
+        plt.suptitle(title, fontsize=14, fontweight='bold')
+    assert FAM.shape[0] == len(phases)
+    assert FAM.shape[1] == len(mice)
+    assert FAM.shape[2] == len(mice)
+    new_shape = ( len(mice)*(len(mice)-1)//2, len(phases))
+    output = np.zeros(new_shape)
+    for i, phase in enumerate(phases):
+        l = 0
+        pair_labels = []
+        for j, mouse in enumerate(mice):
+            for k in range(j+1, len(mice)):
+                output[l,i] = FAM[i,j,k]
+                l += 1
+                pair_labels.append(mice[j]+'|'+mice[k])
+                
+    if not vmax and not vmin:
+        vmax = FAM.max()
+        vmin = FAM.min()
+        if vmax*vmin <= 0:
+            if abs(vmax) > abs(vmin):
+                vmin = -vmax
+            else:
+                vmax = -vmin
+    if vmin*vmax < 0:
+        colormap = plt.cm.bwr
+    else:
+        colormap = plt.cm.Reds
+    cax = ax.imshow(output,
+                    interpolation='none',
+                    origin='lower',
+                    aspect='auto',
+                    vmin=vmin,
+                    vmax=vmax,
+                    cmap=colormap)
+    cbar = fig.colorbar(cax, ax=ax, ticks=[vmin, 0, vmax])    
+    fig.subplots_adjust(left=0.25)
+    ax.set_xticks([i for i in range(len(phases))])
+    ax.set_yticks([i for i in range(len(pair_labels))])
+    assert(output.shape[0]==len(pair_labels))
+    ax.set_xticklabels(phases)
+    ax.set_yticklabels(pair_labels)
+    for tick in ax.get_xticklabels():
+            tick.set_rotation(90)
+
+    plt.savefig(os.path.join(new_path, name+'.png'),
+                transparent=False,
+                bbox_inches=None,
+                pad_inches=2,
+                frameon=None)
+    
+def oneRasterPlot(directory,
+                  FAM,
+                  IPP,
+                  phases,
+                  name,
+                  scalefactor,
+                  mice=[],
+                  to_file=True):
 
     if not name:
         name = "oneRasterPlot"
@@ -141,20 +213,30 @@ def oneRasterPlot(directory,FAM,IPP,phases,name,scalefactor,mice=[],to_file=True
     n_s,n_l,n_f = FAM.shape
     
     for s in range(n_s): #phases
-        plt.text(0.06+s*0.125, 1.025,phases[s], horizontalalignment='center', verticalalignment='center', fontsize=10,  transform = ax.transAxes)
-        # MakeRelationGraph(FAM[s,:,:],IPP[s,:,:],exp,s,key,directory,scalefactor)
-        _FAM = FAM[s,:,:]
-        _IPP = IPP[s,:,:]
+        plt.text(0.06+s*0.125,
+                 1.025,
+                 phases[s],
+                 horizontalalignment='center',
+                 verticalalignment='center',
+                 fontsize=10,
+                 transform = ax.transAxes)
+
+        _FAM = FAM[s, :, :]
+        _IPP = IPP[s, :, :]
         pair_labels = []
         pos = 0
         for i in range(n_l): #mice
             for j in range(i,n_f): #mice
-                if i!=j and abs(_FAM[i,j])<0.05 and _FAM[i,j]>0:
+                if i != j and abs(_FAM[i, j])<0.05 and _FAM[i, j] > 0:
                     ax.add_patch(patches.Rectangle((
-                            s, -1*pos),1 , 1,facecolor=(1,0,0,_IPP[i,j]*0.5/scalefactor)))  
-                elif i!=j and abs(_FAM[i,j])<0.05 and _FAM[i,j]<0:
+                        s,-1*pos),
+                        1,
+                        1,
+                        facecolor=(1, 0, 0,  _IPP[i,j]*0.5/scalefactor)))  
+                elif i != j and abs(_FAM[i, j]) < 0.05 and _FAM[i, j] < 0:
                         ax.add_patch(patches.Rectangle((
-                            s, -1*pos),1 , 1,facecolor=(0,0,1,_IPP[i,j]*0.5/scalefactor)))
+                            s, -1*pos),
+                            1 , 1,facecolor=(0,0,1,_IPP[i,j]*0.5/scalefactor)))
                 if i!=j and abs(_FAM[j,i])<0.05 and _FAM[j,i]>0:
                     ax.add_patch(patches.Rectangle((
                             s, -1*pos),1 , 1,facecolor=(1,0,0,_IPP[j,i]*0.5/scalefactor))) 
@@ -167,7 +249,7 @@ def oneRasterPlot(directory,FAM,IPP,phases,name,scalefactor,mice=[],to_file=True
                         pair_labels.append(str(i+1)+'|'+str(j+1))
                     else:
                         pair_labels.append(mice[i]+'|'+mice[j])
-                    pos+=1
+                    pos += 1
         for i in range(8-n_s):
             ax.add_patch(patches.Rectangle((
                                         n_s+i, -pos+1),1, pos,facecolor="lightgrey"))

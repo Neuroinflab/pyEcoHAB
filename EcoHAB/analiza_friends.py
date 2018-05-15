@@ -10,6 +10,7 @@ from ExperimentConfigFile import ExperimentConfigFile
 from analiza1 import smells, antenna_positions
 import os
 import utils
+import plotfunctions
 ### How much time mice spend with each other
 
 datarange = slice(0, 10, None)
@@ -20,7 +21,10 @@ datasets = [
     #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_16.01',
     #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_19.01.18_rep_II',
     #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_swiss_webster_ctrl_05.02.18',
-    "/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/",
+    #"/home/jszmek/EcoHAB_data_November/mice K Wisniewska",
+    '/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/',
+    '/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/',
+
     # "/home/jszmek/EcoHAB_data_November/C57 TIMP rep 2/",
     # "/home/jszmek/EcoHAB_data_November/C57 males rep 2/",
     # "/home/jszmek/EcoHAB_data_November/C57 males TIMP/",
@@ -47,7 +51,8 @@ remove_tags = {
 }
 how_many_appearances = {
     "/home/jszmek/EcoHAB_data_November/C57 males rep 2/":1000,
-    "/home/jszmek/EcoHAB_data_November/BTBR males/":500
+    "/home/jszmek/EcoHAB_data_November/BTBR males/":500,
+    '/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/':200
 }
 def intervals(data_mice, mouse,address):
     return [[s, e] for a, s, e in data_mice[mouse] if a == address]
@@ -147,7 +152,7 @@ def mice_together(data_mice, m1, m2, total_time=43200.):
     exp_time_together = (fracs[:, 0] * fracs[:, 1]).sum()
     return time_together/total_time, exp_time_together
 
-def prepare_data(ehs, mice, times, margin=12*3600.):
+def prepare_data(ehs, mice, times, margin=12*3600.): 
     """Prepare masked data."""
     t1, t2 = times
     ehs.mask_data(t1 - margin, t2)
@@ -226,9 +231,7 @@ if __name__ == '__main__':
         mice = list(ehd.mice)
         mice = filter(lambda x: len(ehs.getstarttimes(x)) > 30, mice)
         label_mice = [mouse[-4:] for mouse in mice]
-        print(label_mice)
-    
-        print(remove_mouse,mice)
+        
         
         phases = filter(lambda x: x.endswith('dark') or x.endswith('DARK'), cf.sections())
         # phases = ['SNIFF 1 dark']
@@ -236,11 +239,15 @@ if __name__ == '__main__':
         directory = utils.results_path(path)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        for sec in phases:
-            data = prepare_data(ehs, mice, cf.gettime(sec))
 
+        full_results = np.zeros((len(phases), len(mice), len(mice)))
+        full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
+        
+        for phase, sec in enumerate(phases):
+            data = prepare_data(ehs, mice, cf.gettime(sec))
             results = np.zeros((len(mice), len(mice)))
             results_exp = np.zeros((len(mice), len(mice)))
+
             for ii in range(len(mice)):
                 for jj in range(len(mice)):
                     if ii < jj:
@@ -254,7 +261,10 @@ if __name__ == '__main__':
                 ax.append(fig.add_subplot(2,2,i))
                 alone = mouse_alone(data,i)
                 write_cvs_alone(alone,i,directory,sec)
-     
+
+            full_results[phase] = results
+            full_results_exp[phase] = results_exp
+
             #test_results(data,mice)
             ax[0].imshow(results, vmin=0, vmax=0.5,interpolation='none')
             ax[0].set_xticks([])
@@ -312,3 +322,9 @@ if __name__ == '__main__':
             np.savetxt('%s/results_exp_%s_remove_%s.csv' %(directory, sec, remove_mouse), results_exp,
                            fmt='%.6f', delimiter=';',header=header,comments='')
             np.savetxt('%s/results_final_%s_remove_%s.csv' %(directory, sec, remove_mouse), results-results_exp, fmt='%.6f', delimiter=';',header=header,comments='')
+
+        name_ = 'results_remove_%s' % remove_mouse
+        name_exp_ = 'excess_time_remove_%s' % remove_mouse
+
+        plotfunctions.make_RasterPlot(directory, full_results, phases, name_, mice, vmin=0, vmax=0.5, title='% time together')
+        plotfunctions.make_RasterPlot(directory, full_results-full_results_exp, phases, name_exp_, mice, title='% time together',vmin=-.25,vmax=.25)
