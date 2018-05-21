@@ -32,7 +32,7 @@ class ExperimentConfigFile(RawConfigParser, matplotlib.ticker.Formatter):
         else:                  
             self.fname = fname
         self.read(os.path.join(path, self.fname)) 
-        
+   
     def gettime(self, sec): 
         """Convert start and end time and date read from section sec
         (might be a list)

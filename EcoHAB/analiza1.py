@@ -9,15 +9,18 @@ from ExperimentConfigFile import ExperimentConfigFile
 
 ### How much time mice spend in the 'social' compartment
 datasets = [
-    '/home/jszmek/EcoHAB_data_November/Maciek_01_30_2018'
+    '/home/jszmek/EcoHAB_data_November/Maciek_01_30_2018',
+    '/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/',
     ]
 datarange = slice(50, 51, None)
 
 # address = {1: 4, 2: 1, 3: 1, 4: 2, 5: 2, 6: 3, 7: 3, 8: 4}
 smells = {'/home/jszmek/EcoHAB_data_November/Maciek_01_30_2018': {'soc': 3, 'nsoc': 1},}
+smells = {'/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/': {'nsoc': 3, 'soc': 1},}
 antenna_positions = {'/home/jszmek/EcoHAB_data_November/Maciek_01_30_2018':None,
                      '/home/jszmek/EcoHAB_data_November/Maciek_social_structure_16.01':None,
                      '/home/jszmek/EcoHAB_data_November/Maciek_social_structure_19.01.18_rep_II':None,
+                     '/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/':None,
             }
 
 

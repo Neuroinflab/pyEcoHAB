@@ -15,27 +15,44 @@ datarange = slice(10, 11, None)
 datasets = {
     #'long':'/home/jszmek/EcoHAB_data_November/long_experiment_WT',
     #'standard':'/home/jszmek/EcoHAB_data_November/standard_known_stimulus_WT',
-    'maciek_long':'/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/',
+    #'maciek_long':'/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/',
+    #'K_Wisniewska':'/home/jszmek/EcoHAB_data_November/mice K Wisniewska/',
+    "maciek_long_timp":'/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/',
+    
 }
 smells = {
     'long': {'soc': 3, 'nsoc': 1},
     'standard': {'soc': 3, 'nsoc': 1},
     'maciek_long':{'soc': 3, 'nsoc': 1},
+    "K_Wisniewska":{'soc':3,'nsoc':1},
+    "maciek_long_timp":{'nsoc':3,'soc':1},
 }
 antenna_positions = {
     'long': None,
     'standard': None,
     'maciek_long':None,
+    "K_Wisniewska":None,
+    "maciek_long_timp":None,
 }
 headers = {'soc':['Number of visits to social smell (box %d)\n','Total time with social smell (box %d), seconds\n'],
            'nsoc':['Number of visits to non-social smell (box %d)\n','Total time with non-social smell (box %d), seconds\n',]}
-cages = {'maciek_long': {'1':1,'2':2,'3':3,'4':4}}
+cages = {
+    'maciek_long': {'1':1,'2':2,'3':3,'4':4},
+    'K_Wisniewska': {'1':1,'2':2,'3':3,'4':4},
+    "maciek_long_timp": {'1':1,'2':2,'3':3,'4':4},
+
+}
 
 basic = ['Number of visits to box %d\n','Total time in box %d, seconds\n']
 
-all_chambers_header = {'maciek_long':{}}
+all_chambers_header = {
+    'maciek_long':{},
+    "K_Wisniewska":{},
+    "maciek_long_timp":{}
+}
 for key in cages['maciek_long']:
-    all_chambers_header['maciek_long'][key] = basic
+    for key2 in all_chambers_header:
+        all_chambers_header[key2][key] = basic
 
 def write_single_chamber(f, header, heads, address, mice, phases, time, data_stim ):
     for j,h in enumerate(heads):

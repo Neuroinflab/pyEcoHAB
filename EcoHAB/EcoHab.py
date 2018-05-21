@@ -163,12 +163,12 @@ class EcoHabData(Data):
         # for antenna in breaks:
         #     print(antenna, breaks[antenna])
         return breaks
-
+    
     def antenna_mismatch(self):
         
         t_start = self.data['Time'][0]
         all_times = np.array(self.data['Time'])
-        weird_transit = [[],[]]
+        weird_transit = [[], []]
         for mouse in self.mice:
         
             mouse_idx = np.where(np.array(self.data['Tag']) == mouse)[0]

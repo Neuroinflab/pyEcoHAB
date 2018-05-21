@@ -9,7 +9,8 @@ import matplotlib.pyplot as plt
 antenna_pos = {
     "/home/jszmek/EcoHAB_data_November/Maciek_01_30_2018":{'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8},
     "/home/jszmek/EcoHAB_data_November/Maciek_social_structure_16.01":{'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8},
-    "/home/jszmek/EcoHAB_data_November/Maciek_social_structure_19.01.18_rep_II":{'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8}
+    "/home/jszmek/EcoHAB_data_November/Maciek_social_structure_19.01.18_rep_II":{'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8},
+    "/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/":{'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8}
 }
 
 a_dirs  = [
@@ -24,18 +25,31 @@ a_dirs  = [
     "/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/",
     # '/home/jszmek/EcoHAB_data_November/C57 TIMP rep 2/',
     # '/home/jszmek/EcoHAB_data_November/C57 males TIMP/',
-    
+    #"/home/jszmek/EcoHAB_data_November/mice K Wisniewska/",
+    "/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/"
 ]
 
 masks = {"/home/jszmek/EcoHAB_data_November/Maciek_01_30_2018":[],
          "/home/jszmek/EcoHAB_data_November/Maciek_social_structure_16.01":[],
          "/home/jszmek/EcoHAB_data_November/Maciek_social_structure_19.01.18_rep_II":[],
-         "/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/":[]
+         "/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/":[],
+         "/home/jszmek/EcoHAB_data_November/mice K Wisniewska/":[],
+         "/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/":[]
+          
 }
 phases = {"/home/jszmek/EcoHAB_data_November/Maciek_01_30_2018":["ALL"],
           "/home/jszmek/EcoHAB_data_November/Maciek_social_structure_16.01":['ALL'],
-              "/home/jszmek/EcoHAB_data_November/Maciek_social_structure_19.01.18_rep_II":['ALL'],
-           "/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/":['11thDAY','END','BEGINNING','MIDDLE',],
+          "/home/jszmek/EcoHAB_data_November/Maciek_social_structure_19.01.18_rep_II":['ALL'],
+          "/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/":['ALL',],
+          #'SNIFF 11 dark',
+          #'END',
+          #'BEGINNING',
+          #'MIDDLE'],
+          "/home/jszmek/EcoHAB_data_November/mice K Wisniewska/":['ALL'],
+          "/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/":['ALL',]
+          #'END',
+          #'BEGINNING',
+          #'MIDDLE'],
 }
 
 ts = 3   
@@ -60,14 +74,14 @@ for a_dir in a_dirs:
     if masks[a_dir] == []:
         
         for phase in phases[a_dir]:
-           
-            
             E = interactions.Experiment(a_dir,_ant_pos=antenna_pos[a_dir],which_phase=phase,remove_mice=['0065-0136657055'] )
-          
+            if phase == 'ALL':
+                E.calculate_antenna_errors()
             fname = 'Interactions_' + E.fname_ending
             E.tube_dominance_test(window=window)
             E.plotTubeDominanceRasters(mice=E.mice)
             E.calculate_fvalue(window=window, treshold=ts, force=True)
+            
             IPP[a_dir].append(E.InteractionsPerPair(0,2))
             FAM[a_dir].append(E.FollowingAvoidingMatrix())
             sections[a_dir].append(E.cf.sections())
@@ -94,6 +108,7 @@ for a_dir in a_dirs:
             endings[a_dir].append(E.fname_ending)
             mice[a_dir].append(E.mice)
             E.write_following_avoiding_to_file()
+            E.calculate_antenna_errors()
                                 
 
 scalefactor = 0
