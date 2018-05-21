@@ -53,7 +53,7 @@ class Experiment:
         self.cf.set('ALL','starttime',starttime)
         self.cf.set('ALL','enddate',enddate)
         self.cf.set('ALL','endtime',endtime)
-
+        
     def _merge_config(self,other_experiment):
         for phase in other_experiment.cf.sections():
             if phase != 'ALL':
@@ -186,7 +186,42 @@ class Experiment:
                                 (st+1)*window[0]*3600) for st in window[1]]
             else:
                 raise TypeError
-       
+
+    def calculate_antenna_errors_phase(self, t1, t2):
+        outs = np.zeros(len(self.mice))
+        for i, mouse in enumerate(self.mice):
+            outs[i] = self.calculate_antenna_errors_mouse_phase(mouse, t1, t2)
+        return outs
+    
+    def calculate_antenna_errors(self):    
+        self.calculate_phases(window='default', which_phase='ALL')
+        errors = np.zeros((len(self.phases), len(self.mice)))
+        for s, (ts, te) in enumerate(self.phases):
+            errors[s] = self.calculate_antenna_errors_phase(ts, te)
+            
+        self.write_to_file(errors, 'Antennae_errors.csv')
+        return errors
+    def calculate_antenna_errors_mouse_phase(self, mouse, t1, t2):
+        start = int(self.fs*t1)
+        end =  int(self.fs*t2)
+        mouse_sig = self.ehs.signal_data[mouse][start:end+1]
+        if mouse_sig[0]:
+            errors = 0
+        else:
+            errors = 1
+        for i, s in enumerate(mouse_sig[1:]):
+            if s == 0:
+                errors += 1
+            elif abs(s - mouse_sig[i]) == 1:
+                continue
+            elif abs(s - mouse_sig[i]) == 7:
+                continue
+            elif abs(s - mouse_sig[i]) == 0:
+                continue            
+            else:
+                errors += 1
+        return errors/(self.fs*(t2-t1))
+
     def calculate_fvalue(self,
                          window='default',
                          treshold=2,
@@ -376,9 +411,11 @@ class Experiment:
         frandom_idx = [np.random.randint(0,len(self.fpatterns)-1) for i in range(plots_nr)]
         orandom_idx = [np.random.randint(0,len(self.opatterns)-1) for i in range(plots_nr)]
         plt.figure()
-        plt.suptitle("Random following patterns", fontsize=14, fontweight='bold')
+        plt.suptitle("Random following patterns",
+                     fontsize=14,
+                     fontweight='bold')
         for i,idx in enumerate(frandom_idx):
-            ax = plt.subplot(size, size,i+1)
+            ax = plt.subplot(size, size, i+1)
 
             ii,jj,s = self.fpatterns[idx]
             ax.set_title("%s|%s|t=%s"%(ii,jj,s*1./self.fs))
@@ -425,7 +462,7 @@ class Experiment:
         return follow_stat
 
 
-    def mouse_indices(self, mouse1, t1,t2):
+    def mouse_indices(self, mouse1, t1, t2):
         sd = self.ehs.signal_data
         mouse1_indices = np.where(((np.roll(sd[mouse1], 1) - sd[mouse1]) != 0))[0]
         try:
@@ -437,7 +474,7 @@ class Experiment:
             mouse1_idx_stop =  np.where(mouse1_indices < t2*self.fs)[0][-1]
         except IndexError:
             return None
-        return [mouse1_idx_start,mouse1_idx_stop,mouse1_indices]
+        return [mouse1_idx_start, mouse1_idx_stop, mouse1_indices]
 
     
 
@@ -549,7 +586,31 @@ class Experiment:
                     matrix[i,j] /= total
                     matrix[j,i] /= total
         return matrix
-    
+
+    def write_to_file(self, output, fname):
+        new_fname = os.path.join(self.directory, fname)
+        f = open(new_fname, 'w')
+        
+        header = 'mouse'
+        for phase in self.cf.sections():
+            if 'dark' in phase:
+                header += ',' + phase
+            elif 'DARK' in phase:
+                header += ',' + phase
+            elif 'light' in phase:
+                header += ',' + phase
+            elif 'LIGHT' in phase:
+                header += ',' + phase
+        header = header + '\n'
+        f.write(header)
+        for i, mouse in enumerate(self.mice):
+            f.write(mouse)
+            for j in range(len(self.phases)):
+                f.write(',')
+                f.write(str(output[j, i]))
+            f.write('\n')
+        f.close()
+
     def write_following_avoiding_to_file(self,names=None,phases=None,fname=None):
         if fname:
             fname_1 = fname+'_following_%s.csv'
