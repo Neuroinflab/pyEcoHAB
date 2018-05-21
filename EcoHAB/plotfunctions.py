@@ -125,6 +125,19 @@ def forceAspect(ax,aspect=1):
     extent =  im[0].get_extent()
     ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
 
+def make_table_of_pairs(FAM, phases, mice):
+    new_shape = (len(mice)*(len(mice)-1)//2, len(phases))
+    output = np.zeros(new_shape)
+    for i, phase in enumerate(phases):
+        l = 0
+        pair_labels = []
+        for j, mouse in enumerate(mice):
+            for k in range(j+1, len(mice)):
+                output[l,i] = FAM[i,j,k]
+                l += 1
+                pair_labels.append(mice[j]+'|'+mice[k])
+    return output, pair_labels
+    
 def make_RasterPlot(directory,
                     FAM,
                     phases,
@@ -144,16 +157,8 @@ def make_RasterPlot(directory,
     assert FAM.shape[0] == len(phases)
     assert FAM.shape[1] == len(mice)
     assert FAM.shape[2] == len(mice)
-    new_shape = ( len(mice)*(len(mice)-1)//2, len(phases))
-    output = np.zeros(new_shape)
-    for i, phase in enumerate(phases):
-        l = 0
-        pair_labels = []
-        for j, mouse in enumerate(mice):
-            for k in range(j+1, len(mice)):
-                output[l,i] = FAM[i,j,k]
-                l += 1
-                pair_labels.append(mice[j]+'|'+mice[k])
+    
+    output, pair_labels = make_table_of_pairs(FAM, phases, mice)
                 
     if not vmax and not vmin:
         vmax = FAM.max()
