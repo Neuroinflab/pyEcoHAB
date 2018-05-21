@@ -199,7 +199,25 @@ def write_cvs_alone(alone,address,directory,phase):
         f.write(mouse+';'+str(alone[mouse])+'\n')
     f.close()
 
+def write_cvs_longer(mice, phases, output, directory, fname):
+    fname =  os.path.join(directory,fname+'.cvs')
+    print(fname)
+    f = open(fname,'w')
+    header = 'mouse pair'
+    for phase in phases:
+        header += ';' + phase
+    header += '\n'
+    f.write(header)
+    new_output, pairs = plotfunctions.make_table_of_pairs(output, phases, mice)
+    for i, pair in enumerate(pairs):
+        f.write(pair)
+        for j in range(len(phases)):
+            f.write(';')
+            f.write(str(new_output[i,j]))
+        f.write('\n')
+    f.close()
 
+    
 if __name__ == '__main__':
 
 
@@ -323,8 +341,10 @@ if __name__ == '__main__':
                            fmt='%.6f', delimiter=';',header=header,comments='')
             np.savetxt('%s/results_final_%s_remove_%s.csv' %(directory, sec, remove_mouse), results-results_exp, fmt='%.6f', delimiter=';',header=header,comments='')
 
-        name_ = 'results_remove_%s' % remove_mouse
-        name_exp_ = 'excess_time_remove_%s' % remove_mouse
+        name_ = 'in_cohort_sociability_results_continouos_remove_%s' % remove_mouse
+        name_exp_ = 'in_cohort_sociability_excess_time_results_continous_remove_%s' % remove_mouse
+        write_cvs_longer(mice, phases, full_results, directory, name_)
+        write_cvs_longer(mice, phases, full_results-full_results_exp, directory, name_exp_)
 
         plotfunctions.make_RasterPlot(directory, full_results, phases, name_, mice, vmin=0, vmax=0.5, title='% time together')
         plotfunctions.make_RasterPlot(directory, full_results-full_results_exp, phases, name_exp_, mice, title='% time together',vmin=-.25,vmax=.25)
