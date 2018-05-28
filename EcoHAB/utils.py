@@ -11,8 +11,8 @@ def results_path(path):
     if tail == '':
         head, tail = os.path.split(head)
     head, tail2 = os.path.split(head)
-    head = os.path.join(head,'Results_'+tail2)
-    return os.path.join(head,tail)
+    head = os.path.join(head, 'Results_'+tail2)
+    return os.path.join(head, tail, 'Results')
 
 def make_figure(title):
     fig = plt.figure(figsize=(12,12))
@@ -53,7 +53,7 @@ def make_prefix(path):
     for key in key_list:
         if key not in info_dict:
             continue
-        if key == 'social odor' or key == 'non-social odor':
+        if key == 'social odor' or 'non-social odor':
             if info_dict[key] == 'none' or info_dict[key] == 'None':
                 key = key.replace(' ', '_')
                 prefix += '_no_' + key.replace(' ', '_') + '_'
