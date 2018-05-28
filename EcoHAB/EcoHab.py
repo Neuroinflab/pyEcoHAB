@@ -119,9 +119,9 @@ class EcoHabData(Data):
                 self.rawdata.append(self.process_line_7(elements))
             elif len(elements) == 5:
                 if hour == '23' and elements[1][:2] == '00':
-                    self.rawdata.append(self.process_line_5(elements,datenext))
+                    self.rawdata.append(self.process_line_5(elements, datenext))
                 else:
-                    self.rawdata.append(self.process_line_5(elements,date))
+                    self.rawdata.append(self.process_line_5(elements, date))
             else:
                     raise(IOError('Unknown data format in file %s' %f))
 
@@ -141,7 +141,7 @@ class EcoHabData(Data):
         all_times = np.array(self.data['Time'])
         breaks = {}
         
-        for antenna in range(1,9):
+        for antenna in range(1, 9):
             
             antenna_idx = np.where(np.array(self.data['Antenna']) == antenna)[0]
             times = all_times[antenna_idx] 
@@ -362,7 +362,6 @@ class EcoHabSessions(IEcoHabSession):
     def __init__(self, ehd, **kwargs):
         
         self._ehd = ehd
-        self.mice = self._ehd.mice
         self.mask = None
         self._mask_slice = None
         # No longer used after 14 May 2014
@@ -438,6 +437,9 @@ class EcoHabSessions(IEcoHabSession):
         self.data['AbsEndTimecode'] = [x[3] for x in tempdata]
         self.data['VisitDuration'] = [x[4] for x in tempdata]
         self.data['ValidVisitSolution'] = [x[5] for x in tempdata]
+        mice = self._ehd.mice
+        self.mice = filter(lambda x: len(self.getstarttimes(x)) > 30, mice)
+
         
     def unmask_data(self):
         """Remove the mask - future queries will not be clipped"""
