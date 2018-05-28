@@ -24,13 +24,14 @@ datasets = [
     #"/home/jszmek/EcoHAB_data_November/mice K Wisniewska",
     '/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/',
     '/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/',
+    "/home/jszmek/EcoHAB_data_November/C57 males long 11-22.05.18/",
 
     # "/home/jszmek/EcoHAB_data_November/C57 TIMP rep 2/",
     # "/home/jszmek/EcoHAB_data_November/C57 males rep 2/",
     # "/home/jszmek/EcoHAB_data_November/C57 males TIMP/",
     # "/home/jszmek/EcoHAB_data_November/BTBR males/",
-    # "/home/jszmek/EcoHAB_data_November/long_experiment_WT",
-    # "/home/jszmek/EcoHAB_data_November/long_experiment_KO",
+    "/home/jszmek/EcoHAB_data_November/long_experiment_WT",
+    
     
     ]
 
@@ -54,14 +55,14 @@ how_many_appearances = {
     "/home/jszmek/EcoHAB_data_November/BTBR males/":500,
     '/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/':200
 }
-def intervals(data_mice, mouse,address):
+def intervals(data_mice, mouse, address):
     return [[s, e] for a, s, e in data_mice[mouse] if a == address]
 
-def mouse_alone(data_mice,address):
+def mouse_alone(data_mice, address):
     ints = {}
     empty = 0
     for mouse in data_mice.keys():
-        ints[mouse] = intervals(data_mice,mouse,address)
+        ints[mouse] = intervals(data_mice, mouse, address)
         if not len(ints[mouse]):
             del ints[mouse]
     result = {}
@@ -90,7 +91,7 @@ def mouse_alone(data_mice,address):
                     elif original_s <= other_s:
                         ints[mouse][i][1] = other_s
                         if original_e >= other_e:
-                            ints[other_mouse].remove([other_s,other_e])
+                            ints[other_mouse].remove([other_s, other_e])
                             ints[mouse].insert(i+1,[other_e, original_e])
                             break
                         else:
@@ -99,9 +100,9 @@ def mouse_alone(data_mice,address):
                     else:
                         ints[other_mouse][j][1] = original_s
                         if original_e <= other_e:
-                            ints[mouse].remove([original_s,original_e])
+                            ints[mouse].remove([original_s, original_e])
                             remove = True
-                            ints[other_mouse].insert(j+1,[original_e, other_e])
+                            ints[other_mouse].insert(j+1, [original_e, other_e])
                             break
                         else:
                             ints[mouse][i][0] = other_e
@@ -169,13 +170,13 @@ def prepare_data(ehs, mice, times, margin=12*3600.):
     return data
 
 def calculate_total_time(intervals):
-    return sum([e-s for s,e in intervals])
+    return sum([e-s for s, e in intervals])
 
-def total_time_results(mice_data,mice):
-    result = np.zeros((4,len(mice)))
-    for address in [1,2,3,4]:
+def total_time_results(mice_data, mice):
+    result = np.zeros((4, len(mice)))
+    for address in [1, 2, 3, 4]:
         for i,mouse in enumerate(mice):
-            ints = intervals(mice_data,mouse,address)
+            ints = intervals(mice_data, mouse, address)
             result[address-1,i] = calculate_total_time(ints)
     return result
 
@@ -192,11 +193,27 @@ def test_results(data_mice,mice):
                 time_together[i,j,j+1+k] = mice_overlap(data_mice, mouse, other_mouse, address)[0]
                 time_together[i,j+1+k,j] = time_together[i,j,j+1+k]
 
-def write_cvs_alone(alone,address,directory,phase):
-    fname =  os.path.join(directory,'Mouse_alone_in_%d_phase_%s.csv'%(address,phase))
-    f = open(fname,'w')
-    for mouse in alone.keys():
-        f.write(mouse+';'+str(alone[mouse])+'\n')
+def write_cvs_alone(alone, phases, mice, main_directory, prefix):
+    directory = utils.check_directory(main_directory, 'mouse_alone')
+    fname =  os.path.join(directory, '%s_mouse_alone.csv' % prefix)
+    try:
+        f = open(fname, 'w')
+    except IOError:
+        print('Could not write to ', fname)
+        return
+    header = 'Mice alone in chambers %d\n'
+    phases_header = 'Mouse;'
+    for phase in phases:
+        phases_header += phase + ';'
+    phases_header += '\n'
+    for i in range(1, 5):
+        f.write(header % i)
+        f.write(phases_header)
+        for j, mouse in enumerate(mice):
+            f.write(mouse+';')
+            for k, phase in enumerate(phases):
+                f.write(str(alone[i-1, j, k])+';')
+            f.write('\n')
     f.close()
 
 def write_cvs_longer(mice, phases, output, directory, fname):
@@ -217,6 +234,19 @@ def write_cvs_longer(mice, phases, output, directory, fname):
         f.write('\n')
     f.close()
 
+def mouse_alone_ehs(ehs, cf, main_directory, prefix):
+    phases = filter(lambda x: x.endswith('dark') or x.endswith('DARK'), cf.sections())
+    mice = ehs.mice
+    output = np.zeros((4, len(mice), len(phases)+1))
+    for phase, sec in enumerate(phases):
+        data = prepare_data(ehs, mice, cf.gettime(sec))
+        for i in range(1,5):
+            alone = mouse_alone(data, i)
+            for j, mouse in enumerate(mice):
+                output[i-1, j, phase] = alone[mouse]
+    phases.append('ALL DARK')
+    output[:,:,-1] = output[:,:,:-1].sum(axis=2)  # last column -- sum of activity in all dark phases
+    write_cvs_alone(output, phases, mice, main_directory, prefix)
     
 if __name__ == '__main__':
 
@@ -231,10 +261,13 @@ if __name__ == '__main__':
         alldeltas[path] = {}
         allratios[path] = {}
         allresults[path] = {}
+        prefix = utils.make_prefix(path)
+
         if path in remove_tags:
             remove_mouse = remove_tags[path]
         else:
             remove_mouse = None
+
         if path not in antenna_positions:
             antenna_positions[path] = None
         if remove_mouse:
@@ -243,21 +276,16 @@ if __name__ == '__main__':
             ehd = EcoHab.EcoHabData(path=path, _ant_pos=antenna_positions[path])
 
         ehs = EcoHab.EcoHabSessions(ehd)
-
-        cf = ExperimentConfigFile(path)
-        tstart, tend = cf.gettime('ALL')
-        mice = list(ehd.mice)
-        mice = filter(lambda x: len(ehs.getstarttimes(x)) > 30, mice)
-        label_mice = [mouse[-4:] for mouse in mice]
-        
-        
-        phases = filter(lambda x: x.endswith('dark') or x.endswith('DARK'), cf.sections())
-        # phases = ['SNIFF 1 dark']
-        # phases = filter(lambda x: x.endswith('dark') or x.endswith('light'), cf.sections())
         directory = utils.results_path(path)
         if not os.path.exists(directory):
             os.makedirs(directory)
-
+        cf = ExperimentConfigFile(path)
+        tstart, tend = cf.gettime('ALL')
+        mice = ehs.mice
+        label_mice = [mouse[-4:] for mouse in mice]
+        mouse_alone_ehs(ehs, cf, directory, prefix)
+        phases = filter(lambda x: x.endswith('dark') or x.endswith('DARK'), cf.sections())
+        
         full_results = np.zeros((len(phases), len(mice), len(mice)))
         full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
         
@@ -277,8 +305,6 @@ if __name__ == '__main__':
             single_times = {}
             for i in range(1,5):
                 ax.append(fig.add_subplot(2,2,i))
-                alone = mouse_alone(data,i)
-                write_cvs_alone(alone,i,directory,sec)
 
             full_results[phase] = results
             full_results_exp[phase] = results_exp
