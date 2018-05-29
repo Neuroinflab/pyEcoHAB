@@ -17,7 +17,8 @@ datasets = {
     #'standard':'/home/jszmek/EcoHAB_data_November/standard_known_stimulus_WT',
     #'maciek_long':'/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/',
     #'K_Wisniewska':'/home/jszmek/EcoHAB_data_November/mice K Wisniewska/',
-    "maciek_long_timp":'/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/',
+    #"maciek_long_timp":'/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/',
+    'long_WT':"/home/jszmek/EcoHAB_data_November/long_experiment_WT",
     
 }
 smells = {
@@ -26,6 +27,7 @@ smells = {
     'maciek_long':{'soc': 3, 'nsoc': 1},
     "K_Wisniewska":{'soc':3,'nsoc':1},
     "maciek_long_timp":{'nsoc':3,'soc':1},
+    'long_WT':{'soc': 3, 'nsoc': 1},
 }
 antenna_positions = {
     'long': None,
@@ -33,6 +35,7 @@ antenna_positions = {
     'maciek_long':None,
     "K_Wisniewska":None,
     "maciek_long_timp":None,
+    'long_WT':None,
 }
 headers = {'soc':['Number of visits to social smell (box %d)\n','Total time with social smell (box %d), seconds\n'],
            'nsoc':['Number of visits to non-social smell (box %d)\n','Total time with non-social smell (box %d), seconds\n',]}
@@ -40,7 +43,7 @@ cages = {
     'maciek_long': {'1':1,'2':2,'3':3,'4':4},
     'K_Wisniewska': {'1':1,'2':2,'3':3,'4':4},
     "maciek_long_timp": {'1':1,'2':2,'3':3,'4':4},
-
+    'long_WT':{'1':1,'2':2,'3':3,'4':4},
 }
 
 basic = ['Number of visits to box %d\n','Total time in box %d, seconds\n']
@@ -48,7 +51,8 @@ basic = ['Number of visits to box %d\n','Total time in box %d, seconds\n']
 all_chambers_header = {
     'maciek_long':{},
     "K_Wisniewska":{},
-    "maciek_long_timp":{}
+    "maciek_long_timp":{},
+    "long_WT":{},
 }
 for key in cages['maciek_long']:
     for key2 in all_chambers_header:
