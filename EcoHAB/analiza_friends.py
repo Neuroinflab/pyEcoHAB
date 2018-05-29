@@ -216,13 +216,18 @@ def write_cvs_alone(alone, phases, mice, main_directory, prefix):
             f.write('\n')
     f.close()
 
-def write_cvs_longer(mice, phases, output, directory, fname):
-    fname =  os.path.join(directory,fname+'.cvs')
-    print(fname)
-    f = open(fname,'w')
+def write_cvs_longer(mice, phases, output, directory, fname, prefix):
+    directory = utils.check_directory(directory, 'in_cohort_sociability/raster_plots')
+    fname = os.path.join(firectory, fname)
+    try:
+        f = open(fname, 'w')
+    except IOError:
+        print('Could not write to file', fname)
+   
     header = 'mouse pair'
     for phase in phases:
         header += ';' + phase
+        
     header += '\n'
     f.write(header)
     new_output, pairs = plotfunctions.make_table_of_pairs(output, phases, mice)
@@ -247,130 +252,181 @@ def mouse_alone_ehs(ehs, cf, main_directory, prefix):
     phases.append('ALL DARK')
     output[:,:,-1] = output[:,:,:-1].sum(axis=2)  # last column -- sum of activity in all dark phases
     write_cvs_alone(output, phases, mice, main_directory, prefix)
+
+def save_single_histograms(result, fname, mice, phase, main_directory, prefix, additional_info=None):
+    directory = utils.check_directory(main_directory, 'in_cohort_sociability/histograms')
+    if isinstance(additional_info, str):
+        fname =  os.path.join(directory, '%s_%s_%s_%s.csv'% (prefix, fname, phase, additional_info))
+    else:
+        fname =  os.path.join(directory, '%s_%s_%s.csv'% (prefix, fname, phase))
+    try:
+        f = open(fname, 'w')
+    except IOError:
+        print('Could not write to file', fname)
+    for i, mouse in enumerate(mice):
+        f.write(';'+mouse)
+    f.write(';\n')
+    for i, mouse in enumerate(mice):
+        f.write(mouse + ';')
+        for j, mouse in enumerate(mice):
+            f.write(str(result[i, j])+';')
+        f.write('\n')
+        
+def in_cohort_sociability(ehs, cf, main_directory, prefix, remove_mouse=None):
+
+    mice = ehs.mice
+
+    phases = filter(lambda x: x.endswith('dark') or x.endswith('DARK'), cf.sections())
+        
+    full_results = np.zeros((len(phases), len(mice), len(mice)))
+    full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
+    if remove_mouse:
+        fname = 'incohort_sociability_remove_%s' % remove_mouse
+        name_ = 'results_continouos_remove_%s' % remove_mouse
+        name_exp_ = 'excess_time_continous_remove_%s' % remove_mouse
+    else:
+        fname = 'incohort_sociability'
+        name_ = 'results_continouos'
+        name_exp_ = 'excess_time_continous'
+
+    for phase, sec in enumerate(phases):
+        data = prepare_data(ehs, mice, cf.gettime(sec))
+        results = np.zeros((len(mice), len(mice)))
+        results_exp = np.zeros((len(mice), len(mice)))
+
+        for ii in range(len(mice)):
+            for jj in range(len(mice)):
+                if ii < jj:
+                    res = mice_together(data, mice[ii], mice[jj])
+                    results[ii, jj] = res[0]
+                    results_exp[ii, jj] = res[1]
+                    
+        full_results[phase] = results
+        full_results_exp[phase] = results_exp
+        
+        deltas = results[results > 0] - results_exp[results > 0]
+        save_single_histograms(results,
+                               'results',
+                               mice,
+                               sec,
+                               main_directory,
+                               prefix,
+                               additional_info=remove_mouse)
+        save_single_histograms(results_exp,
+                               'results_exp',
+                               mice,
+                               sec,
+                               main_directory,
+                               prefix,
+                               additional_info=remove_mouse)
+        save_single_histograms(results-results_exp,
+                               'excess_time',
+                               mice,
+                               sec,
+                               main_directory,
+                               prefix,
+                               additional_info=remove_mouse)
+        
+        single_in_cohort_soc_plot(results,
+                              results_exp,
+                              mice,
+                              sec,
+                              fname,
+                              main_directory,
+                              prefix)
+
+    write_cvs_longer(mice, phases, full_results, main_directory, name_, prefix)
+    write_cvs_longer(mice, phases, full_results-full_results_exp, main_directory, name_exp_, prefix)
+    plotfunctions.make_RasterPlot(directory, full_results, phases, name_, mice, vmin=0, vmax=0.5, title='% time together')
+    plotfunctions.make_RasterPlot(directory, full_results-full_results_exp, phases, name_exp_, mice, title='% time together',vmin=-.25,vmax=.25)
+
+def single_in_cohort_soc_plot(results,
+                              results_exp,
+                              mice,
+                              sec,
+                              fname,
+                              main_directory,
+                              prefix):
+
+    directory = utils.check_directory(main_directory, 'in_cohort_sociability/histograms')
+    fname =  os.path.join(directory, '%s_%s_%s'% (prefix, fname, sec))
+    label_mice = [mouse[-4:] for mouse in mice]
+    fig = plt.figure(figsize=(10, 6))
+    ax = []
+    for i in range(1,5):
+        ax.append(fig.add_subplot(2,2,i))
+
+    ax[0].imshow(results, vmin=0, vmax=0.5, interpolation='none')
+    ax[0].set_xticks([])
+    ax[0].set_yticks([])
+    ax[0].set_title('% time together')
+    ax[1].imshow(results_exp, vmin=0, vmax=0.5, interpolation='none')
+    ax[1].set_xticks([])
+    ax[1].set_yticks([])
+    ax[1].set_title('Expected % time together')
+
+    deltas = results[results > 0] - results_exp[results > 0]
+
+    plt.subplot(223)
+    try:
+        im = ax[2].imshow(results - results_exp, vmin=-0.25, vmax=0.25,interpolation='none')
+        ax[2].set_title('Excess % time together')
+        cbar = fig.colorbar(im)
+        ax[2].yaxis.tick_left()
+        ax[2].get_yaxis().set_ticks([i for i,x in enumerate(mice)])
+        ax[2].get_xaxis().set_ticks([i for i,x in enumerate(mice)])
+        ax[2].set_xticklabels(label_mice)
+        ax[2].set_yticklabels(label_mice)
+        for label in ax[2].xaxis.get_ticklabels():
+            label.set_rotation(90)
+
+    except ValueError:
+        pass
+
+    try:
+        ax[3].hist(deltas)
+    except ValueError:
+        pass
+    ax[3].set_title('Histogram of excess % time together')
+    ax[3].set_xlim([-0.1, 0.3])
+    ax[3].get_xaxis().set_ticks([-0.1, 0., 0.1, 0.2, 0.3])
+    ax[3].set_xticklabels([-0.1, 0., 0.1, 0.2, 0.3])
+    fig.suptitle(sec)
+    fig.subplots_adjust(left=0.3)
+    fig.subplots_adjust(bottom=0.3)
+    fig.subplots_adjust(wspace=0.25)
+    fig.subplots_adjust(hspace=0.3)
     
+    fig.savefig(fname+'.pdf')
+    fig.savefig(fname+'.png', dpi=300)
+            
+
+
 if __name__ == '__main__':
 
-
-    alldeltas = {}
-    allratios = {}
-    allresults = {}
-
-    # plt.set_cmap('option_d')
-
     for path in datasets[datarange]:
-        alldeltas[path] = {}
-        allratios[path] = {}
-        allresults[path] = {}
         prefix = utils.make_prefix(path)
-
         if path in remove_tags:
             remove_mouse = remove_tags[path]
         else:
             remove_mouse = None
-
         if path not in antenna_positions:
             antenna_positions[path] = None
         if remove_mouse:
-            ehd = EcoHab.EcoHabData(path=path, _ant_pos=antenna_positions[path],remove_mice=remove_mouse,how_many_appearances=how_many_appearances[path])
+            ehd = EcoHab.EcoHabData(path=path,
+                                    _ant_pos=antenna_positions[path],
+                                    remove_mice=remove_mouse,
+                                    how_many_appearances=how_many_appearances[path])
         else:
-            ehd = EcoHab.EcoHabData(path=path, _ant_pos=antenna_positions[path])
+            ehd = EcoHab.EcoHabData(path=path,
+                                    _ant_pos=antenna_positions[path])
 
         ehs = EcoHab.EcoHabSessions(ehd)
         directory = utils.results_path(path)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        cf = ExperimentConfigFile(path)
-        tstart, tend = cf.gettime('ALL')
-        mice = ehs.mice
-        label_mice = [mouse[-4:] for mouse in mice]
+        cf = ExperimentConfigFile(path)      
         mouse_alone_ehs(ehs, cf, directory, prefix)
-        phases = filter(lambda x: x.endswith('dark') or x.endswith('DARK'), cf.sections())
-        
-        full_results = np.zeros((len(phases), len(mice), len(mice)))
-        full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
-        
-        for phase, sec in enumerate(phases):
-            data = prepare_data(ehs, mice, cf.gettime(sec))
-            results = np.zeros((len(mice), len(mice)))
-            results_exp = np.zeros((len(mice), len(mice)))
-
-            for ii in range(len(mice)):
-                for jj in range(len(mice)):
-                    if ii < jj:
-                        res = mice_together(data, mice[ii], mice[jj])
-                        results[ii, jj] = res[0]
-                        results_exp[ii, jj] = res[1]
-            fig = plt.figure(figsize=(10, 6))
-            ax = []
-            single_times = {}
-            for i in range(1,5):
-                ax.append(fig.add_subplot(2,2,i))
-
-            full_results[phase] = results
-            full_results_exp[phase] = results_exp
-
-            #test_results(data,mice)
-            ax[0].imshow(results, vmin=0, vmax=0.5,interpolation='none')
-            ax[0].set_xticks([])
-            ax[0].set_yticks([])
-            ax[0].set_title('% time together')
-            ax[1].imshow(results_exp, vmin=0, vmax=0.5,interpolation='none')
-            ax[1].set_xticks([])
-            ax[1].set_yticks([])
-            ax[1].set_title('Expected % time together')
-            deltas = results[results > 0] - results_exp[results > 0]
-            alldeltas[path][sec] = deltas
-            ratios = results[results > 0] / results_exp[results > 0]
-            allratios[path][sec] = ratios
-            allresults[path][sec] = results[results > 0]
-            plt.subplot(223)
-            try:
-                # plt.imshow(results - results_exp, vmin=-max(np.abs(deltas)),
-                #  vmax=max(np.abs(deltas)))
-                im = ax[2].imshow(results - results_exp, vmin=-0.25, vmax=0.25,interpolation='none')
-                ax[2].set_title('Excess % time together')
-                cbar = fig.colorbar(im)
-                ax[2].yaxis.tick_left()
-                ax[2].get_yaxis().set_ticks([i for i,x in enumerate(mice)])
-                ax[2].get_xaxis().set_ticks([i for i,x in enumerate(mice)])
-                ax[2].set_xticklabels(label_mice)
-                ax[2].set_yticklabels(label_mice)
-                for label in ax[2].xaxis.get_ticklabels():
-                    label.set_rotation(90)
-
-            except ValueError:
-                pass
-
-            try:
-                ax[3].hist(deltas)
-            except ValueError:
-                pass
-            ax[3].set_title('Histogram of excess % time together')
-            ax[3].set_xlim([-0.1, 0.3])
-            ax[3].get_xaxis().set_ticks([-0.1,0.,0.1,0.2,0.3])
-            ax[3].set_xticklabels([-0.1,0.,0.1,0.2,0.3])
-                
-                
-            fig.suptitle(sec)
-            fig.subplots_adjust(left=0.3)
-            fig.subplots_adjust(bottom=0.3)
-            fig.subplots_adjust(wspace=0.25)
-            fig.subplots_adjust(hspace=0.3)
-            
-            header = ''
-            for mouse in mice:
-                header+= mouse+';'
-            fig.savefig('%s/friends_%s_remove_%s.pdf' %(directory, sec,remove_mouse))
-            fig.savefig('%s/friends_%s_remove_%s.png' %(directory, sec,remove_mouse), dpi=300)
-            np.savetxt('%s/results_%s_remove_%s.csv' %(directory, sec, remove_mouse), results, fmt='%.6f', delimiter=';',header=header,comments='')
-            np.savetxt('%s/results_exp_%s_remove_%s.csv' %(directory, sec, remove_mouse), results_exp,
-                           fmt='%.6f', delimiter=';',header=header,comments='')
-            np.savetxt('%s/results_final_%s_remove_%s.csv' %(directory, sec, remove_mouse), results-results_exp, fmt='%.6f', delimiter=';',header=header,comments='')
-
-        name_ = 'in_cohort_sociability_results_continouos_remove_%s' % remove_mouse
-        name_exp_ = 'in_cohort_sociability_excess_time_results_continous_remove_%s' % remove_mouse
-        write_cvs_longer(mice, phases, full_results, directory, name_)
-        write_cvs_longer(mice, phases, full_results-full_results_exp, directory, name_exp_)
-
-        plotfunctions.make_RasterPlot(directory, full_results, phases, name_, mice, vmin=0, vmax=0.5, title='% time together')
-        plotfunctions.make_RasterPlot(directory, full_results-full_results_exp, phases, name_exp_, mice, title='% time together',vmin=-.25,vmax=.25)
+        in_cohort_sociability(ehs, cf, directory, prefix, remove_mouse=remove_mouse)
+  
+   
