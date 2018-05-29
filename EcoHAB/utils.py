@@ -53,7 +53,7 @@ def make_prefix(path):
     for key in key_list:
         if key not in info_dict:
             continue
-        if key == 'social odor' or 'non-social odor':
+        if key == 'social odor' or key == 'non-social odor':
             if info_dict[key] == 'none' or info_dict[key] == 'None':
                 key = key.replace(' ', '_')
                 prefix += '_no_' + key.replace(' ', '_') + '_'
