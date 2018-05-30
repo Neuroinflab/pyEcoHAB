@@ -45,7 +45,10 @@ def make_prefix(path):
 
     info_dict = {}
     for line in f:
-        key, info = line.split(':')
+        try:
+            key, info = line.split(':')
+        except ValueError:
+            continue
         info = info.strip()
         info = info.replace(' ', '_')
         info_dict[key] = info
