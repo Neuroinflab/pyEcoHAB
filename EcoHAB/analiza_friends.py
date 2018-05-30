@@ -11,6 +11,7 @@ from analiza1 import smells, antenna_positions
 import os
 import utils
 import plotfunctions
+from write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
 ### How much time mice spend with each other
 
 datarange = slice(0, 10, None)
@@ -22,17 +23,18 @@ datasets = [
     #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_19.01.18_rep_II',
     #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_swiss_webster_ctrl_05.02.18',
     #"/home/jszmek/EcoHAB_data_November/mice K Wisniewska",
-    '/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/',
-    '/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/',
-    "/home/jszmek/EcoHAB_data_November/C57 males long 11-22.05.18/",
+    #'/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/',
+    #'/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/',
+    #"/home/jszmek/EcoHAB_data_November/C57 males long 11-22.05.18/",
 
     # "/home/jszmek/EcoHAB_data_November/C57 TIMP rep 2/",
     # "/home/jszmek/EcoHAB_data_November/C57 males rep 2/",
     # "/home/jszmek/EcoHAB_data_November/C57 males TIMP/",
     # "/home/jszmek/EcoHAB_data_November/BTBR males/",
+    #"/home/jszmek/EcoHAB_data_November/long_experiment_WT",
     "/home/jszmek/EcoHAB_data_November/long_experiment_WT",
-    
-    
+    "/home/jszmek/EcoHAB_data_November/long_experiment_KO_mismatched_antennas_to_phase_SNIFF_10_dark",
+    "/home/jszmek/EcoHAB_data_November/long_experiment_KO_from_phase_SNIFF_10_dark",
     ]
 
 # # address = {1: 4, 2: 1, 3: 1, 4: 2, 5: 2, 6: 3, 7: 3, 8: 4}
@@ -55,6 +57,15 @@ how_many_appearances = {
     "/home/jszmek/EcoHAB_data_November/BTBR males/":500,
     '/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/':200
 }
+antenna_positions = {
+    "/home/jszmek/EcoHAB_data_November/long_experiment_KO_mismatched_antennas_to_phase_SNIFF_10_dark":{'1': 1,
+                                                                                                       '2': 5,
+                                                                                                       '3': 3,
+                                                                                                       '4': 6,
+                                                                                                       '5': 4,
+                                                                                                       '6': 2,
+                                                                                                       '7': 7,
+                                                                                                       '8': 8}}
 def intervals(data_mice, mouse, address):
     return [[s, e] for a, s, e in data_mice[mouse] if a == address]
 
@@ -193,52 +204,6 @@ def test_results(data_mice,mice):
                 time_together[i,j,j+1+k] = mice_overlap(data_mice, mouse, other_mouse, address)[0]
                 time_together[i,j+1+k,j] = time_together[i,j,j+1+k]
 
-def write_cvs_alone(alone, phases, mice, main_directory, prefix):
-    directory = utils.check_directory(main_directory, 'mouse_alone')
-    fname =  os.path.join(directory, '%s_mouse_alone.csv' % prefix)
-    try:
-        f = open(fname, 'w')
-    except IOError:
-        print('Could not write to ', fname)
-        return
-    header = 'Mice alone in chambers %d\n'
-    phases_header = 'Mouse;'
-    for phase in phases:
-        phases_header += phase + ';'
-    phases_header += '\n'
-    for i in range(1, 5):
-        f.write(header % i)
-        f.write(phases_header)
-        for j, mouse in enumerate(mice):
-            f.write(mouse+';')
-            for k, phase in enumerate(phases):
-                f.write(str(alone[i-1, j, k])+';')
-            f.write('\n')
-    f.close()
-
-def write_cvs_longer(mice, phases, output, directory, fname, prefix):
-    directory = utils.check_directory(directory, 'in_cohort_sociability/raster_plots')
-    fname = os.path.join(firectory, fname)
-    try:
-        f = open(fname, 'w')
-    except IOError:
-        print('Could not write to file', fname)
-   
-    header = 'mouse pair'
-    for phase in phases:
-        header += ';' + phase
-        
-    header += '\n'
-    f.write(header)
-    new_output, pairs = plotfunctions.make_table_of_pairs(output, phases, mice)
-    for i, pair in enumerate(pairs):
-        f.write(pair)
-        for j in range(len(phases)):
-            f.write(';')
-            f.write(str(new_output[i,j]))
-        f.write('\n')
-    f.close()
-
 def mouse_alone_ehs(ehs, cf, main_directory, prefix):
     phases = filter(lambda x: x.endswith('dark') or x.endswith('DARK'), cf.sections())
     mice = ehs.mice
@@ -251,27 +216,8 @@ def mouse_alone_ehs(ehs, cf, main_directory, prefix):
                 output[i-1, j, phase] = alone[mouse]
     phases.append('ALL DARK')
     output[:,:,-1] = output[:,:,:-1].sum(axis=2)  # last column -- sum of activity in all dark phases
-    write_cvs_alone(output, phases, mice, main_directory, prefix)
-
-def save_single_histograms(result, fname, mice, phase, main_directory, prefix, additional_info=None):
-    directory = utils.check_directory(main_directory, 'in_cohort_sociability/histograms')
-    if isinstance(additional_info, str):
-        fname =  os.path.join(directory, '%s_%s_%s_%s.csv'% (prefix, fname, phase, additional_info))
-    else:
-        fname =  os.path.join(directory, '%s_%s_%s.csv'% (prefix, fname, phase))
-    try:
-        f = open(fname, 'w')
-    except IOError:
-        print('Could not write to file', fname)
-    for i, mouse in enumerate(mice):
-        f.write(';'+mouse)
-    f.write(';\n')
-    for i, mouse in enumerate(mice):
-        f.write(mouse + ';')
-        for j, mouse in enumerate(mice):
-            f.write(str(result[i, j])+';')
-        f.write('\n')
-        
+    write_csv_alone(output, phases, mice, main_directory, prefix)
+       
 def in_cohort_sociability(ehs, cf, main_directory, prefix, remove_mouse=None):
 
     mice = ehs.mice
@@ -282,15 +228,16 @@ def in_cohort_sociability(ehs, cf, main_directory, prefix, remove_mouse=None):
     full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
     if remove_mouse:
         fname = 'incohort_sociability_remove_%s' % remove_mouse
-        name_ = 'results_continouos_remove_%s' % remove_mouse
-        name_exp_ = 'excess_time_continous_remove_%s' % remove_mouse
+        name_ = 'incohort_sociability_measured_time_%sremove_%s.csv' % (prefix, remove_mouse)
+        name_exp_ = 'incohort_sociability_excess_time_%sremove_%s.csv' % (prefix, remove_mouse)
     else:
         fname = 'incohort_sociability'
-        name_ = 'results_continouos'
-        name_exp_ = 'excess_time_continous'
+        name_ = 'incohort_sociability_measured_time_%s.csv' % prefix
+        name_exp_ = 'incohort_sociability_excess_time_%s.csv' % prefix
 
-    for phase, sec in enumerate(phases):
-        data = prepare_data(ehs, mice, cf.gettime(sec))
+    for idx_phase, phase in enumerate(phases):
+        print(phase)
+        data = prepare_data(ehs, mice, cf.gettime(phase))
         results = np.zeros((len(mice), len(mice)))
         results_exp = np.zeros((len(mice), len(mice)))
 
@@ -301,55 +248,88 @@ def in_cohort_sociability(ehs, cf, main_directory, prefix, remove_mouse=None):
                     results[ii, jj] = res[0]
                     results_exp[ii, jj] = res[1]
                     
-        full_results[phase] = results
-        full_results_exp[phase] = results_exp
+        full_results[idx_phase] = results
+        full_results_exp[idx_phase] = results_exp
         
         deltas = results[results > 0] - results_exp[results > 0]
         save_single_histograms(results,
-                               'results',
+                               'incohort_sociability_measured_time',
                                mice,
-                               sec,
+                               phase,
                                main_directory,
+                               'in_cohort_sociability/histograms',
                                prefix,
                                additional_info=remove_mouse)
         save_single_histograms(results_exp,
-                               'results_exp',
+                               'incohort_sociability_expected_time',
                                mice,
-                               sec,
+                               phase,
                                main_directory,
+                               'in_cohort_sociability/histograms',
                                prefix,
                                additional_info=remove_mouse)
         save_single_histograms(results-results_exp,
-                               'excess_time',
+                               'incohort_sociability_excess_time',
                                mice,
-                               sec,
+                               phase,
                                main_directory,
+                               'in_cohort_sociability/histograms',
                                prefix,
                                additional_info=remove_mouse)
         
         single_in_cohort_soc_plot(results,
                               results_exp,
                               mice,
-                              sec,
+                              phase,
                               fname,
                               main_directory,
+                                  'in_cohort_sociability/histograms',
                               prefix)
 
-    write_cvs_longer(mice, phases, full_results, main_directory, name_, prefix)
-    write_cvs_longer(mice, phases, full_results-full_results_exp, main_directory, name_exp_, prefix)
-    plotfunctions.make_RasterPlot(directory, full_results, phases, name_, mice, vmin=0, vmax=0.5, title='% time together')
-    plotfunctions.make_RasterPlot(directory, full_results-full_results_exp, phases, name_exp_, mice, title='% time together',vmin=-.25,vmax=.25)
+    write_csv_rasters(mice,
+                      phases,
+                      full_results,
+                      main_directory,
+                      'in_cohort_sociability/raster_plots',
+                      name_)
+    write_csv_rasters(mice,
+                      phases,
+                      full_results-full_results_exp,
+                      main_directory,
+                      'in_cohort_sociability/raster_plots',
+                      name_exp_)
+    
+
+    plotfunctions.make_RasterPlot(main_directory,
+                                  'in_cohort_sociability/raster_plots',
+                                  full_results,
+                                  phases,
+                                  name_,
+                                  mice,
+                                  vmin=0,
+                                  vmax=0.5,
+                                  title='% time together')
+    plotfunctions.make_RasterPlot(main_directory,
+                                  'in_cohort_sociability/raster_plots',
+                                  full_results-full_results_exp,
+                                  phases,
+                                  name_exp_,
+                                  mice,
+                                  title='% time together',
+                                  vmin=-.25,
+                                  vmax=.25)
 
 def single_in_cohort_soc_plot(results,
                               results_exp,
                               mice,
-                              sec,
+                              phase,
                               fname,
                               main_directory,
+                              directory,
                               prefix):
-
-    directory = utils.check_directory(main_directory, 'in_cohort_sociability/histograms')
-    fname =  os.path.join(directory, '%s_%s_%s'% (prefix, fname, sec))
+    new_name = os.path.join(directory, 'figs')
+    directory = utils.check_directory(main_directory, new_name)
+    fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, phase))
     label_mice = [mouse[-4:] for mouse in mice]
     fig = plt.figure(figsize=(10, 6))
     ax = []
@@ -391,7 +371,7 @@ def single_in_cohort_soc_plot(results,
     ax[3].set_xlim([-0.1, 0.3])
     ax[3].get_xaxis().set_ticks([-0.1, 0., 0.1, 0.2, 0.3])
     ax[3].set_xticklabels([-0.1, 0., 0.1, 0.2, 0.3])
-    fig.suptitle(sec)
+    fig.suptitle(phase)
     fig.subplots_adjust(left=0.3)
     fig.subplots_adjust(bottom=0.3)
     fig.subplots_adjust(wspace=0.25)

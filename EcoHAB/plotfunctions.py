@@ -15,6 +15,7 @@ import networkx as nx
 from networkx.drawing.nx_agraph import write_dot
 import matplotlib.colors as mcol
 import matplotlib.patches as patches
+from write_to_file import make_table_of_pairs
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -125,20 +126,10 @@ def forceAspect(ax,aspect=1):
     extent =  im[0].get_extent()
     ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
 
-def make_table_of_pairs(FAM, phases, mice):
-    new_shape = (len(mice)*(len(mice)-1)//2, len(phases))
-    output = np.zeros(new_shape)
-    for i, phase in enumerate(phases):
-        l = 0
-        pair_labels = []
-        for j, mouse in enumerate(mice):
-            for k in range(j+1, len(mice)):
-                output[l,i] = FAM[i,j,k]
-                l += 1
-                pair_labels.append(mice[j]+'|'+mice[k])
-    return output, pair_labels
+
     
-def make_RasterPlot(directory,
+def make_RasterPlot(main_directory,
+                    subdirectory,
                     FAM,
                     phases,
                     name,
@@ -147,9 +138,10 @@ def make_RasterPlot(directory,
                     vmin=None,
                     vmax=None,
                     title=None):
+    
     mice = [mouse[5:] for mouse in old_mice]
-    subdirectory = 'RasterPlots'
-    new_path = utils.check_directory(directory, subdirectory)
+    subdirectory = os.path.join(subdirectory, 'raster_plots')
+    new_path = utils.check_directory(main_directory, subdirectory)
     fig = plt.figure(figsize=(12, 12))
     ax = fig.add_subplot(111, aspect='equal')
     if title:

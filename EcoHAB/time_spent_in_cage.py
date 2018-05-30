@@ -9,6 +9,7 @@ import locale
 from ExperimentConfigFile import ExperimentConfigFile
 import os
 import utils
+from write_to_file import save_data_cvs
 ### How much time mice spend in the 'social' compartment
 
 datarange = slice(10, 11, None)
@@ -19,6 +20,8 @@ datasets = {
     #'K_Wisniewska':'/home/jszmek/EcoHAB_data_November/mice K Wisniewska/',
     #"maciek_long_timp":'/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/',
     'long_WT':"/home/jszmek/EcoHAB_data_November/long_experiment_WT",
+    "long_KO_mismatch": "/home/jszmek/EcoHAB_data_November/long_experiment_KO_mismatched_antennas_to_phase_SNIFF_10_dark",
+    "long_KO": "/home/jszmek/EcoHAB_data_November/long_experiment_KO_from_phase_SNIFF_10_dark",
     
 }
 smells = {
@@ -28,14 +31,26 @@ smells = {
     "K_Wisniewska":{'soc':3,'nsoc':1},
     "maciek_long_timp":{'nsoc':3,'soc':1},
     'long_WT':{'soc': 3, 'nsoc': 1},
+    'long_KO_mismatch':{'soc': 3, 'nsoc': 1},
+    'long_KO':{'soc': 3, 'nsoc': 1},
+
 }
 antenna_positions = {
     'long': None,
     'standard': None,
-    'maciek_long':None,
-    "K_Wisniewska":None,
-    "maciek_long_timp":None,
-    'long_WT':None,
+    'maciek_long': None,
+    "K_Wisniewska": None,
+    "maciek_long_timp": None,
+    'long_WT': None,
+    "long_KO_mismatch":{'1': 1,
+                        '2': 5,
+                        '3': 3,
+                        '4': 6,
+                        '5': 4,
+                        '6': 2,
+                        '7': 7,
+                        '8': 8},
+    "long_KO": None,
 }
 headers = {'soc':['Number of visits to social smell (box %d)\n','Total time with social smell (box %d), seconds\n'],
            'nsoc':['Number of visits to non-social smell (box %d)\n','Total time with non-social smell (box %d), seconds\n',]}
@@ -44,6 +59,8 @@ cages = {
     'K_Wisniewska': {'1':1,'2':2,'3':3,'4':4},
     "maciek_long_timp": {'1':1,'2':2,'3':3,'4':4},
     'long_WT':{'1':1,'2':2,'3':3,'4':4},
+    "long_KO":{'1':1,'2':2,'3':3,'4':4},
+    "long_KO_mismatch":{'1':1,'2':2,'3':3,'4':4},
 }
 
 basic = ['Number of visits to box %d\n','Total time in box %d, seconds\n']
@@ -53,45 +70,15 @@ all_chambers_header = {
     "K_Wisniewska":{},
     "maciek_long_timp":{},
     "long_WT":{},
+    "long_KO":{},
+    "long_KO_mismatch":{},
+
 }
 for key in cages['maciek_long']:
     for key2 in all_chambers_header:
         all_chambers_header[key2][key] = basic
 
-def write_single_chamber(f, header, heads, address, mice, phases, time, data_stim ):
-    for j,h in enumerate(heads):
-        f.write(h%address)
-        f.write(header+'\n')
-        
-        for i, mouse in enumerate(mice):
-            
-            lines = [mouse for i in data_stim[j][phases[0]][mouse]]
-            
-            for phase in phases:
-                for k,t in enumerate(time[phase]):
-                    if phase == phases[0]:
-                        lines[k] += ',%3.2f'%(t/3600)
-                    lines[k] += ','+str(data_stim[j][phase][mouse][k])
-                                                                
-            for line in lines:
-                f.write(line+'\n')
 
-def save_data_cvs(data,fname,path,which,headers):
-    #which = smells[key]
-    if not os.path.exists(path):
-        os.makedirs(path)
-    fname = os.path.join(path,fname)
-    f = open(fname,'w')
-    phases = data['phases']
-    mice = data['mice']
-    
-    header = 'mouse,\"time [h]\"'
-    for phase in phases:
-        header += ',\"'+phase+"\""
-  
-    for stim in which.keys():
-        heads = headers[stim]
-        write_single_chamber(f,header, heads, which[stim], mice, phases, data['time'], data[stim])
     
 def get_visits(mouse_address,mouse_durations,stim_address):
     result = []
@@ -302,7 +289,7 @@ def approach_to_social(data,fname=None,path=None):
             if not os.path.exists(path):
                 os.makedirs(path)
             fname = os.path.join(path,fname)
-        np.savetxt(fname, np.array((time,ats,d_ats)).T,header='time, AtS, dAtS',delimiter=',',comments="")
+        np.savetxt(fname, np.array((time,ats,d_ats)).T,header='time; AtS; dAtS',delimiter=';',comments="")
         
     return time, ats, d_ats
 
