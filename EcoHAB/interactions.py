@@ -89,6 +89,7 @@ class Experiment:
         h_m_a = kwargs.pop('how_many_appearances', 1000)
         factor = kwargs.pop('factor', 2)
         tags = kwargs.pop('remove_mice', [])
+        compensate_for_lost_antenna = kwargs.pop('compensate_for_lost_antenna', False)
         if kwargs:
             raise Exception('Too many arguments for class Experiment')
         self.directory = utils.results_path(path)
@@ -107,8 +108,10 @@ class Experiment:
                                                 shortest_session_threshold=0,
                                                 how_many_appearances=h_m_a,
                                                 factor=factor,
-                                                remove_mice=tags)
-        self._remove_phases(mask) 
+                                                remove_mice=tags,
+                                                compensate_for_lost_antenna=compensate_for_lost_antenna
+        )
+        self._remove_phases(mask)
         self.fs = self.ehs.fs
         mice = list(self.ehs.mice)
         self.mice = filter(lambda x: len(self.ehs.getstarttimes(x)) > 30, mice)
@@ -879,7 +882,7 @@ def binomial_probability(s, p, n):
     return prob
 
 
-def FAprobablity(a,p=0.5):
+def FAprobablity(a, p=0.5):
     
     number_of_following = int(a[0])
     number_of_avoiding = int(a[1])
@@ -971,10 +974,13 @@ if __name__ == "__main__":
         "/home/jszmek/EcoHAB_data_November/long_experiment_KO":{'1':1,'2':5,'3':3,'4':6,'5':4,'6':2,'7':7,'8':8},
         "/home/jszmek/EcoHAB_data_November/long_experiment_WT":{'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8}
 }
-    a_dirs  = ["/home/jszmek/EcoHAB_data_November/long_experiment_KO","/home/jszmek/EcoHAB_data_November/long_experiment_WT"]
+    a_dirs  = [
+        "/home/jszmek/EcoHAB_data_November/long_experiment_KO",
+        #"/home/jszmek/EcoHAB_data_November/long_experiment_WT"
+    ]
 
     phases = {"/home/jszmek/EcoHAB_data_November/long_experiment_KO":["BEGINNING","MIDDLE"],
-         "/home/jszmek/EcoHAB_data_November/long_experiment_WT":[]}
+         "/home/jszmek/EcoHAB_data_November/long_experiment_WT":["WRONG_ANTENNAS", "CORRECT_ANTENNAS"]}
     #compensate_for_lost_antenna=True
     ts = 3   
     window=12
@@ -983,20 +989,34 @@ if __name__ == "__main__":
     sections = {}
     directories = {}
     endings = {}
+    mice = {}
     for a_dir in a_dirs:
+        IPP[a_dir] = []
+        FAM[a_dir] = []
+        sections[a_dir] = []
+        directories[a_dir] = []
+        endings[a_dir] = []
+        mice[a_dir] = []
         if a_dir == "/home/jszmek/EcoHAB_data_November/long_experiment_KO":
-            E1 = Experiment(a_dir,_ant_pos=antenna_pos[a_dir],which_phase="BEGINNING", compensate_for_lost_antenna=True)
-            E2 = Experiment(a_dir,_ant_pos=antenna_pos[a_dir],which_phase="MIDDLE", compensate_for_lost_antenna=True)
+            E1 = Experiment(path=a_dir,_ant_pos=antenna_pos[a_dir],which_phase="WRONG_ANTENNAS", compensate_for_lost_antenna=True)
+            E2 = Experiment(path=a_dir,_ant_pos=None, which_phase="CORRECT_ANTENNAS", compensate_for_lost_antenna=True)
             E1.merge_experiment(E2)
         else:
-             E1 = Experiment(a_dir,_ant_pos=antenna_pos[a_dir], compensate_for_lost_antenna=True)
-        E1.calculate_fvalue(window="ALL", treshold=ts)
-        IPP[a_dir] = [E1.InteractionsPerPair(0,2)]
-        FAM[a_dir] = [E1.FollowingAvoidingMatrix()]
-        sections[a_dir] = [E1.cf.sections()]
-        directories[a_dir] = [E1.directory]
-        endings[a_dir] = ["ALL"]
-        E1.write_following_avoiding_to_file(fname=a_dir.split('/')[-1],phases=['ALL'])
+             E1 = Experiment(path=a_dir,_ant_pos=antenna_pos[a_dir], compensate_for_lost_antenna=True)
+        print(E1.fname_ending)
+        E1.calculate_fvalue(window=window, treshold=ts)
+        IPP[a_dir].append(E1.InteractionsPerPair(0,2))
+        FAM[a_dir].append(E1.FollowingAvoidingMatrix())
+        sections[a_dir].append(E1.cf.sections())
+        directories[a_dir].append(E1.directory)
+        
+        endings[a_dir].append(E1.fname_ending)
+        mice1 = []
+        for mouse in E1.mice:
+                mice1.append(mouse.split('-')[-1])
+        mice[a_dir].append(mice1)
+        E1.write_following_avoiding_to_file(fname=a_dir.split('/')[-1])
+        
     scalefactor = 0
 
     for a_dir in a_dirs:
@@ -1009,6 +1029,6 @@ if __name__ == "__main__":
 
     for a_dir in a_dirs:
         for i, ipp in enumerate(IPP[a_dir]):
-            oneRasterPlot(directories[a_dir][i],FAM[a_dir][i],ipp,sections[a_dir][i],'Interactions_ts_'+str(ts)+'_s_'+endings[a_dir][i],scalefactor)
+            plotfunctions.oneRasterPlot(directories[a_dir][i],FAM[a_dir][i],ipp,sections[a_dir][i],'Interactions_ts_'+str(ts)+'_s_'+endings[a_dir][i],scalefactor,mice[a_dir][i])
             for k,l in enumerate(FAM[a_dir][i]):
-                plotfunctions.plot_graph(FAM[a_dir][i],k,[["ALL"]],directories[a_dir][i])
+                plotfunctions.plot_graph(FAM[a_dir][i],k,sections[a_dir][i],directories[a_dir][i],labels =mice[a_dir][i])
