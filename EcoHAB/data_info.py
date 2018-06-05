@@ -40,14 +40,14 @@ antenna_positions = {
                                                                                                        '6': 2,
                                                                                                        '7': 7,
                                                                                                        '8': 8}}
-binsizes = [12 * 3600., 1 * 3600.]
+binsizes = [12 * 3600., 2 * 3600.]
 bintitles = ['12', '2']
 standard_ant_pos = {'1': 5, '2': 6, '3': 7, '4': 8, '5': 1, '6': 2, '7': 3, '8': 4}
 basic = ['Number of visits to box %d\n','Total time in box %d, seconds\n']
-standard_cages = {1: 1, 2: 2, 3: 3, 4: 4}
+standard_cages = {'1': 1, '2': 2, '3': 3, '4': 4}
 non_standard_cages = {}
 standard_headers = {}
 for i in range(1,5):
-    standard_headers[i] = basic
+    standard_headers[str(i)] = basic
 non_standard_headers = {}
 
