@@ -120,6 +120,7 @@ def make_RasterPlot(main_directory,
                     phases,
                     name,
                     old_mice,
+                    prefix='',
                     to_file=True,
                     vmin=None,
                     vmax=None,
@@ -167,7 +168,9 @@ def make_RasterPlot(main_directory,
     for tick in ax.get_xticklabels():
             tick.set_rotation(90)
 
-    plt.savefig(os.path.join(new_path, name+'.png'),
+    name = name + prefix
+    new_name = os.path.join(new_path, name+'.png')
+    plt.savefig(new_name,
                 transparent=False,
                 bbox_inches=None,
                 pad_inches=2,
@@ -299,27 +302,18 @@ def oneRasterPlot(directory,
                                 ax.add_patch(patches.Rectangle((
                                         s, -1*pos),1 , 1,facecolor=(0,0,1,_IPP[j,i]*0.5/scalefactor)))
                 if i!=j:
-                    #ax.add_patch(patches.Rectangle((0, -1*pos+1),8,1,facecolor="black",fill=False))
+     
                     if not mice:
                         pair_labels.append(str(i+1)+'|'+str(j+1))
                     else:
                         pair_labels.append(mice[i]+'|'+mice[j])
                     pos += 1
-        # for i in range(8-n_s):
-        #     ax.add_patch(patches.Rectangle((
-        #                                 n_s+i, -pos+1),1, pos,facecolor="lightgrey"))
-
+     
     plt.axis([0.5,n_s,-pos-1,1])
     #plt.tight_layout()
     fig.subplots_adjust(left=0.25)
     ax.set_aspect('auto')
     ax.xaxis.grid()
-
-    #ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(len(xlabels))])
-    #ax.xaxis.set_ticklabels(xlabels)
-    #for tick in ax.get_xticklabels():
-    #    tick.set_rotation(90)
-    #ax.xaxis.set_label_position('top')
     ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(pos)])
     ax.set_yticklabels(pair_labels,fontsize=10)
     plt.xlabel("session")
@@ -357,7 +351,7 @@ def plot_graph(FAPmatrix, k, sections, directory, labels=None):
         node_labels = {node:node for node in G.nodes()}     
     fig = plt.figure(figsize=(10*size,10*size)) 
     ax = fig.add_subplot(111, aspect='equal')
-    #fig.suptitle(self.path, fontsize=14*size, fontweight='bold')
+ 
     nx.draw_networkx_labels(G, pos, labels=node_labels,font_size=120)
     cmap = mcol.LinearSegmentedColormap.from_list(name='red_white_blue', 
                                              colors =[(0, 0, 1), 
@@ -372,20 +366,38 @@ def plot_graph(FAPmatrix, k, sections, directory, labels=None):
 
             p = patches.FancyArrowPatch(pos[c[2]],pos[c[1]],connectionstyle='arc3, rad=-0.3',arrowstyle="simple",shrinkA=10.2*size, shrinkB=10.2*size,mutation_scale=20*size*abs(c[0]), color = cmap(c[0]+0.5),zorder=1,alpha=0.5)
             ax.add_patch(p)
-    
-    # #plt.show()
-    # #plt.close(fig)
-    # if headers:
-    #     save_file = u'%s/Interactions_graph_%s.csv'%(csv_path, sections[k])
-    #     f = open(save_file,'w')
-    #     f.write(headers+'\n')
-    #     for i,l in enumerate(G.nodes()):
-    #         f.write(labels[i]+';')
-    #         for j, lab in enumerate(labels): 
-    #             f.write(str(FAPmatrix[k,i,j])+';')
-    #         f.write('\n')
-    #     f.close()
-    
-    plt.savefig('%s/Interactions_graph_%s.png'%(new_path, sections[k]))
-    ##plt.show()
+    new_fname = os.path.join(new_path, 'Interactions_graph_%s.png' % sections[k])
+    plt.savefig(new_fname,
+                transparent=False,
+                bbox_inches=None,
+                pad_inches=2,
+                frameon=None)
     plt.close(fig) 
+
+
+def single_heat_map(self, result, name, directory, xlabels=None, ylabels=None, subdirectory=None, vmax=None, vmin=None, xticks=None, yticks=None):
+    
+    fig, ax = plt.subplots()
+    if not vmin:
+        vmin = result.min()
+    if not vmax:
+        vmax = result.max()
+        
+    cax = ax.imshow(result,interpolation='none', aspect='auto', cmap="viridis", origin="lower", vmin=vmin, vmax=vmax)
+    cbar = fig.colorbar(cax)
+    if not xlabels:
+        xlabels = self.mice
+    if not ylabels:
+        ylabels = self.mice
+    ax.get_yaxis().set_ticks([i for i,x in enumerate(ylabels)])
+    ax.get_xaxis().set_ticks([i for i,x in enumerate(xlabels)])
+    ax.set_xticklabels(xlabels)
+    ax.set_yticklabels(ylabels)
+        
+    if subdirectory:
+        dir_name = utils.check_directory(directory, subdirectory)
+        new_name = os.path.join(dir_name, name)
+    else:
+        new_name = os.path.join(directory,name)
+    fig.savefig(new_name+'.png',transparent=False, bbox_inches=None, pad_inches=2,frameon=None)
+    
