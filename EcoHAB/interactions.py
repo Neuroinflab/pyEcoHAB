@@ -618,33 +618,6 @@ class Experiment:
                 f.write(str(output[j, i]))
             f.write('\n')
         f.close()
-
-    def write_following_avoiding_to_file(self,names=None,phases=None,fname=None):
-        if fname:
-            fname_1 = fname+'_following_%s.csv'
-            fname_2 = fname+'_avoiding_%s.csv'
-        else:
-            fname_1 = 'Following_%s.csv'
-            fname_2 = 'Avoiding_%s.csv'
-        subdirectory = 'RasterPlots'
-        
-        new_path = utils.check_directory(self.directory,subdirectory)
-
-        following = self.InteractionsPerPair(0,1)
-        avoiding = self.InteractionsPerPair(1,2)
-        
-        n_s = following.shape[0]
-        if not phases:
-            phases = self.cf.sections()
-        for s in range(n_s):
-            ff = following[s,:,:]
-            av = avoiding[s,:,:]
-            new_fname_1 = fname_1%phases[s]
-            new_fname_2 = fname_2%phases[s]
-            f = open(os.path.join(new_path,new_fname_1),'w')
-            self.write_single_matrix_csv(ff,f)
-            f = open(os.path.join(new_path,new_fname_2),'w')
-            self.write_single_matrix_csv(av,f)
                           
     def write_tables_to_file(self, what, phases=None):
         if what == "Following" or what == "following":
@@ -681,92 +654,28 @@ class Experiment:
                     phases.append(phase)
         wtf.write_csv_tables(results, phases, self.mice, self.directory, what, what, self.prefix)
         
-    def plotTubeDominanceRasters(self,name=None,mice=[]):
-        
-        if not name:
-            name = "TubeDominance_"+self.fname_ending
-        subdirectory = 'RasterPlots'
-    
-        new_path = utils.check_directory(self.directory,subdirectory)
-        fig = plt.figure(figsize=(12,12))
-        ax = fig.add_subplot(111, aspect='equal')
-        if name:
-            plt.suptitle(name, fontsize=14, fontweight='bold')
-
-        n_s,n_l,n_f = self.tube_dominance_matrix.shape
-        
-        for s in range(n_s): #phases
-            _TDT = self.tube_dominance_matrix[s,:,:]
-            new_fname = 'Tube_dominance_'+self.cf.sections()[s]+'.csv'
-            f = open(os.path.join(new_path,new_fname),'w')
-            self.write_single_matrix_csv(_TDT,f)
-            if len(np.where(_TDT>1)[0]):
-                _TDT = self.normalize(_TDT)
-            plt.text(0.06+s*0.125, 1.025,self.cf.sections()[s], horizontalalignment='center', verticalalignment='center', fontsize=10,  transform = ax.transAxes)
-            # MakeRelationGraph(FAM[s,:,:],IPP[s,:,:],exp,s,key,directory,scalefactor)
-            
-            pair_labels = []
-            pos = 0
-            for i in range(n_l): #mice
-                
-                for j in range(i,n_f): #mice
-                
-                    if i!=j and  np.isclose(_TDT[i,j],1-_TDT[j,i]):
-                        
-                        if _TDT[i,j] > 0.5:
-                            ax.add_patch(patches.Rectangle((
-                                s, -1*pos),1 , 1,facecolor=(1,0,0,0.5*np.round(_TDT[i,j],2))))
-                        elif _TDT[i,j] < 0.5:
-                            ax.add_patch(patches.Rectangle((
-                                s, -1*pos),1 , 1,facecolor=(0,0,1,0.5*np.round(1-_TDT[i,j],2))))
-                        else:
-                            ax.add_patch(patches.Rectangle((
-                                s, -1*pos),1 , 1,facecolor=(0.5,.5,.5,.5)))#grey patch if both equal and 0.5
-
-                    
-                            
-                    if i!=j:
-                        if not mice:
-                            pair_labels.append(str(i+1)+'|'+str(j+1))
-                        else:
-                            pair_labels.append(mice[i]+'|'+mice[j])
-                        pos+=1
-            for i in range(8-n_s):
-                ax.add_patch(patches.Rectangle((
-                                        n_s+i, -pos+1),1, pos,facecolor="lightgrey"))
-        plt.axis([0,8,-pos+1,1])
-        fig.subplots_adjust(left=0.25)
-
-        ax.set_aspect('auto')
-        ax.xaxis.grid()
-        ax.xaxis.set_ticklabels([])
-        ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(pos)])
-        ax.set_yticklabels(pair_labels,fontsize=10)
-        plt.xlabel("session")
-        plt.ylabel("following strength in pair")
-        plt.savefig(os.path.join(new_path,name+'.png'),transparent=False, bbox_inches=None, pad_inches=3,frameon=None)
-        # plt.show()
-        
-    def plot_heat_maps(self,result,name,xlabels=None,ylabels=None,subdirectory=None,vmax=None,vmin=None,xticks=None,yticks=None):
-        fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
-        cax = ax.imshow(result,interpolation='none',aspect='auto',cmap="viridis",origin="lower")#,extent=[1,8,1,8])
-        cbar = fig.colorbar(cax)
-        if not xlabels:
-            xlabels = self.mice
-        if not ylabels:
-            ylabels = self.mice
-        ax.get_yaxis().set_ticks([i for i,x in enumerate(ylabels)])
-        ax.get_xaxis().set_ticks([i for i,x in enumerate(xlabels)])
-        ax.set_xticklabels(xlabels)
-        ax.set_yticklabels(ylabels)
-        
-        if subdirectory:
-            dir_name = utils.check_directory(self.directory,subdirectory)
-            new_name = os.path.join(dir_name,name)
-        else:
-            new_name = os.path.join(self.directory,name)
-        fig.savefig(new_name+'.png',transparent=False, bbox_inches=None, pad_inches=2,frameon=None)
+    def plotTubeDominanceRasters(self, name=None, mice=[]):
+        subdirectory = 'tube_dominance/figs'
+        n_s = self.tube_dominance_matrix.shape[0]
+        phases = self.cf.sections()[:n_s]
+        plotfunctions.make_RasterPlot(self.directory,
+                                      subdirectory,
+                                      self.tube_dominance_matrix,
+                                      phases,
+                                      'tube_dominance',
+                                      self.mice,
+                                      self.prefix,
+                                      to_file=True,
+                                      vmin=None,
+                                      vmax=None,
+                                      title=None)
+        wtf.write_csv_tables(self.tube_dominance_matrix,
+                             phases,
+                             self.mice,
+                             self.directory,
+                             'tube_dominance',
+                             'tube_dominance',
+                             self.prefix)
         
     def plot_all(self,t1,t2):
         sd = self.ehs.signal_data
@@ -799,20 +708,6 @@ class Experiment:
                         ax[k].set_xlabel('time [s]')
                         ax[k].set_ylabel('State')
                         k = k+1                        
-    def write_single_matrix_csv(self,matrix,f,headers=''):
-        
-        if not headers:
-            headers = ''
-            for mouse in self.mice:
-                headers += ';'+mouse
-        f.write(headers+'\n')
-
-        for i,row in enumerate(matrix):
-            line = self.mice[i]
-            for col in row:
-                line += ';'+str(col)
-            f.write(line+'\n')
-        f.close()
     
 
 def binomial_probability(s, p, n):
