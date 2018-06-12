@@ -97,7 +97,7 @@ def barplot(stats, names, groups,colors, directory = "Barplots",name = "",ylab =
     #autolabel(rects1)
     #autolabel(rects2)
     plt.savefig('../Results/%s/%s.png'%(directory, name))
-    plt.show()
+ 
 
 def scaling(p):
     if p<0.05 and p>0:
@@ -233,7 +233,7 @@ def raster_interactions(directory,
                aspect='auto')
     ax.set_xticks([i for i in range(len(phases))])
     ax.set_yticks([i for i in range(len(pair_labels))])
-    xlabel = phases[:FAM.shape[0]]
+    xlabel = phases[FAM.shape[0]-1::-1]
     ax.set_xticklabels(xlabel[::-1])
     ax.set_yticklabels(pair_labels)
     for tick in ax.get_xticklabels():
@@ -244,7 +244,7 @@ def raster_interactions(directory,
                 bbox_inches=None,
                 pad_inches=.2,
                 frameon=None)
-    plt.show()
+
 def oneRasterPlot(directory,
                   FAM,
                   IPP,
@@ -320,17 +320,17 @@ def oneRasterPlot(directory,
     plt.ylabel("following strength in pair")
     plt.savefig(os.path.join(new_path,name+'.png'),transparent=False, bbox_inches=None, pad_inches=2,frameon=None)
 
-def plot_graph(FAPmatrix, k, sections, directory, labels=None):
+def plot_graph(FAPmatrix, phase, directory, labels=None):
     
     new_path = utils.check_directory(directory, 'interactions/figs/graphs')
     csv_path = utils.check_directory(directory, 'interactions/data/graphs')
-    d1,d2,d3 = FAPmatrix.shape
+    d2,d3 = FAPmatrix.shape
     
     pairs = []       
     for i in range(d2):
         for j in range(d3):
             if i!=j:
-                pairs.append([FAPmatrix[k][i][j],i+1,j+1])
+                pairs.append([FAPmatrix[i][j],i+1,j+1])
     pairs.sort(key=lambda x: -x[0])
     conn = [(scaling(x[0]),x[1],x[2]) for x in pairs]
     G = nx.MultiDiGraph(multiedges=True, sparse=True)
@@ -366,7 +366,7 @@ def plot_graph(FAPmatrix, k, sections, directory, labels=None):
 
             p = patches.FancyArrowPatch(pos[c[2]],pos[c[1]],connectionstyle='arc3, rad=-0.3',arrowstyle="simple",shrinkA=10.2*size, shrinkB=10.2*size,mutation_scale=20*size*abs(c[0]), color = cmap(c[0]+0.5),zorder=1,alpha=0.5)
             ax.add_patch(p)
-    new_fname = os.path.join(new_path, 'Interactions_graph_%s.png' % sections[k])
+    new_fname = os.path.join(new_path, 'Interactions_graph_%s.png' % phase)
     plt.savefig(new_fname,
                 transparent=False,
                 bbox_inches=None,
