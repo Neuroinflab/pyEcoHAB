@@ -1,11 +1,9 @@
 from __future__ import print_function, division
 
 import os
-import csv
 import time
 import numpy as np
-import pylab as plt
-
+import sys
 max_break = 60*60
 
 class Data(object):
@@ -51,8 +49,12 @@ class Data(object):
         self._mask_slice = None
 
     def getproperty(self, mice, propname, astype=None):
-        if isinstance(mice, (str, unicode)):
-            mice = [mice]
+        if sys.version_info < (3, 0):
+            if isinstance(mice, (str, unicode)):
+                mice = [mice]
+        else:
+            if isinstance(mice, str):
+                mice = [mice]
  
         if self.mask is None:
             if astype is None:
@@ -254,7 +256,7 @@ class EcoHabData(Data):
 
         how_many_days = len(self.days)/factor
         for mouse in counters:
-            if counters[mouse] < how_many_appearances or dates[mouse] <= how_many_days:
+            if counters[mouse] < how_many_appearances or len(dates[mouse]) <= how_many_days:
                 if mouse not in ghost_mice:
                     ghost_mice.append(mouse)
    
@@ -438,8 +440,7 @@ class EcoHabSessions(IEcoHabSession):
         self.data['VisitDuration'] = [x[4] for x in tempdata]
         self.data['ValidVisitSolution'] = [x[5] for x in tempdata]
         mice = self._ehd.mice
-        self.mice = filter(lambda x: len(self.getstarttimes(x)) > 30, mice)
-
+        self.mice = [mouse for mouse in mice if len(self.getstarttimes(mouse)) > 30]
         
     def unmask_data(self):
         """Remove the mask - future queries will not be clipped"""
@@ -467,11 +468,13 @@ class EcoHabSessions(IEcoHabSession):
             self._mask_slice = (0, 0)
 
     def getproperty(self, mice, propname, astype=None):
-        if isinstance(mice, (str, unicode)):
-            mice = [mice]
-        # if not isinstance(mice, collections.Container):
-        #     mice = [mice]
- 
+        if sys.version_info < (3, 0):
+            if isinstance(mice, (str, unicode)):
+                mice = [mice]
+        else:
+            if isinstance(mice, str):
+                mice = [mice]
+
         if self.mask is None:
             if astype is None:
                 return [x[0] for x in zip(self.data[propname], 
@@ -756,10 +759,13 @@ class EcoHabSessions9states(Data,IEcoHabSession):
             tott[idx] = sum(durs)
         return totv, tott
     def getproperty(self, mice, propname, astype=None):
-        if isinstance(mice, (str, unicode)):
-            mice = [mice]
-        # if not isinstance(mice, collections.Container):
-        #     mice = [mice]
+        if sys.version_info < (3, 0):
+            if isinstance(mice, (str, unicode)):
+                mice = [mice]
+        else:
+            if isinstance(mice, str):
+                mice = [mice]
+
  
         if self.mask is None:
             if astype is None:
