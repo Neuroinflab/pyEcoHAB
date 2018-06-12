@@ -172,7 +172,76 @@ def make_RasterPlot(main_directory,
                 bbox_inches=None,
                 pad_inches=2,
                 frameon=None)
-    
+
+def raster_interactions(directory,
+                        FAM,
+                        IPP,
+                        phases,
+                        suffix,
+                        mice,
+                        scalefactor=0):
+
+    new_path = utils.check_directory(directory, 'interactions/figs/raster_plots')
+    fname = os.path.join(new_path, 'Interactions_%s.png' % suffix)
+    if not scalefactor:
+        scalefactor = IPP.max()
+
+    dt = np.dtype((np.float, (4,)))
+    new_shape = (len(mice)*(len(mice)-1)//2, FAM.shape[0])
+
+    followings = np.zeros(new_shape, dtype=dt)
+    avoidings = np.zeros(new_shape, dtype=dt)
+    pair_labels = utils.list_of_pairs(mice)
+    phase_range = FAM.shape[0]
+    for i in range(phase_range):
+        l = 0
+        phase = phases[i]
+        for j, mouse in enumerate(mice):
+            for k in range(j+1, len(mice)):
+                if FAM[i, j, k] < 0.05:
+                    if FAM[i, j, k] > 0:
+                        followings[l, i] = (1., 0, 0, IPP[i, j, k]/scalefactor/2 )
+                    elif FAM[i, j, k] < 0:
+                        avoidings [l, i] = (0, 0, 1., IPP[i, j, k]/scalefactor/2)
+                if FAM[i, k, j] < 0.05:
+                    if FAM[i, k, j] > 0:
+                        if np.any(followings[l, i] != 0):
+                            followings[l, i][3] += IPP[i, k, j]/scalefactor/2
+                        else:
+                            followings[l, i] = (1., 0, 0, IPP[i, k, j]/scalefactor/2)
+                    elif FAM[i, k, j] < 0:
+                        if np.any(avoidings != 0):
+                            avoidings[l, i][3] += IPP[i, k, j]*0.5/scalefactor/2
+                        else:
+                            avoidings[l, i] = (0, 0, 1., IPP[i, k, j]/scalefactor/2)
+                l += 1
+                
+   
+    fig = plt.figure(figsize=(phase_range*2, 12))
+    ax = fig.add_subplot(111, aspect='equal')
+    fig.subplots_adjust(left=0.25)
+    plt.imshow(followings, 
+               interpolation='nearest',
+               origin='upper',
+               aspect='auto')
+    plt.imshow(avoidings, 
+               interpolation='nearest',
+               origin='upper',
+               aspect='auto')
+    ax.set_xticks([i for i in range(len(phases))])
+    ax.set_yticks([i for i in range(len(pair_labels))])
+    xlabel = phases[:FAM.shape[0]]
+    ax.set_xticklabels(xlabel[::-1])
+    ax.set_yticklabels(pair_labels)
+    for tick in ax.get_xticklabels():
+            tick.set_rotation(90)
+ 
+    fig.savefig(fname,
+                transparent=False,
+                bbox_inches=None,
+                pad_inches=.2,
+                frameon=None)
+    plt.show()
 def oneRasterPlot(directory,
                   FAM,
                   IPP,
@@ -181,21 +250,23 @@ def oneRasterPlot(directory,
                   scalefactor,
                   mice=[],
                   to_file=True):
-
+    
     if not name:
         name = "oneRasterPlot"
     subdirectory = 'RasterPlots'
-    
-    new_path = utils.check_directory(directory,subdirectory)
-    fig = plt.figure(figsize=(12,12))
+    n_s,n_l,n_f = FAM.shape
+    new_path = utils.check_directory(directory, subdirectory)
+    fig = plt.figure(figsize=(n_s*2, 12))
     ax = fig.add_subplot(111, aspect='equal')
 
     if name:
         plt.suptitle(name, fontsize=14, fontweight='bold')
 
-    n_s,n_l,n_f = FAM.shape
+    xlabels = []
     
-    for s in range(n_s): #phases
+    for s in range(n_s):
+        xlabels.append(phases[s])
+        #phases
         plt.text(0.06+s*0.125,
                  1.025,
                  phases[s],
@@ -220,6 +291,7 @@ def oneRasterPlot(directory,
                         ax.add_patch(patches.Rectangle((
                             s, -1*pos),
                             1 , 1,facecolor=(0,0,1,_IPP[i,j]*0.5/scalefactor)))
+                        
                 if i!=j and abs(_FAM[j,i])<0.05 and _FAM[j,i]>0:
                     ax.add_patch(patches.Rectangle((
                             s, -1*pos),1 , 1,facecolor=(1,0,0,_IPP[j,i]*0.5/scalefactor))) 
@@ -233,35 +305,33 @@ def oneRasterPlot(directory,
                     else:
                         pair_labels.append(mice[i]+'|'+mice[j])
                     pos += 1
-        for i in range(8-n_s):
-            ax.add_patch(patches.Rectangle((
-                                        n_s+i, -pos+1),1, pos,facecolor="lightgrey"))
-    plt.axis([0,8,-pos+1,1])
+        # for i in range(8-n_s):
+        #     ax.add_patch(patches.Rectangle((
+        #                                 n_s+i, -pos+1),1, pos,facecolor="lightgrey"))
+
+    plt.axis([0.5,n_s,-pos-1,1])
     #plt.tight_layout()
     fig.subplots_adjust(left=0.25)
     ax.set_aspect('auto')
     ax.xaxis.grid()
-    ax.xaxis.set_ticklabels([])
+
+    #ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(len(xlabels))])
+    #ax.xaxis.set_ticklabels(xlabels)
+    #for tick in ax.get_xticklabels():
+    #    tick.set_rotation(90)
+    #ax.xaxis.set_label_position('top')
     ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(pos)])
     ax.set_yticklabels(pair_labels,fontsize=10)
     plt.xlabel("session")
     plt.ylabel("following strength in pair")
     plt.savefig(os.path.join(new_path,name+'.png'),transparent=False, bbox_inches=None, pad_inches=2,frameon=None)
-    # plt.show()
-    #plt.close(fig)   
 
-
-def CreateRelationGraphs(FAM,IPP,names,scalefactor,to_file = True,directory = 'InteractionsGraphs'):
-    if not os.path.exists('../Results/'+directory):
-        os.makedirs('../Results/'+directory)
-    for key in names.keys():
-        for exp in range(len(names[key])):
-            n_s,n_l,n_f = FAM[key][exp].shape
-            for s in range(n_s):
-                MakeRelationGraph(FAM[key][exp][s,:,:],IPP[key][exp][s,:,:],exp,s,key,directory,scalefactor,names)
-
-def plot_graph(FAPmatrix,k,sections,directory,labels=None):
+def plot_graph(FAPmatrix, k, sections, directory, labels=None):
+    
+    new_path = utils.check_directory(directory, 'interactions/figs/graphs')
+    csv_path = utils.check_directory(directory, 'interactions/data/graphs')
     d1,d2,d3 = FAPmatrix.shape
+    
     pairs = []       
     for i in range(d2):
         for j in range(d3):
@@ -303,19 +373,19 @@ def plot_graph(FAPmatrix,k,sections,directory,labels=None):
             p = patches.FancyArrowPatch(pos[c[2]],pos[c[1]],connectionstyle='arc3, rad=-0.3',arrowstyle="simple",shrinkA=10.2*size, shrinkB=10.2*size,mutation_scale=20*size*abs(c[0]), color = cmap(c[0]+0.5),zorder=1,alpha=0.5)
             ax.add_patch(p)
     
-    #plt.show()
-    #plt.close(fig)
-    if headers:
-        save_file = u'%s/Interactions_graph_%s.csv'%(directory,sections[k])
-        f = open(save_file,'w')
-        f.write(headers+'\n')
-        for i,l in enumerate(G.nodes()):
-            f.write(labels[i]+';')
-            for j, lab in enumerate(labels): 
-                f.write(str(FAPmatrix[k,i,j])+';')
-            f.write('\n')
-        f.close()
+    # #plt.show()
+    # #plt.close(fig)
+    # if headers:
+    #     save_file = u'%s/Interactions_graph_%s.csv'%(csv_path, sections[k])
+    #     f = open(save_file,'w')
+    #     f.write(headers+'\n')
+    #     for i,l in enumerate(G.nodes()):
+    #         f.write(labels[i]+';')
+    #         for j, lab in enumerate(labels): 
+    #             f.write(str(FAPmatrix[k,i,j])+';')
+    #         f.write('\n')
+    #     f.close()
     
-    plt.savefig('%s/Interactions_graph_%s.png'%(directory,sections[k]))
+    plt.savefig('%s/Interactions_graph_%s.png'%(new_path, sections[k]))
     ##plt.show()
     plt.close(fig) 
