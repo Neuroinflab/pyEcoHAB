@@ -9,25 +9,25 @@ Created on Thu Oct 27 12:48:42 2016
 from __future__ import division,print_function
 
 import EcoHab
-import ConfigParser
+import sys
+if sys.version_info < (3, 0):
+    import ConfigParser
+else:
+    import configparser as ConfigParser
 from ExperimentConfigFile import ExperimentConfigFile
 from experiments_info import smells, antenna_positions
-from plotfunctions import *
 from data_managment import *
 #Third party libraries
 import networkx as nx 
 import numpy as np
 import scipy
 import os
-import pickle
 #Debug libraries
-import time
 import matplotlib.pyplot as plt   
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.colors as mcol
 import matplotlib.patches as patches
-import numpy.random
 import plotfunctions
+import write_to_file as wtf
+import utils
 class Experiment:
     """Class, which represent data from one experiment"""
     def _fix_config(self):
@@ -114,7 +114,7 @@ class Experiment:
         self._remove_phases(mask)
         self.fs = self.ehs.fs
         mice = list(self.ehs.mice)
-        self.mice = filter(lambda x: len(self.ehs.getstarttimes(x)) > 30, mice)
+        self.mice = [mouse for mouse in mice if len(self.ehs.getstarttimes(mouse)) > 30]
         self.lm = len(self.mice)
         self.t_start = self.ehs.data['AbsStartTimecode'][0]
         self.t_end = self.ehs.data['AbsStartTimecode'][-1]
@@ -126,7 +126,8 @@ class Experiment:
                          'AbsEndTimecode',
                          'VisitDuration',
                          'ValidVisitSolution']
-
+        self.prefix = utils.make_prefix(self.path)
+        
     def add_mouse_data(self, other_experiment):
         other_sd = other_experiment.ehs.signal_data
         for mouse in other_experiment.mice:
@@ -172,7 +173,7 @@ class Experiment:
             sessions = filter(lambda x: x.endswith('dark')
                               or x.endswith('light'),
                               self.cf.sections())
-            self.phases = [(self.cf.gettime(sec)[0]-self.tstart ,
+            self.phases = [(self.cf.gettime(sec)[0]-self.tstart,
                             self.cf.gettime(sec)[1]-self.tstart)
                            for sec in sessions]
         elif window == "ALL":
@@ -448,7 +449,6 @@ class Experiment:
         
         follow_stat = {}
         mouse_stats = self.ehs.statistics[mouse]["preference"]
-        #print(mouse2_stats)
         moves = ['24','42','46','64','68','86','82','28']
         for move in moves:
             follow_stat[move] = np.zeros(3)
@@ -461,9 +461,11 @@ class Experiment:
                 index = 0
             else:
                 index = 1
-            follow_stat[move][2] = mouse_stats[int(move[0])][index]/np.sum(mouse_stats[int(move[0])])
+            if np.sum(mouse_stats[int(move[0])]) > 0:
+                follow_stat[move][2] = mouse_stats[int(move[0])][index]/np.sum(mouse_stats[int(move[0])])
+            else:
+                follow_stat[move][2] = 0
         return follow_stat
-
 
     def mouse_indices(self, mouse1, t1, t2):
         sd = self.ehs.signal_data
@@ -478,9 +480,6 @@ class Experiment:
         except IndexError:
             return None
         return [mouse1_idx_start, mouse1_idx_stop, mouse1_indices]
-
-    
-
     
     def findpatterns(self,ii,jj,t1, t2):
     
@@ -508,6 +507,7 @@ class Experiment:
             start_state = int(sd[mouse1][mouse1_indices[i-2]])
             middle_state = int(sd[mouse1][mouse1_indices[i-1]])
             end_state = int(sd[mouse1][start])
+           
             # if abs(start_state-middle_state) !=1 or abs(middle_state-end_state)!=1:
             #     continue
             #print(start_state,middle_state,end_state)
@@ -546,26 +546,31 @@ class Experiment:
                 if same_start and first_mouse1:
 
                     if followed:
-                        #####POPRAWIC
-                        #print(np.ceil((period1.index(sd[mouse1][start]))/self.fs))
+
                         if self.fols!=None:
                             self.fols[np.ceil((period1.index(end_state))/self.fs)]+=1
-                        follow_stat[str(start_state)+str(end_state)][0] += 1 
-                        #print p, sd[mouse1_indices[i-2],mouse1],[index]
+                        try:
+                            follow_stat[str(start_state)+str(end_state)][0] += 1
+                        except KeyError:
+                            print(start_state, middle_state, end_state)
+
                         detected_idx[0].append((ii,jj,start))
 
                     elif go_oposite:
-                        #print np.ceil((period1.index(op_idx))/self.fs)
+
                         if self.ops!=None:
                             self.ops[np.ceil((period1.index(op_idx))/self.fs)]+=1
-                        follow_stat[str(start_state)+str(end_state)][1] += 1
+                        try:
+                            follow_stat[str(start_state)+str(end_state)][1] += 1
+                        except KeyError:
+                            print(start_state, middle_state, end_state)
                         detected_idx[1].append((ii,jj,start))
                                                 
             except IndexError:
                 print('Err')
                 continue
        
-        return np.array(follow_stat.values()), detected_idx
+        return np.array(list(follow_stat.values())), detected_idx
     
     def InteractionsPerPair(self,start,end):
 
@@ -629,7 +634,6 @@ class Experiment:
         avoiding = self.InteractionsPerPair(1,2)
         
         n_s = following.shape[0]
-        print(n_s)
         if not phases:
             phases = self.cf.sections()
         for s in range(n_s):
@@ -642,7 +646,40 @@ class Experiment:
             f = open(os.path.join(new_path,new_fname_2),'w')
             self.write_single_matrix_csv(av,f)
                           
-        
+    def write_tables_to_file(self, what, phases=None):
+        if what == "Following" or what == "following":
+            what = "following"
+            results = self.InteractionsPerPair(0,1)
+  
+        elif what == "Avoiding" or what == "avoiding":
+            what = "avoiding"
+            results = self.InteractionsPerPair(1,2)
+        elif what == "FAM":
+            what = "interactions"
+            results = self.FollowingAvoidingMatrix()
+        else:
+            print("Unknown value %s, available values are following or avoiding" % what)
+            return
+        if phases:
+            if isinstance(phases, list):
+                phases_comment = phases[0]
+                for phase in phases[1:]:
+                    phases_comment += '_' + phase
+            elif isinstance(phases, string):
+                phases_comment = phases
+                phases = [phases]
+            else:
+                print("Unknown phases type, leaving")
+                return
+        else:
+            phases_comment = "all_phases"
+            phases = []
+            for phase in self.cf.sections():
+                if 'dark' in phase or 'DARK' in phase:
+                    phases.append(phase)
+                elif 'light' in phase or 'LIGHT' in phase:
+                    phases.append(phase)
+        wtf.write_csv_tables(results, phases, self.mice, self.directory, what, what, self.prefix)
         
     def plotTubeDominanceRasters(self,name=None,mice=[]):
         
@@ -777,101 +814,6 @@ class Experiment:
             f.write(line+'\n')
         f.close()
     
-def createRandomExpepiments(paths,core='Random_test' ):
-    if not os.path.exists('../PreprocessedData/RandomData/'):
-        os.makedirs('../PreprocessedData/RandomData/')
-    statistics_rd = {}
-    for j in range(len(paths)):
-        rdE = Experiment('Random_test%s'%(j+1),exp_name=core)
-        rdname = 'Random_test%s.pkl'%(j+1)
-        print(rdE.sd.shape)
-        rd = np.zeros(rdE.sd.shape)
-        print('####%s#####'%j)
-        ######Create test file#########
-        for i in range(j,len(paths)+j):
-            E = Experiment(paths[i%len(paths)])
-            print(i, i%E.lm,E.sd.shape)
-            end = np.min([len(rd[:,i%rdE.lm]),len(E.sd[:,i%E.lm])])
-            rd[:end,i%rdE.lm] = E.sd[:end,i%E.lm]
-            statistics_rd[rdE.mice[i%rdE.lm]] =  E.ehs.statistics[E.mice[i%E.lm]]
-            #print statistics_rd[E_t.mice[i%E_t.lm]]["preference"]
-        rdE.mice = rdE.mice[:len(paths)]
-        rdE.lm = len(paths)
-        rdE.sd = rd[:,:end]
-        rdE.ehs.statistics = statistics_rd
-        with open('../PreprocessedData/RandomData/'+rdname, 'wb') as output:
-           pickle.dump(rdE,output,pickle.HIGHEST_PROTOCOL)
-           del rdE
-
-def preprocessData(names,window,ts=3):
-    IPP = {}
-    APP = {}
-    FPP = {}
-    FAM = {}
-    directory = {}
-    phases = {}
-    for key in names.keys():
-        IPP[key] = {}
-        APP[key] = {}
-        FPP[key] = {}
-        FAM[key] = {}
-        directory[key] = {}
-        phases[key] = {}
-        for path in names[key]:
-            print(path)
-            # if key=="RD":
-            #     with open('../PreprocessedData/RandomData/'+path+'.pkl', "rb") as input_file:
-            #         E = pickle.load(input_file)
-            # else:
-            E = Experiment(path, _ant_pos=antenna_positions[path])
-            E.calculate_fvalue(window=window,treshold=ts,force=True)
-            IPP[key][path] = E.InteractionsPerPair(0,2)
-            APP[key][path] = E.InteractionsPerPair(1,2)
-            FPP[key][path] = E.InteractionsPerPair(0,1)
-            FAM[key][path] = E.FollowingAvoidingMatrix()
-            directory[key][path] = E.directory
-            phases[key][path] = E.cf.sections()
-            #E.validatePatterns()
-    return IPP,FPP,APP,FAM,directory, phases
-
-def Interpersec(names,ts=3, directory='InterPerSec'):
-    if not os.path.exists('../Results/%s/'%directory):
-        os.makedirs('../Results/%s/'%directory)
-    for key in names.keys():
-        fols = np.zeros(ts-1)
-        ops  = np.zeros(ts-1)
-        for path in names[key]:
-            print(path)
-            if key=="RD":
-                with open('../PreprocessedData/RandomData/'+path+'.pkl', "rb") as input_file:
-                    E = pickle.load(input_file)
-            else:
-                E = Experiment(path)
-            E.calculate_fvalue(window = 24, treshold =ts, force=True, fols=fols,ops=ops)
-            fols = E.fols
-            ops = E.ops
-        print('###########%s###########'%key)
-        plt.suptitle(key, fontsize=14, fontweight='bold')
-        plt.stem(np.arange(1,ts,1),fols*1./np.sum(fols))
-        plt.ylim(0,0.5)
-        plt.xlabel("time bin [s]")
-        plt.ylabel("avarage number of followings")
-        plt.savefig('../Results/'+directory+'/'+key+'folinsec.png')
-        #plt.show()
-        plt.suptitle(key, fontsize=14, fontweight='bold')
-        plt.stem(np.arange(1,ts,1),ops*1./np.sum(ops))
-        plt.ylim(0,0.5)
-        plt.xlabel("time bin [s]")
-        plt.ylabel("avarage number of avoidance")
-        plt.savefig('../Results/'+directory+'/'+key+'opsinsec.png')
-        #plt.show()
-        plt.suptitle(key, fontsize=14, fontweight='bold')
-        plt.stem(np.arange(1,ts,1),(fols+ops)*1./np.sum(fols+ops))
-        plt.ylim(0,0.5)
-        plt.xlabel("time bin [s]")
-        plt.ylabel("avarage number of interactions")
-        plt.savefig('../Results/'+directory+'/'+key+'interinsec.png')
-        #plt.show()
 
 def binomial_probability(s, p, n):
     prob = 0.0
@@ -907,18 +849,6 @@ def easyFAP(patterns):
     FAPmatrix = np.apply_along_axis(FAprobablity, 3, rawFA)
     return FAPmatrix
     
-def FollowingAvoidingMatrix(names):
-    FAP = {}
-    for key in names.keys(): 
-        print(key)
-        FAP[key] = []
-        for path in names[key]:
-            new_path = utils.check_directory(path,'PreprocessedData/IteractionsData/')
-            fname = os.path.join(new_path,'interactions.npy')
-            patterns = np.load(fname)
-            FAP[key].append(easyFAP(patterns,p=0.5))
-    return FAP
-
 def longest_sequence(FAM):
     DARK = []
     ALL = []
@@ -1003,7 +933,6 @@ if __name__ == "__main__":
             E1.merge_experiment(E2)
         else:
              E1 = Experiment(path=a_dir,_ant_pos=antenna_pos[a_dir], compensate_for_lost_antenna=True)
-        print(E1.fname_ending)
         E1.calculate_fvalue(window=window, treshold=ts)
         IPP[a_dir].append(E1.InteractionsPerPair(0,2))
         FAM[a_dir].append(E1.FollowingAvoidingMatrix())

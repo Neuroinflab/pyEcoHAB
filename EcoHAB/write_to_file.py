@@ -86,7 +86,7 @@ def write_csv_rasters(mice, phases, output, directory, dirname, fname):
     f.close()
 
 def write_csv_tables(results, phases, mice, main_directory, dirname, fname, prefix):
-    new_name = os.join.path(dirname, 'data')
+    new_name = os.path.join(dirname, 'data')
     directory = utils.check_directory(main_directory, new_name)
     fname =  os.path.join(directory, '%s_%s.csv' % (fname, prefix))
     try:
@@ -97,6 +97,14 @@ def write_csv_tables(results, phases, mice, main_directory, dirname, fname, pref
 
     phase_pairs = [phases[2*i]+(len(mice)+2)*';'+ phases[2*i+1]+'\n' for i in range(len(phases)//2)]
     new_results = [(results[2*i], results[2*i+1])for i in range(len(phases)//2)]
+    mice_header = ';'
+
+    for i in range(2):
+        for mouse in mice:
+            mice_header += mouse + ';'
+        if not i:
+            mice_header += ';;'
+    mice_header += '\n'
     
     if len(phases) % 2:
         phase_pairs.append((phases[-1]))
@@ -104,6 +112,7 @@ def write_csv_tables(results, phases, mice, main_directory, dirname, fname, pref
 
     for i, new_pair in enumerate(phase_pairs):
         f.write(new_pair)
+        f.write(mice_header)
         for j, mouse in enumerate(mice):
             for l, nr in enumerate(new_results[i]):
                 f.write(mouse+';')
@@ -141,12 +150,14 @@ def write_csv_alone(alone, phases, mice, main_directory, prefix):
 def make_table_of_pairs(FAM, phases, mice):
     new_shape = (len(mice)*(len(mice)-1)//2, len(phases))
     output = np.zeros(new_shape)
+    pair_labels = utils.list_of_pairs(mice)
     for i, phase in enumerate(phases):
         l = 0
-        pair_labels = []
         for j, mouse in enumerate(mice):
             for k in range(j+1, len(mice)):
                 output[l,i] = FAM[i,j,k]
                 l += 1
-                pair_labels.append(mice[j]+'|'+mice[k])
+
     return output, pair_labels
+
+
