@@ -109,8 +109,7 @@ class Experiment:
                                                 how_many_appearances=h_m_a,
                                                 factor=factor,
                                                 remove_mice=tags,
-                                                compensate_for_lost_antenna=compensate_for_lost_antenna
-        )
+                                                compensate_for_lost_antenna=compensate_for_lost_antenna)
         self._remove_phases(mask)
         self.fs = self.ehs.fs
         mice = list(self.ehs.mice)
@@ -203,7 +202,7 @@ class Experiment:
         for s, (ts, te) in enumerate(self.phases):
             errors[s] = self.calculate_antenna_errors_phase(ts, te)
             
-        self.write_to_file(errors, 'Antennae_errors.csv')
+        self.write_to_file(errors, 'Antennae_errors.csv', subdirectory="antennae_errors")
         return errors
     def calculate_antenna_errors_mouse_phase(self, mouse, t1, t2):
         start = int(self.fs*t1)
@@ -228,7 +227,7 @@ class Experiment:
 
     def calculate_fvalue(self,
                          window='default',
-                         treshold=2,
+                         threshold=2,
                          force=False,
                          fols=None,
                          ops=None,
@@ -236,7 +235,7 @@ class Experiment:
         self.calculate_phases(window=window, which_phase=which_phase)
         self.fols = fols
         self.ops = ops
-        self.treshold = treshold
+        self.threshold = threshold
         self.fpatterns = []
         self.opatterns = []
         l = len(self.phases)
@@ -314,7 +313,6 @@ class Experiment:
         loop.
 
         """
-        self.plot_all(ts, te)
         imatrix = np.zeros((self.lm, self.lm))
         for ii, mouse1 in enumerate(self.mice):
             for jj,mouse2 in enumerate(self.mice):
@@ -511,7 +509,7 @@ class Experiment:
             # if abs(start_state-middle_state) !=1 or abs(middle_state-end_state)!=1:
             #     continue
             #print(start_state,middle_state,end_state)
-            end = start + self.treshold*self.fs
+            end = start + self.threshold*self.fs
 
             unknown_state = end_state == 0 or middle_state == 0 or start_state == 0
             
@@ -595,8 +593,12 @@ class Experiment:
                     matrix[j,i] /= total
         return matrix
 
-    def write_to_file(self, output, fname):
-        new_fname = os.path.join(self.directory, fname)
+    def write_to_file(self, output, fname, subdirectory=""):
+        if subdirectory:
+            new_path = utils.check_directory(self.directory, subdirectory)
+        else:
+            new_path = self.directory
+        new_fname = os.path.join(new_path, fname)
         f = open(new_fname, 'w')
         
         header = 'mouse'
@@ -618,42 +620,104 @@ class Experiment:
                 f.write(str(output[j, i]))
             f.write('\n')
         f.close()
-                          
-    def write_tables_to_file(self, what, phases=None):
+
+    def get_interaction(self, what):
         if what == "Following" or what == "following":
             what = "following"
-            results = self.InteractionsPerPair(0,1)
-  
-        elif what == "Avoiding" or what == "avoiding":
+            return self.InteractionsPerPair(0,1), what
+        if what == "Avoiding" or what == "avoiding":
             what = "avoiding"
-            results = self.InteractionsPerPair(1,2)
-        elif what == "FAM":
+            return self.InteractionsPerPair(1,2), what
+        if what == "FAM":
             what = "interactions"
-            results = self.FollowingAvoidingMatrix()
-        else:
-            print("Unknown value %s, available values are following or avoiding" % what)
-            return
+            return self.FollowingAvoidingMatrix(), what
+       
+        print("Unknown value %s, available values are following or avoiding" % what)
+        return
+    
+    def get_phases(self, phases):
         if phases:
             if isinstance(phases, list):
                 phases_comment = phases[0]
                 for phase in phases[1:]:
                     phases_comment += '_' + phase
-            elif isinstance(phases, string):
+                return phases, phases_comment
+            if isinstance(phases, str):
                 phases_comment = phases
                 phases = [phases]
-            else:
-                print("Unknown phases type, leaving")
-                return
-        else:
-            phases_comment = "all_phases"
-            phases = []
-            for phase in self.cf.sections():
-                if 'dark' in phase or 'DARK' in phase:
+                return phases, phases_comment
+            
+            print("Unknown phases type, leaving")
+            return
+    
+        phases_comment = "all_phases"
+        phases = []
+        for phase in self.cf.sections():
+            if 'dark' in phase or 'DARK' in phase:
+                phases.append(phase)
+            elif 'light' in phase or 'LIGHT' in phase:
                     phases.append(phase)
-                elif 'light' in phase or 'LIGHT' in phase:
-                    phases.append(phase)
-        wtf.write_csv_tables(results, phases, self.mice, self.directory, what, what, self.prefix)
+        print(phases)
+        return phases, phases_comment
+
+    def write_tables_to_file(self, what, phases=None):
+        try:
+            result, what = self.get_interaction(what)
+        except ValueError:
+            return
+        try:
+            phases, phases_comment = self.get_phases(phases)
+        except ValueError:
+            return
+        print('Write %s to'%what)
+        wtf.write_csv_tables(result, phases, self.mice, self.directory, what, what, self.prefix)
         
+    def plot_fam(self, phases=None, scalefactor=0):
+        FAM = self.FollowingAvoidingMatrix()
+        IPP = self.InteractionsPerPair(0,2)
+
+        try:
+            phases, phases_comment = self.get_phases(phases)
+        except ValueError:
+            return
+        suffix = '%s_%s' % (self.prefix, phases_comment)
+        
+        plotfunctions.raster_interactions(self.directory,
+                                          FAM,
+                                          IPP,
+                                          phases,
+                                          suffix,
+                                          self.mice,
+                                          scalefactor=scalefactor)
+        
+        self.write_tables_to_file("FAM", phases=phases)
+        mice = [mouse.split('-')[-1] for mouse in self.mice]
+        for i, fam in enumerate(FAM):
+            plotfunctions.plot_graph(fam, phases[i], self.directory, labels=mice)
+            
+    def generate_heatmaps(self, what, phases=None):
+        
+        try:
+            result, what = self.get_interaction(what)
+        except ValueError:
+            return
+        try:
+            phases, phases_comment = self.get_phases(phases)
+        except ValueError:
+            return
+        vmin, vmax = result.min(), result.max()
+        
+        for i, phase in enumerate(phases):
+            suffix = '%s_%s' % (self.prefix, phase.replace(' ', '_'))
+            plotfunctions.single_heat_map(result[i],
+                                          what,
+                                          self.directory,
+                                          self.mice,
+                                          suffix,
+                                          subdirectory=what,
+                                          vmin=vmin,
+                                          vmax=vmax)
+            
     def plotTubeDominanceRasters(self, name=None, mice=[]):
         subdirectory = 'tube_dominance/figs'
         n_s = self.tube_dominance_matrix.shape[0]
@@ -827,32 +891,24 @@ if __name__ == "__main__":
             E2 = Experiment(path=a_dir,_ant_pos=None, which_phase="CORRECT_ANTENNAS", compensate_for_lost_antenna=True)
             E1.merge_experiment(E2)
         else:
-             E1 = Experiment(path=a_dir,_ant_pos=antenna_pos[a_dir], compensate_for_lost_antenna=True)
-        E1.calculate_fvalue(window=window, treshold=ts)
-        IPP[a_dir].append(E1.InteractionsPerPair(0,2))
-        FAM[a_dir].append(E1.FollowingAvoidingMatrix())
-        sections[a_dir].append(E1.cf.sections())
-        directories[a_dir].append(E1.directory)
+             E1 = Experiment(path=a_dir,_ant_pos=antenna_pos[a_dir], compensate_for_lost_antenna=False)
+        window = 12
+        E1.calculate_fvalue(window=window, threshold=ts)
+        E1.write_tables_to_file("following")
+        E1.write_tables_to_file("avoiding")
+        E1.write_tables_to_file("FAM")
+        E1.generate_heatmaps("following")
+        E1.generate_heatmaps("avoiding")
+        E1.plot_fam()
         
-        endings[a_dir].append(E1.fname_ending)
-        mice1 = []
-        for mouse in E1.mice:
-                mice1.append(mouse.split('-')[-1])
-        mice[a_dir].append(mice1)
-        E1.write_following_avoiding_to_file(fname=a_dir.split('/')[-1])
-        
-    scalefactor = 0
 
-    for a_dir in a_dirs:
-        maxi = 0
+        window = "ALL"
+        E1.calculate_fvalue(window=window, threshold=ts)
         
-        for ipp in IPP[a_dir]:
-            if np.max(ipp) > maxi:
-                maxi = np.max(ipp)
-        scalefactor += maxi
-
-    for a_dir in a_dirs:
-        for i, ipp in enumerate(IPP[a_dir]):
-            plotfunctions.oneRasterPlot(directories[a_dir][i],FAM[a_dir][i],ipp,sections[a_dir][i],'Interactions_ts_'+str(ts)+'_s_'+endings[a_dir][i],scalefactor,mice[a_dir][i])
-            for k,l in enumerate(FAM[a_dir][i]):
-                plotfunctions.plot_graph(FAM[a_dir][i],k,sections[a_dir][i],directories[a_dir][i],labels =mice[a_dir][i])
+        E1.write_tables_to_file("following", phases="ALL")
+        E1.write_tables_to_file("avoiding", phases="ALL")
+        E1.write_tables_to_file("FAM", phases="ALL")
+        E1.generate_heatmaps("following", phases="ALL")
+        E1.generate_heatmaps("avoiding", phases="ALL")
+        E1.plot_fam(phases="ALL")
+                

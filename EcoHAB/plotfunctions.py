@@ -16,16 +16,6 @@ from networkx.drawing.nx_agraph import write_dot
 import matplotlib.colors as mcol
 import matplotlib.patches as patches
 from write_to_file import make_table_of_pairs
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
 
 def autolabel(rects,ax):
         """
@@ -323,7 +313,6 @@ def oneRasterPlot(directory,
 def plot_graph(FAPmatrix, phase, directory, labels=None):
     
     new_path = utils.check_directory(directory, 'interactions/figs/graphs')
-    csv_path = utils.check_directory(directory, 'interactions/data/graphs')
     d2,d3 = FAPmatrix.shape
     
     pairs = []       
@@ -375,8 +364,19 @@ def plot_graph(FAPmatrix, phase, directory, labels=None):
     plt.close(fig) 
 
 
-def single_heat_map(self, result, name, directory, xlabels=None, ylabels=None, subdirectory=None, vmax=None, vmin=None, xticks=None, yticks=None):
-    
+def single_heat_map(result,
+                    name,
+                    directory,
+                    mice,
+                    prefix,
+                    xlabels=None,
+                    ylabels=None,
+                    subdirectory=None,
+                    vmax=None,
+                    vmin=None,
+                    xticks=None,
+                    yticks=None):
+    name = '%s_%s.png' % (name, prefix)
     fig, ax = plt.subplots()
     if not vmin:
         vmin = result.min()
@@ -385,19 +385,26 @@ def single_heat_map(self, result, name, directory, xlabels=None, ylabels=None, s
         
     cax = ax.imshow(result,interpolation='none', aspect='auto', cmap="viridis", origin="lower", vmin=vmin, vmax=vmax)
     cbar = fig.colorbar(cax)
+    turn = False
     if not xlabels:
-        xlabels = self.mice
+        xlabels = [mouse.split('-')[-1] for mouse in mice]
+        turn = True
     if not ylabels:
-        ylabels = self.mice
+        ylabels = [mouse.split('-')[-1] for mouse in mice]
+        fig.subplots_adjust(left=0.25)
+        
     ax.get_yaxis().set_ticks([i for i,x in enumerate(ylabels)])
     ax.get_xaxis().set_ticks([i for i,x in enumerate(xlabels)])
     ax.set_xticklabels(xlabels)
     ax.set_yticklabels(ylabels)
-        
+    if turn:
+        for tick in ax.get_xticklabels():
+            tick.set_rotation(90)
+    
     if subdirectory:
-        dir_name = utils.check_directory(directory, subdirectory)
-        new_name = os.path.join(dir_name, name)
-    else:
-        new_name = os.path.join(directory,name)
-    fig.savefig(new_name+'.png',transparent=False, bbox_inches=None, pad_inches=2,frameon=None)
+        subdirectory = os.path.join(subdirectory, 'figs')
+    dir_name = utils.check_directory(directory, subdirectory)
+    new_name = os.path.join(dir_name, name)
+        
+    fig.savefig(new_name, transparent=False, bbox_inches=None, pad_inches=2, frameon=None)
     

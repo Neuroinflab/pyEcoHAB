@@ -94,11 +94,12 @@ def write_csv_tables(results, phases, mice, main_directory, dirname, fname, pref
     except IOError:
         print('Could not write to ', fname)
         return
-
+    print(fname)
     phase_pairs = [phases[2*i]+(len(mice)+2)*';'+ phases[2*i+1]+'\n' for i in range(len(phases)//2)]
     new_results = [(results[2*i], results[2*i+1])for i in range(len(phases)//2)]
-    mice_header = ';'
 
+    mice_header = ';'
+    
     for i in range(2):
         for mouse in mice:
             mice_header += mouse + ';'
@@ -107,12 +108,15 @@ def write_csv_tables(results, phases, mice, main_directory, dirname, fname, pref
     mice_header += '\n'
     
     if len(phases) % 2:
-        phase_pairs.append((phases[-1]))
-        new_results.append((results[-1]))
-
+        phase_pairs.append((phases[-1]+'\n'))
+        new_results.append((results[-1],))
     for i, new_pair in enumerate(phase_pairs):
         f.write(new_pair)
-        f.write(mice_header)
+        if len(new_results[i]) > 1:
+            f.write(mice_header)
+        else:
+            single = 1+len(mice)*(len(mice[0])+1)
+            f.write(mice_header[:single]+'\n')
         for j, mouse in enumerate(mice):
             for l, nr in enumerate(new_results[i]):
                 f.write(mouse+';')
