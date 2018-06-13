@@ -9,11 +9,15 @@ import EcoHab
 from ExperimentConfigFile import ExperimentConfigFile
 from data_info import *
 from write_to_file import save_data_cvs
+import interactions
 
+homepath = os.path.expanduser("~/")
+threshold = 3
 if __name__ == '__main__':
     
 
-    for path in datasets:
+    for new_path in datasets:
+        path = os.path.join(homepath, new_path)
         prefix = utils.make_prefix(path)
         if path in remove_tags:
             remove_mouse = remove_tags[path]
@@ -57,4 +61,23 @@ if __name__ == '__main__':
         af.mouse_alone_ehs(ehs, cf, directory, prefix)
         af.in_cohort_sociability(ehs, cf, directory, prefix, remove_mouse=remove_mouse)
 
-        
+        #following and avoiding
+        E = interactions.Experiment(path,_ant_pos=antenna_positions[path],which_phase="ALL")
+        E.calculate_antenna_errors()
+        for window in [12, "ALL"]:
+            E.calculate_fvalue(window=window, threshold=threshold, force=True)
+            if window == 12:
+                E.write_tables_to_file("following")
+                E.write_tables_to_file("avoiding")
+                E.write_tables_to_file("FAM")
+                E.generate_heatmaps("following")
+                E.generate_heatmaps("avoiding")
+                E.plot_fam()
+            else:
+                
+                E.write_tables_to_file("following", phases="ALL")
+                E.write_tables_to_file("avoiding", phases="ALL")
+                E.write_tables_to_file("FAM", phases="ALL")
+                E.generate_heatmaps("following", phases="ALL")
+                E.generate_heatmaps("avoiding", phases="ALL")
+                E.plot_fam(phases="ALL")
