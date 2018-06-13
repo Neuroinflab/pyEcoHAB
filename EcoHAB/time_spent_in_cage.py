@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 from __future__ import division, print_function
+
 import EcoHab
 import numpy as np
 import matplotlib.pyplot as plt
@@ -82,7 +84,7 @@ for key in cages['maciek_long']:
     
 def get_visits(mouse_address,mouse_durations,stim_address):
     result = []
-    for address,t in  zip(mouse_address, mouse_durations):
+    for address, t in  zip(mouse_address, mouse_durations):
         if address == stim_address:
             result.append(t)
     return result
@@ -99,7 +101,13 @@ def initialize_data(cf,chamber_dict):
     return visits, times, tt
 
 def find_phases(cf):
-    return [phase for phase in cf.sections() if 'dark' in phase or 'light' in phase]
+    out = []
+    for phase in cf.sections():
+        if 'dark' in phase or 'DARK' in phase:
+            out.append(phase)
+        elif 'light' in phase or 'LIGHT' in phase:
+            out.append(phase)
+    return out
 
 def phase_dictionary(cf):
     return dict([(phase, []) for phase in find_phases(cf)])
@@ -115,11 +123,10 @@ def loop_through_mice(v, t, address, ehs):
         mouse_address = ehs.getaddresses(mouse)
         mouse_durations = ehs.getdurations(mouse)
         v[mouse].append(mouse_address.count(address))
-        t[mouse].append(get_visits(mouse_address,mouse_durations, address))
+        t[mouse].append(get_visits(mouse_address, mouse_durations, address))
 
 def loop_through(visits,times,tt,cf,ehs,chamber_dict,binsize):
     phases = find_phases(cf)
-    tstart, tend = cf.gettime('ALL')
     i = 0
 
     for key in chamber_dict:  
@@ -141,19 +148,19 @@ def loop_through(visits,times,tt,cf,ehs,chamber_dict,binsize):
             tt[phase].append((time-time_start)*binsize/3600.)
             time += binsize
                 
-def results_to_array(visits,times):
+def results_to_array(visits):
     for key in visits:
         for phase in visits[key]:
             for mouse in visits[key][phase]:
                 visits[key][phase][mouse] = np.array(visits[key][phase][mouse])
-                times[key][phase][mouse] = np.array(times[key][phase][mouse])
-                
+                 
 
-def get_time_spent_in_each_chamber(ehs,cf,chamber_dict,binsize):
+def get_time_spent_in_each_chamber(ehs, cf, chamber_dict, binsize):
     
     visits, times, tt = initialize_data(cf,chamber_dict)
     loop_through(visits,times,tt,cf,ehs,chamber_dict,binsize)   
-    results_to_array(visits,times)
+    results_to_array(visits)
+    results_to_array(times)
     out = {}
     for key in visits:
         out[key] = [visits[key], times[key]]
