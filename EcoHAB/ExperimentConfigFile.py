@@ -8,11 +8,14 @@ Copyright (c) 2013 Laboratory of Neuroinformatics. All rights reserved.
 """
 
 import os    
-# import pytz
 import numpy as np                                           
-# tzone = pytz.timezone('Europe/Warsaw')
+import sys
 import time
-from ConfigParser import RawConfigParser, NoSectionError
+if sys.version_info < (3, 0):
+    from ConfigParser import RawConfigParser, NoSectionError
+else:
+    from configparser import RawConfigParser, NoSectionError
+    
 import matplotlib.ticker
 import matplotlib.dates as mpd
 import matplotlib.pyplot as plt
@@ -32,7 +35,7 @@ class ExperimentConfigFile(RawConfigParser, matplotlib.ticker.Formatter):
         else:                  
             self.fname = fname
         self.read(os.path.join(path, self.fname)) 
-        
+   
     def gettime(self, sec): 
         """Convert start and end time and date read from section sec
         (might be a list)

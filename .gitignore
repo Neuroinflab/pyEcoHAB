@@ -6,3 +6,7 @@ PreprocessedData/
 *pdf
 *py~
 *zip
+.idea
+Results*
+*csv
+Circular_data_following

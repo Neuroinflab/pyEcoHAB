@@ -1,0 +1,17 @@
+EcoHAB setup:
+Cage no. 1 -- "home cage", upper right-hand corner.
+Cage no. 3 -- "home cage", lower left-hand corner
+Usually the stimulus is in: cage 4 -- upper left corner.
+Cage 2 is also a stimuls cage
+
+Antennaes -- starting with Cage no 1., clock-wise -- antennaes 1 & 2.
+Cage 2 is between antennaes 2 & 3,
+Cage 3 -||- -||- -||- 4&5
+Cage 4 -||- -||- -||- 6&7
+Cage 1 -||- -||- -||- 1&8
+
+
+Output files --  columns: event no.; date; time; antennae; duration; mouse transponder; tag (7the column)
+
+Reject ghost tags -- transponder ids that do not start with 0065
+
