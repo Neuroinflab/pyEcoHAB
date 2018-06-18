@@ -28,75 +28,154 @@ import numpy as np
 from operator import attrgetter
 from collections import Sequence
 
-class __DataBase(object):
+class DataBase(object):
 
     class MaskManager(object):
         def __init__(self, values):
-            self.__values = np.array(values)
-            self.__cachedMasks = {}
+            self._values = np.array(values)
+            self._cached_masks = {}
 
-        def getMask(self, selector):
+        def get_mask(self, selector):
             """
             >>> mm = ObjectBase.MaskManager([])
-            >>> list(mm.getMask(lambda x: x != 0))
+            >>> list(mm.get_mask(lambda x: x != 0))
             []
 
-            >>> list(mm.getMask(lambda x: x == 0))
+            >>> list(mm.get_mask(lambda x: x == 0))
             []
 
             >>> mm = ObjectBase.MaskManager([1, 2])
-            >>> list(mm.getMask(lambda x: x != 0))
+            >>> list(mm.get_mask(lambda x: x != 0))
             [True, True]
 
-            >>> list(mm.getMask(lambda x: x == 0))
+            >>> list(mm.get_mask(lambda x: x == 0))
             [False, False]
 
-            >>> list(mm.getMask(lambda x: x > 1))
+            >>> list(mm.get_mask(lambda x: x > 1))
             [False, True]
 
-            >>> list(mm.getMask([]))
+            >>> list(mm.get_mask([]))
             [False, False]
 
-            >>> list(mm.getMask([1]))
+            >>> list(mm.get_mask([1]))
             [True, False]
 
-            >>> list(mm.getMask([1, 2]))
+            >>> list(mm.get_mask([1, 2]))
             [True, True]
 
-            >>> list(mm.getMask([3,]))
+            >>> list(mm.get_mask([3,]))
             [False, False]
 
             >>> mm = ObjectBase.MaskManager([u'a', u'a', u'b'])
-            >>> list(mm.getMask(['b']))
+            >>> list(mm.get_mask(['b']))
             [False, False, True]
             """
             if hasattr(selector, '__call__'):
-                return selector(self.__values)
+                return selector(self._values)
             
-            return self.__combineMasks(selector)
+            return self.combine_masks(selector)
 
-        def __combineMasks(self, acceptedValues):
+        def combine_masks(self, acceptedValues):
             if not acceptedValues:
-                return np.zeros_like(self.__values, dtype=bool)
+                return np.zeros_like(self._values, dtype=bool)
 
             # XXX: Python3 fix
-            return self.__sumMasks(list(map(self.__getMasksMatchingValue, acceptedValues)))
+            return self._sum_masks(list(map(self._get_masks_matching_value, acceptedValues)))
 
-        def __sumMasks(self, masks):
+        def _sum_masks(self, masks):
             if len(masks) == 1:
                 return masks[0]
 
             return sum(masks[1:], masks[0])
 
-        def __getMasksMatchingValue(self, value):
+        def _get_masks_matching_value(self, value):
             try:
-                return self.__cachedMasks[value]
+                return self._cached_masks[value]
 
             except KeyError:
-                return self.__makeAndCacheMask(value)
+                return self._make_and_cache_mask(value)
 
-        def __makeAndCacheMask(self, value):
-            mask = self.__values == value
-            self.__cachedMasks[value] = mask
+        def _make_and_cache_mask(self, value):
+            mask = self._values == value
+            self._cachedMasks[value] = mask
             return mask
 
+    def __init__(self, converters={}):
+        """
+        """
+        self.__objects = np.array([], dtype=object)
+        self.__cachedMaskManagers = {}
+        self.__converters = dict(converters)
+
+    def __len__(self):
+        return len(self.__objects)
+
+    def put(self, objects):
+        self.__objects = np.append(self.__objects,
+                                   objects if isinstance(objects, Sequence) else list(objects))
+        self.__cachedMaskManagers.clear()
+
+    def get(self, filters=None):
+        return list(self.__getFilteredObjects(filters))
+
+    def __getFilteredObjects(self, filters):
+        if filters:
+            return self.__objects[self.__getProductOfMasks(filters)]
+
+        return self.__objects
+      
+    def __getProductOfMasks(self, selectors):
+        mask = True
+        for attributeName, selector in selectors.items():
+            mask = mask * self.__getMask(attributeName, selector)
+            
+        return mask
+
+    def __getMask(self, attributeName, selector):
+        return self.__getMaskManager(attributeName).getMask(selector)
+
+    def __getMaskManager(self, attributeName):
+        try:
+            return self.__cachedMaskManagers[attributeName]
+
+        except KeyError:
+            maskManager = self.MaskManager(self.__getConvertedAttributeValues(attributeName))
+        self.__cachedMaskManagers[attributeName] = maskManager
+        return maskManager
+  
+    def __getConvertedAttributeValues(self, attributeName):
+        attributeValues = self.getAttributes(attributeName)
+        if attributeName in self.__converters:
+            # XXX: Python3 fix - makes NumPy array working
+            return list(map(self.__converters[attributeName], attributeValues))
+
+        return attributeValues
+
+    def getAttributes(self, *attributeNames):
+        """
+        >>> ob = ObjectBase()
+        >>> ob.put([ClassA(ClassB(1, 2), 1), ClassA(ClassB(2, 3), 2),
+        ...        ClassA(ClassB(4, 3), 3)])
+        >>> ob.getAttributes('a')
+        [ClassB(c=1, d=2), ClassB(c=2, d=3), ClassB(c=4, d=3)]
+        
+        >>> ob.getAttributes('b')
+        [1, 2, 3]
+        
+        >>> ob.getAttributes('a.c')
+        [1, 2, 4]
+        
+        >>> ob.getAttributes('a.c', 'b')
+        [(1, 1), (2, 2), (4, 3)]
+        
+        >>> ob = ObjectBase()
+        >>> ob.getAttributes('a.c')
+        []
+
+        >>> ob = ObjectBase({'a': lambda x: x.c})
+        >>> ob.put([ClassA(ClassB(1, 2), 1)])
+        >>> ob.getAttributes('a')
+        [ClassB(c=1, d=2)]
+        """
+        # XXX: Python3 fix
+        return list(map(attrgetter(*attributeNames), self.__objects))
