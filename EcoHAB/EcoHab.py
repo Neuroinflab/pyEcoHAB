@@ -5,105 +5,11 @@ import time
 import numpy as np
 import sys
 max_break = 60*60
-from DataBase import DataBase
+from DataBase import Data
 import utils
 from collections import Container
 from operator import methodcaller, attrgetter
 
-class IdentityManager(object):
-    def __getitem__(self, x):
-        return x
-
-class Data(object):
-    
-    def __init__(self,
-                 SourceManager=IdentityManager,
-                 AnimalManager=dict):
-        self.antenna_readouts = DataBase({
-            'Start': toTimestampUTC,
-            'End': toTimestampUTC})
-        self.init_cache()
-        self.animals_by_name = AnimalManager()
-        self.readouts = DataBase({
-            'Start': utils.toTimestampUTC,
-            'End': utils.toTimestampUTC})
-        self.init_cache()
-        
-    def init_cache(self):
-        self.session_start = None
-        self.session_end = None
-
-    def get_readouts(self, mice=None, start=None, end=None, order=None):
-        selectors = self.__makeTimeSelectors('Start', start, end)
-        if mice is not None:
-            if isString(mice) or not isinstance(mice, Container):
-                mice = [mice]
-
-        selectors['Animal.Name'] = map(unicode, mice)  # Name or Tag?
-        readouts = self.readouts.get(selectors)
-        return self.order_by(readouts, order)
-
-    def get_mice(self):
-        return frozenset(self.animals_by_name)
-
-    def get_start(self):
-      
-        if self.session_start is not None:
-            return self.session_start
-
-        start_times = self.readouts.getAttributes('Start')
-        try:
-            return min(start_times)
-        except ValueError:
-            return None
-
-    def get_end(self):
-      
-        if self.session_start is not None:
-            return self.session_start
-
-        end_times = self.readouts.getAttributes('End')
-        try:
-            return max(end_times)
-        except ValueError:
-            return None
-
-    def get_animal(self, name=None):
-        """
-        :param name: name of the animal
-        :type name: unicode convertable or None
-        
-        :return: animal data if name given else names of animals
-        :rtype: :py:class:`Animal` if name given else frozenset([unicode, ...])
-        """
-        if name is not None:
-            return self.animals_by_name[unicode(name)]
-      
-        return frozenset(self.animals_by_name)
-    
-    def add_readouts(self, readouts):
-        new_visits = map(methodcaller('clone',
-                                      self.source_manager,
-                                      self.animals_by_name),
-                         readouts)
-        self.readouts.put(new_readouts)
-        
- 
-    def add_animal(self, rodent):
-        try:
-            animal = self.animals_by_name[rodent.Name]
-        except KeyError:
-            animal = rodent.clone()
-            self.animals_by_name[rodent.Name] = animal
-        else:
-            animal.merge(rodent)
-        return animal
-
-    def order_by(data, order):
-        if order is None:
-            return list(data)
-        key = attrgetter(order) if isString(order) else attrgetter(*order)
-    return sorted(data, key=key)
     
 def parse_fname(fname):
     """"Extracts time and date from data's filename"""
