@@ -1,6 +1,17 @@
 import os
 
-def check_directory(directory,subdirectory):
+EPOCH = datetime(1970,1,1)
+#UTC_OFFSET = time.mktime(EPOCH.timetuple())
+
+EPOCH_UTC = datetime(1970, 1, 1, tzinfo=pytz.UTC)
+
+def toTimestampUTC(x):
+  return (x - EPOCH_UTC).total_seconds()
+
+def toTimestamp(x):
+  return (x - EPOCH).total_seconds()
+
+def check_directory(directory, subdirectory):
     new_path = os.path.join(directory, subdirectory)
     if not os.path.exists(new_path):
         os.makedirs(new_path)

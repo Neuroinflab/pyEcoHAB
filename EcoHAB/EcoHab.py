@@ -1,20 +1,38 @@
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 
 import os
 import time
 import numpy as np
 import sys
 max_break = 60*60
+from DataBase import DataBase
+import utils
+
+class IdentityManager(object):
+  def __getitem__(self, x):
+    return x
 
 class Data(object):
     
-    def __init__(self,data,mask):
-        self.mask = None
-        self._mask_slice = None
-        self.data = data
-        if self.mask:
-            self._cut_out_data(mask)
-            
+    def __init__(self,
+                 SourceManager=IdentityManager,
+                 AnimalManager=dict):
+        self.antenna_readouts = DataBase({
+            'Start': toTimestampUTC,
+            'End': toTimestampUTC})
+        self.init_cache()
+        self.mice = AnimalManager()
+        self.readouts = DataBase({
+            'Start': utils.toTimestampUTC,
+            'End': utils.toTimestampUTC})
+        self.init_cache()
+        
+    def init_cache(self):
+        self.SessionStart = None
+        self.SessionEnd = None
+
+    def get_readouts(self, mice=None, start=None, end=None, order=None):
+        
     def _cut_out_data(self,new_mask):
         mask = self._find_mask_indices(new_mask)
         self.data['Id'] = self.data['Id'][mask[0]:mask[1]]
