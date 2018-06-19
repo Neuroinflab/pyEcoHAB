@@ -7,10 +7,12 @@ import sys
 max_break = 60*60
 from DataBase import DataBase
 import utils
+from collections import Container
+from operator import methodcaller, attrgetter
 
 class IdentityManager(object):
-  def __getitem__(self, x):
-    return x
+    def __getitem__(self, x):
+        return x
 
 class Data(object):
     
@@ -21,83 +23,87 @@ class Data(object):
             'Start': toTimestampUTC,
             'End': toTimestampUTC})
         self.init_cache()
-        self.mice = AnimalManager()
+        self.animals_by_name = AnimalManager()
         self.readouts = DataBase({
             'Start': utils.toTimestampUTC,
             'End': utils.toTimestampUTC})
         self.init_cache()
         
     def init_cache(self):
-        self.SessionStart = None
-        self.SessionEnd = None
+        self.session_start = None
+        self.session_end = None
 
     def get_readouts(self, mice=None, start=None, end=None, order=None):
-        
-    def _cut_out_data(self,new_mask):
-        mask = self._find_mask_indices(new_mask)
-        self.data['Id'] = self.data['Id'][mask[0]:mask[1]]
-        self.data['Time'] = self.data['Time'][mask[0]:mask[1]]
-        
-        self.data['Antenna'] = self.data['Antenna'][mask[0]:mask[1]]
-        self.data['Tag'] = self.data['Tag'][mask[0]:mask[1]]
-        
-    def _find_mask_indices(self,mask):
-        
-        starttime, endtime = mask
-        arr = np.array(self.data['Time'])
-        idcs = np.where((arr >= starttime) & (arr < endtime))[0]
+        selectors = self.__makeTimeSelectors('Start', start, end)
+        if mice is not None:
+            if isString(mice) or not isinstance(mice, Container):
+                mice = [mice]
 
-        if len(idcs) >= 2:
-            return (idcs[0], idcs[-1] + 1)
-        if len(idcs) == 1:
-            return (idcs[0], idcs[0] + 1)
+        selectors['Animal.Name'] = map(unicode, mice)  # Name or Tag?
+        readouts = self.readouts.get(selectors)
+        return self.order_by(readouts, order)
+
+    def get_mice(self):
+        return frozenset(self.animals_by_name)
+
+    def get_start(self):
+      
+        if self.session_start is not None:
+            return self.session_start
+
+        start_times = self.readouts.getAttributes('Start')
+        try:
+            return min(start_times)
+        except ValueError:
+            return None
+
+    def get_end(self):
+      
+        if self.session_start is not None:
+            return self.session_start
+
+        end_times = self.readouts.getAttributes('End')
+        try:
+            return max(end_times)
+        except ValueError:
+            return None
+
+    def get_animal(self, name=None):
+        """
+        :param name: name of the animal
+        :type name: unicode convertable or None
         
-        return (0,0)
+        :return: animal data if name given else names of animals
+        :rtype: :py:class:`Animal` if name given else frozenset([unicode, ...])
+        """
+        if name is not None:
+            return self.animals_by_name[unicode(name)]
+      
+        return frozenset(self.animals_by_name)
     
-    def mask_data(self, starttime, endtime):
-        """mask_data(starttime, endtime)
-        All future queries will be clipped to the visits starting between
-        starttime and endtime."""
-        self.mask = (starttime, endtime) 
-        self._mask_slice = self._find_mask_indices(self.mask)
-
-    def unmask_data(self):
-        """Remove the mask - future queries will not be clipped"""
-        self.mask = None
-        self._mask_slice = None
-
-    def getproperty(self, mice, propname, astype=None):
-        if sys.version_info < (3, 0):
-            if isinstance(mice, (str, unicode)):
-                mice = [mice]
-        else:
-            if isinstance(mice, str):
-                mice = [mice]
+    def add_readouts(self, readouts):
+        new_visits = map(methodcaller('clone',
+                                      self.source_manager,
+                                      self.animals_by_name),
+                         readouts)
+        self.readouts.put(new_readouts)
+        
  
-        if self.mask is None:
-            if astype is None:
-                return [x[0] for x in zip(self.data[propname], 
-                        self.data['Tag']) if x[1] in mice]
-            elif astype == 'float':                          
-                return [float(x[0]) for x in zip(self.data[propname], 
-                        self.data['Tag']) if x[1] in mice]
+    def add_animal(self, rodent):
+        try:
+            animal = self.animals_by_name[rodent.Name]
+        except KeyError:
+            animal = rodent.clone()
+            self.animals_by_name[rodent.Name] = animal
         else:
-            if astype is None:
-                return [x[0] for x in zip(
-                        self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
-                        self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
-                        if x[1] in mice] 
-            elif astype == 'float':
-                return [float(x[0]) for x in zip(
-                        self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
-                        self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
-                        if x[1] in mice]
+            animal.merge(rodent)
+        return animal
 
-    def getantennas(self, mice):
-        return self.getproperty(mice, 'Antenna')
-                                                  
-    def gettimes(self, mice): 
-        return self.getproperty(mice, 'Time', 'float')
+    def order_by(data, order):
+        if order is None:
+            return list(data)
+        key = attrgetter(order) if isString(order) else attrgetter(*order)
+    return sorted(data, key=key)
     
 def parse_fname(fname):
     """"Extracts time and date from data's filename"""
