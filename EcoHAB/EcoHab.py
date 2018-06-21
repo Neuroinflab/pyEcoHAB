@@ -5,7 +5,6 @@ import glob
 import time
 import numpy as np
 import sys
-max_break = 60*60
 from DataBase import Data, AntennaReadOut, Animal
 import utils
 from collections import Container, Counter
@@ -22,12 +21,12 @@ class EcoHabData(Data):
     pattern1 = '*0000.txt'
     pattern2 = '*0000_???.txt'
     read_in_dict  = {
-        5: self.process_line_5,
-        6: self.process_line_6,
-        7: self.process_line_7,             
+        5: utils.process_line_5,
+        6: utils.process_line_6,
+        7: utils.process_line_7,             
     }
     
-    def __init__(self, path, antenna_posistions=None, verbose=False, **kwargs):
+    def __init__(self, path, antenna_positions=None, verbose=False, **kwargs):
         super(EcoHabData,self).__init__()       
         self.path = path
         self.verbose = verbose
@@ -38,24 +37,87 @@ class EcoHabData(Data):
         elif antenna_positions is None:
             self.antenna_positions = self.standard_antenna_positions
             
-        how_many_appearances = kwargs.pop('how_many_appearances',1000) # to exclude fake tags aka ghost mice
+        how_many_appearances = kwargs.pop('how_many_appearances',100) # to exclude fake tags aka ghost mice
         factor = kwargs.pop('factor',2)
         tags = kwargs.pop('remove_mice',[])
-        
-        raw_data = self.read_in_data(self.path)
+        max_break = kwargs.pop('max_break', 60*60)
+        raw_data = self.read_in_data(self.path, how_many_appearances, factor, tags)
         readouts = self.extract_readouts(raw_data)
         self.add_readouts(readouts)
 
-        antenna_breaks = self.check_antenna_presence(max_break)
-        if antenna_breaks:
-            print('Antenna not working')
-            for antenna in antenna_breaks:
-                print(antenna,antenna_breaks[antenna])
-        self.antenna_mismatch()
+        # antenna_breaks = self.check_antenna_presence(max_break)
+        # if antenna_breaks:
+        #     print('Antenna not working')
+        #     for antenna in antenna_breaks:
+        #         print(antenna,antenna_breaks[antenna])
+        # self.antenna_mismatch()
         
-        if mask:
-            self._cut_out_data(mask)
+        # if mask:
+        #     self._cut_out_data(mask)
 
+
+    @staticmethod    
+    def remove_ghost_tags(data, how_many_appearances,factor,tags=[]):
+        new_data = []
+        ghost_mice = set()
+        counters = Counter()
+        dates = {}
+        
+        if isinstance(tags, list):
+            for tag in tags:
+                ghost_mice.add(tag)
+        elif isinstance(tags, str):
+            ghost_mice.add(tags)
+        elif tags in None:
+            pass
+        else:
+            print('Unknown tag format for removal of mice', tags) 
+            
+        for d in data:
+            mouse = d[4]
+            print(mouse)
+            if mouse not in dates:
+                dates[mouse] = Counter()
+            counters[mouse] += 1
+            date = d[1].split()[0]
+ 
+            dates[mouse][date] += 1
+
+        how_many = utils.how_many_days(dates, factor)
+        
+        for mouse in counters:
+            if counters[mouse] < how_many_appearances or len(dates[mouse]) <= how_many:
+                    ghost_mice.add(mouse)
+   
+        for d in data:
+            mouse = d[4]
+            if mouse not in ghost_mice:
+                new_data.append(d)
+
+        return new_data[:]
+    
+    def find_files(self, path):
+        """Finds files in provided directory (path) and reads in data"""
+        fname1 = os.path.join(path, self.pattern1)
+        fname2 = os.path.join(path, self.pattern2)
+        return glob.glob(fname1) + glob.glob(fname2)
+ 
+    def append_data(self, file_list):
+        """Reads in data file"""
+        results = []
+        for fname in file_list:
+            hour, date, datenext = self.parse_fname(fname)
+            single_hour_data = self.read_in_single_file(fname, (hour, date, datenext))
+            results += single_hour_data
+        return results
+    
+ 
+    def read_in_data(self, path, how_many_appearances, factor, tags):
+        files = self.find_files(path)
+        raw_data = self.append_data(files)
+        return self.remove_ghost_tags(raw_data, how_many_appearances, factor, tags)
+
+        
     @staticmethod
     def extract_readouts(data):
         readouts = np.zeros_like(data, dtype=AntennaReadOut)
@@ -67,16 +129,14 @@ class EcoHabData(Data):
                                          Animal=Animal(Tag=data_line[4],))
         return readouts
         
-    @staticmethod
-    def read_in_data(path):
-        files = self.find_files(path)
-        raw_data = self.append_data(files)
-        return self.remove_ghost_mice(raw_data, how_many_appearances, factor, tags=tags)
-    
+
+  
+
     @staticmethod
     def parse_fname(fname):
         """"Extracts time and date from data's filename"""
-
+        fname = os.path.split(fname)[-1]
+            
         hour = fname[9:11]
         date = fname[:8]
         datenext = time.strftime('%Y%m%d',
@@ -84,61 +144,20 @@ class EcoHabData(Data):
 
         return hour, date, datenext
 
-    @staticmethod
-    def process_line_6(elements, datehourobj):
-        """remove point from 2nd column of new data files"""
-        return [elements[0],' '.join([elements[1].replace('.', ''), elements[2]]), elements[3], elements[4], elements[5]]
-
-    @staticmethod
-    def process_line_7(elements, datehourobj):
-        """remove point from 2nd column of new data files"""
-        return [elements[0],' '.join([elements[1].replace('.', ''), elements[2]]), elements[3], elements[4], elements[5], elements[6]]
-
-    @staticmethod
-    def process_line_5(elements, dateobj):
-        """Add date to data (old data files)"""
-        
-        hour, date, datenext = dateobj
-
-        if hour == '23' and elements[1][:2] == '00':
-            elements[1] = ' '.join([datenetxt, elements[1]])
-        else:
-            elements[1] = ' '.join([date, elements[1]])
-        return elements
-
-    @staticmethod
-    def read_in_single_file(file_obj, date_hour_obj):
-        
+    def read_in_single_file(self, fname, date_hour_obj):
+        file_obj = open(fname)
         out = []
         for line in file_obj:
             elements = str.strip(line).split()
             length = len(elements)
             try:
-                out.append(self.read_in_dict[length](elements), date_hour_obj)
+                out += [self.read_in_dict[length](elements, date_hour_obj)]
             except KeyError:
                 raise(IOError('Unknown data format in file %s' %f.name))
         return out
     
-    @staticmethod
-    def append_data(file_list):
-        """Reads in data file"""
-        results = []
-        for fname in file_list:
-            hour, date, datenext = self.parse_fname(fname)
-            f = open(fname)
-            results += self.read_in_single_file(f, (hour, date, datenext))
-        return results
     
-    @staticmethod
-    def find_files(path):
-        """Finds files in provided directory (path) and reads in data"""
-        fname1 = os.path.join(path, self.pattern1)
-        fname2 = os.path.join(path, self.pattern2)
-        return glob.glob(fname1) + glob.glob(fname2)
     
-        for f_name in self._fnames:
-            self.read_file(f_name)
-            self.days.add(f_name.split('_')[0])        
         
     def check_antenna_presence(self):
         t_start = self.get_start()
@@ -197,57 +216,13 @@ class EcoHabData(Data):
 
         return weird_transit
 
-    @staticmethod
-    def how_many_days(dates1, factor1):
-        max_days = max([len(d) for d in dates1[mouse]])
-        return len(max_days)/factor1
     
-    @staticmethod    
-    def remove_ghost_tags(data, how_many_appearances,factor,tags=[]):
-        new_data = []
-        ghost_mice = set()
-        counters = Counter()
-        dates = {}
-        
-        if isinstance(tags, list):
-            for tag in tags:
-                ghost_mice.add(tag)
-        elif isinstance(tags, str):
-            ghost_mice.add(tags)
-        elif tags in None:
-            pass
-        else:
-            print('Unknown tag format for removal of mice', tags) 
-            
-                
-        for d in data:
-            mouse = d[4]
-            if mouse not in dates:
-                dates[mouse] = Counter()
-            counters[mouse] += 1
-            date = d[1].split()[0]
-            dates[mouse][date] += 1
-
-        how_many = how_many_days(dates, factor)
-        
-        for mouse in counters:
-            if counters[mouse] < how_many_appearances or len(dates[mouse]) <= how_many:
-                    ghost_mice.add(mouse)
-   
-        for d in data:
-            mouse = d[4]
-            if mouse not in ghost_mice:
-                new_data.append(d)
-
-        return new_data[:]
                         
     def __repr__ (self):
         """Nice string representation for printing this class."""
         mystring = 'Eco-HAB data loaded from:\n%s\nin the folder%s\n' %(
                    self._fnames.__str__(), self.path) 
         return mystring
-
-   
                             
     @staticmethod
     def convert_time(s): 
@@ -712,13 +687,5 @@ class EcoHabSessions9states(Data,IEcoHabSession):
                         if x[1] in mice]
         
 if __name__ == '__main__':
-    eco = EcoHabData('/home/jszmek/EcoHAB/eh')
-    sessions = EcoHabSessions(eco)
-    i = 0
-    for mouse in eco.mice:
-        totv,tott = sessions.getstats(mouse)
-        if totv == [0,0,0,0] or tott == [0,0,0,0]:
-            
-            i = i+1
-        print(mouse,totv, tott, sum(totv))
-
+    eco = EcoHabData('/home/jszmek/EcoHAB_data_November/Social structure males 02.03/')
+   
