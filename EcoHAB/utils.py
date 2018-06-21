@@ -5,12 +5,17 @@ EPOCH = datetime(1970,1,1)
 
 EPOCH_UTC = datetime(1970, 1, 1, tzinfo=pytz.UTC)
 
-def toTimestampUTC(x):
-  return (x - EPOCH_UTC).total_seconds()
+def to_timestamp_UTC(x):
+    return (x - EPOCH_UTC).total_seconds()
 
-def toTimestamp(x):
-  return (x - EPOCH).total_seconds()
+def to_timestamp(x):
+    return (x - EPOCH).total_seconds()
 
+def is_string(obj):
+    if sys.version_info < (3, 0):
+        return isinstance(obj, basestring)
+    else:
+        return isinstance(obj, str)
 def check_directory(directory, subdirectory):
     new_path = os.path.join(directory, subdirectory)
     if not os.path.exists(new_path):
