@@ -27,80 +27,84 @@ from __future__ import division, print_function, absolute_import
 import numpy as np
 import sys
 from operator import attrgetter
-from collections import Sequence
+from collections import Sequence, namedtuple
 import utils
 
+AntennaReadOut = namedtuple('AntennaReadOut', ['EventId', 'AntennaId', 'Animal', 'Start', 'Duration'])
+Animal = namedtuple('Animal', 'Tag')
+
+class MaskManager(object):
+    def __init__(self, values):
+        self.values = np.array(values)
+        self.cached_masks = {}
+
+    def get_mask(self, selector):
+        """
+        >>> mm = ObjectBase.MaskManager([])
+        >>> list(mm.get_mask(lambda x: x != 0))
+        []
+
+        >>> list(mm.get_mask(lambda x: x == 0))
+        []
+
+        >>> mm = ObjectBase.MaskManager([1, 2])
+        >>> list(mm.get_mask(lambda x: x != 0))
+        [True, True]
+        
+        >>> list(mm.get_mask(lambda x: x == 0))
+        [False, False]
+
+        >>> list(mm.get_mask(lambda x: x > 1))
+        [False, True]
+
+        >>> list(mm.get_mask([]))
+        [False, False]
+
+        >>> list(mm.get_mask([1]))
+        [True, False]
+        
+        >>> list(mm.get_mask([1, 2]))
+        [True, True]
+
+        >>> list(mm.get_mask([3,]))
+        [False, False]
+
+        >>> mm = ObjectBase.MaskManager([u'a', u'a', u'b'])
+        >>> list(mm.get_mask(['b']))
+        [False, False, True]
+        """
+        if hasattr(selector, '__call__'):
+            return selector(self.values)
+        
+        return self.combine_masks(selector)
+
+    def combine_masks(self, acceptedValues):
+        if not acceptedValues:
+            return np.zeros_like(self.values, dtype=bool)
+
+        # XXX: Python3 fix
+        return self.sum_masks(list(map(self.get_cached_masks, acceptedValues)))
+
+    def sum_masks(self, masks):
+        if len(masks) == 1:
+            return masks[0]
+
+        return sum(masks[1:], masks[0])
+
+    def get_cached_masks(self, value):
+        try:
+            return self.cached_masks[value]
+
+        except KeyError:
+            return self.make_and_cache_mask(value)
+
+    def make_and_cache_mask(self, value):
+        mask = self.values == value
+        self.cachedMasks[value] = mask
+        return mask
+
 class DataBase(object):
-
-    class MaskManager(object):
-        def __init__(self, values):
-            self.values = np.array(values)
-            self.cached_masks = {}
-
-        def get_mask(self, selector):
-            """
-            >>> mm = ObjectBase.MaskManager([])
-            >>> list(mm.get_mask(lambda x: x != 0))
-            []
-
-            >>> list(mm.get_mask(lambda x: x == 0))
-            []
-
-            >>> mm = ObjectBase.MaskManager([1, 2])
-            >>> list(mm.get_mask(lambda x: x != 0))
-            [True, True]
-
-            >>> list(mm.get_mask(lambda x: x == 0))
-            [False, False]
-
-            >>> list(mm.get_mask(lambda x: x > 1))
-            [False, True]
-
-            >>> list(mm.get_mask([]))
-            [False, False]
-
-            >>> list(mm.get_mask([1]))
-            [True, False]
-
-            >>> list(mm.get_mask([1, 2]))
-            [True, True]
-
-            >>> list(mm.get_mask([3,]))
-            [False, False]
-
-            >>> mm = ObjectBase.MaskManager([u'a', u'a', u'b'])
-            >>> list(mm.get_mask(['b']))
-            [False, False, True]
-            """
-            if hasattr(selector, '__call__'):
-                return selector(self.values)
-            
-            return self.combine_masks(selector)
-
-        def combine_masks(self, acceptedValues):
-            if not acceptedValues:
-                return np.zeros_like(self.values, dtype=bool)
-
-            # XXX: Python3 fix
-            return self.sum_masks(list(map(self.get_cached_masks, acceptedValues)))
-
-        def sum_masks(self, masks):
-            if len(masks) == 1:
-                return masks[0]
-
-            return sum(masks[1:], masks[0])
-
-        def get_cached_masks(self, value):
-            try:
-                return self.cached_masks[value]
-
-            except KeyError:
-                return self.make_and_cache_mask(value)
-
-        def make_and_cache_mask(self, value):
-            mask = self.values == value
-            self.cachedMasks[value] = mask
-            return mask
+  
 
     def __init__(self, converters={}):
         """
@@ -141,7 +145,7 @@ class DataBase(object):
             return self.cached_mask_managers[attributeName]
 
         except KeyError:
-            maskManager = self.MaskManager(self.get_converted_attribute_values(attributeName))
+            maskManager = MaskManager(self.get_converted_attribute_values(attributeName))
         self.cached_mask_managers[attributeName] = maskManager
         return maskManager
   
@@ -193,14 +197,10 @@ class Data(object):
     def __init__(self,
                  SourceManager=IdentityManager,
                  AnimalManager=dict):
-        self.antenna_readouts = DataBase({
-            'Start': toTimestampUTC,
-            'End': toTimestampUTC})
         self.init_cache()
         self.animals_by_name = AnimalManager()
         self.readouts = DataBase({
-            'Start': utils.to_timestamp_UTC,
-            'End': utils.to_timestamp_UTC})
+            'Start': utils.to_timestamp_UTC,})
         self.init_cache()
         
     def init_cache(self):
@@ -225,20 +225,20 @@ class Data(object):
         if self.session_start is not None:
             return self.session_start
 
-        start_times = self.readouts.getAttributes('Start')
+        start_times = self.readouts.get_attributes('Start')
         try:
             return min(start_times)
         except ValueError:
             return None
-
+        
     def get_end(self):
       
-        if self.session_start is not None:
-            return self.session_start
+        if self.session_end is not None:
+            return self.session_end
 
-        end_times = self.readouts.getAttributes('End')
+        start_times = self.readouts.get_attributes('Start')
         try:
-            return max(end_times)
+            return max(start_times)
         except ValueError:
             return None
 
@@ -302,5 +302,7 @@ class Data(object):
             return {}
         
         return {attributeName: Data.make_time_filter(start, end)}
+
+    
 
     
