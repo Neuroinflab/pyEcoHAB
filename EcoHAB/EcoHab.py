@@ -5,14 +5,11 @@ import glob
 import time
 import numpy as np
 import sys
-from DataBase import Data, AntennaReadOut, Animal
+from DataBase import Data
+from Nodes import AntennaReadOut, Animal
 import utils
 from collections import Container, Counter
 from operator import methodcaller, attrgetter
-
-
-    
-
 
 class EcoHabData(Data):
     """Reads in a folder with data from Eco-HAB"""
@@ -42,9 +39,11 @@ class EcoHabData(Data):
         tags = kwargs.pop('remove_mice',[])
         max_break = kwargs.pop('max_break', 60*60)
         raw_data = self.read_in_data(self.path, how_many_appearances, factor, tags)
-        readouts = self.extract_readouts(raw_data)
-        self.add_readouts(readouts)
 
+        self.add_mice(raw_data)
+        readouts = self.extract_readouts(raw_data, source=self.path)
+        self.add_readouts(readouts)
+       
         # antenna_breaks = self.check_antenna_presence(max_break)
         # if antenna_breaks:
         #     print('Antenna not working')
@@ -75,7 +74,6 @@ class EcoHabData(Data):
             
         for d in data:
             mouse = d[4]
-            print(mouse)
             if mouse not in dates:
                 dates[mouse] = Counter()
             counters[mouse] += 1
@@ -84,8 +82,9 @@ class EcoHabData(Data):
             dates[mouse][date] += 1
 
         how_many = utils.how_many_days(dates, factor)
-        
+        print(how_many)
         for mouse in counters:
+            
             if counters[mouse] < how_many_appearances or len(dates[mouse]) <= how_many:
                     ghost_mice.add(mouse)
    
@@ -93,7 +92,7 @@ class EcoHabData(Data):
             mouse = d[4]
             if mouse not in ghost_mice:
                 new_data.append(d)
-
+       
         return new_data[:]
     
     def find_files(self, path):
@@ -110,27 +109,33 @@ class EcoHabData(Data):
             single_hour_data = self.read_in_single_file(fname, (hour, date, datenext))
             results += single_hour_data
         return results
+
+    def add_mice(self, raw_data):
+        mice = self.get_all_mice(raw_data)
+        for mouse in mice:
+            mouse_obj = Animal(mouse)
+            self.add_animal(mouse_obj)
+            
+    def get_all_mice(self, raw_data):
+        return set(np.array(raw_data)[:,-1])
     
- 
     def read_in_data(self, path, how_many_appearances, factor, tags):
         files = self.find_files(path)
         raw_data = self.append_data(files)
         return self.remove_ghost_tags(raw_data, how_many_appearances, factor, tags)
-
         
     @staticmethod
-    def extract_readouts(data):
-        readouts = np.zeros_like(data, dtype=AntennaReadOut)
+    def extract_readouts(data, source=None):
+        readouts = []
         for i, data_line in enumerate(data):
-            readout[i] = AntennaReadOut(EventId=data_line[0],
-                                         Start=data_line[1],
-                                         AntennaId=data_line[2],
-                                         Duration=data_line[3],
-                                         Animal=Animal(Tag=data_line[4],))
+            time_sec = utils.convert_time(data_line[1])
+            readouts += [AntennaReadOut(EventId=int(data_line[0]),
+                                        Start=time_sec,
+                                        Date=data_line[1],
+                                        AntennaId=int(data_line[2]),
+                                        Duration=float(data_line[3]),
+                                        Animal=Animal(data_line[4]))]
         return readouts
-        
-
-  
 
     @staticmethod
     def parse_fname(fname):
@@ -155,9 +160,6 @@ class EcoHabData(Data):
             except KeyError:
                 raise(IOError('Unknown data format in file %s' %f.name))
         return out
-    
-    
-    
         
     def check_antenna_presence(self):
         t_start = self.get_start()
@@ -224,12 +226,7 @@ class EcoHabData(Data):
                    self._fnames.__str__(), self.path) 
         return mystring
                             
-    @staticmethod
-    def convert_time(s): 
-        """Convert date and time to seconds since epoch"""
-        actual_date, millisec = s.split('.')
-        sec_to_epoch = time.mktime(time.strptime(actual_date, '%Y%m%d %H:%M:%S'))
-        return sec_to_epoch + float(millisec)/1000
+   
     
     def checkData_one_mouse(self,mouse):
         antennas = self.getantennas(mouse)

@@ -26,12 +26,14 @@
 from __future__ import division, print_function, absolute_import
 import numpy as np
 import sys
-from operator import attrgetter
-from collections import Sequence, namedtuple
+from operator import attrgetter, methodcaller
+from datetime import datetime
+from collections import Sequence, namedtuple, Container
 import utils
+from Nodes import Animal
 
-AntennaReadOut = namedtuple('AntennaReadOut', ['EventId', 'AntennaId', 'Animal', 'Start', 'Duration'])
-Animal = namedtuple('Animal', 'Tag')
+if sys.version_info >= (3, 0):
+  unicode = str
 
 class MaskManager(object):
     def __init__(self, values):
@@ -100,7 +102,7 @@ class MaskManager(object):
 
     def make_and_cache_mask(self, value):
         mask = self.values == value
-        self.cachedMasks[value] = mask
+        self.cached_masks[value] = mask
         return mask
 
 class DataBase(object):
@@ -110,7 +112,7 @@ class DataBase(object):
         """
         """
         self.objects = np.array([], dtype=object)
-        self.cachedMaskManagers = {}
+        self.cached_mask_managers = {}
         self.converters = dict(converters)
 
     def __len__(self):
@@ -119,7 +121,7 @@ class DataBase(object):
     def put(self, objects):
         self.objects = np.append(self.objects,
                                    objects if isinstance(objects, Sequence) else list(objects))
-        self.cachedMaskManagers.clear()
+        self.cached_mask_managers.clear()
 
     def get(self, filters=None):
         return list(self.get_filtered_objects(filters))
@@ -195,7 +197,6 @@ class IdentityManager(object):
 class Data(object):
     
     def __init__(self,
-                 SourceManager=IdentityManager,
                  AnimalManager=dict):
         self.init_cache()
         self.animals_by_name = AnimalManager()
@@ -212,8 +213,8 @@ class Data(object):
         if mice is not None:
             if utils.is_string(mice) or not isinstance(mice, Container):
                 mice = [mice]
-
-        selectors['Animal.Name'] = map(unicode, mice)  # Name or Tag?
+       
+        selectors['Animal.Tag'] = map(unicode, mice)  # Name or Tag?
         readouts = self.readouts.get(selectors)
         return self.order_by(readouts, order)
 
@@ -257,21 +258,20 @@ class Data(object):
     
     def add_readouts(self, readouts):
         new_readouts = map(methodcaller('clone',
-                                      self.source_manager,
                                       self.animals_by_name),
                          readouts)
         self.insert_readouts(new_readouts)
         
-    def insert_readouts(self, readouts)
+    def insert_readouts(self, readouts):
         self.readouts.put(readouts)
         
  
     def add_animal(self, rodent):
         try:
-            animal = self.animals_by_name[rodent.Name]
+            animal = self.animals_by_name[rodent.Tag]
         except KeyError:
             animal = rodent.clone()
-            self.animals_by_name[rodent.Name] = animal
+            self.animals_by_name[rodent.Tag] = animal
         else:
             animal.merge(rodent)
         return animal
