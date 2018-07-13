@@ -1,12 +1,13 @@
+from __future__ import division, print_function
 import os
 import utils
 import numpy as np
 
 def write_single_chamber(f, header, heads, address, mice, phases, time, data_stim ):
-    for j,h in enumerate(heads):
+    
+    for j, h in enumerate(heads):
         f.write(h%address)
         f.write(header+'\n')
-        
         for i, mouse in enumerate(mice):
             
             lines = [mouse for i in data_stim[j][phases[0]][mouse]]
@@ -15,6 +16,7 @@ def write_single_chamber(f, header, heads, address, mice, phases, time, data_sti
                 for k,t in enumerate(time[phase]):
                     if phase == phases[0]:
                         lines[k] += ';%3.2f'%(t/3600)
+
                     lines[k] += ';'+str(data_stim[j][phase][mouse][k])
                                                                 
             for line in lines:
@@ -25,7 +27,6 @@ def save_data_cvs(data, fname, path, which, headers):
     if not os.path.exists(new_path):
         os.makedirs(new_path)
     fname = os.path.join(new_path, fname)
-    print(fname)
     f = open(fname,'w')
     phases = data['phases']
     mice = data['mice']
@@ -94,7 +95,6 @@ def write_csv_tables(results, phases, mice, main_directory, dirname, fname, pref
     except IOError:
         print('Could not write to ', fname)
         return
-    print(fname)
     phase_pairs = [phases[2*i]+(len(mice)+2)*';'+ phases[2*i+1]+'\n' for i in range(len(phases)//2)]
     new_results = [(results[2*i], results[2*i+1])for i in range(len(phases)//2)]
 
