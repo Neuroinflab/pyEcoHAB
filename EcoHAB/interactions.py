@@ -163,7 +163,7 @@ class Experiment:
         self._merge_config(other_experiment)
         self.t_start = min(self.ehs.data['AbsStartTimecode'])
         self.t_end = max(self.ehs.data['AbsStartTimecode'])
-        add = "_"+other_experiment.fname_ending+"_merged_"
+        add = ""#"_"+other_experiment.fname_ending+"_merged_"
         self.fname_ending = self.fname_ending + add
 
     def calculate_phases(self, window='default', which_phase='ALL'):
