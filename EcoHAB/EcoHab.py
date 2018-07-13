@@ -224,7 +224,7 @@ class EcoHabData(Data):
         
         data['Antenna'] = [self._ant_pos[d[2]] for d in self.rawdata]
         data['Tag'] = [d[4] for d in self.rawdata]
-        super(EcoHabData,self).__init__(data,mask)
+        super(EcoHabData,self).__init__(data, mask)
         antenna_breaks = self.check_antenna_presence()
         if antenna_breaks:
             print('Antenna not working')
@@ -235,7 +235,25 @@ class EcoHabData(Data):
         if mask:
             self._cut_out_data(mask)
           
+    def merge_experiment(self, other):
+        assert self.mice == other.mice
+        self.mask = None
+        self._mask_slice = None
+        t_mine = min(self.data['Time'])
+        t_other = min(other.data['Time'])
         
+        if t_other < t_mine:
+            assert max(other.data['Time']) < t_mine
+            new_data = {}
+            for key in other.data:
+                new_data[key] = other_data[key][:]
+                new_data[key].append(self.data['key'])
+            self.data = new_data
+        elif t_mine < t_other:
+            assert max(self.data['Time']) < t_other
+            for key in self.data:
+                self.data[key].append(other.data[key])
+                
     def remove_ghost_tags(self, how_many_appearances,factor,tags=[]):
         new_data = []
         ghost_mice = []
@@ -273,60 +291,6 @@ class EcoHabData(Data):
                    self._fnames.__str__(), self.path) 
         return mystring
 
-    # def _find_mask_indices(self,mask):
-        
-    #     starttime, endtime = mask
-    #     arr = np.array(self.data['Time'])
-    #     idcs = np.where((arr >= starttime) & (arr < endtime))[0]
-
-    #     if len(idcs) >= 2:
-    #         return (idcs[0], idcs[-1] + 1)
-    #     if len(idcs) == 1:
-    #         return (idcs[0], idcs[0] + 1)
-        
-    #     return (0,0)
-    
-    # def mask_data(self, starttime, endtime):
-    #     """mask_data(starttime, endtime)
-    #     All future queries will be clipped to the visits starting between
-    #     starttime and endtime."""
-    #     self.mask = (starttime, endtime) 
-    #     self._mask_slice = self._find_mask_indices(self.mask)
-
-    # def unmask_data(self):
-    #     """Remove the mask - future queries will not be clipped"""
-    #     self.mask = None
-    #     self._mask_slice = None
-
-    # def getproperty(self, mice, propname, astype=None):
-    #     if isinstance(mice, (str, unicode)):
-    #         mice = [mice]
- 
-    #     if self.mask is None:
-    #         if astype is None:
-    #             return [x[0] for x in zip(self.data[propname], 
-    #                     self.data['Tag']) if x[1] in mice]
-    #         elif astype == 'float':                          
-    #             return [float(x[0]) for x in zip(self.data[propname], 
-    #                     self.data['Tag']) if x[1] in mice]
-    #     else:
-    #         if astype is None:
-    #             return [x[0] for x in zip(
-    #                     self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
-    #                     self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
-    #                     if x[1] in mice] 
-    #         elif astype == 'float':
-    #             return [float(x[0]) for x in zip(
-    #                     self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
-    #                     self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
-    #                     if x[1] in mice]
-
-    # def getantennas(self, mice):
-    #     return self.getproperty(mice, 'Antenna')
-                                                  
-    # def gettimes(self, mice): 
-    #     return self.getproperty(mice, 'Time', 'float')
-                            
     @staticmethod
     def convert_time(s): 
         """Convert date and time to seconds since epoch"""
