@@ -89,7 +89,7 @@ class Experiment:
         h_m_a = kwargs.pop('how_many_appearances', 1000)
         factor = kwargs.pop('factor', 2)
         tags = kwargs.pop('remove_mice', [])
-        compensate_for_lost_antenna = kwargs.pop('compensate_for_lost_antenna', False)
+        self.compensate_for_lost_antenna = kwargs.pop('compensate_for_lost_antenna', False)
         if kwargs:
             raise Exception('Too many arguments for class Experiment')
         self.directory = utils.results_path(path)
@@ -109,7 +109,7 @@ class Experiment:
                                                 how_many_appearances=h_m_a,
                                                 factor=factor,
                                                 remove_mice=tags,
-                                                compensate_for_lost_antenna=compensate_for_lost_antenna)
+                                                compensate_for_lost_antenna=self.compensate_for_lost_antenna)
         self._remove_phases(mask)
         self.fs = self.ehs.fs
         mice = list(self.ehs.mice)
@@ -117,6 +117,7 @@ class Experiment:
         self.lm = len(self.mice)
         self.t_start = self.ehs.data['AbsStartTimecode'][0]
         self.t_end = self.ehs.data['AbsStartTimecode'][-1]
+        
         self.fname_ending = which_phase
         self.phases = None
         self.key_list = ['Address',
@@ -594,11 +595,15 @@ class Experiment:
         return matrix
 
     def write_to_file(self, output, fname, subdirectory=""):
+        if self.compensate_for_lost_antenna:
+            fname = '%s_comp_for_lost_antenna' % fname
         if subdirectory:
             new_path = utils.check_directory(self.directory, subdirectory)
         else:
             new_path = self.directory
+        
         new_fname = os.path.join(new_path, fname)
+        
         f = open(new_fname, 'w')
         
         header = 'mouse'
@@ -638,9 +643,7 @@ class Experiment:
     def get_phases(self, phases):
         if phases:
             if isinstance(phases, list):
-                phases_comment = phases[0]
-                for phase in phases[1:]:
-                    phases_comment += '_' + phase
+                phases_comment = 'from_%s_to_%s' % (phases[0].replace(' ',''), phases[-1].replace(' ',''))
                 return phases, phases_comment
             if isinstance(phases, str):
                 phases_comment = phases
@@ -657,7 +660,7 @@ class Experiment:
                 phases.append(phase)
             elif 'light' in phase or 'LIGHT' in phase:
                     phases.append(phase)
-        print(phases)
+
         return phases, phases_comment
 
     def write_tables_to_file(self, what, phases=None):
@@ -670,7 +673,11 @@ class Experiment:
         except ValueError:
             return
         print('Write %s to'%what)
-        wtf.write_csv_tables(result, phases, self.mice, self.directory, what, what, self.prefix)
+
+        fname = '%s_%s' % (what, phases_comment)
+        if self.compensate_for_lost_antenna:
+            fname = '%s_comp_for_lost_antenna' %fname
+        wtf.write_csv_tables(result, phases, self.mice, self.directory, what, fname, self.prefix)
         
     def plot_fam(self, phases=None, scalefactor=0):
         FAM = self.FollowingAvoidingMatrix()
