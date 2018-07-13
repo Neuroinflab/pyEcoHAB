@@ -4,6 +4,7 @@ Created on Fri Mar 24 13:38:58 2017
 
 @author: Jan Maka
 """
+from __future__ import division, print_function
 from matplotlib.dates import epoch2num
 import matplotlib.patches as patches
 import numpy as np
@@ -18,14 +19,15 @@ import matplotlib.patches as patches
 from write_to_file import make_table_of_pairs
 
 def autolabel(rects,ax):
-        """
-        Attach a text label above each bar displaying its height
-        """
-        for rect in rects:
-            height = rect.get_height()
-            ax.text(rect.get_x() + rect.get_width()/2., 1.05*height,
-                    '%d' % int(height),
-                    ha='center', va='bottom')
+    """
+
+    Attach a text label above each bar displaying its height
+    """
+    for rect in rects:
+        height = rect.get_height()
+        ax.text(rect.get_x() + rect.get_width()/2., 1.05*height,
+                '%d' % int(height),
+                ha='center', va='bottom')
 
 def single_barplot(stats,directory, groups,colors,name = "",ylab = "",titles=""):
 
@@ -157,7 +159,9 @@ def make_RasterPlot(main_directory,
     ax.set_yticklabels(pair_labels)
     for tick in ax.get_xticklabels():
             tick.set_rotation(90)
-
+            
+    fig.subplots_adjust(left=0.25)
+    fig.subplots_adjust(bottom=0.25)
     name = name + prefix
     new_name = os.path.join(new_path, name+'.png')
     plt.savefig(new_name,
@@ -228,7 +232,8 @@ def raster_interactions(directory,
     ax.set_yticklabels(pair_labels)
     for tick in ax.get_xticklabels():
             tick.set_rotation(90)
- 
+    fig.subplots_adjust(left=0.25)
+    fig.subplots_adjust(bottom=0.25)
     fig.savefig(fname,
                 transparent=False,
                 bbox_inches=None,
@@ -302,6 +307,7 @@ def oneRasterPlot(directory,
     plt.axis([0.5,n_s,-pos-1,1])
     #plt.tight_layout()
     fig.subplots_adjust(left=0.25)
+    fig.subplots_adjust(bottom=0.25)
     ax.set_aspect('auto')
     ax.xaxis.grid()
     ax.get_yaxis().set_ticks([-1*i+0.5 for i in range(pos)])
@@ -405,6 +411,7 @@ def single_heat_map(result,
         subdirectory = os.path.join(subdirectory, 'figs')
     dir_name = utils.check_directory(directory, subdirectory)
     new_name = os.path.join(dir_name, name)
-        
+    fig.subplots_adjust(left=0.25)
+    fig.subplots_adjust(bottom=0.25)
     fig.savefig(new_name, transparent=False, bbox_inches=None, pad_inches=2, frameon=None)
     
