@@ -15,8 +15,6 @@ datasets = [
     'EcoHAB_data_November/C57 males TIMP/',
     'EcoHAB_data_November/BTBR males/',
     'EcoHAB_data_November/long_experiment_WT',
-    'EcoHAB_data_November/long_experiment_KO_mismatched_antennas_to_phase_SNIFF_10_dark',
-    'EcoHAB_data_November/long_experiment_KO_from_phase_SNIFF_10_dark',
     'EcoHAB_data_November/Maciek_01_30_2018',
     'EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/',
     'EcoHAB_data_November/Eksperyment_A.Krzemień_22-25.05.2018/',
