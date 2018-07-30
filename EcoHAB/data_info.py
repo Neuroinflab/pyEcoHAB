@@ -23,6 +23,11 @@ datasets = [
     "EcoHAB_data_November/FXKO_F_S_EHcl_familiar/",
     "EcoHAB_data_November/C57 males reward-neutral 26.06-01.07.18",
     "EcoHAB_data_November/FXKO_F_10_L_EHcl_12.06-22.06_rep1",
+    "EcoHAB_data_November/long_experiment_KO_mismatched_antennas_to_phase_SNIFF_10_dark/",
+    "EcoHAB_data_November/long_experiment_KO_from_phase_SNIFF_10_dark/",
+    "EcoHAB_data_November/C57 males reward-neutral control 16.07-20.07.18/",
+    "EcoHAB_data_November/WT_long_03-13.07.2018_Asia/",
+    "EcoHAB_data_November/males_social_dominance_21-25.07.2018-Maciek/"
 ]
 
 remove_tags = {
@@ -33,10 +38,11 @@ remove_tags = {
 how_many_appearances = {
     'EcoHAB_data_November/C57 males rep 2/':1000,
     'EcoHAB_data_November/BTBR males/':500,
-    'EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/':200
+    'EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/':200,
+    "EcoHAB_data_November/males_social_dominance_21-25.07.2018-Maciek/":200
 }
 antenna_positions = {
-    'EcoHAB_data_November/long_experiment_KO_mismatched_antennas_to_phase_SNIFF_10_dark':{'1': 1,
+    'EcoHAB_data_November/long_experiment_KO_mismatched_antennas_to_phase_SNIFF_10_dark/':{'1': 1,
                                                                                           '2': 5,
                                                                                           '3': 3,
                                                                                           '4': 6,
