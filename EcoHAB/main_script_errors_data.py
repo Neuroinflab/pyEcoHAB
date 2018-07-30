@@ -24,7 +24,7 @@ if __name__ == '__main__':
     new_path = os.path.join(homepath, path)
     remove_mouse = []
     prefix = utils.make_prefix(path)
-
+    print(antenna_pos[path])
     ehd = EcoHab.EcoHabData(path=new_path,_ant_pos=antenna_pos[path],
                              which_phase="WRONG_ANTENNAS",
                              how_many_appearances=500)
@@ -32,12 +32,17 @@ if __name__ == '__main__':
                              which_phase="CORRECT_ANTENNAS",
                               how_many_appearances=500)
     ehd.merge_experiment(ehd2)
+    directory = utils.results_path(new_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    print(directory)
     ehs = EcoHab.EcoHabSessions(ehd)
     cf = ExperimentConfigFile(new_path)
     tstart, tend = cf.gettime('ALL')
     for binsize in binsizes:
         print('Binsize ',binsize/3600)
-        results_path = utils.results_path(path)
+        results_path = utils.results_path(new_path)
+        print(results_path)
         fname_all_chambers = 'collective_results_all_chambers_binsize_%f_h.csv'%(binsize//3600)
         try:
             cages = non_standard_cages[path]
@@ -54,10 +59,7 @@ if __name__ == '__main__':
 
        
         
-        directory = utils.results_path(path)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        af.mouse_alone_ehs(ehs, cf, directory, prefix)
-        af.in_cohort_sociability(ehs, cf, directory, prefix, remove_mouse=remove_mouse)
+    af.mouse_alone_ehs(ehs, cf, directory, prefix)
+    af.in_cohort_sociability(ehs, cf, directory, prefix, remove_mouse=remove_mouse)
 
             

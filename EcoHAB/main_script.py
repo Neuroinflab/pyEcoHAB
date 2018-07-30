@@ -20,20 +20,21 @@ if __name__ == '__main__':
         for compensate_for_lost_antenna in [True, False]:
             path = os.path.join(homepath, new_path)
             prefix = utils.make_prefix(path)
-            if path in remove_tags:
-                remove_mouse = remove_tags[path]
+            if new_path in remove_tags:
+                remove_mouse = remove_tags[new_path]
             else:
                 remove_mouse = None
-            if path not in antenna_positions:
-                antenna_positions[path] = None
+            if new_path not in antenna_positions:
+                antenna_positions[new_path] = None
             if remove_mouse:
                 ehd = EcoHab.EcoHabData(path=path,
-                                        _ant_pos=antenna_positions[path],
+                                        _ant_pos=antenna_positions[new_path],
                                         remove_mice=remove_mouse,
-                                        how_many_appearances=how_many_appearances[path])
+                                        how_many_appearances=how_many_appearances[new_path])
             else:
                 ehd = EcoHab.EcoHabData(path=path,
-                                        _ant_pos=antenna_positions[path])
+                                        _ant_pos=antenna_positions[new_path],
+                                        how_many_appearances=how_many_appearances[new_path])
 
             ehs = EcoHab.EcoHabSessions(ehd)
             cf = ExperimentConfigFile(path)
@@ -58,9 +59,10 @@ if __name__ == '__main__':
        
             #following and avoiding
             E = interactions.Experiment(path,
-                                        _ant_pos=antenna_positions[path],
+                                        _ant_pos=antenna_positions[new_path],
                                         which_phase="ALL",
-                                        compensate_for_lost_antenna=compensate_for_lost_antenna)
+                                        compensate_for_lost_antenna=compensate_for_lost_antenna,
+                                        how_many_appearances=how_many_appearances[new_path])
             E.calculate_antenna_errors()
             for window in [12, "ALL"]:
                 E.calculate_fvalue(window=window, threshold=threshold, force=True)

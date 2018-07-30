@@ -25,6 +25,7 @@ def write_single_chamber(f, header, heads, address, mice, phases, time, data_sti
 def save_data_cvs(data, fname, path, which, headers):
     new_path = os.path.join(path, 'time_in_chambers')
     if not os.path.exists(new_path):
+        print(new_path)
         os.makedirs(new_path)
     fname = os.path.join(new_path, fname)
     f = open(fname,'w')
