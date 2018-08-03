@@ -192,7 +192,7 @@ class EcoHabData(Data):
         for pair in pairs:
             mismatches[pair] = weird_transit[1].count(pair)
             print(pair, mismatches[pair],np.round(100*mismatches[pair]/len(self.data['Antenna'])),'per 100')
-
+        print(len(self.data['Antenna']))
         return weird_transit
 
     def __init__(self,**kwargs):# path, _ant_pos=None,mask=None):
