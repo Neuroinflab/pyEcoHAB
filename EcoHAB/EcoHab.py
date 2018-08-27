@@ -229,7 +229,9 @@ class EcoHabData(Data):
         if antenna_breaks:
             print('Antenna not working')
             for antenna in antenna_breaks:
-                print(antenna,antenna_breaks[antenna])
+                print(antenna, ':')
+                for breaks in antenna_breaks[antenna]:
+                    print(self.print_time_human(breaks[0]),  self.print_time_human(breaks[1]))
         self.antenna_mismatch()
         
         if mask:
@@ -291,6 +293,11 @@ class EcoHabData(Data):
                    self._fnames.__str__(), self.path) 
         return mystring
 
+    @staticmethod
+    def print_time_human(tt):
+        """convert seconds to date and time since epoch """
+        st = time.localtime(tt)
+        return time.asctime(st)
     @staticmethod
     def convert_time(s): 
         """Convert date and time to seconds since epoch"""
