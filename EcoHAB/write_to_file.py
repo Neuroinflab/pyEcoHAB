@@ -46,6 +46,7 @@ def save_single_histograms(result, fname, mice, phase, main_directory, directory
     directory = utils.check_directory(main_directory, new_name)
     if isinstance(additional_info, str):
         fname =  os.path.join(directory, '%s_%s_%s_%s.csv'% (fname, prefix, phase, additional_info))
+        
     else:
         fname =  os.path.join(directory, '%s_%s_%s.csv'% (fname, prefix, phase))
     try:
@@ -53,6 +54,7 @@ def save_single_histograms(result, fname, mice, phase, main_directory, directory
     except IOError:
         print('Could not write to file', fname)
         return None
+    print(fname)
     for i, mouse in enumerate(mice):
         f.write(';'+mouse)
     f.write(';\n')
