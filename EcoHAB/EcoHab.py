@@ -204,7 +204,9 @@ class EcoHabData(Data):
         how_many_appearances = kwargs.pop('how_many_appearances',1000)
         factor = kwargs.pop('factor',2)
         tags = kwargs.pop('remove_mice',[])
-        self.rawdata = self.remove_ghost_tags(how_many_appearances,factor,tags=tags)
+        self.rawdata = self.remove_ghost_tags(how_many_appearances,
+                                              factor,
+                                              tags=tags)
         self.mice = list(set([d[4] for d in self.rawdata]))
         self.rawdata.sort(key=lambda x: self.convert_time(x[1]))
         _ant_pos = kwargs.pop('_ant_pos',None)
@@ -225,6 +227,7 @@ class EcoHabData(Data):
         data['Antenna'] = [self._ant_pos[d[2]] for d in self.rawdata]
         data['Tag'] = [d[4] for d in self.rawdata]
         super(EcoHabData,self).__init__(data, mask)
+        print(data['Time'])
         antenna_breaks = self.check_antenna_presence()
         if antenna_breaks:
             print('Antenna not working')
@@ -256,7 +259,7 @@ class EcoHabData(Data):
             for key in self.data:
                 self.data[key].append(other.data[key])
                 
-    def remove_ghost_tags(self, how_many_appearances,factor,tags=[]):
+    def remove_ghost_tags(self, how_many_appearances, factor, tags=[]):
         new_data = []
         ghost_mice = []
         counters = {}
@@ -279,7 +282,6 @@ class EcoHabData(Data):
             if counters[mouse] < how_many_appearances or len(dates[mouse]) <= how_many_days:
                 if mouse not in ghost_mice:
                     ghost_mice.append(mouse)
-   
         for d in self.rawdata:
             mouse = d[4]
             if mouse not in ghost_mice:
