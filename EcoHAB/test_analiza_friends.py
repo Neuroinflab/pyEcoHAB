@@ -1,9 +1,10 @@
 from __future__ import print_function, division, absolute_import
 import os
+import EcoHAB
 import unittest
 import numpy as np
-
 import analiza_friends as af
+ 
 
 try:
   basestring
@@ -11,7 +12,12 @@ except NameError:
   basestring = str
 
 class testAnalizaFriends(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(EcoHAB.sample_data_path, 'test_af')
+        cls.data = EcoHAB.EcoHabData(path=path, how_many_appearances=1)
 
+        
     def test_interval_overlap_1(self):
         """Incorrect interval
         """
