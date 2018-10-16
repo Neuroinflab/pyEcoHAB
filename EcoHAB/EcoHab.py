@@ -12,7 +12,7 @@ from collections import Container, Counter
 from operator import methodcaller, attrgetter
 
 class EcoHabData(Data):
-    """Reads in a folder with data from Eco-HAB"""
+    """Reads in An EcoHAB data directory"""
     standard_antenna_positions = {'1': 1, '2': 2, '3': 3, '4': 4,
                                   '5': 5, '6': 6, '7': 7, '8': 8}
     pattern1 = '*0000.txt'
@@ -33,9 +33,11 @@ class EcoHabData(Data):
             
         elif antenna_positions is None:
             self.antenna_positions = self.standard_antenna_positions
-            
-        how_many_appearances = kwargs.pop('how_many_appearances',100) # to exclude fake tags aka ghost mice
+
+        # to exclude fake tags aka ghost mice
+        how_many_appearances = kwargs.pop('how_many_appearances',100) 
         factor = kwargs.pop('factor',2)
+        #if you want to remove mice from analysis -- posssibly remove
         tags = kwargs.pop('remove_mice',[])
         max_break = kwargs.pop('max_break', 60*60)
         raw_data = self.read_in_data(self.path, how_many_appearances, factor, tags)
@@ -44,7 +46,7 @@ class EcoHabData(Data):
         readouts = self.extract_readouts(raw_data, source=self.path)
         self.add_readouts(readouts)
        
-        # antenna_breaks = self.check_antenna_presence(max_break)
+        antenna_breaks = self.check_antenna_presence(max_break)
         # if antenna_breaks:
         #     print('Antenna not working')
         #     for antenna in antenna_breaks:
@@ -56,7 +58,7 @@ class EcoHabData(Data):
 
 
     @staticmethod    
-    def remove_ghost_tags(data, how_many_appearances,factor,tags=[]):
+    def remove_ghost_tags(data, how_many_appearances, factor, tags=[]):
         new_data = []
         ghost_mice = set()
         counters = Counter()
@@ -82,9 +84,7 @@ class EcoHabData(Data):
             dates[mouse][date] += 1
 
         how_many = utils.how_many_days(dates, factor)
-        print(how_many)
         for mouse in counters:
-            
             if counters[mouse] < how_many_appearances or len(dates[mouse]) <= how_many:
                     ghost_mice.add(mouse)
    
@@ -161,9 +161,9 @@ class EcoHabData(Data):
                 raise(IOError('Unknown data format in file %s' %f.name))
         return out
         
-    def check_antenna_presence(self):
+    def check_antenna_presence(self, max_break):
         t_start = self.get_start()
-        all_times = self.readouts.getAttributes('Start')
+        all_times = self.readouts.get_attributes('Start')
         breaks = {}
         
         for antenna in range(1, 9):
@@ -172,18 +172,18 @@ class EcoHabData(Data):
             times = all_times[antenna_idx] 
             breaks[antenna] = []
             if len(times):
-                if times[0] - t_start > self.max_break:
+                if times[0] - t_start > max_break:
                     breaks[antenna].append([0, np.round(times[0])])
         
                 intervals = times[1:]-times[0:-1]
 
-                where_breaks = np.where(intervals > self.max_break)[0]
+                where_breaks = np.where(intervals > max_break)[0]
 
                 if len(where_breaks):
                     for i in where_breaks:
                         breaks[antenna].append([np.round(times[i]), np.round(times[i+1])])
             else:
-                breaks[antenna].append([np.round(t_start),self.data['Time'][-1]])         
+                breaks[antenna].append([np.round(t_start), self.data['Time'][-1]])         
                     
         # for antenna in breaks:
         #     print(antenna, breaks[antenna])

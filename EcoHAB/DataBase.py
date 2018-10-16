@@ -129,7 +129,6 @@ class DataBase(object):
     def get_filtered_objects(self, filters):
         if filters:
             return self.objects[self.apply_mask(filters)]
-
         return self.objects
       
     def apply_mask(self, selectors):
