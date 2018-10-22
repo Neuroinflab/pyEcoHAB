@@ -29,11 +29,15 @@ datasets = [
     #"EcoHAB_data_November/WT_long_03-13.07.2018_Asia/",
     #"EcoHAB_data_November/males_social_dominance_21-25.07.2018-Maciek/",
     #"EcoHAB_data_November/Asia_krzemień_kontrola_27.07-01.08.2018/",
-    #"EcoHAB_data_November/C57 social contagion stress/"
+    #"EcoHAB_data_November/C57 social contagion stress/",
     #"EcoHAB_data_November/C57 males reward-neutral 26.06-01.07.18",
     #"EcoHAB_data_November/C57 males reward-neutral control 16.07-20.07.18/",
     #"EcoHAB_data_November/C57 social contagion stress/",
-    "EcoHAB_data_November/Asia_WT_FX_mixed_13-24.08.2018/",
+    #"EcoHAB_data_November/Asia_WT_FX_mixed_13-24.08.2018/",
+    # "EcoHAB_data_November/Asia_Krzemień_AL1KO_samice_08.10-11.10/",
+    # "EcoHAB_data_November/Asia_Krzemiń_Kontrola_samice_02.10-06.10",
+    # "EcoHAB_data_November/Asia_Krzemień_Kontrola_samce_II_28.09-01.10",
+    "EcoHAB_data_November/C57_males_social interaction-12.10-22.10/",
 ]
 
 remove_tags = {
@@ -62,7 +66,7 @@ antenna_positions = {
                                                                                           '6': 2,
                                                                                           '7': 7,
                                                                                           '8': 8}}
-binsizes = [12 * 3600., 2 * 3600.]
+binsizes = [12 * 3600., 2 * 3600.,1*3600.]
 bintitles = ['12', '2']
 standard_ant_pos = {'1': 5, '2': 6, '3': 7, '4': 8, '5': 1, '6': 2, '7': 3, '8': 4}
 basic = ['Number of visits to box %d\n','Total time in box %d, seconds\n']
