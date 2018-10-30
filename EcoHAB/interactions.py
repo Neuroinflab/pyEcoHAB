@@ -28,7 +28,9 @@ import matplotlib.patches as patches
 import plotfunctions
 import write_to_file as wtf
 import utils
-class Experiment:
+from numba import jit
+
+class Experiment(object):
     """Class, which represent data from one experiment"""
     def _fix_config(self):
         tstarts = []
@@ -199,6 +201,7 @@ class Experiment:
     
     def calculate_antenna_errors(self):    
         self.calculate_phases(window='default', which_phase='ALL')
+        print(self.phases)
         errors = np.zeros((len(self.phases), len(self.mice)))
         for s, (ts, te) in enumerate(self.phases):
             errors[s] = self.calculate_antenna_errors_phase(ts, te)
@@ -240,6 +243,7 @@ class Experiment:
         self.fpatterns = []
         self.opatterns = []
         l = len(self.phases)
+        print(self.phases)
         self.f = np.zeros((self.lm, self.lm, l))
         self.interactions = np.zeros((l, self.lm, self.lm, 8, 3))
         self.f_sum = np.zeros((l,self.lm))
@@ -306,7 +310,7 @@ class Experiment:
         np.save(new_fname_mice, self.mice)
         np.save(new_fname_, self.tube_dominance_matrix)
 
-    def calculate_tube_dominance_matrix(self,ts, te,normalize):
+    def calculate_tube_dominance_matrix(self,ts, te, normalize):
         """
         Calculates tube dominance matrix for the given period from ts to te
         check_tube_dominance(mouse1,mouse2,t1,t2) checks if mouse2
@@ -407,6 +411,50 @@ class Experiment:
                     self.opatterns+=patterns[1]
         return imatrix
     
+    @jit
+    def convolution(self, ts, te, tau=60): # tau equal to 60 s
+        sd = self.ehs.signal_data
+        shift = tau*self.fs
+        new_ts, new_te = ts*self.fs, te*self.fs
+        length = new_te - new_ts
+        
+        fig, ax = plt.subplots(self.lm, self.lm)
+        print(ax.shape)
+        time = np.linspace(-tau, tau, 2*shift+1)
+        for ii, mouse1 in enumerate(self.mice):
+            for jj, mouse2 in enumerate(self.mice):
+                if ii != jj:
+                    s2 = sd[mouse2][new_ts:new_te]
+                    s1 = np.zeros(2*shift+length)
+                    if ts < tau:
+                        if te - self.t_end > tau:
+                            s1[shift:length+2*shift] = sd[mouse1][new_ts:new_te+shift]
+                        else:
+                            s1[shift:length+shift] = sd[mouse1][new_ts:new_te]
+                    else:
+                        if te - self.t_end > tau:
+                            s1 = sd[mouse1][new_ts-shift:new_te+shift]
+                        else:
+                            s1[0:length+shift] = sd[mouse1][new_ts-shift:new_te]
+                            
+                    out = np.zeros(2*shift+1)
+                    m1 = sd[mouse1][new_ts:new_te].mean()
+                    std1 = sd[mouse1][new_ts:new_te].var()**.5
+                    m2 = sd[mouse2][new_ts:new_te].mean()
+                    std2 = sd[mouse2][new_ts:new_te].var()**.5
+                    
+                    for i, new_tau in enumerate(range(-shift, shift+1)):
+                        out[i] = sum((s1[shift-new_tau:length+shift-new_tau]-m1)*(s2-m2))/(std1*std2)/length
+                    print(mouse1, mouse2, out.max(), time[out.argmax()])
+                    ax[ii, jj].plot(time, out)
+                    ax[ii, jj].set_ylim([-.5, .5])
+                    if not ii:
+                        ax[ii, jj].set_title(mouse2)
+                    if not jj:
+                        ax[ii, jj].set_title(mouse1)
+                        
+
+    plt.show()
     def validatePatterns(self,plots_nr = 9, trange = [-3,3]):
         sd = self.ehs.signal_data
         size = np.ceil(np.sqrt(plots_nr))
@@ -444,6 +492,7 @@ class Experiment:
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         plt.show()
 
+    @jit    
     def calculate_mouse_stats(self,mouse):
         
         follow_stat = {}
@@ -479,7 +528,8 @@ class Experiment:
         except IndexError:
             return None
         return [mouse1_idx_start, mouse1_idx_stop, mouse1_indices]
-    
+
+    @jit
     def findpatterns(self,ii,jj,t1, t2):
     
         sd = self.ehs.signal_data
@@ -489,10 +539,11 @@ class Experiment:
     
         follow_stat = self.calculate_mouse_stats(mouse2)
         #print(follow_stat)
-        try:
-            [mouse1_idx_start,mouse1_idx_stop,mouse1_indices] = self.mouse_indices(mouse1, t1,t2)
-        except (TypeError,ValueError):
+        out = self.mouse_indices(mouse1, t1,t2)
+        if out is None:
             return np.array(follow_stat.values()), detected_idx
+        else:
+            [mouse1_idx_start,mouse1_idx_stop,mouse1_indices] = self.mouse_indices(mouse1, t1,t2)
             
         i = mouse1_idx_start - 1
        
@@ -507,9 +558,6 @@ class Experiment:
             middle_state = int(sd[mouse1][mouse1_indices[i-1]])
             end_state = int(sd[mouse1][start])
            
-            # if abs(start_state-middle_state) !=1 or abs(middle_state-end_state)!=1:
-            #     continue
-            #print(start_state,middle_state,end_state)
             end = start + self.threshold*self.fs
 
             unknown_state = end_state == 0 or middle_state == 0 or start_state == 0
@@ -519,56 +567,48 @@ class Experiment:
             if unknown_state or start_state == end_state or in_pipe:
                 continue
             
-            try:
-                
-                period1 = list(sd[mouse2][start:end])
-                
-                period2 = list(sd[mouse2][start-2*self.fs:start])
+            period1 = list(sd[mouse2][start:end])
+            
+            period2 = list(sd[mouse2][start-2*self.fs:start])
 
-                period3 = list(sd[mouse2][start-int(0.1*self.fs):start])
+            period3 = list(sd[mouse2][start-int(0.1*self.fs):start])
               
-                op_idx = (2*start_state-end_state-1)%8+1 #opposite direction
+            op_idx = (2*start_state-end_state-1)%8+1 #opposite direction
                 
-                same_start = start_state in period2 #POPRAWIC!!!!!!!
+            same_start = start_state in period2 #POPRAWIC!!!!!!!
 
-                first_mouse1 = end_state not in period3 and op_idx not in period3
+            first_mouse1 = end_state not in period3 and op_idx not in period3
                 
-                followed = period1.count(end_state) > 0
+            followed = period1.count(end_state) > 0
                 
-                go_oposite = op_idx in period1
+            go_oposite = op_idx in period1
                 
-                if followed and go_oposite:
-                    followed = period1.index(end_state) < period1.index(op_idx)
-                    go_oposite = not followed
+            if followed and go_oposite:
+                followed = period1.index(end_state) < period1.index(op_idx)
+                go_oposite = not followed
                     
                     
-                if same_start and first_mouse1:
+            if same_start and first_mouse1:
 
-                    if followed:
+                if followed:
 
-                        if self.fols!=None:
-                            self.fols[np.ceil((period1.index(end_state))/self.fs)]+=1
-                        try:
-                            follow_stat[str(start_state)+str(end_state)][0] += 1
-                        except KeyError:
-                            print(start_state, middle_state, end_state)
+                    if self.fols!=None:
+                        self.fols[np.ceil((period1.index(end_state))/self.fs)]+=1
+                    if str(start_state)+str(end_state) in follow_stat:
+                        follow_stat[str(start_state)+str(end_state)][0] += 1
+                       
+                    detected_idx[0].append((ii,jj,start))
 
-                        detected_idx[0].append((ii,jj,start))
+                elif go_oposite:
 
-                    elif go_oposite:
+                    if self.ops!=None:
+                        self.ops[np.ceil((period1.index(op_idx))/self.fs)]+=1
 
-                        if self.ops!=None:
-                            self.ops[np.ceil((period1.index(op_idx))/self.fs)]+=1
-                        try:
-                            follow_stat[str(start_state)+str(end_state)][1] += 1
-                        except KeyError:
-                            print(start_state, middle_state, end_state)
-                        detected_idx[1].append((ii,jj,start))
+                    if str(start_state)+str(end_state) in follow_stat:
+                        follow_stat[str(start_state)+str(end_state)][1] += 1
+                    detected_idx[1].append((ii,jj,start))
                                                 
-            except IndexError:
-                print('Err')
-                continue
-       
+      
         return np.array(list(follow_stat.values())), detected_idx
     
     def InteractionsPerPair(self,start,end):
@@ -663,7 +703,7 @@ class Experiment:
 
         return phases, phases_comment
 
-    def write_tables_to_file(self, what, phases=None):
+    def write_tables_to_file(self, what, phases=None, write_all=False):
         try:
             result, what = self.get_interaction(what)
         except ValueError:
@@ -678,6 +718,21 @@ class Experiment:
         if self.compensate_for_lost_antenna:
             fname = '%s_comp_for_lost_antenna' %fname
         wtf.write_csv_tables(result, phases, self.mice, self.directory, what, fname, self.prefix)
+       
+        if write_all:
+            new_directory = utils.check_directory(self.directory, 'single')
+            for i, small_matrix in enumerate(result):
+                print(i, small_matrix)
+                new_fname = '%s_%s' % (what, phases[i])
+                wtf.write_csv_tables([result[i]],
+                                     [phases[i]],
+                                     self.mice,
+                                     new_directory,
+                                     what,
+                                     new_fname,
+                                     self.prefix)
+                
+                
         
     def plot_fam(self, phases=None, scalefactor=0):
         FAM = self.FollowingAvoidingMatrix()
