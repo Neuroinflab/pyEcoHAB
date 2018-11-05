@@ -412,17 +412,39 @@ class Experiment(object):
         return imatrix
     
     @jit
-    def convolution(self, ts, te, tau=60): # tau equal to 60 s
+    def convolution(self, ts, te, tau=10): # tau equal to 60 s
+        fname_max = "cross_correlation_max_%s_%d_%d.txt" % (self.fname_ending, ts, te)
+        fname_t_max = "cross_correlation_t_max_%s_%d_%d.txt" % (self.fname_ending, ts, te)
+
+        new_directory =  utils.check_directory(self.directory,
+                                               'cross_correlations')
+        new_path_max = os.path.join(new_directory, fname_max)
+        new_path_t_max = os.path.join(new_directory, fname_t_max)
+        
+        f_max = open(new_path_max, 'w')
+        f_tmax = open(new_path_t_max, 'w')
+        
+        header = ";"
+        for mouse in self.mice:
+            header += mouse + ';'
+        header += '\n'
+
+        
         sd = self.ehs.signal_data
         shift = tau*self.fs
         new_ts, new_te = ts*self.fs, te*self.fs
         length = new_te - new_ts
         
         fig, ax = plt.subplots(self.lm, self.lm)
-        print(ax.shape)
+        
         time = np.linspace(-tau, tau, 2*shift+1)
+        f_max.write(header)
+        f_tmax.write(header)
+        print(header)
         for ii, mouse1 in enumerate(self.mice):
             for jj, mouse2 in enumerate(self.mice):
+                f_max.write(mouse2 + ';')
+                f_tmax.write(mouse2 + ';')
                 if ii != jj:
                     s2 = sd[mouse2][new_ts:new_te]
                     s1 = np.zeros(2*shift+length)
@@ -430,6 +452,8 @@ class Experiment(object):
                         if te - self.t_end > tau:
                             s1[shift:length+2*shift] = sd[mouse1][new_ts:new_te+shift]
                         else:
+                            length = len(sd[mouse1][new_ts:new_te])
+                            print(len(s1[shift:length+shift]), len(sd[mouse1][new_ts:new_te]), new_ts-new_te)
                             s1[shift:length+shift] = sd[mouse1][new_ts:new_te]
                     else:
                         if te - self.t_end > tau:
@@ -442,19 +466,18 @@ class Experiment(object):
                     std1 = sd[mouse1][new_ts:new_te].var()**.5
                     m2 = sd[mouse2][new_ts:new_te].mean()
                     std2 = sd[mouse2][new_ts:new_te].var()**.5
-                    
                     for i, new_tau in enumerate(range(-shift, shift+1)):
                         out[i] = sum((s1[shift-new_tau:length+shift-new_tau]-m1)*(s2-m2))/(std1*std2)/length
                     print(mouse1, mouse2, out.max(), time[out.argmax()])
                     ax[ii, jj].plot(time, out)
-                    ax[ii, jj].set_ylim([-.5, .5])
                     if not ii:
                         ax[ii, jj].set_title(mouse2)
-                    if not jj:
-                        ax[ii, jj].set_title(mouse1)
-                        
-
-    plt.show()
+                    f_max.write('%f;' % out.max())
+                    f_tmax.write('%f;' % time[out.argmax()])
+            
+            f_max.write('\n')
+            f_tmax.write('\n')
+        plt.show()
     def validatePatterns(self,plots_nr = 9, trange = [-3,3]):
         sd = self.ehs.signal_data
         size = np.ceil(np.sqrt(plots_nr))
