@@ -3,69 +3,12 @@ from __future__ import print_function,division
 import EcoHab
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.dates import epoch2num
-from matplotlib.patches import Rectangle
-import locale
-from ExperimentConfigFile import ExperimentConfigFile
-from analiza1 import smells, antenna_positions
 import os
 import utils
-import plotfunctions
+from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot
 from write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
-### How much time mice spend with each other
+from numba import jit
 
-datarange = slice(0, 10, None)
-datasets = [
-    # "/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/Social structure males 02.03/",
-    
-    #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_dominance_swiss_webster_dominant_remove_12.02.18',
-    #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_16.01',
-    #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_19.01.18_rep_II',
-    #   '/home/jszmek/Results_EcoHAB_data_November/do_analizy_in_z_cohort_z_sociability_z_numerami_transponderow/social_structure_swiss_webster_ctrl_05.02.18',
-    #"/home/jszmek/EcoHAB_data_November/mice K Wisniewska",
-    #'/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/',
-    #'/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/',
-    #"/home/jszmek/EcoHAB_data_November/C57 males long 11-22.05.18/",
-
-    # "/home/jszmek/EcoHAB_data_November/C57 TIMP rep 2/",
-    # "/home/jszmek/EcoHAB_data_November/C57 males rep 2/",
-    # "/home/jszmek/EcoHAB_data_November/C57 males TIMP/",
-    # "/home/jszmek/EcoHAB_data_November/BTBR males/",
-    #"/home/jszmek/EcoHAB_data_November/long_experiment_WT",
-    "/home/jszmek/EcoHAB_data_November/long_experiment_WT",
-    "/home/jszmek/EcoHAB_data_November/long_experiment_KO_mismatched_antennas_to_phase_SNIFF_10_dark",
-    "/home/jszmek/EcoHAB_data_November/long_experiment_KO_from_phase_SNIFF_10_dark",
-    ]
-
-# # address = {1: 4, 2: 1, 3: 1, 4: 2, 5: 2, 6: 3, 7: 3, 8: 4}
-# smells = {  'C57 CTRL EH (3) 25.07.14': {'soc': 1, 'nsoc': 3},
-#             'C57 CTRL EH (4) 30.07.14': {'soc': 3, 'nsoc': 1},
-#             'C57 CTRL EH (5) 20.11.14': {'soc': 3, 'nsoc': 1},
-#             }
-# antenna_positions = {'C57 CTRL EH (3) 25.07.14': {'7': 1, '8': 2, '4': 3, '3': 4, '1': 5, '2': 6, '6': 7, '5': 8},
-#             'C57 CTRL EH (4) 30.07.14': {'7': 1, '8': 2, '4': 3, '3': 4, '1': 5, '2': 6, '6': 7, '5': 8},
-#             'C57 CTRL EH (5) 20.11.14': None,
-#             }
-
-remove_tags = {
-    "/home/jszmek/EcoHAB_data_November/C57 males rep 2/":["0065-0161984735"],
-    "/home/jszmek/EcoHAB_data_November/BTBR males/":["0065-0136658439",
-                                                             "0065-0141855614"]
-}
-how_many_appearances = {
-    "/home/jszmek/EcoHAB_data_November/C57 males rep 2/":1000,
-    "/home/jszmek/EcoHAB_data_November/BTBR males/":500,
-    '/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/':200
-}
-antenna_positions = {
-    "/home/jszmek/EcoHAB_data_November/long_experiment_KO_mismatched_antennas_to_phase_SNIFF_10_dark":{'1': 1,
-                                                                                                       '2': 5,
-                                                                                                       '3': 3,
-                                                                                                       '4': 6,
-                                                                                                       '5': 4,
-                                                                                                       '6': 2,
-                                                                                                       '7': 7,
-                                                                                                       '8': 8}}
 def intervals(data_mice, mouse, address):
     return [[s, e] for a, s, e in data_mice[mouse] if a == address]
 
@@ -152,7 +95,7 @@ def mice_overlap(data_mice, m1, m2, address):
         for int2 in ints2:
             total += interval_overlap(int1, int2)
     return total, sum(durs1), sum(durs2)
-    
+@jit    
 def mice_together(data_mice, m1, m2, total_time):
     """Return the time spent together by two mice and expected time 
     assuming independence."""
@@ -203,9 +146,10 @@ def test_results(data_mice,mice):
             for k, other_mouse in enumerate(mice[j+1:]):
                 time_together[i,j,j+1+k] = mice_overlap(data_mice, mouse, other_mouse, address)[0]
                 time_together[i,j+1+k,j] = time_together[i,j,j+1+k]
-
+                
+@jit
 def mouse_alone_ehs(ehs, cf, main_directory, prefix):
-    phases = filter(lambda x: x.endswith('dark') or x.endswith('DARK'), cf.sections())
+    phases = utils.filter_dark(cf.sections())
     mice = ehs.mice
     output = np.zeros((4, len(mice), len(phases)+1))
     for phase, sec in enumerate(phases):
@@ -221,9 +165,9 @@ def mouse_alone_ehs(ehs, cf, main_directory, prefix):
 def get_dark_light_data(phase, cf, ehs):
     print(phase)
     if phase == "dark" or phase == "DARK":
-        phases = filter(lambda x: x.endswith('dark') or x.endswith('DARK'), cf.sections())
+        phases = utils.filter_dark(cf.sections())
     elif phase == "light" or phase == "LIGHT":
-        phases = filter(lambda x: x.endswith('light') or x.endswith('LIGHT'), cf.sections())
+        phases = utils.filter_light(cf.sections())
     
     
     mice = ehs.mice
@@ -241,6 +185,7 @@ def get_dark_light_data(phase, cf, ehs):
             
     return phases, total_time, mice, data
 
+@jit
 def in_cohort_sociability_all_dark_light(ehs, cf, main_directory, prefix, remove_mouse=None, phase="dark"):
     
     phases, total_time, mice, data = get_dark_light_data(phase, cf, ehs)
@@ -248,7 +193,7 @@ def in_cohort_sociability_all_dark_light(ehs, cf, main_directory, prefix, remove
     if isinstance(remove_mouse, list):
         add_info_mice = 'remove'
         for mouse in remove_mouse:
-            add_info += '_' + mouse 
+            add_info_mice += '_' + mouse 
     elif isinstance(remove_mouse, str):
         add_info_mice = 'remove_%s' % remove_mouse
     
@@ -311,26 +256,26 @@ def in_cohort_sociability_all_dark_light(ehs, cf, main_directory, prefix, remove
                       name_exp_)
     
 
-    plotfunctions.make_RasterPlot(main_directory,
-                                  'in_cohort_sociability/raster_plots',
-                                  full_results,
-                                  [phase],
-                                  name_,
-                                  mice,
-                                  vmin=0,
-                                  vmax=0.5,
-                                  title='% time together')
-    plotfunctions.make_RasterPlot(main_directory,
-                                  'in_cohort_sociability/raster_plots',
-                                  full_results-full_results_exp,
-                                  [phase],
-                                  name_exp_,
-                                  mice,
-                                  title='% time together',
-                                  vmin=-.25,
-                                  vmax=.25)
+    make_RasterPlot(main_directory,
+                    'in_cohort_sociability/raster_plots',
+                    full_results,
+                    [phase],
+                    name_,
+                    mice,
+                    vmin=0,
+                    vmax=0.5,
+                    title='% time together')
+    make_RasterPlot(main_directory,
+                    'in_cohort_sociability/raster_plots',
+                    full_results-full_results_exp,
+                    [phase],
+                    name_exp_,
+                    mice,
+                    title='% time together',
+                    vmin=-.25,
+                    vmax=.25)
     
-    
+@jit
 def in_cohort_sociability_all_phases(ehs, cf, main_directory, prefix, remove_mouse=None):
     phase="ALL"
     phases = [phase]
@@ -338,7 +283,7 @@ def in_cohort_sociability_all_phases(ehs, cf, main_directory, prefix, remove_mou
     if isinstance(remove_mouse, list):
         add_info_mice = 'remove'
         for mouse in remove_mouse:
-            add_info += '_' + mouse 
+            add_info_mice += '_' + mouse 
     elif isinstance(remove_mouse, str):
         add_info_mice = 'remove_%s' % remove_mouse
     
@@ -403,24 +348,24 @@ def in_cohort_sociability_all_phases(ehs, cf, main_directory, prefix, remove_mou
                       name_exp_)
     
 
-    plotfunctions.make_RasterPlot(main_directory,
-                                  'in_cohort_sociability/raster_plots',
-                                  full_results,
-                                  phases,
-                                  name_,
-                                  mice,
-                                  vmin=0,
-                                  vmax=0.5,
-                                  title='% time together')
-    plotfunctions.make_RasterPlot(main_directory,
-                                  'in_cohort_sociability/raster_plots',
-                                  full_results-full_results_exp,
-                                  phases,
-                                  name_exp_,
-                                  mice,
-                                  title='% time together',
-                                  vmin=-.25,
-                                  vmax=.25)
+    make_RasterPlot(main_directory,
+                    'in_cohort_sociability/raster_plots',
+                    full_results,
+                    phases,
+                    name_,
+                    mice,
+                    vmin=0,
+                    vmax=0.5,
+                    title='% time together')
+    make_RasterPlot(main_directory,
+                    'in_cohort_sociability/raster_plots',
+                    full_results-full_results_exp,
+                    phases,
+                    name_exp_,
+                    mice,
+                    title='% time together',
+                    vmin=-.25,
+                    vmax=.25)
     
 def single_phase_results(data, mice, total_time=43200.):
     results = np.zeros((len(mice), len(mice)))
@@ -439,7 +384,7 @@ def in_cohort_sociability(ehs, cf, main_directory, prefix, remove_mouse=None):
    
     mice = ehs.mice
 
-    phases = filter(lambda x: x.endswith('dark') or x.endswith('DARK'), cf.sections())
+    phases = utils.filter_dark(cf.sections())
         
     full_results = np.zeros((len(phases), len(mice), len(mice)))
     full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
@@ -506,113 +451,26 @@ def in_cohort_sociability(ehs, cf, main_directory, prefix, remove_mouse=None):
                       name_exp_)
     
 
-    plotfunctions.make_RasterPlot(main_directory,
-                                  'in_cohort_sociability/raster_plots',
-                                  full_results,
-                                  phases,
-                                  name_,
-                                  mice,
-                                  vmin=0,
-                                  vmax=0.5,
-                                  title='% time together')
-    plotfunctions.make_RasterPlot(main_directory,
-                                  'in_cohort_sociability/raster_plots',
-                                  full_results-full_results_exp,
-                                  phases,
-                                  name_exp_,
-                                  mice,
-                                  title='% time together',
-                                  vmin=-.25,
-                                  vmax=.25)
+    make_RasterPlot(main_directory,
+                    'in_cohort_sociability/raster_plots',
+                    full_results,
+                    phases,
+                    name_,
+                    mice,
+                    vmin=0,
+                    vmax=0.5,
+                    title='% time together')
+    make_RasterPlot(main_directory,
+                    'in_cohort_sociability/raster_plots',
+                    full_results-full_results_exp,
+                    phases,
+                    name_exp_,
+                    mice,
+                    title='% time together',
+                    vmin=-.25,
+                    vmax=.25)
 
-def single_in_cohort_soc_plot(results,
-                              results_exp,
-                              mice,
-                              phase,
-                              fname,
-                              main_directory,
-                              directory,
-                              prefix):
-    new_name = os.path.join(directory, 'figs')
-    directory = utils.check_directory(main_directory, new_name)
-    fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, phase))
-    label_mice = [mouse[-4:] for mouse in mice]
-    fig = plt.figure(figsize=(10, 6))
-    ax = []
-    for i in range(1,5):
-        ax.append(fig.add_subplot(2,2,i))
 
-    ax[0].imshow(results, vmin=0, vmax=1., interpolation='none')
-    ax[0].set_xticks([])
-    ax[0].set_yticks([])
-    ax[0].set_title('% time together')
-    ax[1].imshow(results_exp, vmin=0, vmax=1., interpolation='none')
-    ax[1].set_xticks([])
-    ax[1].set_yticks([])
-    ax[1].set_title('Expected % time together')
-
-    deltas = results[results > 0] - results_exp[results > 0]
-
-    plt.subplot(223)
-    try:
-        im = ax[2].imshow(results - results_exp, vmin=-1, vmax=1,interpolation='none')
-        ax[2].set_title('Excess % time together')
-        cbar = fig.colorbar(im)
-        ax[2].yaxis.tick_left()
-        ax[2].get_yaxis().set_ticks([i for i,x in enumerate(mice)])
-        ax[2].get_xaxis().set_ticks([i for i,x in enumerate(mice)])
-        ax[2].set_xticklabels(label_mice)
-        ax[2].set_yticklabels(label_mice)
-        for label in ax[2].xaxis.get_ticklabels():
-            label.set_rotation(90)
-
-    except ValueError:
-        pass
-
-    try:
-        ax[3].hist(deltas)
-    except ValueError:
-        pass
-    ax[3].set_title('Histogram of excess % time together')
-    ax[3].set_xlim([-0.1, 0.5])
-    ax[3].get_xaxis().set_ticks([-0.1, 0., 0.1, 0.2, 0.3])
-    ax[3].set_xticklabels([-0.1, 0., 0.1, 0.2, 0.3])
-    fig.suptitle(phase)
-    fig.subplots_adjust(left=0.3)
-    fig.subplots_adjust(bottom=0.3)
-    fig.subplots_adjust(wspace=0.25)
-    fig.subplots_adjust(hspace=0.3)
-    
-    fig.savefig(fname+'.pdf')
-    fig.savefig(fname+'.png', dpi=300)
             
 
 
-if __name__ == '__main__':
-
-    for path in datasets[datarange]:
-        prefix = utils.make_prefix(path)
-        if path in remove_tags:
-            remove_mouse = remove_tags[path]
-        else:
-            remove_mouse = None
-        if path not in antenna_positions:
-            antenna_positions[path] = None
-        if remove_mouse:
-            ehd = EcoHab.EcoHabData(path=path,
-                                    _ant_pos=antenna_positions[path],
-                                    remove_mice=remove_mouse,
-                                    how_many_appearances=how_many_appearances[path])
-        else:
-            ehd = EcoHab.EcoHabData(path=path,
-                                    _ant_pos=antenna_positions[path])
-
-        ehs = EcoHab.EcoHabSessions(ehd)
-        directory = utils.results_path(path)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        cf = ExperimentConfigFile(path)      
-        mouse_alone_ehs(ehs, cf, directory, prefix)
-        in_cohort_sociability(ehs, cf, directory, prefix, remove_mouse=remove_mouse)
-  
-   

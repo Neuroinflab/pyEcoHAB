@@ -415,3 +415,63 @@ def single_heat_map(result,
     fig.subplots_adjust(bottom=0.25)
     fig.savefig(new_name, transparent=False, bbox_inches=None, pad_inches=2, frameon=None)
     
+def single_in_cohort_soc_plot(results,
+                              results_exp,
+                              mice,
+                              phase,
+                              fname,
+                              main_directory,
+                              directory,
+                              prefix):
+    new_name = os.path.join(directory, 'figs')
+    directory = utils.check_directory(main_directory, new_name)
+    fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, phase))
+    label_mice = [mouse[-4:] for mouse in mice]
+    fig = plt.figure(figsize=(10, 6))
+    ax = []
+    for i in range(1,5):
+        ax.append(fig.add_subplot(2,2,i))
+
+    ax[0].imshow(results, vmin=0, vmax=1., interpolation='none')
+    ax[0].set_xticks([])
+    ax[0].set_yticks([])
+    ax[0].set_title('% time together')
+    ax[1].imshow(results_exp, vmin=0, vmax=1., interpolation='none')
+    ax[1].set_xticks([])
+    ax[1].set_yticks([])
+    ax[1].set_title('Expected % time together')
+
+    deltas = results[results > 0] - results_exp[results > 0]
+
+    plt.subplot(223)
+    try:
+        im = ax[2].imshow(results - results_exp, vmin=-1, vmax=1,interpolation='none')
+        ax[2].set_title('Excess % time together')
+        cbar = fig.colorbar(im)
+        ax[2].yaxis.tick_left()
+        ax[2].get_yaxis().set_ticks([i for i,x in enumerate(mice)])
+        ax[2].get_xaxis().set_ticks([i for i,x in enumerate(mice)])
+        ax[2].set_xticklabels(label_mice)
+        ax[2].set_yticklabels(label_mice)
+        for label in ax[2].xaxis.get_ticklabels():
+            label.set_rotation(90)
+
+    except ValueError:
+        pass
+
+    try:
+        ax[3].hist(deltas)
+    except ValueError:
+        pass
+    ax[3].set_title('Histogram of excess % time together')
+    ax[3].set_xlim([-0.1, 0.5])
+    ax[3].get_xaxis().set_ticks([-0.1, 0., 0.1, 0.2, 0.3])
+    ax[3].set_xticklabels([-0.1, 0., 0.1, 0.2, 0.3])
+    fig.suptitle(phase)
+    fig.subplots_adjust(left=0.3)
+    fig.subplots_adjust(bottom=0.3)
+    fig.subplots_adjust(wspace=0.25)
+    fig.subplots_adjust(hspace=0.3)
+    
+    fig.savefig(fname+'.pdf')
+    fig.savefig(fname+'.png', dpi=300)
