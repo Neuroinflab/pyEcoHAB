@@ -67,7 +67,7 @@ if __name__ == '__main__':
             save_data_cvs(data, fname_all_chambers, results_path, cages, headers)
 
        
-            #following and avoiding
+        #following and avoiding
         for compensate_for_lost_antenna in [True, False]:
             E = interactions.Experiment(path,
                                         _ant_pos=antenna_positions[new_path],
@@ -76,12 +76,14 @@ if __name__ == '__main__':
                                         how_many_appearances=how_many_appearances[new_path])
             if not compensate_for_lost_antenna:
                 E.calculate_antenna_errors()
-            for window in [12, "ALL"]:
+            for window in ['ALL']: #[12, "ALL"]:
+                #E.calculate_phases(window=window)
                 E.calculate_fvalue(window=window, threshold=threshold, force=True)
                 if window == 12:
-                    E.write_tables_to_file("following")
-                    E.write_tables_to_file("avoiding")
-                    E.write_tables_to_file("FAM")
+                   
+                    E.write_tables_to_file("following", write_all=True)
+                    E.write_tables_to_file("avoiding", write_all=True)
+                    E.write_tables_to_file("FAM", write_all=True)
                     E.generate_heatmaps("following")
                     E.generate_heatmaps("avoiding")
                     E.plot_fam()
