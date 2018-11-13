@@ -478,6 +478,7 @@ class Experiment(object):
             f_max.write('\n')
             f_tmax.write('\n')
         plt.show()
+        
     def validatePatterns(self,plots_nr = 9, trange = [-3,3]):
         sd = self.ehs.signal_data
         size = np.ceil(np.sqrt(plots_nr))
@@ -540,7 +541,7 @@ class Experiment(object):
 
     def mouse_indices(self, mouse1, t1, t2):
         sd = self.ehs.signal_data
-        mouse1_indices = np.where(((np.roll(sd[mouse1], 1) - sd[mouse1]) != 0))[0]
+        mouse1_indices = np.where(((sd[mouse1][1:] - sd[mouse1][:-1]) != 0))[0]
         try:
             mouse1_idx_start = np.where(mouse1_indices > t1*self.fs)[0][0]
         except IndexError:
@@ -563,10 +564,10 @@ class Experiment(object):
         follow_stat = self.calculate_mouse_stats(mouse2)
         #print(follow_stat)
         out = self.mouse_indices(mouse1, t1,t2)
-        if out is None:
-            return np.array(follow_stat.values()), detected_idx
+        if len(out) == 3:
+            [mouse1_idx_start,mouse1_idx_stop,mouse1_indices] = out
         else:
-            [mouse1_idx_start,mouse1_idx_stop,mouse1_indices] = self.mouse_indices(mouse1, t1,t2)
+            return np.array(follow_stat.values()), detected_idx
             
         i = mouse1_idx_start - 1
        
