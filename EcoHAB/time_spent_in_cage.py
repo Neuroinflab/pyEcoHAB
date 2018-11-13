@@ -1,86 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function
-
 import EcoHab
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.dates import epoch2num
-from matplotlib.patches import Rectangle
-# import IntelliCage_tools as ict
-import locale
-from ExperimentConfigFile import ExperimentConfigFile
 import os
 import utils
 from write_to_file import save_data_cvs
 ### How much time mice spend in the 'social' compartment
-
-datarange = slice(10, 11, None)
-datasets = {
-    #'long':'/home/jszmek/EcoHAB_data_November/long_experiment_WT',
-    #'standard':'/home/jszmek/EcoHAB_data_November/standard_known_stimulus_WT',
-    #'maciek_long':'/home/jszmek/EcoHAB_data_November/C57 13-24.04 long/',
-    #'K_Wisniewska':'/home/jszmek/EcoHAB_data_November/mice K Wisniewska/',
-    #"maciek_long_timp":'/home/jszmek/EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/',
-    'long_WT':"/home/jszmek/EcoHAB_data_November/long_experiment_WT",
-    "long_KO_mismatch": "/home/jszmek/EcoHAB_data_November/long_experiment_KO_mismatched_antennas_to_phase_SNIFF_10_dark",
-    "long_KO": "/home/jszmek/EcoHAB_data_November/long_experiment_KO_from_phase_SNIFF_10_dark",
-    
-}
-smells = {
-    'long': {'soc': 3, 'nsoc': 1},
-    'standard': {'soc': 3, 'nsoc': 1},
-    'maciek_long':{'soc': 3, 'nsoc': 1},
-    "K_Wisniewska":{'soc':3,'nsoc':1},
-    "maciek_long_timp":{'nsoc':3,'soc':1},
-    'long_WT':{'soc': 3, 'nsoc': 1},
-    'long_KO_mismatch':{'soc': 3, 'nsoc': 1},
-    'long_KO':{'soc': 3, 'nsoc': 1},
-
-}
-antenna_positions = {
-    'long': None,
-    'standard': None,
-    'maciek_long': None,
-    "K_Wisniewska": None,
-    "maciek_long_timp": None,
-    'long_WT': None,
-    "long_KO_mismatch":{'1': 1,
-                        '2': 5,
-                        '3': 3,
-                        '4': 6,
-                        '5': 4,
-                        '6': 2,
-                        '7': 7,
-                        '8': 8},
-    "long_KO": None,
-}
-headers = {'soc':['Number of visits to social smell (box %d)\n','Total time with social smell (box %d), seconds\n'],
-           'nsoc':['Number of visits to non-social smell (box %d)\n','Total time with non-social smell (box %d), seconds\n',]}
-cages = {
-    'maciek_long': {'1':1,'2':2,'3':3,'4':4},
-    'K_Wisniewska': {'1':1,'2':2,'3':3,'4':4},
-    "maciek_long_timp": {'1':1,'2':2,'3':3,'4':4},
-    'long_WT':{'1':1,'2':2,'3':3,'4':4},
-    "long_KO":{'1':1,'2':2,'3':3,'4':4},
-    "long_KO_mismatch":{'1':1,'2':2,'3':3,'4':4},
-}
-
-basic = ['Number of visits to box %d\n','Total time in box %d, seconds\n']
-
-all_chambers_header = {
-    'maciek_long':{},
-    "K_Wisniewska":{},
-    "maciek_long_timp":{},
-    "long_WT":{},
-    "long_KO":{},
-    "long_KO_mismatch":{},
-
-}
-for key in cages['maciek_long']:
-    for key2 in all_chambers_header:
-        all_chambers_header[key2][key] = basic
-
-
     
 def get_visits(mouse_address,mouse_durations,stim_address):
     result = []
@@ -101,13 +26,7 @@ def initialize_data(cf,chamber_dict):
     return visits, times, tt
 
 def find_phases(cf):
-    out = []
-    for phase in cf.sections():
-        if 'dark' in phase or 'DARK' in phase:
-            out.append(phase)
-        elif 'light' in phase or 'LIGHT' in phase:
-            out.append(phase)
-    return out
+    return utils.filter_dark_light(cf.sections())
 
 def phase_dictionary(cf):
     return dict([(phase, []) for phase in find_phases(cf)])
@@ -300,29 +219,4 @@ def approach_to_social(data,fname=None,path=None):
         
     return time, ats, d_ats
 
-
-if __name__ == '__main__':
-    binsizes = [12 * 3600., 2 * 3600., 1 * 3600.,1.5*3600,3600/4]
-    bintitles = ['12', '2', '1']
-    standard_ant_pos = {'1': 5, '2': 6, '3': 7, '4': 8, '5': 1, '6': 2, '7': 3, '8': 4}
-
-    for key in datasets:
-        path1 = datasets[key]
-        ehd = EcoHab.EcoHabData(path=path1,_ant_pos=antenna_positions[key])
-        ehs = EcoHab.EcoHabSessions(ehd)
-        cf1 = ExperimentConfigFile(path1)
-        tstart, tend = cf1.gettime('ALL')
-        for binsize in binsizes:
-            print('Binsize ',binsize/3600)
-            data = get_time_spent(ehs,cf1,key,binsize=binsize)
-            data = sum_times(data)
-            path = utils.results_path(path1)
-            fname = 'collective_results_social_non_social_binsize_%f_h.csv'%(binsize/3600)
-            fname_all_chambers = 'collective_results_all_chambers_binsize_%f_h.csv'%(binsize/3600)
-            save_data_cvs(data,fname,path,smells[key],headers)
-            data = get_time_spent_in_each_chamber(ehs, cf1, cages[key], binsize=binsize)
-            data = sum_data(data)
-            save_data_cvs(data, fname_all_chambers, path, cages[key], all_chambers_header[key])
-        
-        
 
