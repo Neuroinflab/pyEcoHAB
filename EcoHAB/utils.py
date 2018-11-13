@@ -72,3 +72,43 @@ def list_of_pairs(mice):
         for k in range(j+1, len(mice)):
             pair_labels.append(mice[j]+'|'+mice[k])
     return pair_labels
+
+def filter_dark(phases):
+    out = []
+    for phase in phases:
+        if phase.endswith('dark'):
+            out.append(phase)
+        elif phase.endswith('DARK'):
+            out.append(phase)
+        elif phase.endswith('Dark'):
+            out.append(phase)
+    return out
+
+def filter_light(phases):
+    out = []
+    for phase in phases:
+        if phase.endswith('light'):
+            out.append(phase)
+        elif phase.endswith('LIGHT'):
+            out.append(phase)
+        elif phase.endswith('Light'):
+            out.append(phase)
+    return out
+                        
+def filter_dark_light(phases):
+    out = []
+    for phase in phases:
+        if phase.endswith('dark'):
+            out.append(phase)
+        elif phase.endswith('DARK'):
+            out.append(phase)
+        elif phase.endswith('Dark'):
+            out.append(phase)
+        elif phase.endswith('light'):
+            out.append(phase)
+        elif phase.endswith('LIGHT'):
+            out.append(phase)
+        elif phase.endswith('Light'):
+            out.append(phase)
+
+    return out
