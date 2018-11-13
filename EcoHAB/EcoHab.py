@@ -163,7 +163,7 @@ class EcoHabData(Data):
                 breaks[antenna].append([np.round(t_start),self.data['Time'][-1]])         
                     
         # for antenna in breaks:
-        #     print(antenna, breaks[antenna])
+        #     printantenna, breaks[antenna])
         return breaks
     
     def antenna_mismatch(self):
@@ -192,7 +192,6 @@ class EcoHabData(Data):
         for pair in pairs:
             mismatches[pair] = weird_transit[1].count(pair)
             print(pair, mismatches[pair],np.round(100*mismatches[pair]/len(self.data['Antenna'])),'per 100')
-        print(len(self.data['Antenna']))
         return weird_transit
 
     def __init__(self,**kwargs):# path, _ant_pos=None,mask=None):
@@ -227,7 +226,6 @@ class EcoHabData(Data):
         data['Antenna'] = [self._ant_pos[d[2]] for d in self.rawdata]
         data['Tag'] = [d[4] for d in self.rawdata]
         super(EcoHabData,self).__init__(data, mask)
-        print(data['Time'])
         antenna_breaks = self.check_antenna_presence()
         if antenna_breaks:
             print('Antenna not working')
