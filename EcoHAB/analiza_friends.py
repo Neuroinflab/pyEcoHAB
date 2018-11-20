@@ -189,14 +189,7 @@ def get_dark_light_data(phase, cf, ehs):
 def in_cohort_sociability_all_dark_light(ehs, cf, main_directory, prefix, remove_mouse=None, phase="dark"):
     
     phases, total_time, mice, data = get_dark_light_data(phase, cf, ehs)
-    add_info_mice = ''
-    if isinstance(remove_mouse, list):
-        add_info_mice = 'remove'
-        for mouse in remove_mouse:
-            add_info_mice += '_' + mouse 
-    elif isinstance(remove_mouse, str):
-        add_info_mice = 'remove_%s' % remove_mouse
-    
+    add_info_mice = utils.add_info_mice_filename(remove_mouse)
     fname = 'incohort_sociability_%s_ALL_%s' % (add_info_mice, phase)
     name_ = 'incohort_sociability_measured_time_%s_%s_ALL_%s.csv' % (prefix, add_info_mice, phase)
     name_exp_ = 'incohort_sociability_excess_time_%s_%s_ALL_%s.csv' % (prefix, add_info_mice, phase)
@@ -279,14 +272,7 @@ def in_cohort_sociability_all_dark_light(ehs, cf, main_directory, prefix, remove
 def in_cohort_sociability_all_phases(ehs, cf, main_directory, prefix, remove_mouse=None):
     phase="ALL"
     phases = [phase]
-    add_info_mice = ''
-    if isinstance(remove_mouse, list):
-        add_info_mice = 'remove'
-        for mouse in remove_mouse:
-            add_info_mice += '_' + mouse 
-    elif isinstance(remove_mouse, str):
-        add_info_mice = 'remove_%s' % remove_mouse
-    
+    add_info_mice = utils.add_info_mice_filename(remove_mouse)
     fname = 'incohort_sociability_%s_ALL' % add_info_mice
     name_ = 'incohort_sociability_measured_time_%s_%s_ALL.csv' % (prefix, add_info_mice)
     name_exp_ = 'incohort_sociability_excess_time_%s_%s_ALL.csv' % (prefix, add_info_mice)
@@ -383,18 +369,10 @@ def single_phase_results(data, mice, total_time=43200.):
 def in_cohort_sociability(ehs, cf, main_directory, prefix, remove_mouse=None):
    
     mice = ehs.mice
-
     phases = utils.filter_dark(cf.sections())
-        
     full_results = np.zeros((len(phases), len(mice), len(mice)))
     full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
-    add_info_mice = ''
-    if isinstance(remove_mouse, list):
-        add_info_mice = 'remove'
-        for mouse in remove_mouse:
-            add_info_mice += '_' + mouse 
-    elif isinstance(remove_mouse, str):
-        add_info_mice = 'remove_%s' % remove_mouse
+    add_info_mice = utils.add_info_mice_filename(remove_mouse)
     fname = 'incohort_sociability_%s' % add_info_mice
     name_ = 'incohort_sociability_measured_time_%s%s.csv' % (prefix, add_info_mice)
     name_exp_ = 'incohort_sociability_excess_time_%s%s.csv' % (prefix, add_info_mice)
@@ -469,8 +447,3 @@ def in_cohort_sociability(ehs, cf, main_directory, prefix, remove_mouse=None):
                     title='% time together',
                     vmin=-.25,
                     vmax=.25)
-
-
-            
-
-

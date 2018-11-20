@@ -112,3 +112,13 @@ def filter_dark_light(phases):
             out.append(phase)
 
     return out
+
+def add_info_mice_filename(remove_mouse):
+    add_info_mice = ''
+    if isinstance(remove_mouse, list):
+        add_info_mice = 'remove'
+        for mouse in remove_mouse:
+            add_info_mice += '_' + mouse 
+    elif isinstance(remove_mouse, str):
+        add_info_mice = 'remove_%s' % remove_mouse
+    return add_info_mice
