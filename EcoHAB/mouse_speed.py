@@ -227,7 +227,7 @@ def following_for_all(ehd, cf, main_directory, prefix, remove_mouse=None, thresh
                       name_)
     write_csv_rasters(mice,
                       phases,
-                      (following-following_exp)/following_exp,
+                      (following-following_exp),
                       main_directory,
                       'following_in_pipe/raster_plots',
                       name_exp_)
@@ -242,7 +242,7 @@ def following_for_all(ehd, cf, main_directory, prefix, remove_mouse=None, thresh
                     title='# followings')
     make_RasterPlot(main_directory,
                     'following_in_pipe/raster_plots',
-                    (following-following_exp)/following_exp,
+                    (following-following_exp),
                     phases,
                     name_exp_,
                     mice,
@@ -322,7 +322,7 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory, prefix, remove_
                       fname_)
     write_csv_rasters(mice,
                       phases,
-                      (following-following_exp)/following_exp,
+                      (following-following_exp),
                       main_directory,
                       'following_in_pipe_2nd_mouse_in_pipe/raster_plots',
                       fname_exp)
@@ -337,7 +337,7 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory, prefix, remove_
                     title='# followings')
     make_RasterPlot(main_directory,
                     'following_in_pipe_2nd_mouse_in_pipe/raster_plots',
-                    (following-following_exp)/following_exp,
+                    (following-following_exp),
                     phases,
                     fname_exp,
                     mice,
