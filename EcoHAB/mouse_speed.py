@@ -42,20 +42,19 @@ def add_to_out(out, key, t1, t2, delta_t1, delta_t2):
      out['mouse1_delta_t'].append(delta_t1)
      out['mouse2_delta_t'].append(delta_t2)
 
-@jit
+#@jit
 def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2):
     idxs1 = np.where(np.array(times2) >= t1)[0]
     idxs2 = np.where(np.array(times2) <= t1 + threshold)[0]
     common_idxs = list(set(idxs1)&set(idxs2))
-    followings = 0
     for ci in common_idxs:
         antenna2 = antennas2[ci]
         if ci + 1 < len(antennas2) and antenna2 == antenna1:
             next_antenna2 = antennas2[ci+1]
             delta_t2 = times2[ci+1] - times2[ci]
             if in_tube(antenna2, next_antenna2):
-                followings = 1
-    return followings
+                return 1
+    return 0
                            
 @jit
 def following_2_mice(ehd, mouse1, mouse2, st, en):
@@ -101,7 +100,7 @@ def frequency_mouse_in_tube(ehd, mouse, st, en):
         elif next_antenna % 2 and antenna == next_antenna + 1:
             key = next_antenna + antenna
             
-        if key:
+        if key and delta_t < threshold:
             frequency[key] += 1
             window[key] += delta_t
     for key in frequency:
@@ -147,7 +146,8 @@ def following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en):
         next_antenna1 = antennas1[idx+1]
         delta_t1 = times1[idx+1] - times1[idx]
         if in_tube(antenna1, next_antenna1):
-            followings += check_2nd_mouse(antenna1, next_antenna1, times1[idx], delta_t1, antennas2, times2)
+            if delta_t1 < threshold:
+                followings += check_2nd_mouse(antenna1, next_antenna1, times1[idx], delta_t1, antennas2, times2)
     return  followings
 
 
@@ -165,7 +165,7 @@ def following_single_phase(ehd, cf, phase):
 @jit
 def following_for_all(ehd, cf, main_directory, prefix, remove_mouse=None, threshold=threshold):
     phases = cf.sections()
-    phases = utils.filter_dark_light(phases)
+    phases = utils.filter_dark(phases)
     mice = ehd.mice
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     following = np.zeros((len(phases), len(mice), len(mice)))
@@ -260,7 +260,7 @@ def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase):
     
 def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory, prefix, remove_mouse=None):
     phases = cf.sections()
-    phases = utils.filter_dark_light(phases)
+    phases = utils.filter_dark(phases)
     mice = ehd.mice
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     following = np.zeros((len(phases), len(mice), len(mice)))
@@ -384,7 +384,7 @@ def expected_following_in_pipe_single_phase(ehd, cf, phase):
 def following_for_all_in_pipe_condition(ehd, cf):
     mice = ehd.mice
     phases = cf.sections()
-    phases = utils.filter_dark_light(phases)
+    phases = utils.filter_dark(phases)
     followings = np.zeros((len(phases), len(mice), len(mice)))
     for i, phase in enumerate(phases):
         st, en = cf.gettime(phase)
@@ -442,5 +442,5 @@ if __name__ == '__main__':
 
         cf = ExperimentConfigFile(path)
         following_for_all_2nd_mouse_in_pipe(ehd, cf, res_dir, prefix, remove_mouse=None)
-        following_for_all(ehd, cf, res_dir, prefix, remove_mouse=None)
+        #following_for_all(ehd, cf, res_dir, prefix, remove_mouse=None)
         
