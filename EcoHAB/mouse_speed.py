@@ -3,13 +3,13 @@ import EcoHab
 from ExperimentConfigFile import ExperimentConfigFile
 from data_info import *
 import os
-import utils
+import utility_functions as utils
 import numpy as np
 import matplotlib.pyplot as plt
 from write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
 from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot
 
-bins = 2000
+nbins = 10
 homepath = os.path.expanduser("~/")
 threshold = 2
 from numba import jit
@@ -56,7 +56,7 @@ def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2):
                 return 1
     return 0
                            
-@jit
+#@jit
 def following_2_mice(ehd, mouse1, mouse2, st, en):
     ehd.mask_data(st, en)
     antennas1 = ehd.getantennas(mouse1)
@@ -108,7 +108,56 @@ def frequency_mouse_in_tube(ehd, mouse, st, en):
     ehd.unmask_data()
     return frequency, window
 
+def make_pooled_histograms(res,
+                           res_exp,
+                           phases,
+                           fname,
+                           main_directory,
+                           directory,
+                           prefix,
+                           additional_info):
 
+    print(phases)
+    fig, ax = plt.subplots(1, len(phases), figsize=(len(phases)//2*5, 5))
+    max_bins = 0
+    min_bins = 100
+    max_count = 0
+    min_count = 0
+    for i, phase in enumerate(phases):
+        results = res[i]
+        results_exp = res_exp[i]
+        deltas = results[results > 0] - results_exp[results > 0]
+        n, bins, patches = ax[i].hist(deltas, bins=nbins)
+        print(n, bins)
+        ax[i].set_title(phases[i], fontsize=14)
+        if bins.min() < min_bins:
+            min_bins = bins.min()
+        if bins.max() > max_bins:
+            max_bins = bins.max()
+        if max(n) > max_count:
+            max_count = max(n)
+        if min(n) < min_count:
+            min_count = min(n)
+        if i:
+            ax[i].set_yticklabels([])
+        else:
+            for tick in ax[i].yaxis.get_major_ticks():
+                    tick.label.set_fontsize(14)
+        for tick in ax[i].xaxis.get_major_ticks():
+            tick.label.set_fontsize(14) 
+
+    for x in ax:
+        x.set_xlim([min_bins, max_bins+1])
+        x.set_ylim([min_count, max_count+3])
+
+        
+    new_name = os.path.join(directory, 'figs')
+    directory = utils.check_directory(main_directory, new_name)
+    fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, phase))
+    print(fname)
+    fig.subplots_adjust(wspace=0.15)
+    fig.savefig(fname+'.png', dpi=300)
+    
 def histo():
     figure, ax = plt.subplots(2, 2)
     n, bins1, patches = ax[0][0].hist(out[3], bins=bins)
@@ -132,9 +181,10 @@ def histo():
     ax[1][1].set_xlim([0, max_lim])
 
     
-@jit            
+#@jit            
 def following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en):
     ehd.mask_data(st, en)
+    
     antennas1 = ehd.getantennas(mouse1)
     times1 = ehd.gettimes(mouse1)
     antennas2 = ehd.getantennas(mouse2)
@@ -145,10 +195,10 @@ def following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en):
         antenna1 = antennas1[idx]
         next_antenna1 = antennas1[idx+1]
         delta_t1 = times1[idx+1] - times1[idx]
-        if in_tube(antenna1, next_antenna1):
-            if delta_t1 < threshold:
-                followings += check_2nd_mouse(antenna1, next_antenna1, times1[idx], delta_t1, antennas2, times2)
-    return  followings
+        if in_tube(antenna1, next_antenna1) and delta_t1 < threshold:
+            followings += check_2nd_mouse(antenna1, next_antenna1, times1[idx], delta_t1, antennas2, times2)
+   
+    return followings
 
 
 
@@ -246,7 +296,17 @@ def following_for_all(ehd, cf, main_directory, prefix, remove_mouse=None, thresh
                     phases,
                     name_exp_,
                     mice,
-                    title='relative excess following')                     
+                    title='relative excess following')
+    
+    make_pooled_histograms(following,
+                           following_exp,
+                           phases,
+                           'All_phases_histogram',
+                           main_directory,
+                           '',
+                           prefix,
+                           additional_info=add_info_mice)
+    return following, following_exp, phases, mice
 
 def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase):
     mice = ehd.mice
@@ -342,7 +402,17 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory, prefix, remove_
                     fname_exp,
                     mice,
                     title='% excess following')
-    
+
+    make_pooled_histograms(following,
+                           following_exp,
+                           phases,
+                           'All_phases_histogram',
+                           main_directory,
+                           '',
+                           prefix,
+                           additional_info=add_info_mice)
+
+    return following, following_exp, phases, mice
 @jit
 def frequencies_for_all(phase, cf, ehd):
     mice = ehd.mice
@@ -414,7 +484,13 @@ def save_all_followings_data_to_file(directory, prefix, followings, ending=''):
 
 
 if __name__ == '__main__':
-
+    followings_list = []
+    followings_exp_list = []
+    phases_list = []
+    prefixes = []
+    max_len = 0
+    # datasets = ['EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/',
+    #             'EcoHAB_data_November/C57 13-24.04 long/',]
     for new_path in datasets:
        
         path = os.path.join(homepath, new_path)
@@ -441,6 +517,61 @@ if __name__ == '__main__':
         res_dir = utils.results_path(path)
 
         cf = ExperimentConfigFile(path)
-        following_for_all_2nd_mouse_in_pipe(ehd, cf, res_dir, prefix, remove_mouse=None)
-        #following_for_all(ehd, cf, res_dir, prefix, remove_mouse=None)
-        
+        following, following_exp, phases, mice = following_for_all_2nd_mouse_in_pipe(ehd, cf, res_dir, prefix, remove_mouse=None)
+        followings_list.append(following)
+        followings_exp_list.append(following_exp)
+        phases_list.append(phases)
+        prefixes.append(prefix)
+        if len(phases) > max_len:
+            max_len = len(phases)
+    #what = np.array(followings_list) - np.array(followings_exp_list)
+    #phases = np.array(phases_list)
+    #shape = phases.shape
+    shape = (len(datasets), max_len)
+    fig, axes = plt.subplots(*shape, figsize=(shape[1]*10,shape[0]*10))
+    max_bins = 0
+    min_bins = 200
+    min_count = 200
+    max_count = 0
+    for i in range(shape[0]):
+        plt.text(0.2, (0.8+i)/shape[0], datasets[i], fontsize=34, transform=fig.transFigure)
+        for j in range(shape[1]):
+            if j < followings_list[i].shape[0]:
+                results = followings_list[i][j]
+                results_exp = followings_exp_list[i][j]
+                what = results[results > 0] - results_exp[results > 0]
+                n, bins, patches = axes[i][j].hist(what, bins=nbins)
+
+                axes[i][j].set_title(phases_list[i][j], fontsize=34)
+                if bins.min() < min_bins:
+                    min_bins = bins.min()
+                if bins.max() > max_bins:
+                    max_bins = bins.max()
+                if max(n) > max_count:
+                    max_count = max(n)
+                if min(n) < min_count:
+                    min_count = min(n)
+    print(min_bins, max_bins, min_count, max_count)
+    for i in range(shape[0]):
+        for j in range(shape[1]):
+            axes[i][j].set_xlim([min_bins, max_bins])
+            axes[i][j].set_ylim([min_count, max_count+4])
+            axes[i][j].plot([0, 0],
+                            [min_count, max_count+4],
+                            color='r',
+                            linewidth=2)
+            if j:
+                axes[i][j].set_yticklabels([])
+            else:
+                for tick in axes[i][j].yaxis.get_major_ticks():
+                    tick.label.set_fontsize(34) 
+            if i < shape[0]-1:
+                axes[i][j].set_xticklabels([])
+            else:
+                for tick in axes[i][j].xaxis.get_major_ticks():
+                    tick.label.set_fontsize(34) 
+
+    fig.subplots_adjust(wspace=0.2)
+    fig.subplots_adjust(hspace=0.2)
+    fig.savefig('Long_data_hist.png', dpi=300)
+    #plt.show()

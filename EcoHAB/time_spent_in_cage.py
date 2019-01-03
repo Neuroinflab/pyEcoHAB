@@ -3,7 +3,7 @@ from __future__ import division, print_function
 import EcoHab
 import numpy as np
 import os
-import utils
+import utility_functions as utils
 from write_to_file import save_data_cvs
 ### How much time mice spend in the 'social' compartment
     

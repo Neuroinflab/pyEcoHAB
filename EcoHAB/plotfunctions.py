@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import scipy.stats as st
-import utils as utils
+import utility_functions as utils
 import networkx as nx
 from networkx.drawing.nx_agraph import write_dot
 import matplotlib.colors as mcol
@@ -480,7 +480,6 @@ def single_in_cohort_soc_plot(results,
 
     except ValueError:
         pass
-    
     try:
         ax[3].hist(deltas)
     except ValueError:

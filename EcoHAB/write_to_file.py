@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 import os
-import utils
+import utility_functions as utils
 import numpy as np
 
 def write_single_chamber(f, header, heads, address, mice, phases, time, data_stim ):

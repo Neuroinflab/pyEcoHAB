@@ -4,7 +4,7 @@ import numpy as np
 import os
 import analiza_friends as af
 import time_spent_in_cage as ts
-import utils
+import utility_functions as utils
 import EcoHab
 from ExperimentConfigFile import ExperimentConfigFile
 #from data_info import *

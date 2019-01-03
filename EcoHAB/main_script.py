@@ -4,7 +4,8 @@ import numpy as np
 import os
 import analiza_friends as af
 import time_spent_in_cage as ts
-import utils
+import mouse_speed as ms
+import utility_functions as utils
 import EcoHab
 from ExperimentConfigFile import ExperimentConfigFile
 from data_info import *
@@ -49,6 +50,7 @@ if __name__ == '__main__':
         af.in_cohort_sociability_all_phases(ehs, cf, directory, prefix, remove_mouse=remove_mouse)
         af.in_cohort_sociability_all_dark_light(ehs, cf, directory, prefix, remove_mouse=remove_mouse, phase="light")
         af.in_cohort_sociability_all_dark_light(ehs, cf, directory, prefix, remove_mouse=remove_mouse, phase="dark")
+        ms.following_for_all_2nd_mouse_in_pipe(ehd, cf, directory, prefix, remove_mouse=remove_mouse)
         for binsize in binsizes:
             print('Binsize ',binsize/3600)
             results_path = utils.results_path(path)
@@ -67,7 +69,7 @@ if __name__ == '__main__':
             save_data_cvs(data, fname_all_chambers, results_path, cages, headers)
 
        
-        #following and avoiding
+        # #following and avoiding
         for compensate_for_lost_antenna in [True, False]:
             E = interactions.Experiment(path,
                                         _ant_pos=antenna_positions[new_path],

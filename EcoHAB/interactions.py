@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import plotfunctions
 import write_to_file as wtf
-import utils
+import utility_functions as utils
 from numba import jit
 
 class Experiment(object):

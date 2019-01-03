@@ -9,7 +9,7 @@ Created on Fri Feb 16 2018
 #EcoHAB libraries
 from __future__ import division,print_function
 
-import utils
+import utility_functions as utils
 import os
 import numpy as np
 import matplotlib.pyplot as plt
