@@ -122,3 +122,12 @@ def add_info_mice_filename(remove_mouse):
     elif isinstance(remove_mouse, str):
         add_info_mice = 'remove_%s' % remove_mouse
     return add_info_mice
+
+def in_tube(antenna, next_antenna):
+    if antenna % 2:
+        if next_antenna  == antenna  + 1:
+            return True
+    else:
+        if next_antenna == antenna - 1:
+            return True
+    return False

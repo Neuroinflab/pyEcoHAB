@@ -8,42 +8,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 from write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
 from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot
+from numba import jit
 
 nbins = 10
 homepath = os.path.expanduser("~/")
-threshold = 2
-from numba import jit
 titles = {
     3: '12',
     7: '34',
     11: '56',
     15: '78',
 }
-def in_tube(antenna, next_antenna):
-    if antenna % 2:
-        if next_antenna  == antenna  + 1:
-            return True
-    else:
-        if next_antenna == antenna - 1:
-            return True
-    return False
 
-def make_out():
+def make_intervals_dict():
     return {'antennas':[],
-           'mouse1_time':[],
-           'mouse2_time':[],
-           'mouse1_delta_t':[],
-           'mouse2_delta_t':[]}
+           'following_interval':[]}
 
-def add_to_out(out, key, t1, t2, delta_t1, delta_t2):
+def add_to_intervals_dict(out, key, t):
      out['antennas'].append(key)
-     out['mouse1_time'].append(t1)
-     out['mouse2_time'].append(t2)
-     out['mouse1_delta_t'].append(delta_t1)
-     out['mouse2_delta_t'].append(delta_t2)
+     out['following_interval'].append(t)
+
 
 #@jit
-def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2):
+def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2, out=None):
     idxs1 = np.where(np.array(times2) >= t1)[0]
     idxs2 = np.where(np.array(times2) <= t1 + threshold)[0]
     common_idxs = list(set(idxs1)&set(idxs2))
@@ -52,12 +38,21 @@ def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2):
         if ci + 1 < len(antennas2) and antenna2 == antenna1:
             next_antenna2 = antennas2[ci+1]
             delta_t2 = times2[ci+1] - times2[ci]
-            if in_tube(antenna2, next_antenna2):
+            if utils.in_tube(antenna2, next_antenna2):
+                if isinstance(out, dict):  # if there is a intervals_dictionary provided
+                    delta_t = times2[ci] - t1
+                    add_to_intervals_dict(out, antenna2+next_antenna2, delta_t)
                 return 1
     return 0
                            
-#@jit
-def following_2_mice(ehd, mouse1, mouse2, st, en):
+
+#@jit            
+def following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en, collect_intervals):
+    if collect_intervals:
+        intervals_dict = make_intervals_dict()
+    else:
+        intervals_dict = None
+
     ehd.mask_data(st, en)
     antennas1 = ehd.getantennas(mouse1)
     times1 = ehd.gettimes(mouse1)
@@ -68,9 +63,136 @@ def following_2_mice(ehd, mouse1, mouse2, st, en):
     for idx in change_indices:
         antenna1 = antennas1[idx]
         next_antenna1 = antennas1[idx+1]
-        if in_tube(antenna1, next_antenna1):
-            followings += check_2nd_mouse(antenna1, next_antenna1, times1[idx], threshold, antennas2, times2)
-    return followings
+        delta_t1 = times1[idx+1] - times1[idx]
+        if utils.in_tube(antenna1, next_antenna1) and delta_t1 < threshold:
+            followings += check_2nd_mouse(antenna1, next_antenna1, times1[idx], delta_t1, antennas2, times2, out=out)
+   
+    return followings, intervals_dict
+    
+
+def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase, collect_intervals):
+    mice = ehd.mice
+    st, en = cf.gettime(phase) 
+    followings = np.zeros((len(mice), len(mice)))
+    if collect_intervals:
+        all_mice_dict = {}
+    else:
+        all_mice_ditc = None
+    for j, mouse1 in enumerate(mice):
+        for k, mouse2 in enumerate(mice):
+            if mouse2 != mouse1:
+                
+                followings[j, k], intervals = following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en)
+                if collect_intervals:
+                    key = '%s_%s' % (mouse1, mouse2)
+                    all_mice_dict[key] = intervals
+    return followings, all_mice_dict
+    
+def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory, prefix,
+                                        remove_mouse=None, collect_intervals=True):
+
+    phases = cf.sections()
+    phases = utils.filter_dark(phases)
+    mice = ehd.mice
+    add_info_mice = utils.add_info_mice_filename(remove_mouse)
+    following = np.zeros((len(phases), len(mice), len(mice)))
+    following_exp = np.zeros((len(phases), len(mice), len(mice)))
+    fname = 'following_in_pipe_2nd_mouse_in_pipe_%s' % (add_info_mice)
+    fname_ = 'following_in_pipe_2nd_mouse_in_pipe_%s%s' % (prefix, add_info_mice)
+    fname_exp = 'relative_following_in_pipe_excess_2nd_mouse_in_pipe_%s%s.csv' % (prefix, add_info_mice)
+    if collect_intervals == True:
+        interval_dict = OrderedDict()
+    else:
+        interval_dict = None
+        
+    for i, phase in enumerate(phases):
+        following[i], intervals = following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase)
+        following_exp[i] = expected_following_in_pipe_single_phase(ehd, cf, phase)
+        if interval_dict is not None:
+            interval_dict[phase] = intervals
+        save_single_histograms(following[i],
+                               'following_in_pipe_2nd_mouse_in_pipe',
+                               mice,
+                               phase,
+                               main_directory,
+                               'following_in_pipe_2nd_mouse_in_pipe/histograms',
+                               prefix,
+                               additional_info=add_info_mice)
+        save_single_histograms(following_exp[i],
+                               'following_in_pipe_2nd_mouse_in_pipe_expected_time',
+                               mice,
+                               phase,
+                               main_directory,
+                               'following_in_pipe_2nd_mouse_in_pipe/histograms',
+                               prefix,
+                               additional_info=add_info_mice)
+        save_single_histograms((following[i]-following_exp[i]),
+                               'following_in_pipe_2nd_mouse_in_pipe_relative_excess_following',
+                               mice,
+                               phase,
+                               main_directory,
+                               'following_in_pipe_2nd_mouse_in_pipe/histograms',
+                               prefix,
+                               additional_info=add_info_mice)
+        vmin1 = (following[i] - following_exp[i]).min()
+        vmax1 = (following[i] - following_exp[i]).max()
+        single_in_cohort_soc_plot(following[i],
+                                  following_exp[i],
+                                  mice,
+                                  phase,
+                                  fname,
+                                  main_directory,
+                                  'following_in_pipe_2nd_mouse_in_pipe/histograms',
+                                  prefix+add_info_mice,
+                                  hist=False,
+                                  vmin=0,
+                                  vmax=max(following[i].max(), following_exp[i].max()),
+                                  vmin1=vmin1,
+                                  vmax1=vmax1,
+                                  titles=['# followings',
+                                          '# expected followings',
+                                          '# excess followings',
+                                          'histogram of # excess followings',])
+    write_csv_rasters(mice,
+                      phases,
+                      following,
+                      main_directory,
+                      'following_in_pipe_2nd_mouse_in_pipe/raster_plots',
+                      fname_)
+    write_csv_rasters(mice,
+                      phases,
+                      (following-following_exp),
+                      main_directory,
+                      'following_in_pipe_2nd_mouse_in_pipe/raster_plots',
+                      fname_exp)
+    
+
+    make_RasterPlot(main_directory,
+                    'following_in_pipe_2nd_mouse_in_pipe/raster_plots',
+                    following,
+                    phases,
+                    fname_,
+                    mice,
+                    title='# followings')
+    make_RasterPlot(main_directory,
+                    'following_in_pipe_2nd_mouse_in_pipe/raster_plots',
+                    (following-following_exp),
+                    phases,
+                    fname_exp,
+                    mice,
+                    title='% excess following')
+
+    make_pooled_histograms(following,
+                           following_exp,
+                           phases,
+                           'All_phases_histogram',
+                           main_directory,
+                           '',
+                           prefix,
+                           additional_info=add_info_mice)
+
+    return following, following_exp, phases, mice
+
 
 @jit
 def frequency_mouse_in_tube(ehd, mouse, st, en):
@@ -181,238 +303,7 @@ def histo():
     ax[1][1].set_xlim([0, max_lim])
 
     
-#@jit            
-def following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en):
-    ehd.mask_data(st, en)
-    
-    antennas1 = ehd.getantennas(mouse1)
-    times1 = ehd.gettimes(mouse1)
-    antennas2 = ehd.getantennas(mouse2)
-    times2 = ehd.gettimes(mouse2)
-    change_indices = np.where((np.array(antennas1[1:]) - np.array(antennas1[:-1])) != 0)[0]
-    followings = 0
-    for idx in change_indices:
-        antenna1 = antennas1[idx]
-        next_antenna1 = antennas1[idx+1]
-        delta_t1 = times1[idx+1] - times1[idx]
-        if in_tube(antenna1, next_antenna1) and delta_t1 < threshold:
-            followings += check_2nd_mouse(antenna1, next_antenna1, times1[idx], delta_t1, antennas2, times2)
-   
-    return followings
 
-
-
-def following_single_phase(ehd, cf, phase):
-    mice = ehd.mice
-    st, en = cf.gettime(phase) 
-    followings = np.zeros((len(mice), len(mice)))
-    for j, mouse1 in enumerate(mice):
-        for k, mouse2 in enumerate(mice):
-            if mouse2 != mouse1:
-                followings[j, k] = following_2_mice(ehd, mouse1, mouse2, st, en)
-    return followings
-    
-@jit
-def following_for_all(ehd, cf, main_directory, prefix, remove_mouse=None, threshold=threshold):
-    phases = cf.sections()
-    phases = utils.filter_dark(phases)
-    mice = ehd.mice
-    add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    following = np.zeros((len(phases), len(mice), len(mice)))
-    following_exp = np.zeros((len(phases), len(mice), len(mice)))
-    fname = 'following_in_pipe_threshold_%f_%s' % (threshold, add_info_mice)
-    name_ = 'following_in_pipe_threshold_%f_%s%s' % (threshold, prefix, add_info_mice)
-    name_exp_ = 'relative_following_in_pipe_excess_threshold_%f_%s%s.csv' % (threshold, prefix, add_info_mice)
-    for i, phase in enumerate(phases):
-        following[i] = following_single_phase(ehd, cf, phase)
-        following_exp[i] = expected_following_in_pipe_single_phase_threshold(ehd, cf, phase, threshold)
-        save_single_histograms(following[i],
-                               'following_in_pipe_threshold_%f'%threshold,
-                               mice,
-                               phase,
-                               main_directory,
-                               'following_in_pipe/histograms',
-                               prefix,
-                               additional_info=add_info_mice)
-        save_single_histograms(following_exp[i],
-                               'following_in_pipe_threshold_%f_expected_time'%threshold,
-                               mice,
-                               phase,
-                               main_directory,
-                               'following_in_pipe/histograms',
-                               prefix,
-                               additional_info=add_info_mice)
-        save_single_histograms((following[i]-following_exp[i]),
-                               'following_in_pipe_threshold_%f_relative_excess_following'%threshold,
-                               mice,
-                               phase,
-                               main_directory,
-                               'following_in_pipe/histograms',
-                               prefix,
-                               additional_info=add_info_mice)
-        vmin1 = (following[i] - following_exp[i]).min()
-        vmax1 = (following[i] - following_exp[i]).max()
-        single_in_cohort_soc_plot(following[i],
-                                  following_exp[i],
-                                  mice,
-                                  phase,
-                                  fname,
-                                  main_directory,
-                                  'following_in_pipe/histograms',
-                                  prefix+add_info_mice,
-                                  hist=False,
-                                  vmin=0,
-                                  vmax=max(following[i].max(), following_exp[i].max()),
-                                  vmin1=vmin1,
-                                  vmax1=vmax1,
-                                  titles=['# followings',
-                                          '# expected followings',
-                                          '# excess followings',
-                                          'histogram of # excess followings',])
-    write_csv_rasters(mice,
-                      phases,
-                      following,
-                      main_directory,
-                      'following_in_pipe/raster_plots',
-                      name_)
-    write_csv_rasters(mice,
-                      phases,
-                      (following-following_exp),
-                      main_directory,
-                      'following_in_pipe/raster_plots',
-                      name_exp_)
-    
-
-    make_RasterPlot(main_directory,
-                    'following_in_pipe/raster_plots',
-                    following,
-                    phases,
-                    name_,
-                    mice,
-                    title='# followings')
-    make_RasterPlot(main_directory,
-                    'following_in_pipe/raster_plots',
-                    (following-following_exp),
-                    phases,
-                    name_exp_,
-                    mice,
-                    title='relative excess following')
-    
-    make_pooled_histograms(following,
-                           following_exp,
-                           phases,
-                           'All_phases_histogram',
-                           main_directory,
-                           '',
-                           prefix,
-                           additional_info=add_info_mice)
-    return following, following_exp, phases, mice
-
-def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase):
-    mice = ehd.mice
-    st, en = cf.gettime(phase) 
-    followings = np.zeros((len(mice), len(mice)))
-    for j, mouse1 in enumerate(mice):
-        for k, mouse2 in enumerate(mice):
-            if mouse2 != mouse1:
-                followings[j, k] = following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en)
-    return followings
-    
-def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory, prefix, remove_mouse=None):
-    phases = cf.sections()
-    phases = utils.filter_dark(phases)
-    mice = ehd.mice
-    add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    following = np.zeros((len(phases), len(mice), len(mice)))
-    following_exp = np.zeros((len(phases), len(mice), len(mice)))
-    fname = 'following_in_pipe_2nd_mouse_in_pipe_%s' % (add_info_mice)
-    fname_ = 'following_in_pipe_2nd_mouse_in_pipe_%s%s' % (prefix, add_info_mice)
-    fname_exp = 'relative_following_in_pipe_excess_2nd_mouse_in_pipe_%s%s.csv' % (prefix, add_info_mice)
-    for i, phase in enumerate(phases):
-        following[i] = following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase)
-        following_exp[i] = expected_following_in_pipe_single_phase(ehd, cf, phase)
-        save_single_histograms(following[i],
-                               'following_in_pipe_2nd_mouse_in_pipe',
-                               mice,
-                               phase,
-                               main_directory,
-                               'following_in_pipe_2nd_mouse_in_pipe/histograms',
-                               prefix,
-                               additional_info=add_info_mice)
-        save_single_histograms(following_exp[i],
-                               'following_in_pipe_2nd_mouse_in_pipe_expected_time',
-                               mice,
-                               phase,
-                               main_directory,
-                               'following_in_pipe_2nd_mouse_in_pipe/histograms',
-                               prefix,
-                               additional_info=add_info_mice)
-        save_single_histograms((following[i]-following_exp[i]),
-                               'following_in_pipe_2nd_mouse_in_pipe_relative_excess_following',
-                               mice,
-                               phase,
-                               main_directory,
-                               'following_in_pipe_2nd_mouse_in_pipe/histograms',
-                               prefix,
-                               additional_info=add_info_mice)
-        vmin1 = (following[i] - following_exp[i]).min()
-        vmax1 = (following[i] - following_exp[i]).max()
-        single_in_cohort_soc_plot(following[i],
-                                  following_exp[i],
-                                  mice,
-                                  phase,
-                                  fname,
-                                  main_directory,
-                                  'following_in_pipe_2nd_mouse_in_pipe/histograms',
-                                  prefix+add_info_mice,
-                                  hist=False,
-                                  vmin=0,
-                                  vmax=max(following[i].max(), following_exp[i].max()),
-                                  vmin1=vmin1,
-                                  vmax1=vmax1,
-                                  titles=['# followings',
-                                          '# expected followings',
-                                          '# excess followings',
-                                          'histogram of # excess followings',])
-    write_csv_rasters(mice,
-                      phases,
-                      following,
-                      main_directory,
-                      'following_in_pipe_2nd_mouse_in_pipe/raster_plots',
-                      fname_)
-    write_csv_rasters(mice,
-                      phases,
-                      (following-following_exp),
-                      main_directory,
-                      'following_in_pipe_2nd_mouse_in_pipe/raster_plots',
-                      fname_exp)
-    
-
-    make_RasterPlot(main_directory,
-                    'following_in_pipe_2nd_mouse_in_pipe/raster_plots',
-                    following,
-                    phases,
-                    fname_,
-                    mice,
-                    title='# followings')
-    make_RasterPlot(main_directory,
-                    'following_in_pipe_2nd_mouse_in_pipe/raster_plots',
-                    (following-following_exp),
-                    phases,
-                    fname_exp,
-                    mice,
-                    title='% excess following')
-
-    make_pooled_histograms(following,
-                           following_exp,
-                           phases,
-                           'All_phases_histogram',
-                           main_directory,
-                           '',
-                           prefix,
-                           additional_info=add_info_mice)
-
-    return following, following_exp, phases, mice
 @jit
 def frequencies_for_all(phase, cf, ehd):
     mice = ehd.mice
@@ -422,20 +313,7 @@ def frequencies_for_all(phase, cf, ehd):
     for mouse1 in mice:
         frequency[mouse1], window[mouse1] = frequency_mouse_in_tube(ehd, mouse1, st, en)
     return frequency, window
-
-@jit
-def expected_following_in_pipe_single_phase_threshold(ehd, cf, phase, threshold=threshold):
-    mice = ehd.mice
-    st, en = cf.gettime(phase) 
-    expected = np.zeros((len(mice), len(mice)))
-    frequency, window = frequencies_for_all(phase, cf, ehd)
-    for j, mouse1 in enumerate(mice):
-        for k, mouse2 in enumerate(mice):
-            if mouse2 != mouse1:
-                for key in window[mouse1]:
-                    expected[j, k] += frequency[mouse1][key]*threshold*frequency[mouse2][key]*(en-st)
-    return expected
-    
+   
 @jit
 def expected_following_in_pipe_single_phase(ehd, cf, phase):
     mice = ehd.mice
