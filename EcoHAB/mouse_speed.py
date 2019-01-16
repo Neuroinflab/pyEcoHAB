@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
 from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot
 from numba import jit
-
+from collections import OrderedDict
 nbins = 10
 homepath = os.path.expanduser("~/")
 titles = {
@@ -18,18 +18,10 @@ titles = {
     11: '56',
     15: '78',
 }
-
-def make_intervals_dict():
-    return {'antennas':[],
-           'following_interval':[]}
-
-def add_to_intervals_dict(out, key, t):
-     out['antennas'].append(key)
-     out['following_interval'].append(t)
-
+threshold = 2
 
 #@jit
-def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2, out=None):
+def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2, out):
     idxs1 = np.where(np.array(times2) >= t1)[0]
     idxs2 = np.where(np.array(times2) <= t1 + threshold)[0]
     common_idxs = list(set(idxs1)&set(idxs2))
@@ -39,20 +31,15 @@ def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2, o
             next_antenna2 = antennas2[ci+1]
             delta_t2 = times2[ci+1] - times2[ci]
             if utils.in_tube(antenna2, next_antenna2):
-                if isinstance(out, dict):  # if there is a intervals_dictionary provided
-                    delta_t = times2[ci] - t1
-                    add_to_intervals_dict(out, antenna2+next_antenna2, delta_t)
+                delta_t = times2[ci] - t1
+                out.append(delta_t)
                 return 1
     return 0
                            
 
 #@jit            
-def following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en, collect_intervals):
-    if collect_intervals:
-        intervals_dict = make_intervals_dict()
-    else:
-        intervals_dict = None
-
+def following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en):
+    intervals = []
     ehd.mask_data(st, en)
     antennas1 = ehd.getantennas(mouse1)
     times1 = ehd.gettimes(mouse1)
@@ -65,31 +52,27 @@ def following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en, collect_inte
         next_antenna1 = antennas1[idx+1]
         delta_t1 = times1[idx+1] - times1[idx]
         if utils.in_tube(antenna1, next_antenna1) and delta_t1 < threshold:
-            followings += check_2nd_mouse(antenna1, next_antenna1, times1[idx], delta_t1, antennas2, times2, out=out)
+            followings += check_2nd_mouse(antenna1, next_antenna1, times1[idx], delta_t1,
+                                          antennas2, times2, out=intervals)
    
-    return followings, intervals_dict
+    return followings, intervals
     
 
-def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase, collect_intervals):
+def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase):
     mice = ehd.mice
     st, en = cf.gettime(phase) 
     followings = np.zeros((len(mice), len(mice)))
-    if collect_intervals:
-        all_mice_dict = {}
-    else:
-        all_mice_ditc = None
+    all_mice_dict = {}
     for j, mouse1 in enumerate(mice):
         for k, mouse2 in enumerate(mice):
             if mouse2 != mouse1:
-                
-                followings[j, k], intervals = following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en)
-                if collect_intervals:
-                    key = '%s_%s' % (mouse1, mouse2)
-                    all_mice_dict[key] = intervals
+                followings[j, k], intervals = following_2_mice_in_pipe_condition(ehd,
+                                                                                 mouse1, mouse2, st, en)
+                key = '%s_%s' % (mouse1, mouse2)
+                all_mice_dict[key] = intervals
     return followings, all_mice_dict
     
-def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory, prefix,
-                                        remove_mouse=None, collect_intervals=True):
+def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory, prefix, remove_mouse=None):
 
     phases = cf.sections()
     phases = utils.filter_dark(phases)
@@ -100,16 +83,11 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory, prefix,
     fname = 'following_in_pipe_2nd_mouse_in_pipe_%s' % (add_info_mice)
     fname_ = 'following_in_pipe_2nd_mouse_in_pipe_%s%s' % (prefix, add_info_mice)
     fname_exp = 'relative_following_in_pipe_excess_2nd_mouse_in_pipe_%s%s.csv' % (prefix, add_info_mice)
-    if collect_intervals == True:
-        interval_dict = OrderedDict()
-    else:
-        interval_dict = None
-        
+    interval_dict = OrderedDict()
     for i, phase in enumerate(phases):
         following[i], intervals = following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase)
         following_exp[i] = expected_following_in_pipe_single_phase(ehd, cf, phase)
-        if interval_dict is not None:
-            interval_dict[phase] = intervals
+        interval_dict[phase] = intervals
         save_single_histograms(following[i],
                                'following_in_pipe_2nd_mouse_in_pipe',
                                mice,
@@ -191,7 +169,7 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory, prefix,
                            prefix,
                            additional_info=add_info_mice)
 
-    return following, following_exp, phases, mice
+    return following, following_exp, phases, mice, interval_dict
 
 
 @jit
@@ -339,7 +317,7 @@ def following_for_all_in_pipe_condition(ehd, cf):
         for j, mouse1 in enumerate(mice):
             for k, mouse2 in enumerate(mice):
                 if mouse2 != mouse1:
-                    followings[i, j, k] = following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en)
+                    followings[i, j, k] = following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en, collect_intervals)
     return followings, phases, mice
 
 def save_all_followings_data_to_file(directory, prefix, followings, ending=''):
@@ -360,6 +338,21 @@ def save_all_followings_data_to_file(directory, prefix, followings, ending=''):
                 f.write('\n')
         f.close()
 
+def save_all_intervals_to_file(directory, prefix, followings, ending=''):
+    dir_ = utils.check_directory(directory, 'intervals_following_in_pipe')
+    fname_base = "%s_followings_intervals_wyniki_%s_%s.csv"
+    header = 'mouse pair; following interval\n'
+    phases = followings.keys()
+    for phase in phases:
+        fname = os.path.join(dir_, fname_base % (ending, prefix, phase))
+        f = open(fname, 'w')
+        f.write(header)
+        for key in followings[phase]:
+            f.write(key)
+            for meas in followings[phase][key]:
+                f.write(';'+str(meas))
+            f.write('\n')
+        f.close()
 
 if __name__ == '__main__':
     followings_list = []
@@ -395,7 +388,13 @@ if __name__ == '__main__':
         res_dir = utils.results_path(path)
 
         cf = ExperimentConfigFile(path)
-        following, following_exp, phases, mice = following_for_all_2nd_mouse_in_pipe(ehd, cf, res_dir, prefix, remove_mouse=None)
+        following, following_exp, phases, mice, interval_dict = following_for_all_2nd_mouse_in_pipe(ehd,
+                                                                                                    cf,
+                                                                                                    res_dir,
+                                                                                                    prefix,
+                                                                                                    remove_mouse=None)
+        #print(interval_dict)
+        save_all_intervals_to_file(res_dir, prefix, interval_dict, ending='')
         followings_list.append(following)
         followings_exp_list.append(following_exp)
         phases_list.append(phases)
