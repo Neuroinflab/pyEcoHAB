@@ -23,8 +23,29 @@ opposite_antenna = { 1:2,
                      8:7}
 
 
+def get_idx_pre(t0, times):
+    return np.where(np.array(times) < t0)[0]
+
 #1 check the mouse 2 before the readout of mouse 1
-def check_mouse2_before_mouse1_reading(antenna_m1, t_m1, mouse2_antennas, mouse2_times):
-    idx = np.where(np.array(times2) < t_m1)[0]
+def check_mouse2_antenna_pre_time1(antenna_m1, t_m1, mouse2_antennas, mouse2_times):
+    idx = get_idx_pre(t_m1, mouse2_times)
     antenna_m2 = mouse2_antennas[idx]
-    if 
+    if antenna_m2 == opposite_antenna[antenna_m1]:
+        return True
+    return False
+
+def check_mouse2_before_mouse1_reading(idx_m1_t1, mouse1_antennas, mouse1_times, mouse2_antennas, mouse2_times):
+    a_m1 = mouse1_antennas[idx_m1_t1]
+    t1_m1 = mouse1_times[idx_m1_t1]
+    if check_mouse2_antenna_pre_time1(a_m1, t1_m1, mouse2_antennas, mouse2_times):
+        idx_m2 = get_idx_pre(t1_m1, mouse2_times)
+        nexta_m1 = mouse1_antennas[idx_m1_t1 + 1]
+        t2_m1 = mouse1_times[idx_m1_t1 + 1]
+        nexta_m2 = mouse2_antennas[idx_m2 + 1]
+        t2_m2 = mouse2_times[idx_m2 + 1]
+        if next_am1 == a_m1 and t2_m1 < t2_m2:  # mouse 1 backs out first
+            return 'mouse 1'
+        elif next_am2 == a_m2 and t2_m2 < t1_m1: #mouse 2 backs out first
+            return 'mouse 2'
+
+        
