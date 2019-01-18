@@ -431,7 +431,8 @@ def single_in_cohort_soc_plot(results,
                               titles=['% time together',
                                       'Expected % time together',
                                       'Excess % time together',
-                                      'Histogram of excess % time together']):
+                                      'Histogram of excess % time together'],
+                              labels=['', '']):
     new_name = os.path.join(directory, 'figs')
     directory = utils.check_directory(main_directory, new_name)
     fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, phase))
@@ -475,6 +476,8 @@ def single_in_cohort_soc_plot(results,
         ax[2].get_xaxis().set_ticks([i for i,x in enumerate(mice)])
         ax[2].set_xticklabels(label_mice)
         ax[2].set_yticklabels(label_mice)
+        ax[2].set_xlabel(labels[0])
+        ax[2].set_ylabel(labels[1])
         for label in ax[2].xaxis.get_ticklabels():
             label.set_rotation(90)
 
