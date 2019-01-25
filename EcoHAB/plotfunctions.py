@@ -406,9 +406,9 @@ def single_heat_map(result,
     ax.set_yticklabels(yticks)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-    if turn:
-        for tick in ax.get_xticklabels():
-            tick.set_rotation(90)
+
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(90)
     
     if subdirectory:
         subdirectory = os.path.join(subdirectory, 'figs')
