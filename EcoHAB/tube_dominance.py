@@ -186,10 +186,10 @@ def tube_domination_whole_experiment(ehd, cf, main_directory, prefix, remove_mou
                       phases,
                       domination,
                       main_directory,
-                      'tube_domination_alternative/raster_plots',
+                      'tube_dominance_alternative/raster_plots',
                       fname_)
     make_RasterPlot(main_directory,
-                    'tube_domination_alternative/raster_plots',
+                    'tube_dominance_alternative/raster_plots',
                     domination,
                     phases,
                     fname_,
