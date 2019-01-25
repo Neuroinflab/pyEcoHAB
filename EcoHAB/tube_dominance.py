@@ -34,7 +34,7 @@ cage_opposite_antenna = {1:8,
 def get_idx_pre(t0, times):
     idxs = np.where(np.array(times) < t0)[0]
     if len(idxs):
-        return idxs[0]
+        return idxs[-1]
     return None
 
 def get_idx_post(t0, t1, times):
@@ -50,10 +50,12 @@ def check_mouse2_antenna_pre_time1(antenna_m1,
     if idx is None:
         return False
     antenna_m2 = mouse2_antennas[idx]
-    print('mouse 1:', antenna_m1, t_m1)
-    print('mouse 2:', antenna_m2)
+    #print('mouse 1:', antenna_m1, t_m1)
+    #print('mouse 2:', antenna_m2, mouse2_times[idx])
     if antenna_m2 == pipe_opposite_antenna[antenna_m1]:
+        #print('Pre opposite antenna True')
         return True
+    #print('Pre opposite antenna False')
     return False
 
 def check_m1_entering_and_pushing_m2_out(idx_m1_t1,
@@ -68,12 +70,14 @@ def check_m1_entering_and_pushing_m2_out(idx_m1_t1,
         idx_m2 = get_idx_pre(t1_m1, mouse2_times)
         a_m2 = mouse2_antennas[idx_m2]
         t2_m1 = mouse1_times[idx_m1_t1 + 1]
+        if idx_m2 + 1 == len(mouse2_antennas):
+            return False
         nexta_m2 = mouse2_antennas[idx_m2 + 1]
         t2_m2 = mouse2_times[idx_m2 + 1]
-        print('mouse 1:', t2_m1)
-        print('mouse 1:', nexta_m2, t2_m2)
+        #print('mouse 1:', a_m1, t1_m1,  mouse1_antennas[idx_m1_t1], t2_m1)
+        #print('mouse 2:', a_m2, mouse2_times[idx_m2], nexta_m2, t2_m2)
         if nexta_m2 == a_m2 and t2_m2 < t2_m1: #mouse 2 backs out first
-            print('True')
+            #print('Post opposite antenna True')
             return True
     return False
 
@@ -86,17 +90,17 @@ def check_mouse2_after_mouse1_reading(idx_m1_t1,
     t1_m1 = mouse1_times[idx_m1_t1]
     t2_m1 = mouse1_times[idx_m1_t1 + 1]
     m2_idxs = get_idx_post(t1_m1, t2_m1, mouse2_times)
-    print('mouse 1:', antenna_m1, t1_m1, t2_m1)
-    print('mouse 2:', m2_idxs)
+    #print('mouse 1:', antenna_m1, t1_m1, t2_m1)
+    #print('mouse 2:', len(m2_idxs))
     opposite_antenna = pipe_opposite_antenna[antenna_m1]
     opposite_cage = cage_opposite_antenna[opposite_antenna]
     for idx in m2_idxs:
-        print(mouse2_antennas[idx], mouse2_times[idx])
+        #print('mouse2,',mouse2_antennas[idx], mouse2_times[idx])
         if mouse2_antennas[idx] == opposite_antenna:
-            print('Opposite antenna')
+            #print('Opposite antenna')
             if idx+1 < len(mouse2_antennas):
                 if mouse2_antennas[idx+1] == opposite_antenna or mouse2_antennas[idx+1] == opposite_cage:
-                    print(opposite_antenna, opposite_cage)
+                    #print('opposite antenna, opposite cage', opposite_antenna, opposite_cage)
                     return True
     
 
@@ -112,21 +116,23 @@ def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end):
     antennas2 = ehd.getantennas(mouse2)
     times2 = ehd.gettimes(mouse2)
     for idx in range(len(antennas1[:-1])):
-        print('Check pre')
+        #print('Check pre')
         if check_m1_entering_and_pushing_m2_out(idx,
                                                 antennas1,
                                                 times1,
                                                 antennas2,
                                                 times2):
             domination_counter += 1
-        print('Check post')
+            #print(domination_counter)
+        #print('Check post')
         if check_mouse2_after_mouse1_reading(idx,
                                              antennas1,
                                              times1,
                                              antennas2,
                                              times2):
             domination_counter += 1
-    print(domination_counter)
+            #print(domination_counter)
+    #print(domination_counter)
     return domination_counter
 
 def tube_domination_single_phase(ehd, cf, phase, print_out=True):
@@ -156,21 +162,22 @@ def tube_domination_whole_experiment(ehd, cf, main_directory, prefix, remove_mou
     for i, phase in enumerate(phases):
         domination[i] = tube_domination_single_phase(ehd, cf, phase, print_out=print_out)
         save_single_histograms(domination[i],
-                               'tube_domination_alternative',
+                               'tube_dominance_alternative',
                                mice,
                                phase,
                                main_directory,
-                               'tube_domination_alternative/histograms',
+                               'tube_dominance_alternative/histograms',
                                prefix,
                                additional_info=add_info_mice)
         single_heat_map(domination[i],
-                        'tube_domination_alternative',
+                        'tube_dominance_alternative',
                         main_directory,
                         mice,
                         prefix,
-                        xlabels='domineering mouse',
-                        ylabels='pushed out mouse',
-                        subdirectory='tube_domination_alternative/figs',
+                        phase,
+                        xlabel='domineering mouse',
+                        ylabel='pushed out mouse',
+                        subdirectory='tube_dominance_alternative/histograms',
                         vmax=None,
                         vmin=None,
                         xticks=mice,
