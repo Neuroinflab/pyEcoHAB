@@ -375,14 +375,15 @@ def single_heat_map(result,
                     directory,
                     mice,
                     prefix,
-                    xlabels=None,
-                    ylabels=None,
+                    phase,
+                    xlabel='',
+                    ylabel='',
                     subdirectory=None,
                     vmax=None,
                     vmin=None,
                     xticks=None,
                     yticks=None):
-    name = '%s_%s.png' % (name, prefix)
+    name = '%s_%s_%s.png' % (name, prefix, phase)
     fig, ax = plt.subplots()
     if not vmin:
         vmin = result.min()
@@ -392,17 +393,19 @@ def single_heat_map(result,
     cax = ax.imshow(result,interpolation='none', aspect='auto', cmap="viridis", origin="lower", vmin=vmin, vmax=vmax)
     cbar = fig.colorbar(cax)
     turn = False
-    if not xlabels:
-        xlabels = [mouse.split('-')[-1] for mouse in mice]
+    if not xticks:
+        xticks = [mouse.split('-')[-1] for mouse in mice]
         turn = True
-    if not ylabels:
-        ylabels = [mouse.split('-')[-1] for mouse in mice]
+    if not yticks:
+        yticks = [mouse.split('-')[-1] for mouse in mice]
         fig.subplots_adjust(left=0.25)
         
-    ax.get_yaxis().set_ticks([i for i,x in enumerate(ylabels)])
-    ax.get_xaxis().set_ticks([i for i,x in enumerate(xlabels)])
-    ax.set_xticklabels(xlabels)
-    ax.set_yticklabels(ylabels)
+    ax.get_yaxis().set_ticks([i for i,x in enumerate(yticks)])
+    ax.get_xaxis().set_ticks([i for i,x in enumerate(xticks)])
+    ax.set_xticklabels(xticks)
+    ax.set_yticklabels(yticks)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
     if turn:
         for tick in ax.get_xticklabels():
             tick.set_rotation(90)
