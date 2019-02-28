@@ -194,7 +194,12 @@ class EcoHabData(Data):
             print(pair, mismatches[pair],np.round(100*mismatches[pair]/len(self.data['Antenna'])),'per 100')
         return weird_transit
 
-    def __init__(self,**kwargs):# path, _ant_pos=None,mask=None):
+    def get_mice(self):
+        mouse_list = list(set([d[4] for d in self.rawdata]))
+        mouse_dict = {mouse[-4:]:mouse for mouse in mouse_list}
+        mouse_keys = sorted(mouse_dict.keys())
+        return [mouse_dict[mouse] for mouse in mouse_keys]
+    def __init__(self, **kwargs):# path, _ant_pos=None,mask=None):
         self.days = set()
         self.path = kwargs.pop("path")
         self.rawdata = []
@@ -206,7 +211,10 @@ class EcoHabData(Data):
         self.rawdata = self.remove_ghost_tags(how_many_appearances,
                                               factor,
                                               tags=tags)
-        self.mice = list(set([d[4] for d in self.rawdata]))
+        #self.mice = list(set([d[4] for d in self.rawdata]))
+        
+        self.mice = self.get_mice()
+        print(self.mice)
         self.rawdata.sort(key=lambda x: self.convert_time(x[1]))
         _ant_pos = kwargs.pop('_ant_pos',None)
         mask = kwargs.pop('mask',None)
