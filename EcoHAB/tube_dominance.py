@@ -31,26 +31,10 @@ cage_opposite_antenna = {1:8,
                          8:1}
 
 
-def get_idx_pre(t0, times):
-    idxs = np.where(np.array(times) < t0)[0]
-    if len(idxs):
-        return idxs[-1]
-    return None
-
-def get_idx_between(t0, t1, times):
-    return  np.where((np.array(times) >= t0) & (np.array(times) < t1))[0]
-
-def get_idx_post(t1, times):
-    idxs = np.where(np.array(times) > t1)[0]
-    if len(idxs):
-        return idxs[0]
-    return None
-
-
 def get_states_and_readouts(antennas, times, t1, t2):
-    before = get_idx_pre(t1, times)
-    between = get_idx_between(t1, t2, times)
-    after = get_idx_post(t2, times)
+    before = utils.get_idx_pre(t1, times)
+    between = utils.get_idx_between(t1, t2, times)
+    after = utils.get_idx_post(t2, times)
     states = []
     readouts = []
     if before is not None:
@@ -65,17 +49,20 @@ def get_states_and_readouts(antennas, times, t1, t2):
     assert(len(states) == len(readouts))
     return states, readouts
 
+
 def mice_in_different_spots(states1, states2):
     for s1 in states1:
         if s1 in states2:
             return False
     return True
 
+
 def get_times_antennas(ehd, mouse, t_1, t_2):
     ehd.mask_data(t_1, t_2)
     antennas, times = ehd.getantennas(mouse), ehd.gettimes(mouse)
     ehd.unmask_data()
     return times, antennas
+
 
 def get_more_states(antennas, times, idx, next_idx, last_states, last_readouts):
     states = last_states[:]
@@ -90,33 +77,29 @@ def get_more_states(antennas, times, idx, next_idx, last_states, last_readouts):
             break
         idx, next_idx = idx + 1, next_idx + 1
     return states, readouts, idx, next_idx
-        
+
+
 def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2):
     m1_change_antenna = utils.change_state(antennas1)
-    
     idx, next_idx = 0, 1
-    
     while idx < len(m1_change_antenna) - 2:
         m1idx, next_m1idx = m1_change_antenna[idx], m1_change_antenna[next_idx]
         m1_states = [antennas1[m1idx], antennas1[next_m1idx]]
         m1_readouts = [times1[m1idx], times1[next_m1idx]]
         idx, next_idx = idx + 1, next_idx + 1
-        
         if utils.in_chamber(*m1_states):
             continue
-
         #add states until you get something else than the two first antennas
-        
         m1_states, m1_readouts, idx, next_idx = get_more_states(antennas1,
                                                                 times1,
                                                                 idx,
                                                                 next_idx,
                                                                 m1_states,
                                                                 m1_readouts)
-
+        if len(utils.get_idx_between(m1_readouts[0], m1_readouts[-1], times2)) == 0:
+            continue
         m2_states, m2_readouts = get_states_and_readouts(antennas2, times2,
                                                             m1_readouts[0], m1_readouts[-1])
-
         if mice_in_different_spots(m1_states, m2_states): # mice in different parts of the system
             continue
         if pipe_opposite_antenna[m1_states[0]] not in m2_states: # mouse does not start near opposite antenna
@@ -127,7 +110,6 @@ def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2):
         m1_full_state = antennas1[m1idx:next_m1idx+1]
         m1_full_readouts = times1[m1idx:next_m1idx+1]
         print('mouse 1')
-        print(m1_states, m1_readouts)
         print(m1_full_state, m1_full_readouts)
         print('mouse 2')
         print(m2_states, m2_readouts)
@@ -142,7 +124,7 @@ def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end):
       
     m1_times, m1_antennas = get_times_antennas(ehd, mouse1, t_start, t_end)
     m2_times, m2_antennas = get_times_antennas(ehd, mouse2, t_start, t_end)
-     check_mouse1_pushing_out_mouse2(m1_antennas, m1_times, m2_antennas, m2_times)
+    check_mouse1_pushing_out_mouse2(m1_antennas, m1_times, m2_antennas, m2_times)
         
     return domination_counter
 

@@ -38,7 +38,7 @@ class TestCheckTwoMice(unittest.TestCase):
                                                     m1_times,
                                                     m2_antennas,
                                                     m2_times)
-        self.asserFalse(out)
+        self.assertFalse(out)
     
  def TestLaboriusPushing_mouse1_pushing_mouse2(self):
         m2_antennas = [5, 6, 5, 5, 5, 5, 5, 6, 6, 6, 7]
@@ -72,5 +72,52 @@ class TestCheckTwoMice(unittest.TestCase):
                                                     m1_times,
                                                     m2_antennas,
                                                     m2_times)
-        self.asserTrue(out)
+        self.assertTrue(out)
     
+    def Test_mouse1_simple_pushing_mouse2(self):
+        m1_antenna = [3, 4, 4, 5]
+        m1_times = [938.187, 939.297, 940.297, 942.267]
+        m2_antenna = [4, 4, 3]
+        m2_times = [936.827, 941.892, 943.486]
+        out = tubed.check_mouse1_pushing_out_mouse2(m1_antenna,
+                                                    m1_times,
+                                                    m2_antenna,
+                                                    m2_times)
+        
+        self.assertTrue(out)
+
+    def Test_mouse1_mouse_2_different_directions(self):
+       
+        m1_antenna = [1, 2, 2, 1, 8]
+        m1_times = [59.462, 60.447, 64.418, 64.934, 81.723]
+
+        m2_antenna = [2, 3, 4, 5, 6, 7]
+        m2_times = [57.727, 74.407, 74.922, 77.392, 79.628, 94.855]
+        
+        out = tubed.check_mouse1_pushing_out_mouse2(m1_antenna,
+                                                    m1_times,
+                                                    m2_antenna,
+                                                    m2_times)
+        self.assertFalse(out)
+
+    def Test_mouse_2_does_nothing(self):
+        m1_antenna = [3, 4, 5]
+        m1_times = [7.865, 8.287, 10.523]
+        m2_antenna = [4, 5]
+        m2_times = [5.677, 15.51]
+        out = tubed.check_mouse1_pushing_out_mouse2(m1_antenna,
+                                                    m1_times,
+                                                    m2_antenna,
+                                                    m2_times)
+        self.assertFalse(out)
+
+    def Test_mice_in_different_parts_of_EcoHAB(self):
+        m1_antenna = [3, 2, 1]
+        m1_times = [7.865, 8.287, 10.523]
+        m2_antenna = [4, 5]
+        m2_times = [5.677, 15.51]
+        out = tubed.check_mouse1_pushing_out_mouse2(m1_antenna,
+                                                    m1_times,
+                                                    m2_antenna,
+                                                    m2_times)
+        self.assertFalse(out)
