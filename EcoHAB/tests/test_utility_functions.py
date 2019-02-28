@@ -49,6 +49,41 @@ class TestChangeState(unittest.TestCase):
     def test_check_change_2(self):
         self.assertTrue(uf.change_state([1, 1, 1, 2]), np.array([2], dtype=int))
         
+class TestGetIdxPre(unittest.TestCase):
+    def test_false(self):
+        self.assertEqual(uf.get_idx_pre(2, [3, 4, 5]), None)
+    def test_correct(self):
+        self.assertEqual(uf.get_idx_pre(2, [-1, 0, 1, 2, 3]), 2)
+    def test_empty(self):
+        self.assertEqual(uf.get_idx_pre(0, []), None)
 
+class TestGetIdxPost(unittest.TestCase):
+    def test_false(self):
+        self.assertEqual(uf.get_idx_post(2, [-1, 0, 1]), None)
+    def test_correct(self):
+        self.assertEqual(uf.get_idx_post(2, [-1, 0, 1, 2, 3]), 4)
+    def test_empty(self):
+        self.assertEqual(uf.get_idx_post(0, []), None)
+
+class TestGetIdxBetween(unittest.TestCase):
+    def test_false(self):
+        self.assertEqual(len(uf.get_idx_between(2, 3, [-1, 0, 1])), 0)
+        
+    def test_correct1(self):
+        out = uf.get_idx_between(2, 3, [-1, 0, 1, 2, 3])
+        res = np.array([3, 4], dtype=int)
+        self.assertEqual(len(out), len(res))
+
+
+    def test_correct_loop(self):
+        out = uf.get_idx_between(2, 3, [-1, 0, 1, 2, 3])
+        res = np.array([3, 4], dtype=int)
+        for i, x in enumerate(out):
+            self.assertEqual(x, res[i])
+
+    def test_empty(self):
+        self.assertEqual(len(uf.get_idx_between(0, 2, [])), 0)
+
+        
 if __name__ == '__main__':
     unittest.main()

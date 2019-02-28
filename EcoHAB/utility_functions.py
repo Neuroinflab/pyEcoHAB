@@ -132,6 +132,21 @@ def add_info_mice_filename(remove_mouse):
         add_info_mice = 'remove_%s' % remove_mouse
     return add_info_mice
 
+def get_idx_pre(t0, times):
+    idxs = np.where(np.array(times) < t0)[0]
+    if len(idxs):
+        return idxs[-1]
+    return None
+
+def get_idx_between(t0, t1, times):
+    return  np.where((np.array(times) >= t0) & (np.array(times) <= t1))[0]
+
+def get_idx_post(t1, times):
+    idxs = np.where(np.array(times) > t1)[0]
+    if len(idxs):
+        return idxs[0]
+    return None
+
 
 def in_tube(antenna, next_antenna):
     if antenna % 2:
@@ -157,22 +172,3 @@ def in_chamber(antenna, next_antenna):
 
 def change_state(antennas):
     return np.where(abs(np.array(antennas[:-1]) - np.array(antennas[1:])) !=0)[0]
-
-if __name__ == '__main__':
-    assert in_tube(1, 2) == True
-    assert in_tube(2, 1) == True
-    assert in_tube(3, 2) == False
-    assert in_tube(2, 3) == False
-    assert in_tube(1, 8) == False
-    assert in_tube(8, 1) == False
-    assert in_tube(7, 8) == True
-    assert in_tube(8, 7) == True
-    assert in_chamber(1, 2) == False
-    assert in_chamber(2, 1) == False
-    assert in_chamber(3, 2) == True
-    assert in_chamber(2, 3) == True
-    assert in_chamber(1, 8) == True
-    assert in_chamber(8, 1) == True
-    assert in_chamber(7, 8) == False
-    assert in_chamber(8, 7) == False
-    
