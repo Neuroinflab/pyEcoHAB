@@ -43,9 +43,6 @@ def get_states_and_readouts(antennas, times, t1, t2):
     for idx in between:
         states.append(antennas[idx])
         readouts.append(times[idx])
-    if after is not None:
-        states.append(antennas[after])
-        readouts.append(times[after])
     assert(len(states) == len(readouts))
     return states, readouts
 
@@ -87,28 +84,44 @@ def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2):
         m1_states = [antennas1[m1idx], antennas1[next_m1idx]]
         m1_readouts = [times1[m1idx], times1[next_m1idx]]
         idx, next_idx = idx + 1, next_idx + 1
+        first_antenna = antennas1[m1idx]
+        # mouse1 does not cross pipe, skip and start opposite the pipe
         if utils.in_chamber(*m1_states):
             continue
-        #add states until you get something else than the two first antennas
+        # add states until you get something else than the two first antennas
         m1_states, m1_readouts, idx, next_idx = get_more_states(antennas1,
                                                                 times1,
                                                                 idx,
                                                                 next_idx,
                                                                 m1_states,
                                                                 m1_readouts)
+        # mouse2 does not move, when mouse 1 moves, skip
         if len(utils.get_idx_between(m1_readouts[0], m1_readouts[-1], times2)) == 0:
             continue
         m2_states, m2_readouts = get_states_and_readouts(antennas2, times2,
                                                             m1_readouts[0], m1_readouts[-1])
+        # there are errors in antenna readings, skip
+        if utils.skipped_antennas(m1_states) or utils.skipped_antennas(m2_states):
+            continue
+        # mouse1 and mouse2 are in different parts of EcoHAB, skip
         if mice_in_different_spots(m1_states, m2_states): # mice in different parts of the system
             continue
-        if pipe_opposite_antenna[m1_states[0]] not in m2_states: # mouse does not start near opposite antenna
-            continue
+        # mouse2 starts at the same antenna
         if m1_states[0] in m2_states[:2]: # mice start at the same antenna (following not tube dominance)
+            continue
+        # mouse1 is backing off not moving forward
+        if utils.mouse_backing_off(m1_states):
+            continue
+        # start with mouse 2 standing at the opposite antenna
+        opposite_idxs = np.where(np.array(m2_states) == pipe_opposite_antenna[first_antenna])[0]
+        if not len(opposite_idxs):
+             # mouse2 is never opposite mouse 1, skip
             continue
         next_m1idx = m1_change_antenna[next_idx]
         m1_full_state = antennas1[m1idx:next_m1idx+1]
         m1_full_readouts = times1[m1idx:next_m1idx+1]
+        m2_states = m2_states[opposite_idxs[0]:]
+        m2_readouts = m2_readouts[opposite_idxs[0]:]
         print('mouse 1')
         print(m1_full_state, m1_full_readouts)
         print('mouse 2')
