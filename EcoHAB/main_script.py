@@ -78,7 +78,7 @@ if __name__ == '__main__':
                                         how_many_appearances=how_many_appearances[new_path])
             if not compensate_for_lost_antenna:
                 E.calculate_antenna_errors()
-            for window in ['ALL']: #[12, "ALL"]:
+            for window in [12, "ALL"]:
                 #E.calculate_phases(window=window)
                 E.calculate_fvalue(window=window, threshold=threshold, force=True)
                 if window == 12:
