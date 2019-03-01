@@ -54,7 +54,6 @@ def save_single_histograms(result, fname, mice, phase, main_directory, directory
     except IOError:
         print('Could not write to file', fname)
         return None
-    print(fname)
     for i, mouse in enumerate(mice):
         f.write(';'+mouse)
     f.write(';\n')
@@ -93,16 +92,16 @@ def write_csv_tables(results, phases, mice, main_directory, dirname, fname, pref
     new_name = os.path.join(dirname, 'data')
     directory = utils.check_directory(main_directory, new_name)
     fname =  os.path.join(directory, '%s_%s.csv' % (fname, prefix))
+    print(fname)
     try:
         f = open(fname, 'w')
     except IOError:
         print('Could not write to ', fname)
         return
-
     
     phase_pairs = [phases[2*i]+(len(mice)+2)*';'+ phases[2*i+1]+'\n' for i in range(len(phases)//2)]
     new_results = [(results[2*i], results[2*i+1])for i in range(len(phases)//2)]
-
+    
     mice_header = ';'
     mice_len = 2
     if len(phases) == 1:
@@ -117,7 +116,6 @@ def write_csv_tables(results, phases, mice, main_directory, dirname, fname, pref
     if len(phases) % 2:
         phase_pairs.append((phases[-1]+'\n'))
         new_results.append((results[-1],))
-    print(new_results)
     for i, new_pair in enumerate(phase_pairs):
         f.write(new_pair)
         if len(new_results[i]) > 1:
