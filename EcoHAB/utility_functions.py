@@ -182,4 +182,12 @@ def mouse_going_forward(antennas):
         return True
     return False
     
-    
+def mouse_backing_off(antennas):
+    assert len(antennas) > 2
+    first_antenna, last_antenna = antennas[0], antennas[-1]
+    if first_antenna % 2 and not last_antenna % 2:
+        return True
+    if not first_antenna % 2 and last_antenna % 2:
+        return True
+    return False
+
