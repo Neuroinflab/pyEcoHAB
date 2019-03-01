@@ -84,6 +84,26 @@ class TestGetIdxBetween(unittest.TestCase):
     def test_empty(self):
         self.assertEqual(len(uf.get_idx_between(0, 2, [])), 0)
 
+
+class TestMouseGoingForward(unittest.TestCase):
+    def test_going_forward(self):
+        self.assertTrue(uf.mouse_going_forward([1, 2, 3]))
+
+    def test_not_going_forward(self):
+        self.assertFalse(uf.mouse_going_forward([1, 2, 1, 8]))
+
+    def test_going_forward_other_pipe(self):
+        self.assertTrue(uf.mouse_going_forward([7, 8, 1]))
+
+    def test_not_going_forward_other_pipe(self):
+        self.assertFalse(uf.mouse_going_forward([8, 7, 8, 1]))
+
+    def test_going_forward_other_from_data(self):
+        self.assertTrue(uf.mouse_going_forward([3, 4, 4, 3, 3, 4, 4, 5]))
+
+    def test_not_going_forward_from_data(self):
+        self.assertFalse(uf.mouse_going_forward([5, 6, 6, 5, 4]))
         
+
 if __name__ == '__main__':
     unittest.main()

@@ -172,3 +172,14 @@ def in_chamber(antenna, next_antenna):
 
 def change_state(antennas):
     return np.where(abs(np.array(antennas[:-1]) - np.array(antennas[1:])) !=0)[0]
+
+def mouse_going_forward(antennas):
+    assert len(antennas) > 2
+    first_antenna, last_antenna = antennas[0], antennas[-1]
+    if first_antenna % 2 and last_antenna % 2:
+        return True
+    if not first_antenna % 2 and not last_antenna % 2:
+        return True
+    return False
+    
+    
