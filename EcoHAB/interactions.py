@@ -700,7 +700,9 @@ class Experiment(object):
         if what == "FAM":
             what = "interactions"
             return self.FollowingAvoidingMatrix(), what
-       
+        if what == "TubeDominance":
+            what = "tube_dominance"
+            return self.tube_dominance_matrix, what
         print("Unknown value %s, available values are following or avoiding" % what)
         return
     
@@ -800,6 +802,7 @@ class Experiment(object):
                                           self.directory,
                                           self.mice,
                                           suffix,
+                                          phase,
                                           subdirectory=what,
                                           vmin=vmin,
                                           vmax=vmax)
