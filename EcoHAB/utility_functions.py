@@ -191,3 +191,9 @@ def mouse_backing_off(antennas):
         return True
     return False
 
+def skipped_antennas(antennas):
+    change = abs(np.array(antennas[:-1]) - np.array(antennas[1:]))
+    if len(np.intersect1d(np.where(change>=2)[0], np.where(change<=6)[0])):
+        return True
+    return False
+    

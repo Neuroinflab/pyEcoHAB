@@ -122,6 +122,26 @@ class TestMouseBacking(unittest.TestCase):
 
     def test_not_going_forward_from_data(self):
         self.assertTrue(uf.mouse_backing_off([5, 6, 6, 5, 4]))
-        
+
+class TestSkipAntennas(unittest.TestCase):
+    def test_no_skipped_antennas_short(self):
+        out = uf.skipped_antennas([1, 2])
+        self.assertFalse(out)
+    def test_skipped_antennas_short(self):
+        out = uf.skipped_antennas([4, 2])
+        self.assertTrue(out)
+    def test_no_skipped_antennas_long(self):
+        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 5])
+        self.assertFalse(out)
+    def test_skipped_antennas_long(self):
+        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 6])
+        self.assertTrue(out)
+    def test_no_skipped_antennas_long_with_8(self):
+        out = uf.skipped_antennas([8, 1, 2, 2, 3, 4, 4, 5])
+        self.assertFalse(out)
+    def test_skipped_antennas_long_with_8(self):
+        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 6])
+        self.assertTrue(out)
+
 if __name__ == '__main__':
     unittest.main()
