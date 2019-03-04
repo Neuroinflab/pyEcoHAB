@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+-*- coding: utf-8 -*-
 from __future__ import print_function, division
 datasets = [
     'EcoHAB_data_November/Social structure males 02.03/',
@@ -49,6 +49,7 @@ datasets = [
     "EcoHAB_data_November/Turkusowe II 04-08.01.2019/",
     "EcoHAB_data_November/Myszy z Krakowa/",
     "EcoHAB_data_November/BTBR_LONG_KSENIA_12-22.02.19/",
+    "EcoHAB_data_November/Samce C57 sham 3 rep 22.02-04.03/",
 ]
 
 remove_tags = {
