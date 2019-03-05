@@ -122,6 +122,22 @@ class TestMouseBacking(unittest.TestCase):
 
     def test_not_going_forward_from_data(self):
         self.assertTrue(uf.mouse_backing_off([5, 6, 6, 5, 4]))
+        
+    def test_two_same_reading(self):
+        self.assertFalse(uf.mouse_backing_off([1, 1]))
+        
+    def test_two_different_readings(self):
+        self.assertFalse(uf.mouse_backing_off([1, 2]))
+
+    def test_only_two_antennas_True(self):
+        self.assertTrue(uf.mouse_backing_off([1, 2, 1]))
+
+    def test_only_two_antennas_False(self):
+        self.assertFalse(uf.mouse_backing_off([1, 2, 1, 2]))
+
+    def test_one_reading(self):
+        self.assertFalse(uf.mouse_backing_off([1]))
+        
 
 class TestSkipAntennas(unittest.TestCase):
     def test_no_skipped_antennas_short(self):
