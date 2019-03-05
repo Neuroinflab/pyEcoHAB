@@ -34,13 +34,13 @@ class TestCheckTwoMice(unittest.TestCase):
                         801.342,#5
                         807.86,#4
                         814.3]#4
-        out = tubed.check_mouse1_pushing_out_mouse2(m1_antennas,
+        out = tubed.does_mouse1_push_out(m1_antennas,
                                                     m1_times,
                                                     m2_antennas,
                                                     m2_times)
         self.assertFalse(out)
     
- def TestLaboriusPushing_mouse1_pushing_mouse2(self):
+    def TestLaboriusPushing_mouse1_pushing_mouse2(self):
         m2_antennas = [5, 6, 5, 5, 5, 5, 5, 6, 6, 6, 7]
         m2_readouts  = [705.074,#5
                         708.091,#6
@@ -68,7 +68,7 @@ class TestCheckTwoMice(unittest.TestCase):
                         801.342,#5
                         807.86,#4
                         814.3]#4
-        out = tubed.check_mouse1_pushing_out_mouse2(m1_antennas,
+        out = tubed.does_mouse1_push_out(m1_antennas,
                                                     m1_times,
                                                     m2_antennas,
                                                     m2_times)
@@ -79,7 +79,7 @@ class TestCheckTwoMice(unittest.TestCase):
         m1_times = [938.187, 939.297, 940.297, 942.267]
         m2_antenna = [4, 4, 3]
         m2_times = [936.827, 941.892, 943.486]
-        out = tubed.check_mouse1_pushing_out_mouse2(m1_antenna,
+        out = tubed.does_mouse1_push_out(m1_antenna,
                                                     m1_times,
                                                     m2_antenna,
                                                     m2_times)
@@ -94,7 +94,7 @@ class TestCheckTwoMice(unittest.TestCase):
         m2_antenna = [2, 3, 4, 5, 6, 7]
         m2_times = [57.727, 74.407, 74.922, 77.392, 79.628, 94.855]
         
-        out = tubed.check_mouse1_pushing_out_mouse2(m1_antenna,
+        out = tubed.does_mouse1_push_out(m1_antenna,
                                                     m1_times,
                                                     m2_antenna,
                                                     m2_times)
@@ -105,7 +105,7 @@ class TestCheckTwoMice(unittest.TestCase):
         m1_times = [7.865, 8.287, 10.523]
         m2_antenna = [4, 5]
         m2_times = [5.677, 15.51]
-        out = tubed.check_mouse1_pushing_out_mouse2(m1_antenna,
+        out = tubed.does_mouse1_push_out(m1_antenna,
                                                     m1_times,
                                                     m2_antenna,
                                                     m2_times)
@@ -116,8 +116,15 @@ class TestCheckTwoMice(unittest.TestCase):
         m1_times = [7.865, 8.287, 10.523]
         m2_antenna = [4, 5]
         m2_times = [5.677, 15.51]
-        out = tubed.check_mouse1_pushing_out_mouse2(m1_antenna,
-                                                    m1_times,
-                                                    m2_antenna,
-                                                    m2_times)
+        out = tubed.does_mouse1_push_out(m1_antenna,
+                                         m1_times,
+                                         m2_antenna,
+                                         m2_times)
         self.assertFalse(out)
+
+
+# def TestGetMoreStates(unittest.TestCase):
+#     pass
+    
+if __name__ == '__main__':
+    unittest.main()
