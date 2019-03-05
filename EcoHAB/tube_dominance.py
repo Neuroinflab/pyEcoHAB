@@ -10,6 +10,8 @@ from write_to_file import save_single_histograms, write_csv_rasters, write_csv_t
 from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
 from numba import jit
 from collections import OrderedDict
+
+mouse_attention_span = 100  # sec
 nbins = 10
 homepath = os.path.expanduser("~/")
 
@@ -60,48 +62,27 @@ def get_times_antennas(ehd, mouse, t_1, t_2):
     ehd.unmask_data()
     return times, antennas
 
-
-def get_more_states(antennas, times, midx):
-    states = [antennas[midx]]
-    readouts = [times[midx]]
-    #m_change_antenna = utils.change_state(antennas)
-    while True:
-        midx += 1
-        new_antenna = antenna[midx]
-        new_readout = readout[midx]
-        if new_readout > readout + 100:
-            break
-        states.append(new_antenna)
-        readouts.append(new_readout)
-        if new_antenna not in states[:-1]:
-            break
-    return states, readouts, midx
-
-
 def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
     first_antenna = m1_states[0]
     opposite_antenna = pipe_opposite_antenna[first_antenna]
     #m1 backs out
-    if m1_states[0] == m1_states[-1]:
+    if len(m1_states) == 1:
         return False
     #m1 is crossing the chamber
     if utils.in_chamber(m1_states[0], m1_states[-1]):
         return False
     m2_states, m2_readouts = get_states_and_readouts(antennas2, times2,
                                                     m1_times[0], m1_times[-1])
+    
     # mouse1 is backing off not moving forward
     if utils.mouse_backing_off(m1_states):
             return False
-    # mouse2 does not move, when mouse 1 moves, skip    
-    if m1_states[-1] == opposite_antenna:
-        if len(m2_states) == 0:
-            return False
-    else:
-        m2_m1_in_pipe, m2_times_m1_in_pipe = get_states_and_readouts(antennas2, times2,
-                                                                     m1_times[0], m1_times[-2])
-        if len(m2_m1_in_pipe) == 0:
-            return False
 
+    # mouse2 does not move, when mouse 1 moves, skip    
+    if len(m2_states) < 2 :
+            return False
+    m2_m1_in_pipe, m2_times_m1_in_pipe = get_states_and_readouts(antennas2, times2,
+                                                                 m1_times[0], m1_times[-2])
     # there are errors in antenna readings, skip
     if utils.skipped_antennas(m1_states) or utils.skipped_antennas(m2_states):
             return False
@@ -117,12 +98,8 @@ def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
     if m1_states[0] in m2_states[:opposite_idxs[0]]:
         # mice start at the same antenna (following not tube dominance)
         return False
-
-    next_m1idx = m1_change_antenna[next_idx]
-    m1_in_pipe = antennas1[m1idx:next_m1idx] 
-    m1_times_in_pipe = times1[m1idx:next_m1idx]
     print('mouse 1')
-    print(m1_in_pipe, m1_times_in_pipe)
+    print(m1_states, m1_times)
     print('mouse 2')
     print(m2_states, m2_readouts)
     m2_states = m2_states[opposite_idxs[0]:]
@@ -141,32 +118,42 @@ def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
         return True
 
     return False
-    
+
+
+def get_more_states(antennas, times, midx):
+    states = [antennas[midx]]
+    readouts = [times[midx]]
+    #m_change_antenna = utils.change_state(antennas)
+    while True:
+        midx += 1
+
+        if midx >= len(antennas):
+            break
+
+        new_antenna = antenna[midx]
+        new_readout = readout[midx]
+
+        if new_readout > readout + mouse_attention_span:
+            break
+
+        states.append(new_antenna)
+        readouts.append(new_readout)
+
+        if new_antenna not in states[:-1]:
+            break
+
+    return states, readouts, midx
+
+
 def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2):
-    m1_change_antenna = utils.change_state(antennas1)
-    idx, next_idx = 0, 1
+    idx = 0
     domination_counter = 0
-    while idx < len(m1_change_antenna) - 2:
-        m1idx, next_m1idx = m1_change_antenna[idx], m1_change_antenna[next_idx]
-        m1_states = antennas1[m1idx:next_m1idx + 1]
-        m1_readouts = times1[m1idx:next_m1idx + 1]
-        idx, next_idx = idx + 1, next_idx + 1
-        first_antenna = m1_states[0]
-        opposite_antenna = pipe_opposite_antenna[first_antenna]
-        # mouse1 does not cross pipe, skip and start opposite the pipe
-        if utils.in_chamber(*m1_states):
-            continue
-        # add states until you get something else than the two first antennas
-        m1_states, m1_readouts, idx, next_idx = get_more_states(antennas1,
-                                                                times1,
-                                                                m1idx)
-        # mouse2 does not move, when mouse 1 moves, skip
-        if len(utils.get_idx_between(m1_readouts[0], m1_readouts[-2], times2)) == 0:
-            continue
-        m2_m1_in_pipe, m2_times_m1_in_pipe = get_states_and_readouts(antennas2, times2,
-                                                                     m1_readouts[0], m1_readouts[-2])
-
-
+    while True:
+        m1_states, m1_readouts, idx = get_more_states(antennas1, times1, idx)
+        if does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
+            domination_counter += 1
+        if idx >= len(antennas1):
+            break
         
     return domination_counter
     

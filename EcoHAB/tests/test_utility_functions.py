@@ -210,5 +210,7 @@ class TestMouseGoingCounterClockwise(unittest.TestCase):
     def test_correct_with_8(self):
         positions = [1, 8, 7]
         self.assertTrue(uf.mouse_going_counterclockwise(positions))
+
+
 if __name__ == '__main__':
     unittest.main()
