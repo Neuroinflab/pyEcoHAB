@@ -121,25 +121,26 @@ def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
 
 
 def get_more_states(antennas, times, midx):
+    #save first antenna
     states = [antennas[midx]]
     readouts = [times[midx]]
-    #m_change_antenna = utils.change_state(antennas)
+    midx += 1
     while True:
-        midx += 1
-
+        
         if midx >= len(antennas):
             break
-
-        new_antenna = antenna[midx]
-        new_readout = readout[midx]
-
-        if new_readout > readout + mouse_attention_span:
+        #read in next antenna
+        new_antenna = antennas[midx]
+        new_readout = times[midx]
+        #if pause too long break
+        if new_readout > readouts[midx - 1] + mouse_attention_span:
             break
 
         states.append(new_antenna)
         readouts.append(new_readout)
-
-        if new_antenna not in states[:-1]:
+        midx += 1
+        #if more than 2 antennas, break
+        if len(set(states)) == 3:
             break
 
     return states, readouts, midx
