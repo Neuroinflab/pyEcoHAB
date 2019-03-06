@@ -4,6 +4,69 @@ from EcoHAB import tube_dominance as tubed
 import unittest
 
 class TestGetMoreStates(unittest.TestCase):
+    
+    def test_2nd_tier_len_states(self):
+        tubed.mouse_attention_span = 50
+        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
+        times = [101.976,
+                 103.148,
+                 109.37,
+                 109.761,
+                 211.214,
+                 211.98,
+                 217.953,
+                 218.61,
+                 223.347,
+                 223.769,
+                 225.192,
+                 225.942,
+                 228.772,
+                 228.972]
+        idx = 6
+        states, readouts, midx = tubed.get_more_states(antennas, times, idx)
+        self.assertEqual(len(states), 3)
+    def test_2nd_tier_len_states_times(self):
+        tubed.mouse_attention_span = 50
+        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
+        times = [101.976,
+                 103.148,
+                 109.37,
+                 109.761,
+                 211.214,
+                 211.98,
+                 217.953,
+                 218.61,
+                 223.347,
+                 223.769,
+                 225.192,
+                 225.942,
+                 228.772,
+                 228.972]
+        idx = 6
+        states, readouts, midx = tubed.get_more_states(antennas, times, idx)
+        self.assertEqual(len(states), len(readouts))
+
+    def test_2nd_tier_equal_len_midx(self):
+        tubed.mouse_attention_span = 50
+        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
+        times = [101.976,
+                 103.148,
+                 109.37,
+                 109.761,
+                 211.214,
+                 211.98,
+                 217.953,
+                 218.61,
+                 223.347,
+                 223.769,
+                 225.192,
+                 225.942,
+                 228.772,
+                 228.972]
+        idx = 6
+        states, readouts, midx = tubed.get_more_states(antennas, times, idx)
+        self.assertEqual(midx, idx + len(states))
+
     def test_catch_threshold_len_states(self):
         tubed.mouse_attention_span = 50
         antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
@@ -23,7 +86,7 @@ class TestGetMoreStates(unittest.TestCase):
                  228.972]
         idx = 0
         states, readouts, midx = tubed.get_more_states(antennas, times, idx)
-        self.assertEqual(len(states), 4)
+        self.assertEqual(len(states), 4 + idx)
     def test_catch_threshold_equal_len_states_times(self):
         tubed.mouse_attention_span = 50
         antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
@@ -64,7 +127,7 @@ class TestGetMoreStates(unittest.TestCase):
                  228.972]
         idx = 0
         states, readouts, midx = tubed.get_more_states(antennas, times, idx)
-        self.assertEqual(len(states), midx)
+        self.assertEqual(len(states), midx + idx)
     
     def test_catch_3rd_len_states(self):
         tubed.mouse_attention_span = 50
@@ -127,7 +190,7 @@ class TestGetMoreStates(unittest.TestCase):
                  128.972]
         idx = 0
         states, readouts, midx = tubed.get_more_states(antennas, times, idx)
-        self.assertEqual(len(states), midx)
+        self.assertEqual(len(states), midx + idx)
 
     def test_catch_end(self):
         tubed.mouse_attention_span = 50
@@ -148,7 +211,7 @@ class TestGetMoreStates(unittest.TestCase):
                  128.972]
         idx = 0
         states, readouts, midx = tubed.get_more_states(antennas, times, idx)
-        self.assertEqual(len(states), midx)
+        self.assertEqual(len(states), midx + idx)
 
     def test_catch_equal_len_antennas_states(self):
         tubed.mouse_attention_span = 50

@@ -125,20 +125,21 @@ def get_more_states(antennas, times, midx):
     states = [antennas[midx]]
     readouts = [times[midx]]
     midx += 1
+    idx = 1
     while True:
-        
         if midx >= len(antennas):
             break
         #read in next antenna
         new_antenna = antennas[midx]
         new_readout = times[midx]
         #if pause too long break
-        if new_readout > readouts[midx - 1] + mouse_attention_span:
+        if new_readout > readouts[idx - 1] + mouse_attention_span:
             break
 
         states.append(new_antenna)
         readouts.append(new_readout)
         midx += 1
+        idx += 1
         #if more than 2 antennas, break
         if len(set(states)) == 3:
             break
@@ -151,7 +152,7 @@ def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2):
     domination_counter = 0
     while True:
         m1_states, m1_readouts, idx = get_more_states(antennas1, times1, idx)
-        if does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
+        if does_mouse1_push_out(m1_states, m1_readouts, antennas2, times2):
             domination_counter += 1
         if idx >= len(antennas1):
             break
