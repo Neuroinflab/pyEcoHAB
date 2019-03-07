@@ -11,7 +11,7 @@ from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_hea
 from numba import jit
 from collections import OrderedDict
 
-mouse_attention_span = 100  # sec
+mouse_attention_span = 30  # sec
 nbins = 10
 homepath = os.path.expanduser("~/")
 
@@ -71,15 +71,23 @@ def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
     #m1 is crossing the chamber
     if utils.in_chamber(m1_states[0], m1_states[-1]):
         return False
-    m2_states, m2_readouts = get_states_and_readouts(antennas2, times2,
-                                                    m1_times[0], m1_times[-1])
+    if len(set(m1_states)) == 3:
+        m2_states, m2_readouts = get_states_and_readouts(antennas2, times2,
+                                                         m1_times[0], m1_times[-2])
+        between = utils.get_idx_between(m1_times[0], m1_times[-2], times2)
+    else:
+        m2_states, m2_readouts = get_states_and_readouts(antennas2, times2,
+                                                         m1_times[0], m1_times[-1])
+        between = utils.get_idx_between(m1_times[0], m1_times[-1], times2)
+ 
     
     # mouse1 is backing off not moving forward
     if utils.mouse_backing_off(m1_states):
             return False
 
-    # mouse2 does not move, when mouse 1 moves, skip    
-    if len(m2_states) < 2 :
+    # mouse2 does not move, when mouse 1 moves, skip
+    
+    if len(between) == 0 :
             return False
     m2_m1_in_pipe, m2_times_m1_in_pipe = get_states_and_readouts(antennas2, times2,
                                                                  m1_times[0], m1_times[-2])
@@ -95,11 +103,11 @@ def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
         # mouse2 is never opposite mouse 1, skip
         return False
     # mouse2 starts at the same antenna
-    if m1_states[0] in m2_states[:opposite_idxs[0]]:
+    if m1_states[0] in m2_states:
         # mice start at the same antenna (following not tube dominance)
         return False
     #opposite antenna is the last antenna readout
-   
+    
     print('mouse 1')
     print(m1_states, m1_times)
     print('mouse 2')
@@ -115,7 +123,7 @@ def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
     print('mouse 2 opposite mouse 1')
     print(m2_m1_in_pipe, m2_times_m1_in_pipe)        
 
-    if np.all(np.array(m2_m1_in_pipe) == opposite_antenna):
+    if np.all(np.array(m2_m1_in_pipe) == opposite_antenna): #nie dziala!
         print("True")
         return True
 
@@ -158,6 +166,7 @@ def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2):
         m1_states, m1_readouts, idx = get_more_states(antennas1, times1, idx)
         if does_mouse1_push_out(m1_states, m1_readouts, antennas2, times2):
             domination_counter += 1
+            print(domination_counter)
         if idx >= len(antennas1):
             break
         
