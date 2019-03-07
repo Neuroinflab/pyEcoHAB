@@ -65,7 +65,7 @@ class TestGetMoreStates(unittest.TestCase):
                  228.972]
         idx = 6
         states, readouts, midx = tubed.get_more_states(antennas, times, idx)
-        self.assertEqual(midx, idx + len(states))
+        self.assertEqual(midx + 1, idx + len(states))
 
     def test_catch_threshold_len_states(self):
         tubed.mouse_attention_span = 50
@@ -190,7 +190,7 @@ class TestGetMoreStates(unittest.TestCase):
                  128.972]
         idx = 0
         states, readouts, midx = tubed.get_more_states(antennas, times, idx)
-        self.assertEqual(len(states), midx + idx)
+        self.assertEqual(len(states) - 1, midx + idx)
 
     def test_catch_end(self):
         tubed.mouse_attention_span = 50

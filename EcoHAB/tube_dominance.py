@@ -98,6 +98,8 @@ def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
     if m1_states[0] in m2_states[:opposite_idxs[0]]:
         # mice start at the same antenna (following not tube dominance)
         return False
+    #opposite antenna is the last antenna readout
+   
     print('mouse 1')
     print(m1_states, m1_times)
     print('mouse 2')
@@ -138,12 +140,14 @@ def get_more_states(antennas, times, midx):
 
         states.append(new_antenna)
         readouts.append(new_readout)
-        midx += 1
+
         idx += 1
         #if more than 2 antennas, break
         if len(set(states)) == 3:
+            # go back to the last readout of the opposite antenna not to loose it
             break
-
+        midx += 1
+        
     return states, readouts, midx
 
 
