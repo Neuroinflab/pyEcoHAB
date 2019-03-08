@@ -11,7 +11,7 @@ from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_hea
 from numba import jit
 from collections import OrderedDict
 
-mouse_attention_span = 30  # sec
+mouse_attention_span = 10  # sec
 nbins = 10
 homepath = os.path.expanduser("~/")
 
@@ -66,65 +66,77 @@ def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
     first_antenna = m1_states[0]
     opposite_antenna = pipe_opposite_antenna[first_antenna]
     #m1 backs out
+    
+    if utils.skipped_antennas(m1_states):
+        #print("Skipped antennas")
+        return False
     if len(m1_states) == 1:
+        #print("one antenna")
         return False
     #m1 is crossing the chamber
-    if utils.in_chamber(m1_states[0], m1_states[-1]):
-        return False
     if len(set(m1_states)) == 3:
-        m2_states, m2_readouts = get_states_and_readouts(antennas2, times2,
-                                                         m1_times[0], m1_times[-2])
-        between = utils.get_idx_between(m1_times[0], m1_times[-2], times2)
+        end_state = m1_states[-2]
+        end_time = m1_times[-2]
     else:
-        m2_states, m2_readouts = get_states_and_readouts(antennas2, times2,
-                                                         m1_times[0], m1_times[-1])
-        between = utils.get_idx_between(m1_times[0], m1_times[-1], times2)
- 
-    
+        end_state = m1_states[-1]
+        end_time = m1_times[-1]
+
+    if utils.in_chamber(m1_states[0], end_state):
+        #print("in chamber")
+        return False
     # mouse1 is backing off not moving forward
     if utils.mouse_backing_off(m1_states):
-            return False
+        #print("backing off")
+        return False
+
+    
+    m2_states, m2_readouts = get_states_and_readouts(antennas2, times2,
+                                                     m1_times[0], end_time)
+    between = utils.get_idx_between(m1_times[0], end_time, times2)
 
     # mouse2 does not move, when mouse 1 moves, skip
     
     if len(between) == 0 :
-            return False
-    m2_m1_in_pipe, m2_times_m1_in_pipe = get_states_and_readouts(antennas2, times2,
-                                                                 m1_times[0], m1_times[-2])
+        #print("no activity of mouse 2")
+        return False
     # there are errors in antenna readings, skip
-    if utils.skipped_antennas(m1_states) or utils.skipped_antennas(m2_states):
-            return False
+    if utils.skipped_antennas(m2_states):
+        #print("Skipped antennas")
+        return False
     # mouse1 and mouse2 are in different parts of EcoHAB, skip
     if mice_in_different_spots(m1_states, m2_states): # mice in different parts of the system
+        #print("mice in different spots")
         return False
         # start with mouse 2 standing at the opposite antenna
     opposite_idxs = np.where(np.array(m2_states) == opposite_antenna)[0]
     if not len(opposite_idxs):
+        #print("mouse 2 never on the opposite side of the pipe")
         # mouse2 is never opposite mouse 1, skip
         return False
     # mouse2 starts at the same antenna
-    if m1_states[0] in m2_states:
+    if m1_states[0] in m2_states[:opposite_idxs[0]]:
+        #print("mice start at the same antenna")
         # mice start at the same antenna (following not tube dominance)
         return False
-    #opposite antenna is the last antenna readout
-    
-    print('mouse 1')
-    print(m1_states, m1_times)
-    print('mouse 2')
-    print(m2_states, m2_readouts)
-    m2_states = m2_states[opposite_idxs[0]:]
-    m2_readouts = m2_readouts[opposite_idxs[0]:]
-    m2_m1_in_pipe = m2_m1_in_pipe[opposite_idxs[0]:]
-    m2_times_m1_in_pipe = m2_times_m1_in_pipe[opposite_idxs[0]:]
-            
-    if len(m2_m1_in_pipe) == 0:
-        return False
-        
-    print('mouse 2 opposite mouse 1')
-    print(m2_m1_in_pipe, m2_times_m1_in_pipe)        
 
-    if np.all(np.array(m2_m1_in_pipe) == opposite_antenna): #nie dziala!
-        print("True")
+
+    m2_m1_in_pipe = m2_states[opposite_idxs[0]:]
+    m2_times_m1_in_pipe = m2_readouts[opposite_idxs[0]:]
+    idx_after = utils.get_idx_post(end_time, times2)
+    if idx_after is not None:
+        m2_after = antennas2[idx_after]
+    else:
+        m2_after = m1_states[0]
+    #print('mouse 1', m1_states, m1_times)
+    #print('mouse 2', m2_states, m2_readouts, m2_after)
+    if m2_states[0] == opposite_antenna:
+        if m2_readouts[1] - m2_readouts[0] < 5:
+            idx = utils.get_idx_pre(m2_readouts[0], times2)
+            if idx is not None:
+                if antennas2[idx] == m1_states[0] and m1_times[0] - times2[idx] < 5:
+                    #print(antennas2[idx], times2[idx])
+                    return False
+    if np.all(np.array(m2_m1_in_pipe) == opposite_antenna) and m2_after != m1_states[0]: #
         return True
 
     return False
@@ -166,7 +178,6 @@ def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2):
         m1_states, m1_readouts, idx = get_more_states(antennas1, times1, idx)
         if does_mouse1_push_out(m1_states, m1_readouts, antennas2, times2):
             domination_counter += 1
-            print(domination_counter)
         if idx >= len(antennas1):
             break
         
@@ -207,26 +218,6 @@ def check_mice(t1_m1, t2_m1, a1_m1, a2_m1, mouse2_antennas, mouse2_times):
     for i, t in enumerate(m2_times):
         print('mouse2', t, m2_states[i],)
 
-               
-def tube_dominance_2_mice_single_phase_alternative(ehd, mouse1, mouse2, t_start, t_end):
-    """We're checking here, how many times mouse1 dominates over mouse2
-    between t_start and t_end.
-    """
-    domination_counter = 0
-    ehd.mask_data(t_start, t_end)
-    antennas1 = ehd.getantennas(mouse1)
-    times1 = ehd.gettimes(mouse1)
-    antennas2 = ehd.getantennas(mouse2)
-    times2 = ehd.gettimes(mouse2)
-   
-    pre = 0
-    for idx in change_idx:
-        t1m1 = times1[pre]
-        t2m1 = times1[idx+1]
-        a1m1 = antennas1[pre]
-        a1m2 = antennas1[idx+1]
-        
-    
 
 def tube_domination_single_phase(ehd, cf, phase, print_out=True):
     mice = ehd.mice
