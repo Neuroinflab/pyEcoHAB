@@ -5,11 +5,10 @@ from data_info import *
 import os
 import utility_functions as utils
 import numpy as np
-import matplotlib.pyplot as plt
-from write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
+from write_to_file import save_single_histograms, write_csv_rasters
 from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
 from numba import jit
-from collections import OrderedDict
+
 
 mouse_attention_span = 10  # sec
 nbins = 10
@@ -32,7 +31,7 @@ cage_opposite_antenna = {1:8,
                          7:6,
                          8:1}
 
-
+@jit
 def get_states_and_readouts(antennas, times, t1, t2):
     before = utils.get_idx_pre(t1, times)
     between = utils.get_idx_between(t1, t2, times)
@@ -62,6 +61,7 @@ def get_times_antennas(ehd, mouse, t_1, t_2):
     ehd.unmask_data()
     return times, antennas
 
+@jit
 def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
     first_antenna = m1_states[0]
     opposite_antenna = pipe_opposite_antenna[first_antenna]
@@ -141,7 +141,7 @@ def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
 
     return False
 
-
+@jit
 def get_more_states(antennas, times, midx):
     #save first antenna
     states = [antennas[midx]]
@@ -246,22 +246,22 @@ def tube_domination_whole_experiment(ehd, cf, main_directory, prefix, remove_mou
     for i, phase in enumerate(phases):
         domination[i] = tube_domination_single_phase(ehd, cf, phase, print_out=print_out)
         save_single_histograms(domination[i],
-                               'tube_dominance_alternative',
+                               'tube_dominance',
                                mice,
                                phase,
                                main_directory,
-                               'tube_dominance_alternative/histograms',
+                               'tube_dominance/histograms',
                                prefix,
                                additional_info=add_info_mice)
         single_heat_map(domination[i],
-                        'tube_dominance_alternative',
+                        'tube_dominance',
                         main_directory,
                         mice,
                         prefix,
                         phase,
                         xlabel='domineering mouse',
                         ylabel='pushed out mouse',
-                        subdirectory='tube_dominance_alternative/histograms',
+                        subdirectory='tube_dominance/histograms',
                         vmax=None,
                         vmin=None,
                         xticks=mice,
@@ -270,10 +270,10 @@ def tube_domination_whole_experiment(ehd, cf, main_directory, prefix, remove_mou
                       phases,
                       domination,
                       main_directory,
-                      'tube_dominance_alternative/raster_plots',
+                      'tube_dominance/raster_plots',
                       fname_)
     make_RasterPlot(main_directory,
-                    'tube_dominance_alternative/raster_plots',
+                    'tube_dominance/raster_plots',
                     domination,
                     phases,
                     fname_,
