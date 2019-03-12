@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from numba import jit
 
 def check_directory(directory,subdirectory):
     new_path = os.path.join(directory, subdirectory)
