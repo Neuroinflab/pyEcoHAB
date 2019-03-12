@@ -93,7 +93,8 @@ def parse_fname(fname):
 
 class EcoHabData(Data):
     """Reads in a folder with data from Eco-HAB"""
-
+    def get_home_cage_antenna(self):
+        return self.data["Antenna"][0]
     def process_line_6(self,elements):
         """remove point from 2nd column of new data files"""
         return [elements[0],' '.join([elements[1].replace('.', ''), elements[2]]), elements[3], elements[4], elements[5]]
