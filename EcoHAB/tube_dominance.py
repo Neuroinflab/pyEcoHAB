@@ -31,21 +31,6 @@ cage_opposite_antenna = {1:8,
                          7:6,
                          8:1}
 
-@jit
-def get_states_and_readouts(antennas, times, t1, t2):
-    before = utils.get_idx_pre(t1, times)
-    between = utils.get_idx_between(t1, t2, times)
-    after = utils.get_idx_post(t2, times)
-    states = []
-    readouts = []
-    if before is not None:
-        states.append(antennas[before])
-        readouts.append(times[before])
-    for idx in between:
-        states.append(antennas[idx])
-        readouts.append(times[idx])
-    assert(len(states) == len(readouts))
-    return states, readouts
 
 
 def mice_in_different_spots(states1, states2):
@@ -83,7 +68,7 @@ def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
         return False
 
     
-    m2_states, m2_readouts = get_states_and_readouts(antennas2, times2,
+    m2_states, m2_readouts = utils.get_states_and_readouts(antennas2, times2,
                                                      m1_times[0], end_time)
     between = utils.get_idx_between(m1_times[0], end_time, times2)
 
