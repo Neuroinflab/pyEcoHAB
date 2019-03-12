@@ -54,13 +54,6 @@ def mice_in_different_spots(states1, states2):
             return False
     return True
 
-
-def get_times_antennas(ehd, mouse, t_1, t_2):
-    ehd.mask_data(t_1, t_2)
-    antennas, times = ehd.getantennas(mouse), ehd.gettimes(mouse)
-    ehd.unmask_data()
-    return times, antennas
-
 @jit
 def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
     first_antenna = m1_states[0]
@@ -190,33 +183,13 @@ def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end):
 
     """
       
-    m1_times, m1_antennas = get_times_antennas(ehd, mouse1, t_start, t_end)
-    m2_times, m2_antennas = get_times_antennas(ehd, mouse2, t_start, t_end)
+    m1_times, m1_antennas = utils.get_times_antennas(ehd, mouse1,
+                                                     t_start, t_end)
+    m2_times, m2_antennas = utils.get_times_antennas(ehd, mouse2,
+                                                     t_start, t_end)
     domination_counter = check_mouse1_pushing_out_mouse2(m1_antennas, m1_times, m2_antennas, m2_times)
         
     return domination_counter
-
-def check_mice(t1_m1, t2_m1, a1_m1, a2_m1, mouse2_antennas, mouse2_times):
-    #print('mouse 1', t1_m1, a1_m1, t2_m1, a2_m1)
-   
-    
-    m2_before = get_idx_pre(t1_m1, mouse2_times)
-    m2_idxs = get_idx_between(t1_m1, t2_m1, mouse2_times)
-    m2_after = get_idx_post(t2_m1, mouse2_times)
-
-    m2_states = []
-    m2_times = []
-    if m2_before:
-        m2_states.append(mouse2_antennas[m2_before])
-        m2_times.append(mouse2_times[m2_before])
-    for idx in m2_idxs:
-        m2_states.append(mouse2_antennas[idx])
-        m2_times.append(mouse2_times[idx])
-    if m2_after:
-        m2_states.append(mouse2_antennas[m2_after])
-        m2_times.append(mouse2_times[m2_after])
-    for i, t in enumerate(m2_times):
-        print('mouse2', t, m2_states[i],)
 
 
 def tube_domination_single_phase(ehd, cf, phase, print_out=True):
@@ -293,16 +266,16 @@ if __name__ == '__main__':
         if new_path not in how_many_appearances:
             how_many_appearances[new_path] = 500
         if remove_mouse:
-            ehd = EcoHab.EcoHabData(path=path,
+            ehd1 = EcoHab.EcoHabData(path=path,
                                     _ant_pos=antenna_positions[new_path],
                                     remove_mice=remove_mouse,
                                     how_many_appearances=how_many_appearances[new_path])
         else:
-            ehd = EcoHab.EcoHabData(path=path,
+            ehd1 = EcoHab.EcoHabData(path=path,
                                     _ant_pos=antenna_positions[new_path],
                                     how_many_appearances=how_many_appearances[new_path])
 
         prefix = utils.make_prefix(path)
         res_dir = utils.results_path(path)
-        cf = ExperimentConfigFile(path)
-        tube_domination_whole_experiment(ehd, cf, res_dir, prefix, remove_mouse=None, print_out=True)
+        cf1 = ExperimentConfigFile(path)
+        tube_domination_whole_experiment(ehd1, cf1, res_dir, prefix, remove_mouse=None, print_out=True)
