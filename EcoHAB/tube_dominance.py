@@ -8,7 +8,7 @@ import numpy as np
 from write_to_file import save_single_histograms, write_csv_rasters
 from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
 from numba import jit
-
+how_many_antennas = 3
 
 mouse_attention_span = 10  # sec
 nbins = 10
@@ -119,41 +119,14 @@ def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
 
     return False
 
-@jit
-def get_more_states(antennas, times, midx):
-    #save first antenna
-    states = [antennas[midx]]
-    readouts = [times[midx]]
-    midx += 1
-    idx = 1
-    while True:
-        if midx >= len(antennas):
-            break
-        #read in next antenna
-        new_antenna = antennas[midx]
-        new_readout = times[midx]
-        #if pause too long break
-        if new_readout > readouts[idx - 1] + mouse_attention_span:
-            break
-
-        states.append(new_antenna)
-        readouts.append(new_readout)
-
-        idx += 1
-        #if more than 2 antennas, break
-        if len(set(states)) == 3:
-            # go back to the last readout of the opposite antenna not to loose it
-            break
-        midx += 1
-        
-    return states, readouts, midx
-
 
 def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2):
     idx = 0
     domination_counter = 0
     while True:
-        m1_states, m1_readouts, idx = get_more_states(antennas1, times1, idx)
+        m1_states, m1_readouts, idx = utils.get_more_states(antennas1, times1, idx,
+                                                      mouse_attention_span,
+                                                      how_many_antennas)
         if does_mouse1_push_out(m1_states, m1_readouts, antennas2, times2):
             domination_counter += 1
         if idx >= len(antennas1):

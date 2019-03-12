@@ -243,9 +243,6 @@ def get_states_and_readouts(antennas, times, t1, t2):
     before = get_idx_pre(t1, times)
     between = get_idx_between(t1, t2, times)
     after = get_idx_post(t2, times)
-    before = utils.get_idx_pre(t1, times)
-    between = utils.get_idx_between(t1, t2, times)
-    after = utils.get_idx_post(t2, times)
     states = []
     readouts = []
     if before is not None:
@@ -256,3 +253,34 @@ def get_states_and_readouts(antennas, times, t1, t2):
         readouts.append(times[idx])
     assert(len(states) == len(readouts))
     return states, readouts
+
+@jit
+def get_more_states(antennas, times, midx,
+                    mouse_attention_span,
+                    how_many_antennas):
+    #save first antenna
+    states = [antennas[midx]]
+    readouts = [times[midx]]
+    midx += 1
+    idx = 1
+    while True:
+        if midx >= len(antennas):
+            break
+        #read in next antenna
+        new_antenna = antennas[midx]
+        new_readout = times[midx]
+        #if pause too long break
+        if new_readout > readouts[idx - 1] + mouse_attention_span:
+            break
+
+        states.append(new_antenna)
+        readouts.append(new_readout)
+
+        idx += 1
+        #if more than 2 antennas, break
+        if len(set(states)) == how_many_antennas:
+            # go back to the last readout of the opposite antenna not to loose it
+            break
+        midx += 1
+        
+    return states, readouts, midx
