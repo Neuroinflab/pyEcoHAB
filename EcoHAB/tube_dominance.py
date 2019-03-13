@@ -117,8 +117,8 @@ def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2):
     dominance_counter = 0
     while True:
         m1_states, m1_readouts, idx = utils.get_more_states(antennas1, times1, idx,
-                                                      mouse_attention_span,
-                                                      how_many_antennas)
+                                                            mouse_attention_span,
+                                                            how_many_antennas)
         if does_mouse1_push_out(m1_states, m1_readouts, antennas2, times2):
             dominance_counter += 1
         if idx >= len(antennas1):
@@ -156,7 +156,6 @@ def tube_dominance_single_phase(ehd, cf, phase):
                                                                       en)
     return dominance
 
-
 if __name__ == '__main__':
     for new_path in datasets:
         path = os.path.join(homepath, new_path)
@@ -188,4 +187,4 @@ if __name__ == '__main__':
                                         'domineering mouse',
                                         'pushed out mouse',
                                         '# dominances', args=[])
-        #tube_dominance_whole_experiment(ehd1, cf1, res_dir, prefix, remove_mouse=None, print_out=True)
+
