@@ -150,12 +150,10 @@ def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end):
     return dominance_counter
 
 
-def tube_dominance_single_phase(ehd, cf, phase, print_out=True):
+def tube_dominance_single_phase(ehd, cf, phase):
     mice = ehd.mice
     st, en = cf.gettime(phase)
     dominance =  np.zeros((len(mice), len(mice)))
-    if print_out:
-        print(phase)
     for i, mouse1 in enumerate(mice):
         for j, mouse2 in enumerate(mice):
             if i != j:
@@ -197,5 +195,5 @@ if __name__ == '__main__':
                                         'tube_dominance',
                                         'domineering mouse',
                                         'pushed out mouse',
-                                        '# dominances')
+                                        '# dominances', args=[])
         #tube_dominance_whole_experiment(ehd1, cf1, res_dir, prefix, remove_mouse=None, print_out=True)

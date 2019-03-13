@@ -289,7 +289,7 @@ def get_more_states(antennas, times, midx,
 
 
 
-def evaluate_whole_experiment(ehd, cf, main_directory, prefix, func, fname, xlabel, ylabel, title, remove_mouse=None, print_out=True):
+def evaluate_whole_experiment(ehd, cf, main_directory, prefix, func, fname, xlabel, ylabel, title, args=[], remove_mouse=None):
     phases = cf.sections()
     phases = filter_dark(phases)
     mice = ehd.mice
@@ -299,7 +299,10 @@ def evaluate_whole_experiment(ehd, cf, main_directory, prefix, func, fname, xlab
     hist_dir = fname + '/histograms'
     rast_dir = fname + '/raster_plots'
     for i, phase in enumerate(phases):
-        result[i] = func(ehd, cf, phase, print_out=print_out)
+        if len(args):
+            result[i] = func(ehd, cf, phase, *args)
+        else:
+            result[i] = func(ehd, cf, phase)
         save_single_histograms(result[i],
                                fname,
                                mice,
