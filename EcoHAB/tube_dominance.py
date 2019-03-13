@@ -122,17 +122,17 @@ def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
 
 def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2):
     idx = 0
-    domination_counter = 0
+    dominance_counter = 0
     while True:
         m1_states, m1_readouts, idx = utils.get_more_states(antennas1, times1, idx,
                                                       mouse_attention_span,
                                                       how_many_antennas)
         if does_mouse1_push_out(m1_states, m1_readouts, antennas2, times2):
-            domination_counter += 1
+            dominance_counter += 1
         if idx >= len(antennas1):
             break
         
-    return domination_counter
+    return dominance_counter
     
 
 def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end):
@@ -145,38 +145,38 @@ def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end):
                                                      t_start, t_end)
     m2_times, m2_antennas = utils.get_times_antennas(ehd, mouse2,
                                                      t_start, t_end)
-    domination_counter = check_mouse1_pushing_out_mouse2(m1_antennas, m1_times, m2_antennas, m2_times)
+    dominance_counter = check_mouse1_pushing_out_mouse2(m1_antennas, m1_times, m2_antennas, m2_times)
         
-    return domination_counter
+    return dominance_counter
 
 
-def tube_domination_single_phase(ehd, cf, phase, print_out=True):
+def tube_dominance_single_phase(ehd, cf, phase, print_out=True):
     mice = ehd.mice
     st, en = cf.gettime(phase)
-    domination =  np.zeros((len(mice), len(mice)))
+    dominance =  np.zeros((len(mice), len(mice)))
     if print_out:
         print(phase)
     for i, mouse1 in enumerate(mice):
         for j, mouse2 in enumerate(mice):
             if i != j:
-                domination[i, j] = tube_dominance_2_mice_single_phase(ehd,
+                dominance[i, j] = tube_dominance_2_mice_single_phase(ehd,
                                                                       mouse1,
                                                                       mouse2,
                                                                       st,
                                                                       en)
-    return domination
+    return dominance
 
 
-def tube_domination_whole_experiment(ehd, cf, main_directory, prefix, remove_mouse=None, print_out=True):
+def tube_dominance_whole_experiment(ehd, cf, main_directory, prefix, remove_mouse=None, print_out=True):
     phases = cf.sections()
     phases = utils.filter_dark(phases)
     mice = ehd.mice
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    domination = np.zeros((len(phases), len(mice), len(mice)))
-    fname_ = 'tube_domination_%s%s.csv' % (prefix, add_info_mice)
+    dominance = np.zeros((len(phases), len(mice), len(mice)))
+    fname_ = 'tube_dominance_%s%s.csv' % (prefix, add_info_mice)
     for i, phase in enumerate(phases):
-        domination[i] = tube_domination_single_phase(ehd, cf, phase, print_out=print_out)
-        save_single_histograms(domination[i],
+        dominance[i] = tube_dominance_single_phase(ehd, cf, phase, print_out=print_out)
+        save_single_histograms(dominance[i],
                                'tube_dominance',
                                mice,
                                phase,
@@ -184,7 +184,7 @@ def tube_domination_whole_experiment(ehd, cf, main_directory, prefix, remove_mou
                                'tube_dominance/histograms',
                                prefix,
                                additional_info=add_info_mice)
-        single_heat_map(domination[i],
+        single_heat_map(dominance[i],
                         'tube_dominance',
                         main_directory,
                         mice,
@@ -199,17 +199,17 @@ def tube_domination_whole_experiment(ehd, cf, main_directory, prefix, remove_mou
                         yticks=mice)
     write_csv_rasters(mice,
                       phases,
-                      domination,
+                      dominance,
                       main_directory,
                       'tube_dominance/raster_plots',
                       fname_)
     make_RasterPlot(main_directory,
                     'tube_dominance/raster_plots',
-                    domination,
+                    dominance,
                     phases,
                     fname_,
                     mice,
-                    title='# dominations')
+                    title='# dominances')
     
 if __name__ == '__main__':
     for new_path in datasets:
@@ -236,4 +236,10 @@ if __name__ == '__main__':
         prefix = utils.make_prefix(path)
         res_dir = utils.results_path(path)
         cf1 = ExperimentConfigFile(path)
-        tube_domination_whole_experiment(ehd1, cf1, res_dir, prefix, remove_mouse=None, print_out=True)
+        utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
+                                        tube_dominance_single_phase,
+                                        'tube_dominance',
+                                        'domineering mouse',
+                                        'pushed out mouse',
+                                        '# dominances')
+        #tube_dominance_whole_experiment(ehd1, cf1, res_dir, prefix, remove_mouse=None, print_out=True)

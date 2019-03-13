@@ -1,6 +1,8 @@
 import os
 import numpy as np
 from numba import jit
+from write_to_file import save_single_histograms, write_csv_rasters
+from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
 
 def check_directory(directory,subdirectory):
     new_path = os.path.join(directory, subdirectory)
@@ -284,3 +286,51 @@ def get_more_states(antennas, times, midx,
         midx += 1
         
     return states, readouts, midx
+
+
+
+def evaluate_whole_experiment(ehd, cf, main_directory, prefix, func, fname, xlabel, ylabel, title, remove_mouse=None, print_out=True):
+    phases = cf.sections()
+    phases = filter_dark(phases)
+    mice = ehd.mice
+    add_info_mice = add_info_mice_filename(remove_mouse)
+    result = np.zeros((len(phases), len(mice), len(mice)))
+    fname_ = '%s_%s%s.csv' % (fname, prefix, add_info_mice)
+    hist_dir = fname + '/histograms'
+    rast_dir = fname + '/raster_plots'
+    for i, phase in enumerate(phases):
+        result[i] = func(ehd, cf, phase, print_out=print_out)
+        save_single_histograms(result[i],
+                               fname,
+                               mice,
+                               phase,
+                               main_directory,
+                               hist_dir,
+                               prefix,
+                               additional_info=add_info_mice)
+        single_heat_map(result[i],
+                        fname,
+                        main_directory,
+                        mice,
+                        prefix,
+                        phase,
+                        xlabel=xlabel,
+                        ylabel=ylabel,
+                        subdirectory=hist_dir,
+                        vmax=None,
+                        vmin=None,
+                        xticks=mice,
+                        yticks=mice)
+    write_csv_rasters(mice,
+                      phases,
+                      result,
+                      main_directory,
+                      rast_dir,
+                      fname_)
+    make_RasterPlot(main_directory,
+                    rast_dir,
+                    result,
+                    phases,
+                    fname_,
+                    mice,
+                    title=title)
