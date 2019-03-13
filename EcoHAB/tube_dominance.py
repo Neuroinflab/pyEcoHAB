@@ -97,26 +97,18 @@ def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
         # mice start at the same antenna (following not tube dominance)
         return False
 
-
     m2_m1_in_pipe = m2_states[opposite_idxs[0]:]
-    m2_times_m1_in_pipe = m2_readouts[opposite_idxs[0]:]
     idx_after = utils.get_idx_post(end_time, times2)
     if idx_after is not None:
         m2_after = antennas2[idx_after]
     else:
         m2_after = m1_states[0]
     if np.all(np.array(m2_m1_in_pipe) == opposite_antenna):
-        if m2_after != m1_states[0]: 
+        if m2_after != m1_states[0]:
             return True
-        else:
-            return False #both mice cross the pipe
-    if m2_states[0] == opposite_antenna:
-        if m2_readouts[1] - m2_readouts[0] < mouse_attention_span:
-            idx = utils.get_idx_pre(m2_readouts[0], times2)
-            if idx is not None:
-                if antennas2[idx] == m1_states[0] and m1_times[0] - times2[idx] > mouse_attention_span:
-                    #print(antennas2[idx], times2[idx])
-                    return False
+    if m2_readouts[opposite_idxs[0]] > m1_times[0]:
+        if m1_states[0] not in m2_states[opposite_idxs[0]:]:
+            return True
     return False
 
 
