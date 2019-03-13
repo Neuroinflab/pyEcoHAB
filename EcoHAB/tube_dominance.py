@@ -167,50 +167,6 @@ def tube_dominance_single_phase(ehd, cf, phase, print_out=True):
     return dominance
 
 
-def tube_dominance_whole_experiment(ehd, cf, main_directory, prefix, remove_mouse=None, print_out=True):
-    phases = cf.sections()
-    phases = utils.filter_dark(phases)
-    mice = ehd.mice
-    add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    dominance = np.zeros((len(phases), len(mice), len(mice)))
-    fname_ = 'tube_dominance_%s%s.csv' % (prefix, add_info_mice)
-    for i, phase in enumerate(phases):
-        dominance[i] = tube_dominance_single_phase(ehd, cf, phase, print_out=print_out)
-        save_single_histograms(dominance[i],
-                               'tube_dominance',
-                               mice,
-                               phase,
-                               main_directory,
-                               'tube_dominance/histograms',
-                               prefix,
-                               additional_info=add_info_mice)
-        single_heat_map(dominance[i],
-                        'tube_dominance',
-                        main_directory,
-                        mice,
-                        prefix,
-                        phase,
-                        xlabel='domineering mouse',
-                        ylabel='pushed out mouse',
-                        subdirectory='tube_dominance/histograms',
-                        vmax=None,
-                        vmin=None,
-                        xticks=mice,
-                        yticks=mice)
-    write_csv_rasters(mice,
-                      phases,
-                      dominance,
-                      main_directory,
-                      'tube_dominance/raster_plots',
-                      fname_)
-    make_RasterPlot(main_directory,
-                    'tube_dominance/raster_plots',
-                    dominance,
-                    phases,
-                    fname_,
-                    mice,
-                    title='# dominances')
-    
 if __name__ == '__main__':
     for new_path in datasets:
         path = os.path.join(homepath, new_path)
