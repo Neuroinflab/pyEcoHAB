@@ -11,6 +11,7 @@ from ExperimentConfigFile import ExperimentConfigFile
 from data_info import *
 from write_to_file import save_data_cvs
 import interactions
+import tube_dominance as td
 
 homepath = os.path.expanduser("~/")
 threshold = 3
@@ -69,35 +70,12 @@ if __name__ == '__main__':
             save_data_cvs(data, fname_all_chambers, results_path, cages, headers)
 
        
-        # #following and avoiding
-        for compensate_for_lost_antenna in [True, False]:
-            E = interactions.Experiment(path,
-                                        _ant_pos=antenna_positions[new_path],
-                                        which_phase="ALL",
-                                        compensate_for_lost_antenna=compensate_for_lost_antenna,
-                                        how_many_appearances=how_many_appearances[new_path])
-            if not compensate_for_lost_antenna:
-                E.calculate_antenna_errors()
-            for window in [12, "ALL"]:
-                E.calculate_phases(window=window)
-                E.calculate_fvalue(window=window, threshold=threshold, force=True)
-                if window == 12:
-                   
-                    E.write_tables_to_file("following", write_all=True)
-                    E.write_tables_to_file("avoiding", write_all=True)
-                    E.write_tables_to_file("FAM", write_all=True)
-                    E.generate_heatmaps("following")
-                    E.generate_heatmaps("avoiding")
-                    E.plot_fam()
-                else:
-                
-                    E.write_tables_to_file("following", phases="ALL")
-                    E.write_tables_to_file("avoiding", phases="ALL")
-                    E.write_tables_to_file("FAM", phases="ALL")
-                    E.generate_heatmaps("following", phases="ALL")
-                    E.generate_heatmaps("avoiding", phases="ALL")
-                    E.plot_fam(phases="ALL")
-                
         
 
             
+        utils.evaluate_whole_experiment(ehd, cf, directory, prefix,
+                                        td.tube_dominance_single_phase,
+                                        'tube_dominance',
+                                        'domineering mouse',
+                                        'pushed out mouse',
+                                        '# dominances', args=[])
