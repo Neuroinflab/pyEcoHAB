@@ -70,8 +70,46 @@ def tube_dominance_2_cages(ehd, cf, phase, home_cage_antenna):
                                                                      home_cage_antenna)
     return dominance
 
-def check_mouse1_defending(m1_states, m1_times, antennas2, times2, home_cage_antenna):
-    return 0
+
+def check_mouse1_defending(antennas1, times1, antennas2, times2, home_cage_antenna):
+    idx = 1
+    dominance_counter = 0
+    opposite_antenna = opposite_antenna_dict[home_cage_antenna]
+    for idx in range(1, len(antennas1)):
+        mouse1_antenna = antennas1[idx]
+        mouse1_previous_antenna = antennas1[idx-1]
+        mouse1_timestamp = times1[idx]
+        mouse1_previous_timestamp = times1[idx-1]
+        if mouse1_antenna != mouse1_previous_antenna:
+            continue # mouse1 is crossing the pipe
+        if mouse1_antenna == home_cage_antenna:
+            continue # mouse1 is trying to enter the pipe
+        mouse2_pre = utils.get_idx_pre(mouse1_previous_timestamp, times2)
+        if mouse2_pre is None:
+            continue
+        mouse2_between = utils.get_idx_between(mouse1_previous_timestamp, mouse1_timestamp, times2)
+        if len(mouse2_between) == 0:
+            continue # mouse2 is not moving during antenna readouts
+        mouse2_after = utils.get_idx_post(mouse1_timestamp, times2)
+        if mouse2_after is None:
+            continue
+        if antennas2[mouse2_pre] != home_cage_antenna:
+            continue #mouse 2 didn't start at the home cage
+        m2_ant_bet = []
+        m2_times_bet = []
+        for new_idx in mouse2_between:
+            m2_ant_bet.append(antennas2[new_idx])
+            m2_times_bet.append(times2[new_idx])
+        print('mouse1', mouse1_previous_antenna, mouse1_previous_timestamp,
+              mouse1_antenna, mouse1_timestamp)
+        print('mouse2', antennas2[mouse2_pre], times2[mouse2_pre])
+        for idx in mouse2_between:
+            print('between', antennas2[idx], times2[idx])
+        print('mouse2', antennas2[mouse2_after], times2[mouse2_after])
+        if opposite_antenna not in m2_ant_bet and antennas2[mouse2_after] != opposite_antenna:
+            dominance_counter += 1
+            print('dominance',dominance_counter)
+    return dominance_counter
 
 
 if __name__ == '__main__':
@@ -135,8 +173,9 @@ if __name__ == '__main__':
 
         utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
                                         tube_dominance_2_cages,
-                                        'tube_dominance',
+                                        'mouse_pushing_out_stimulus_chamber',
                                         'domineering mouse',
                                         'pushed out mouse',
-                                        '# dominances',
+                                        '# pushes',
                                         args=[home_cage_antenna])
+    plt.show()
