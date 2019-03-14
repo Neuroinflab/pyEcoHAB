@@ -11,6 +11,25 @@ from numba import jit
 mouse_attention_span = 10  # sec
 nbins = 10
 homepath = os.path.expanduser("~/")
+def get_states(ehd, cf, mouse, dt = 0.05):
+    """
+    0 -- home cage, 1 -- pipe, 2 -- cage with stimulus
+    """
+    t_start, t_end = cf.gettime('ALL')
+    length = int((t_end - t_start)/dt)
+    times, antennas = utils.get_times_antennas(ehd, mouse1,
+                                               t_start, t_end)
+    home_antenna = antennas[0]
+    states = np.zeros((length, 1), dtype=int)
+    for i, a in enumerate(antennas[:-1]):
+        timestamp = int((times[i] - t_start)/dt)
+        next_a = antennas[i + 1]
+        next_timestamp = int((times[i+1] - t_start)/dt)
+        if a != next_a:  # easy, the mouse is crossing the pipe
+            states[timestamp:next_timestamp] = 1
+        if a == next_a and a != home_antenna:
+            states[timestamp:next_timestamp] = 2
+    return states
 
 
 def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end, home_cage_antenna):
