@@ -22,7 +22,8 @@ class Data(object):
         
         self.data['Antenna'] = self.data['Antenna'][mask[0]:mask[1]]
         self.data['Tag'] = self.data['Tag'][mask[0]:mask[1]]
-        
+        self.data['Duration'] = self.data['Duration'][mask[0]:mask[1]]
+
     def _find_mask_indices(self,mask):
         
         starttime, endtime = mask
@@ -33,7 +34,6 @@ class Data(object):
             return (idcs[0], idcs[-1] + 1)
         if len(idcs) == 1:
             return (idcs[0], idcs[0] + 1)
-        
         return (0,0)
     
     def mask_data(self, starttime, endtime):
@@ -80,7 +80,10 @@ class Data(object):
                                                   
     def gettimes(self, mice): 
         return self.getproperty(mice, 'Time', 'float')
-    
+
+    def getdurations(self, mice):
+        return self.getproperty(mice, 'Duration')
+
 def parse_fname(fname):
     """"Extracts time and date from data's filename"""
 
@@ -205,6 +208,7 @@ class EcoHabData(Data):
         mouse_dict = {mouse[-4:]:mouse for mouse in mouse_list}
         mouse_keys = sorted(mouse_dict.keys())
         return [mouse_dict[mouse] for mouse in mouse_keys]
+
     def __init__(self, **kwargs):# path, _ant_pos=None,mask=None):
         self.days = set()
         self.path = kwargs.pop("path")
@@ -217,8 +221,7 @@ class EcoHabData(Data):
         self.rawdata = self.remove_ghost_tags(how_many_appearances,
                                               factor,
                                               tags=tags)
-        #self.mice = list(set([d[4] for d in self.rawdata]))
-        
+         
         self.mice = self.get_mice()
         print(self.mice)
         self.rawdata.sort(key=lambda x: self.convert_time(x[1]))
@@ -229,16 +232,13 @@ class EcoHabData(Data):
             self._ant_pos = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8}
         else:
             self._ant_pos = _ant_pos
-        
-        #self.mask = None 
-        #self._mask_slice = None
-
+ 
         data = {}
         data['Time'] = [self.convert_time(d[1]) for d in self.rawdata]
         data['Id'] = [d[0] for d in self.rawdata]
-        
         data['Antenna'] = [self._ant_pos[d[2]] for d in self.rawdata]
         data['Tag'] = [d[4] for d in self.rawdata]
+        data['Duration'] = [d[3] for d in self.rawdata]
         super(EcoHabData,self).__init__(data, mask)
         antenna_breaks = self.check_antenna_presence()
         if antenna_breaks:
