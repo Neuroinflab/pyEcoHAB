@@ -79,7 +79,7 @@ if __name__ == '__main__':
             if not compensate_for_lost_antenna:
                 E.calculate_antenna_errors()
             for window in [12, "ALL"]:
-                #E.calculate_phases(window=window)
+                E.calculate_phases(window=window)
                 E.calculate_fvalue(window=window, threshold=threshold, force=True)
                 if window == 12:
                    
