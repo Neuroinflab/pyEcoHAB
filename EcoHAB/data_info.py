@@ -50,6 +50,7 @@ datasets = [
     "EcoHAB_data_November/Myszy z Krakowa/",
     "EcoHAB_data_November/BTBR_LONG_KSENIA_12-22.02.19/",
     "EcoHAB_data_November/Samce C57 sham 3 rep 22.02-04.03/",
+    "EcoHAB_data_November/Samce C57 sham EH dominacja 05-08.03.2019/",
 ]
 
 remove_tags = {
