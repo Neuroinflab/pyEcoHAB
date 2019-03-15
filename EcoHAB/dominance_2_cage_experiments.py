@@ -48,6 +48,43 @@ def get_states(ehd, cf, mouse, home_antenna, dt=dt):
     return get_states_mouse(antennas, times, t_start,
                             t_end, home_antenna, dt)
 
+def find_stimuls_cage_mice(states, t_start, t_stop, beginning, dt):
+    start = int((t_start - beginning)/dt)
+    end = int((t_stop - beginning)/dt)
+    mice = []
+    for mouse in states:
+        if np.any(states[mouse][start:end+1] == 2):
+            mice.append(mouse)
+    return mice
+
+
+def get_dominating_mice(ehd, cf, phase, mouse, states, home_cage_antenna, dt):
+    results = np.zeros((1, len(ehd.mice)))
+    t_start, t_end = cf.gettime(phase)
+    T_START, T_END = cf.gettime('ALL')
+    time, antennas = utils.get_times_antennas(ehd, mouse, t_start, t_end)
+    idx = 1
+    mice = ehd.mice
+    while True:
+        if idx >= len(antennas):
+            break
+        if antennas[idx] == home_cage_antenna and antennas[idx-1] == home_cage_antenna:
+            mice_list = find_stimulus_cage_mice(states, time[idx-1], time[idx], T_START, dt)
+            for mouse in mice_list:
+                results[0, mice.index(mouse)] += 1
+            idx += 2
+        idx += 1
+    return results
+
+
+def dominating_mice(ehd, cf, phase, states, home_cage_antenna, dt=dt):
+    results = np.zeros((len(ehd.mice), len(ehd.mice)))
+    for i, mouse in enumerate(ehd.mice):
+        results[i, :] = get_dominating_mice(ehd, cf, phase, mouse, states,
+                                            home_cage_antenna, dt=dt)
+    return results
+
+
 def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end, home_cage_antenna):
     """We're checking here, how many times mouse1 dominates over mouse2
     between t_start and t_end.
@@ -177,9 +214,9 @@ if __name__ == '__main__':
         #     ehd1.unmask_data()
 
         utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
-                                        tube_dominance_2_cages,
-                                        'mouse_pushing_out_stimulus_chamber',
+                                        dominating_mice,
+                                        'subversion_evaluation',
+                                        'subversive mouse',
                                         'domineering mouse',
-                                        'pushed out mouse',
-                                        '# pushes',
-                                        args=[home_cage_antenna])
+                                        '# times in small cage',
+                                        args=[states, home_cage_antenna, dt])
