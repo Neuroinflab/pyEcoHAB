@@ -116,14 +116,13 @@ def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2):
     idx = 0
     dominance_counter = 0
     while True:
+        if idx == len(antennas1) or idx > len(antennas1):
+            break
         m1_states, m1_readouts, idx = utils.get_more_states(antennas1, times1, idx,
                                                             mouse_attention_span,
                                                             how_many_antennas)
         if does_mouse1_push_out(m1_states, m1_readouts, antennas2, times2):
             dominance_counter += 1
-        if idx >= len(antennas1):
-            break
-        
     return dominance_counter
     
 
