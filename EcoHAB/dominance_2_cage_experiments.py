@@ -23,15 +23,9 @@ color_list = ['indianred', 'darkred', 'salmon',
               'darkslateblue', 'lightskyblue', 'navy',
               'mediumpurple', 'grey', 'gold',
               'orange', 'saddlebrown', 'magenta']
-def get_states(ehd, cf, mouse, dt = 0.05):
-    """
-    0 -- home cage, 1 -- pipe, 2 -- cage with stimulus
-    """
-    t_start, t_end = cf.gettime('ALL')
+
+def get_states_mouse(antennas, times, t_start, t_end, home_antenna, dt):
     length = int((t_end - t_start)/dt)
-    times, antennas = utils.get_times_antennas(ehd, mouse1,
-                                               t_start, t_end)
-    home_antenna = antennas[0]
     states = np.zeros((length, 1), dtype=int)
     for i, a in enumerate(antennas[:-1]):
         timestamp = int((times[i] - t_start)/dt)
@@ -39,7 +33,7 @@ def get_states(ehd, cf, mouse, dt = 0.05):
         next_timestamp = int((times[i+1] - t_start)/dt)
         if a != next_a:  # easy, the mouse is crossing the pipe
             states[timestamp:next_timestamp] = 1
-        if a == next_a and a != home_antenna:
+        elif a == next_a and a != home_antenna:
             states[timestamp:next_timestamp] = 2
     return states
 
@@ -150,12 +144,7 @@ if __name__ == '__main__':
         home_cage_antenna = ehd1.get_home_cage_antenna()
         states = {}
         for mouse1 in ehd1.mice:
-            states[mouse1] = get_states(ehd1, cf1, mouse1, dt)
-        T_START, T_END = cf1.gettime('ALL')
-        for phase in cf1.sections():
-            if phase == 'ALL':
-                continue
-            t_start, t_end = cf1.gettime(phase)
+            states[mouse1] = get_states(ehd1, cf1, mouse1, home_cage_antenna, dt)
                         
             idx_start = int((t_start-T_START)/dt)
             idx_end =  int((t_end-T_START)/dt)
