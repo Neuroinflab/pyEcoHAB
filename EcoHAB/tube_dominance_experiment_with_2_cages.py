@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 from __future__ import print_function, division
 import EcoHab
 from ExperimentConfigFile import ExperimentConfigFile
@@ -13,7 +14,9 @@ mouse_attention_span = 10  # sec
 nbins = 10
 homepath = os.path.expanduser("~/")
 opposite_antenna_dict = {1: 2,
-                    2: 1}
+                         2: 1,
+                         3: 4,
+                         4: 3,}
 dt = 0.05
 color_list = ['indianred', 'darkred', 'salmon',
               'darkolivegreen', 'forestgreen', 'darkslategrey',
@@ -96,28 +99,29 @@ def check_mouse1_defending(antennas1, times1, antennas2, times2, home_cage_anten
         if antennas2[mouse2_pre] != home_cage_antenna:
             continue #mouse 2 didn't start at the home cage
         m2_ant_bet = []
-        m2_times_bet = []
+        
         for new_idx in mouse2_between:
             m2_ant_bet.append(antennas2[new_idx])
-            m2_times_bet.append(times2[new_idx])
-        print('mouse1', mouse1_previous_antenna, mouse1_previous_timestamp,
-              mouse1_antenna, mouse1_timestamp)
-        print('mouse2', antennas2[mouse2_pre], times2[mouse2_pre])
-        for idx in mouse2_between:
-            print('between', antennas2[idx], times2[idx])
-        print('mouse2', antennas2[mouse2_after], times2[mouse2_after])
-        if opposite_antenna not in m2_ant_bet and antennas2[mouse2_after] != opposite_antenna:
-            dominance_counter += 1
-            print('dominance',dominance_counter)
+        
+        if  len(mouse2_between) == 1:
+            if antennas2[mouse2_after] != opposite_antenna and m2_ant_bet[0] != opposite_antenna:
+                dominance_counter += 1
+        else:
+            i = 1
+            while True:
+                if m2_ant_bet[i] == home_cage_antenna and m2_ant_bet[i-1] == home_cage_antenna:
+                    dominance_counter += 1
+                    i += 1
+                i += 1
+                if i >= len(m2_ant_bet):
+                    break
     return dominance_counter
 
 
 if __name__ == '__main__':
-    datasets = [#'EcoHAB_data_November/social_structure_swiss_webster_ctrl_05.02.18',]
-                 'EcoHAB_data_November/Social structure males 02.03/',
-                # 'EcoHAB_data_November/social_dominance_swiss_webster_dominant_remove_12.02.18',
-                # 'EcoHAB_data_November/social_structure_16.01',
-                # 'EcoHAB_data_November/social_structure_19.01.18_rep_II',
+    datasets = [
+        "EcoHAB_data_November/Samce C57 sham EH dominacja 05-08.03.2019/",
+        "EcoHAB_data_November/kraków dominacja 08.03-12.03.2019/"
                  ]
     for new_path in datasets:
         path = os.path.join(homepath, new_path)
@@ -152,7 +156,6 @@ if __name__ == '__main__':
             if phase == 'ALL':
                 continue
             t_start, t_end = cf1.gettime(phase)
-            print(phase, t_start, t_end)
                         
             idx_start = int((t_start-T_START)/dt)
             idx_end =  int((t_end-T_START)/dt)
@@ -163,9 +166,6 @@ if __name__ == '__main__':
                 ax = fig.add_subplot(1, 1, 1)
                 ax.set_title(phase)
                 for i, mouse in enumerate(ehd1.mice):
-                    print(mouse)
-                    print(ehd1.getantennas(mouse))
-
                     ax.plot(time/1000, 10*states[mouse][idx_start:idx_end]+0.1*i, color=color_list[i], label=mouse)
                 ax.legend()
                 ax.set_xlabel(time)
@@ -178,4 +178,3 @@ if __name__ == '__main__':
                                         'pushed out mouse',
                                         '# pushes',
                                         args=[home_cage_antenna])
-    plt.show()
