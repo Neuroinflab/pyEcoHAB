@@ -100,7 +100,6 @@ class EcoHabData(Data):
         antennas = []
         for mouse in self.mice:
             antennas.append(self.getantennas(mouse)[0])
-        print(antennas)
         return max(set(antennas), key=antennas.count)
 
     def process_line_6(self,elements):
