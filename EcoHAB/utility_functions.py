@@ -292,7 +292,7 @@ def get_more_states(antennas, times, midx,
 def evaluate_whole_experiment(ehd, cf, main_directory, prefix, func, fname, xlabel, ylabel, title, args=[], remove_mouse=None):
     phases = cf.sections()
     phases = filter_dark(phases)
-    mice = ehd.mice
+    mice = [mouse[-4:] for mouse in ehd.mice]
     add_info_mice = add_info_mice_filename(remove_mouse)
     result = np.zeros((len(phases), len(mice), len(mice)))
     fname_ = '%s_%s%s.csv' % (fname, prefix, add_info_mice)
