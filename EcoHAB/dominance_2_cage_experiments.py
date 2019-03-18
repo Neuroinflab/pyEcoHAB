@@ -48,7 +48,7 @@ def get_states(ehd, cf, mouse, home_antenna, dt=dt):
     return get_states_mouse(antennas, times, t_start,
                             t_end, home_antenna, dt)
 
-def find_stimuls_cage_mice(states, t_start, t_stop, beginning, dt):
+def find_stimulus_cage_mice(states, t_start, t_stop, beginning, dt):
     start = int((t_start - beginning)/dt)
     end = int((t_stop - beginning)/dt)
     mice = []
