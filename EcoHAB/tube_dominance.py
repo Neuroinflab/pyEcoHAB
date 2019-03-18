@@ -184,7 +184,7 @@ if __name__ == '__main__':
         utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
                                         tube_dominance_single_phase,
                                         'tube_dominance',
-                                        'domineering mouse',
+                                        'dominating mouse',
                                         'pushed out mouse',
                                         '# dominances', args=[])
 

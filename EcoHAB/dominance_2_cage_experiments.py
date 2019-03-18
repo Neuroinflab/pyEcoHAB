@@ -214,6 +214,14 @@ if __name__ == '__main__':
         #     ehd1.unmask_data()
 
         utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
+                                        tube_dominance_2_cages,
+                                        'mouse_pushing_out_stimulus_chamber',
+                                        'dominating mouse',
+                                        'pushed out mouse',
+                                        '# pushes',
+                                        args=[home_cage_antenna])
+
+        utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
                                         dominating_mice,
                                         'subversion_evaluation',
                                         'dominating mouse',
