@@ -59,7 +59,7 @@ def find_stimuls_cage_mice(states, t_start, t_stop, beginning, dt):
 
 
 def get_dominating_mice(ehd, cf, phase, mouse, states, home_cage_antenna, dt):
-    results = np.zeros((1, len(ehd.mice)))
+    results = np.zeros((len(ehd.mice)))
     t_start, t_end = cf.gettime(phase)
     T_START, T_END = cf.gettime('ALL')
     time, antennas = utils.get_times_antennas(ehd, mouse, t_start, t_end)
@@ -71,7 +71,7 @@ def get_dominating_mice(ehd, cf, phase, mouse, states, home_cage_antenna, dt):
         if antennas[idx] == home_cage_antenna and antennas[idx-1] == home_cage_antenna:
             mice_list = find_stimulus_cage_mice(states, time[idx-1], time[idx], T_START, dt)
             for mouse in mice_list:
-                results[0, mice.index(mouse)] += 1
+                results[mice.index(mouse)] += 1
             idx += 2
         idx += 1
     return results
@@ -80,7 +80,7 @@ def get_dominating_mice(ehd, cf, phase, mouse, states, home_cage_antenna, dt):
 def dominating_mice(ehd, cf, phase, states, home_cage_antenna, dt=dt):
     results = np.zeros((len(ehd.mice), len(ehd.mice)))
     for i, mouse in enumerate(ehd.mice):
-        results[i, :] = get_dominating_mice(ehd, cf, phase, mouse, states,
+        results[:, i] = get_dominating_mice(ehd, cf, phase, mouse, states,
                                             home_cage_antenna, dt=dt)
     return results
 
@@ -216,7 +216,7 @@ if __name__ == '__main__':
         utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
                                         dominating_mice,
                                         'subversion_evaluation',
+                                        'dominating mouse',
                                         'subversive mouse',
-                                        'domineering mouse',
                                         '# times in small cage',
                                         args=[states, home_cage_antenna, dt])
