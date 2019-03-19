@@ -92,7 +92,7 @@ def get_dominating_mice(ehd, cf, phase, mouse, states, home_cage_antenna, dt):
                 results[mice.index(mouse)] += 1
             idx += 2
         idx += 1
-    return results
+    return results/len(antennas)
 
 
 def dominating_mice(ehd, cf, phase, states, home_cage_antenna, dt=dt):
@@ -113,9 +113,10 @@ def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end, home
                                                      t_start, t_end)
     m2_times, m2_antennas = utils.get_times_antennas(ehd, mouse2,
                                                      t_start, t_end)
-    domination_counter = check_mouse1_defending(m1_antennas, m1_times, m2_antennas, m2_times, home_cage_antenna)
+    domination_counter = check_mouse1_defending(m1_antennas, m1_times, m2_antennas, m2_times, home_cage_antenna)/len(m2_times)
         
     return domination_counter
+
 
 def tube_dominance_2_cages(ehd, cf, phase, home_cage_antenna):
     mice = ehd.mice
