@@ -26,15 +26,33 @@ color_list = ['indianred', 'darkred', 'salmon',
 
 def get_states_mouse(antennas, times, t_start, t_end, home_antenna, dt):
     length = int((t_end - t_start)/dt)
-    states = np.zeros((length, 1), dtype=int)
+    states = np.zeros((length), dtype=int)
+    if antennas[0] != home_antenna:
+        states[:int((times[0]- t_start)/dt)] = 2
     for i, a in enumerate(antennas[:-1]):
         timestamp = int((times[i] - t_start)/dt)
         next_a = antennas[i + 1]
         next_timestamp = int((times[i+1] - t_start)/dt)
         if a != next_a:  # easy, the mouse is crossing the pipe
             states[timestamp:next_timestamp] = 1
-        elif a == next_a and a != home_antenna:
-            states[timestamp:next_timestamp] = 2
+        elif a == next_a:
+            if times[i+1] - times[i] > 2:
+                if a != home_antenna:
+                    states[timestamp:next_timestamp] = 2
+            else:
+                states[timestamp:next_timestamp] = 1
+    # end
+    previous = states[next_timestamp-1]
+    if previous == 1:
+        if next_a != home_antenna:
+            states[next_timestamp:] = 2
+    else:
+        if  t_end - times[-1] < 2:
+            states[next_timestamp:] = 1
+        else:
+            if next_a != home_antenna:
+                states[next_timestamp:] = 2
+            
     return states
 
 
