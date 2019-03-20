@@ -453,5 +453,13 @@ class TestMouseGoingCounterClockwise(unittest.TestCase):
         self.assertTrue(uf.mouse_going_counterclockwise(positions))
 
 
+class TestGetTimestamp(unittest.TestCase):
+
+    def test_up(self):
+        self.assertEqual(uf.get_timestamp(42.2, 45.76, 0.1), 36)
+
+    def test_down(self):
+        self.assertEqual(uf.get_timestamp(42.2, 45.71, 0.1), 35) 
+
 if __name__ == '__main__':
     unittest.main()

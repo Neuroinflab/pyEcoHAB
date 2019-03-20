@@ -337,3 +337,7 @@ def evaluate_whole_experiment(ehd, cf, main_directory, prefix, func, fname, xlab
                     fname_,
                     mice,
                     title=title)
+
+
+def get_timestamp(t_start, t_end, dt):
+    return int(round((t_end - t_start)/dt))

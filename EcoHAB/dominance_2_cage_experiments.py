@@ -25,22 +25,34 @@ color_list = ['indianred', 'darkred', 'salmon',
               'orange', 'saddlebrown', 'magenta']
 
 def get_states_mouse(antennas, times, t_start, t_end, home_antenna, dt):
-    length = int((t_end - t_start)/dt)
+    length = utils.get_timestamp(t_start, t_end, dt)
     states = np.zeros((length), dtype=int)
     if antennas[0] != home_antenna:
-        states[:int((times[0]- t_start)/dt)] = 2
+        timestamp = utils.get_timestamp(t_start, times[0], dt)
+        states[:timestamp] = 2
+        previous = 2
+    else:
+        previous = 1
+
     for i, a in enumerate(antennas[:-1]):
-        timestamp = int((times[i] - t_start)/dt)
+        timestamp = utils.get_timestamp(t_start, times[i], dt)
+        next_timestamp = utils.get_timestamp(t_start, times[i+1], dt)
         next_a = antennas[i + 1]
-        next_timestamp = int((times[i+1] - t_start)/dt)
+
         if a != next_a:  # easy, the mouse is crossing the pipe
             states[timestamp:next_timestamp] = 1
+            previous = 1
         elif a == next_a:
-            if times[i+1] - times[i] > 2:
+            if previous == 1:
                 if a != home_antenna:
                     states[timestamp:next_timestamp] = 2
+
             else:
-                states[timestamp:next_timestamp] = 1
+                if times[i+1] - times[i] > 2:
+                    if a != home_antenna:
+                        states[timestamp:next_timestamp] = 2
+                else:
+                    states[timestamp:next_timestamp] = 1
     # end
     previous = states[next_timestamp-1]
     if previous == 1:
@@ -67,8 +79,8 @@ def get_states(ehd, cf, mouse, home_antenna, dt=dt):
                             t_end, home_antenna, dt)
 
 def find_stimulus_cage_mice(states, t_start, t_stop, beginning, dt):
-    start = int((t_start - beginning)/dt)
-    end = int((t_stop - beginning)/dt)
+    start = int(round((t_start - beginning)/dt))
+    end = int(round((t_stop - beginning)/dt))
     mice = []
     for mouse in states:
         if np.any(states[mouse][start:end+1] == 2):
