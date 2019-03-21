@@ -158,5 +158,45 @@ class TestCheckMouse1NotValid(unittest.TestCase):
         self.assertFalse(out)
 
 
+class TestCheckMouse2NotValid(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.timestamp_1 = 10
+        cls.timestamp_2 = 20
+        cls.timestamp_3 = 40
+        cls.home_antenna_1 = 3
+        cls.home_antenna_2 = 4
+        #cls.antennas = [3,  4,   4,   3,   3,   3,    3,   4,   3,   3,   3,  3,   4]
+        #cls.times =    [5., 12., 13., 14., 21., 22., 24., 25., 26., 28., 35., 41., 44. ]
+        cls.antennas = [3,  4,   4,   3,   3,]
+        cls.times =    [11., 12., 13., 14., 21.]
+
+    def test_no_pre(self):
+        self.assertTrue(dom.check_mouse2_valid(10, 20,
+                                               [3, 4],
+                                               [11., 12.],
+                                               3))
+
+    def test_no_between(self):
+        self.assertTrue(dom.check_mouse2_valid(15, 20,
+                                               self.antennas,
+                                               self.times,
+                                               3))
+    def test_no_after(self):
+        self.assertTrue(dom.check_mouse2_valid(15, 22,
+                                               self.antennas,
+                                               self.times,
+                                               3))
+    def test_not_home_antenna(self):
+        self.assertTrue(dom.check_mouse2_valid(11.5, 20,
+                                               self.antennas,
+                                               self.times,
+                                               4))
+    def test_return_False(self):
+        self.assertFalse(dom.check_mouse2_valid(11.5, 20,
+                                               self.antennas,
+                                               self.times,
+                                               3))
+
 if __name__ == '__main__':
     unittest.main()

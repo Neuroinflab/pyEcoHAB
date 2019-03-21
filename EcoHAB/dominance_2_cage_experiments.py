@@ -158,6 +158,29 @@ def check_mouse1_not_valid(mouse_previous_antenna,
     return False
 
 
+def check_mouse2_valid(mouse1_previous_timestamp, mouse1_timestamp,
+                       antennas2, times2,
+                       home_cage_antenna):
+
+    mouse2_pre = utils.get_idx_pre(mouse1_previous_timestamp, times2)
+
+    if mouse2_pre is None:
+        return True
+    mouse2_between = utils.get_idx_between(mouse1_previous_timestamp,
+                                           mouse1_timestamp, times2)
+    if len(mouse2_between) == 0:
+        return True # mouse2 is not moving during antenna readouts
+
+    mouse2_after = utils.get_idx_post(mouse1_timestamp, times2)
+    if mouse2_after is None:
+        return True
+
+    if antennas2[mouse2_pre] != home_cage_antenna:
+        return True #mouse 2 didn't start at the home cage
+
+    return False
+
+
 def check_mouse1_defending(antennas1, times1, antennas2, times2, home_cage_antenna):
     idx = 1
     dominance_counter = 0
