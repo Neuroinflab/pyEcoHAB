@@ -146,6 +146,27 @@ def tube_dominance_2_cages(ehd, cf, phase, home_cage_antenna):
     return dominance
 
 
+def count_attempts(tstamp1, tstamp2, times, antennas, home_cage_antenna):
+    mouse_between = utils.get_idx_between(tstamp1, tstamp2, times)
+    in_between_antennas = utils.get_antennas(mouse_between, antennas)
+    opposite_antenna = opposite_antenna_dict[home_cage_antenna]
+    mouse_after = mouse_between[-1] + 1
+    if  len(mouse_between) == 1:
+        if antennas[mouse_after] != opposite_antenna and in_between_antennas[0] != opposite_antenna:
+                return 1
+        return 0
+
+    counter = 0
+    i = 1
+    while True:
+        if in_between_antennas[i] == home_cage_antenna and in_between_antennas[i-1] == home_cage_antenna:
+            counter += 1
+            i += 1
+        i += 1
+        if i >= len(in_between_antennas):
+            break
+    return counter
+
 def check_mouse1_not_valid(mouse_previous_antenna,
                            mouse_antenna,
                            home_cage_antenna):

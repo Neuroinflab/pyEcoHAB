@@ -191,5 +191,39 @@ class TestCheckMouse2NotValid(unittest.TestCase):
                                                self.times,
                                                3))
 
+class TestCountAttempts(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.timestamp_1 = 10
+        cls.timestamp_2 = 20
+        cls.timestamp_3 = 40
+        cls.home_antenna_2 = 4
+        cls.antennas = [3,  4,   4,   4,   3,   3,    3,   4,   3,   3,   3,  3,   4]
+        cls.times =    [5., 12., 13., 14., 21., 22., 24., 25., 26., 28., 35., 41., 44. ]
+
+    def test_check_1_true(self):
+        out = dom.count_attempts(12.5, 13.5, self.times, self.antennas, 4)
+        self.assertEqual(out, 1)
+
+    def test_check_1_false(self):
+        out = dom.count_attempts(11.5, 12.5, self.times, self.antennas, 3)
+        self.assertEqual(out, 0)
+
+    def test_check_2_false(self):
+        out = dom.count_attempts(11.5, 14.5, self.times, self.antennas, 3)
+        self.assertEqual(out, 0)
+
+    def test_check_2_true(self):
+        out = dom.count_attempts(11.5, 13.5, self.times, self.antennas, 4)
+        self.assertEqual(out, 1)
+
+    def test_check_more(self):
+        out = dom.count_attempts(11.5, 41.5, self.times, self.antennas, 4)
+        self.assertEqual(out, 1)
+
+    def test_check_more_opposite_antenna(self):
+        out = dom.count_attempts(12.5, 41.5, self.times, self.antennas, 3)
+        self.assertEqual(out, 3)
+        
 if __name__ == '__main__':
     unittest.main()
