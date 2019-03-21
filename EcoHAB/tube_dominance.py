@@ -9,6 +9,19 @@ import numpy as np
 from write_to_file import save_single_histograms, write_csv_rasters
 from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
 from numba import jit
+import argparse
+
+parser = argparse.ArgumentParser(description='Calculate tube dominance matrices for each phase of an EcoHab experiment.')
+parser.add_argument('directory', type=str, help='EcoHab data directory')
+parser.add_argument('--normalization', dest='normalization', action='store',
+                    default=None,
+                    help="""Normalization method: None for no normalization, m1_activity for
+                    activity of pushing out mouse, m2_activity for pushed out mouse, m1_m2
+                    activity for activity of both mice""")
+
+args = parser.parse_args()
+print(args)
+
 how_many_antennas = 3
 
 mouse_attention_span = 10  # sec
@@ -113,7 +126,7 @@ def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
     return False
 
 
-def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2):
+def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2, normalization):
     idx = 0
     dominance_counter = 0
     while True:
@@ -124,10 +137,18 @@ def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2):
                                                             how_many_antennas)
         if does_mouse1_push_out(m1_states, m1_readouts, antennas2, times2):
             dominance_counter += 1
-    return dominance_counter
+    if normalization is None:
+        return dominance_counter
+    if normalization == "m1_activity":
+        return dominance_counter/len(antennas1)
+    if normalization == "m2_activity":
+        return dominance_counter/len(antennas2)
+    if normalization == "m1_m2_activity":
+        return dominance_counter/len(antennas2)/len(antennas1)
     
 
-def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end):
+def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2,
+                                       t_start, t_end, normalization):
     """We're checking here, how many times mouse1 dominates over mouse2
     between t_start and t_end.
 
@@ -137,12 +158,14 @@ def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end):
                                                      t_start, t_end)
     m2_times, m2_antennas = utils.get_times_antennas(ehd, mouse2,
                                                      t_start, t_end)
-    dominance_counter = check_mouse1_pushing_out_mouse2(m1_antennas, m1_times, m2_antennas, m2_times)
+    dominance_counter = check_mouse1_pushing_out_mouse2(m1_antennas, m1_times,
+                                                        m2_antennas, m2_times,
+                                                        normalization)
         
     return dominance_counter
 
 
-def tube_dominance_single_phase(ehd, cf, phase):
+def tube_dominance_single_phase(ehd, cf, phase, normalization):
     mice = ehd.mice
     st, en = cf.gettime(phase)
     dominance =  np.zeros((len(mice), len(mice)))
@@ -150,41 +173,37 @@ def tube_dominance_single_phase(ehd, cf, phase):
         for j, mouse2 in enumerate(mice):
             if i != j:
                 dominance[i, j] = tube_dominance_2_mice_single_phase(ehd,
-                                                                      mouse1,
-                                                                      mouse2,
-                                                                      st,
-                                                                      en)
+                                                                     mouse1,
+                                                                     mouse2,
+                                                                     st,
+                                                                     en,
+                                                                     normalization)
     return dominance
 
 if __name__ == '__main__':
-    for new_path in datasets:
-        path = os.path.join(homepath, new_path)
-        prefix = utils.make_prefix(path)
-        if new_path in remove_tags:
-            remove_mouse = remove_tags[new_path]
-        else:
-            remove_mouse = None
-        if new_path not in antenna_positions:
-            antenna_positions[new_path] = None
-        if new_path not in how_many_appearances:
-            how_many_appearances[new_path] = 500
-        if remove_mouse:
-            ehd1 = EcoHab.EcoHabData(path=path,
-                                    _ant_pos=antenna_positions[new_path],
-                                    remove_mice=remove_mouse,
-                                    how_many_appearances=how_many_appearances[new_path])
-        else:
-            ehd1 = EcoHab.EcoHabData(path=path,
-                                    _ant_pos=antenna_positions[new_path],
-                                    how_many_appearances=how_many_appearances[new_path])
+    datasets = [
+        "EcoHAB_data_November/C57 males long 11-22.05.18/",
+        "EcoHAB_data_November/C57_males_long_26.05-06.06.2018_after_TIMP/",
+        "EcoHAB_data_November/C57_males_social interaction-12.10-22.10/",
+         ]
+    path = args.directory
+    normalization = args.normalization
+    prefix = utils.make_prefix(path)
+    remove_mouse = None
+    antenna_positions = None
+    how_many_appearances = 500
+    ehd1 = EcoHab.EcoHabData(path=path,
+                             _ant_pos=antenna_positions,
+                             how_many_appearances=how_many_appearances)
 
-        prefix = utils.make_prefix(path)
-        res_dir = utils.results_path(path)
-        cf1 = ExperimentConfigFile(path)
-        utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
-                                        tube_dominance_single_phase,
-                                        'tube_dominance',
-                                        'dominating mouse',
-                                        'pushed out mouse',
-                                        '# dominances', args=[])
+    prefix = utils.make_prefix(path)
+    res_dir = utils.results_path(path)
+    cf1 = ExperimentConfigFile(path)
+    fname = 'tube_dominance_%s' % normalization
+    utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
+                                    tube_dominance_single_phase,
+                                    fname,
+                                    'dominating mouse',
+                                    'pushed out mouse',
+                                    '# dominances', args=[normalization])
 
