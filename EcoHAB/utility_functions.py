@@ -305,7 +305,7 @@ def evaluate_whole_experiment(ehd, cf, main_directory, prefix, func, fname, xlab
             result[i] = func(ehd, cf, phase)
         save_single_histograms(result[i],
                                fname,
-                               mice,
+                               ehd.mice,
                                phase,
                                main_directory,
                                hist_dir,
@@ -324,7 +324,7 @@ def evaluate_whole_experiment(ehd, cf, main_directory, prefix, func, fname, xlab
                         vmin=None,
                         xticks=mice,
                         yticks=mice)
-    write_csv_rasters(mice,
+    write_csv_rasters(ehd.mice,
                       phases,
                       result,
                       main_directory,
