@@ -287,7 +287,11 @@ def get_more_states(antennas, times, midx,
         
     return states, readouts, midx
 
-
+def get_antennas(idxs, antennas):
+    antenna_slice = []
+    for new_idx in idxs:
+        antenna_slice.append(antennas[new_idx])
+    return antenna_slice
 
 def evaluate_whole_experiment(ehd, cf, main_directory, prefix, func, fname, xlabel, ylabel, title, args=[], remove_mouse=None):
     phases = cf.sections()

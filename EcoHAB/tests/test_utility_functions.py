@@ -461,5 +461,12 @@ class TestGetTimestamp(unittest.TestCase):
     def test_down(self):
         self.assertEqual(uf.get_timestamp(42.2, 45.71, 0.1), 35) 
 
+
+class TestGetAnennas(unittest.TestCase):
+    def test(self):
+        out = uf.get_antennas([0, 1, 4], [1, 2, 3, 4, 5, 6, 7, 8])
+        self.assertEqual(out, [1, 2, 5])
+
+
 if __name__ == '__main__':
     unittest.main()
