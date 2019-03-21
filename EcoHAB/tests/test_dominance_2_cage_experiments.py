@@ -81,5 +81,68 @@ class TestGetStates(unittest.TestCase):
         timestamp_2 = int(round((self.times[9] - self.t_start)/self.dt))
         self.assertTrue(np.all(self.out_2[timestamp_1:timestamp_2] == 1))
 
+
+class TestFindStimulusCageMice(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.dt = 0.05
+        length = int(10/cls.dt)
+        out_1 = np.ones((length))
+        out_2 = np.ones((length))
+        out_3 = np.ones((length))
+        out_1[45:100] = 2
+        out_2[80:108] = 2
+        cls.data = {
+            'mouse 1': out_1,
+            'mouse 2': out_2,
+            'mouse 3': out_3
+        }
+
+    def test_1(self):
+        t_start = 4.2
+        t_stop = 6.05 
+        beginning = 2.1
+        out = dom.find_stimulus_cage_mice(self.data,
+                                          t_start, t_stop,
+                                          beginning, self.dt)
+        self.assertEqual(out, ['mouse 1'])
+
+    def test_2(self):
+        t_start = 7.1
+        t_stop = 8
+        beginning = 2.1
+        out = dom.find_stimulus_cage_mice(self.data,
+                                          t_start, t_stop,
+                                          beginning, self.dt)
+        self.assertEqual(out, ['mouse 2'])
+
+
+    def test_3(self):
+        t_start = 6.2
+        t_stop = 8
+        beginning = 2.1
+        out = dom.find_stimulus_cage_mice(self.data,
+                                          t_start, t_stop,
+                                          beginning, self.dt)
+        self.assertTrue('mouse 1' in out)
+    
+    def test_4(self):
+        t_start = 6.2
+        t_stop = 8
+        beginning = 2.1
+        out = dom.find_stimulus_cage_mice(self.data,
+                                          t_start, t_stop,
+                                          beginning, self.dt)
+        self.assertTrue('mouse 2' in out)
+
+    def test_5(self):
+        t_start = 6.2
+        t_stop = 8
+        beginning = 2.1
+        out = dom.find_stimulus_cage_mice(self.data,
+                                          t_start, t_stop,
+                                          beginning, self.dt)
+        self.assertEqual(len(out), 2)
+
 if __name__ == '__main__':
     unittest.main()
