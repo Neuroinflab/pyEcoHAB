@@ -199,7 +199,10 @@ if __name__ == '__main__':
     prefix = utils.make_prefix(path)
     res_dir = utils.results_path(path)
     cf1 = ExperimentConfigFile(path)
-    fname = 'tube_dominance_%s' % normalization
+    if normalization is None:
+        fname = 'tube_dominance_no_normalization'
+    else:
+        fname = 'tube_dominance_%s' % normalization
     utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
                                     tube_dominance_single_phase,
                                     fname,
