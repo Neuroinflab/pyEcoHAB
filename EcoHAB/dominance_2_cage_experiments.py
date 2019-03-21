@@ -146,6 +146,18 @@ def tube_dominance_2_cages(ehd, cf, phase, home_cage_antenna):
     return dominance
 
 
+def check_mouse1_not_valid(mouse_previous_antenna,
+                           mouse_antenna,
+                           home_cage_antenna):
+
+    if mouse_antenna != mouse_previous_antenna:
+        return True
+    if mouse_antenna == home_cage_antenna:
+        return True # mouse1 is trying to enter the pipe
+
+    return False
+
+
 def check_mouse1_defending(antennas1, times1, antennas2, times2, home_cage_antenna):
     idx = 1
     dominance_counter = 0

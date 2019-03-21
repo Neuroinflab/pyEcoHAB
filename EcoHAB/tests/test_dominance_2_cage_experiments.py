@@ -144,5 +144,19 @@ class TestFindStimulusCageMice(unittest.TestCase):
                                           beginning, self.dt)
         self.assertEqual(len(out), 2)
 
+class TestCheckMouse1NotValid(unittest.TestCase):
+    def test_home_antenna(self):
+        out = dom.check_mouse1_not_valid(4, 4, 4)
+        self.assertTrue(out)
+
+    def test_pipe(self):
+        out = dom.check_mouse1_not_valid(4, 3, 4)
+        self.assertTrue(out)
+
+    def test_True(self):
+        out = dom.check_mouse1_not_valid(4, 4, 3)
+        self.assertFalse(out)
+
+
 if __name__ == '__main__':
     unittest.main()
