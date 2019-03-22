@@ -258,31 +258,7 @@ if __name__ == '__main__':
         prefix = utils.make_prefix(path)
         res_dir = utils.results_path(path)
         cf1 = ExperimentConfigFile(path)
-        home_cage_antenna = ehd1.get_home_cage_antenna()
-        states = {}
-        for mouse1 in ehd1.mice:
-            states[mouse1] = get_states(ehd1, cf1, mouse1, home_cage_antenna, dt)
-
-        # T_START, T_END = cf1.gettime('ALL')
-        # for phase in cf1.sections():
-        #     if phase == 'ALL':
-        #         continue
-        #     t_start, t_end = cf1.gettime(phase)
-                        
-        #     idx_start = int((t_start-T_START)/dt)
-        #     idx_end =  int((t_end-T_START)/dt)
-        #     time = np.arange(t_start, t_end, dt)
-        #     ehd1.mask_data(t_start, t_end)
-        #     if phase != 'ALL':
-        #         fig = plt.figure()
-        #         ax = fig.add_subplot(1, 1, 1)
-        #         ax.set_title(phase)
-        #         for i, mouse in enumerate(ehd1.mice):
-        #             ax.plot(time/1000, 10*states[mouse][idx_start:idx_end]+0.1*i, color=color_list[i], label=mouse)
-        #         ax.legend()
-        #         ax.set_xlabel(time)
-        #     ehd1.unmask_data()
-
+       
         utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
                                         tube_dominance_2_cages,
                                         'mouse_pushing_out_stimulus_chamber',
