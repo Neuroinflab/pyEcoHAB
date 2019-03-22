@@ -240,5 +240,17 @@ class TestMouseDefending(unittest.TestCase):
         out = dom.check_mouse1_defending(antennas1, self.times1, self.antennas2, self.times2, 3)
         self.assertEqual(out, 3)
 
+
+class TestGetTimeSpent(unittest.TestCase):
+    def test_list(self):
+        array = [0, 1, 0, 4, 0, 6]
+        out = dom.get_time_spent(array, 0)
+        self.assertEqual(out, 3)
+
+    def test_array(self):
+        array = np.array([0, 1, 0, 4, 0, 6])
+        out = dom.get_time_spent(array, 0)
+        self.assertEqual(out, 3)
+
 if __name__ == '__main__':
     unittest.main()

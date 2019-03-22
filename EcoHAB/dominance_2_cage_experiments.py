@@ -24,6 +24,12 @@ color_list = ['indianred', 'darkred', 'salmon',
               'mediumpurple', 'grey', 'gold',
               'orange', 'saddlebrown', 'magenta']
 
+def get_time_spent(states, cage):
+    if isinstance(states, list):
+        return len(np.where(np.array(states) == cage)[0])
+    if isinstance(states, np.ndarray):
+        return len(np.where(states == cage)[0])
+
 def get_states_mouse(antennas, times, t_start, t_end, home_antenna, dt):
     length = utils.get_timestamp(t_start, t_end, dt)
     states = np.zeros((length), dtype=int)
