@@ -152,8 +152,10 @@ def count_attempts(tstamp1, tstamp2, times, antennas, home_cage_antenna):
     opposite_antenna = opposite_antenna_dict[home_cage_antenna]
     mouse_after = mouse_between[-1] + 1
     if  len(mouse_between) == 1:
-        if antennas[mouse_after] != opposite_antenna and in_between_antennas[0] != opposite_antenna:
-                return 1
+        if in_between_antennas[0] != opposite_antenna:
+            if mouse_after < len(antennas):
+                if antennas[mouse_after] != opposite_antenna:
+                    return 1
         return 0
 
     counter = 0
