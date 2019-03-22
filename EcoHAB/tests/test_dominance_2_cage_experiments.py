@@ -144,6 +144,7 @@ class TestFindStimulusCageMice(unittest.TestCase):
                                           beginning, self.dt)
         self.assertEqual(len(out), 2)
 
+
 class TestCheckMouse1NotValid(unittest.TestCase):
     def test_home_antenna(self):
         out = dom.check_mouse1_not_valid(4, 4, 4)
@@ -216,6 +217,30 @@ class TestCountAttempts(unittest.TestCase):
     def test_check_more_opposite_antenna(self):
         out = dom.count_attempts(12.5, 41.5, self.times, self.antennas, 3)
         self.assertEqual(out, 3)
-        
+
+
+class TestMouseDefending(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.timestamp_1 = 10
+        cls.timestamp_2 = 20
+        cls.timestamp_3 = 40
+        cls.home_antenna = 4
+        cls.antennas1 = [3, 3, 3, 3]
+        cls.times1 = [4, 12.5, 21.5, 45]
+        cls.antennas2 = [3,  4,   4,   4,   3,   3,    3,   4,   3,   3,   3,  3,   4]
+        cls.times2 =    [5., 12., 13., 14., 21., 22., 24., 25., 26., 28., 35., 41., 44. ]
+
+    def test_mouse_1_in_sugar_cage(self):
+        print('Test 1')
+        out = dom.check_mouse1_defending(self.antennas1, self.times1, self.antennas2, self.times2, 4)
+        self.assertEqual(out, 1)
+
+    def test_mouse_2_more_attempst(self):
+        print('Test 2')
+        antennas1 = [4, 4, 4, 4]
+        out = dom.check_mouse1_defending(antennas1, self.times1, self.antennas2, self.times2, 3)
+        self.assertEqual(out, 3)
+
 if __name__ == '__main__':
     unittest.main()

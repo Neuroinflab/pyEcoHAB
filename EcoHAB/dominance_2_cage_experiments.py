@@ -201,46 +201,23 @@ def check_mouse2_not_valid(mouse1_previous_timestamp, mouse1_timestamp,
 
 
 def check_mouse1_defending(antennas1, times1, antennas2, times2, home_cage_antenna):
-    idx = 1
     dominance_counter = 0
-    opposite_antenna = opposite_antenna_dict[home_cage_antenna]
     for idx in range(1, len(antennas1)):
-        mouse1_antenna = antennas1[idx]
-        mouse1_previous_antenna = antennas1[idx-1]
-        mouse1_timestamp = times1[idx]
-        mouse1_previous_timestamp = times1[idx-1]
-        if mouse1_antenna != mouse1_previous_antenna:
-            continue # mouse1 is crossing the pipe
-        if mouse1_antenna == home_cage_antenna:
-            continue # mouse1 is trying to enter the pipe
-        mouse2_pre = utils.get_idx_pre(mouse1_previous_timestamp, times2)
-        if mouse2_pre is None:
+        mouse1_previous_antenna, mouse1_antenna = antennas1[idx-1:idx+1]
+        mouse1_previous_timestamp, mouse1_timestamp = times1[idx-1:idx+1]
+        if  check_mouse1_not_valid(mouse1_previous_antenna,
+                                   mouse1_antenna,
+                                   home_cage_antenna):
             continue
-        mouse2_between = utils.get_idx_between(mouse1_previous_timestamp, mouse1_timestamp, times2)
-        if len(mouse2_between) == 0:
-            continue # mouse2 is not moving during antenna readouts
-        mouse2_after = utils.get_idx_post(mouse1_timestamp, times2)
-        if mouse2_after is None:
+        if check_mouse2_not_valid(mouse1_previous_timestamp,
+                                  mouse1_timestamp,
+                                  antennas2, times2,
+                                  home_cage_antenna):
             continue
-        if antennas2[mouse2_pre] != home_cage_antenna:
-            continue #mouse 2 didn't start at the home cage
-        m2_ant_bet = []
-        
-        for new_idx in mouse2_between:
-            m2_ant_bet.append(antennas2[new_idx])
-        
-        if  len(mouse2_between) == 1:
-            if antennas2[mouse2_after] != opposite_antenna and m2_ant_bet[0] != opposite_antenna:
-                dominance_counter += 1
-        else:
-            i = 1
-            while True:
-                if m2_ant_bet[i] == home_cage_antenna and m2_ant_bet[i-1] == home_cage_antenna:
-                    dominance_counter += 1
-                    i += 1
-                i += 1
-                if i >= len(m2_ant_bet):
-                    break
+        dominance_counter += count_attempts(mouse1_previous_timestamp,
+                                            mouse1_timestamp, times2,
+                                            antennas2,
+                                            home_cage_antenna)
     return dominance_counter
 
 
