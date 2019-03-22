@@ -23,6 +23,19 @@ color_list = ['indianred', 'darkred', 'salmon',
               'mediumpurple', 'grey', 'gold',
               'orange', 'saddlebrown', 'magenta']
 
+
+def get_states_and_home_cage_antenna(ehd, cf, dt):
+    home_cage_antenna = ehd.get_home_cage_antenna()
+    states = {}
+    for mouse1 in ehd.mice:
+        states[mouse1] = get_states(ehd, cf, mouse1, home_cage_antenna, dt)
+    is_home_cage_antenna_ok = are_cages_correctly_assigned(states)
+    if not is_home_cage_antenna_ok:
+        home_cage_antenna = opposite_antenna_dict[home_cage_antenna]
+        for mouse1 in ehd.mice:
+            states[mouse1] = get_states(ehd, cf, mouse1, home_cage_antenna, dt)
+    return states, home_cage_antenna
+
 def get_time_spent(states, cage):
     if isinstance(states, list):
         return len(np.where(np.array(states) == cage)[0])
@@ -271,6 +284,7 @@ if __name__ == '__main__':
         res_dir = utils.results_path(path)
         cf1 = ExperimentConfigFile(path)
        
+        states, home_cage_antenna = get_states_and_home_cage_antenna(ehd1, cf1, dt)
         utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
                                         tube_dominance_2_cages,
                                         'mouse_pushing_out_stimulus_chamber',
