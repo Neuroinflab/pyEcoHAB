@@ -252,5 +252,27 @@ class TestGetTimeSpent(unittest.TestCase):
         out = dom.get_time_spent(array, 0)
         self.assertEqual(out, 3)
 
+
+class TestIfCagesAreCorrectlyAssigned(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.states_1 = {
+            'mouse_1': np.array([0, 1, 0, 2, 0, 2]),
+            'mouse_2': np.array([0, 2, 0, 1, 0, 2, 0]),
+        }
+        cls.states_2 = {
+            'mouse_1': np.array([0, 1, 0, 2, 2, 2]),
+            'mouse_2': np.array([0, 2, 0, 1, 2, 2]),
+        }
+
+    def test_correct(self):
+        out = dom.are_cages_correctly_assigned(self.states_1)
+        self.assertTrue(out)
+
+    def test_incorrect(self):
+        out = dom.are_cages_correctly_assigned(self.states_2)
+        self.assertFalse(out)
+
+
 if __name__ == '__main__':
     unittest.main()

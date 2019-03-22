@@ -30,6 +30,20 @@ def get_time_spent(states, cage):
     if isinstance(states, np.ndarray):
         return len(np.where(states == cage)[0])
 
+def are_cages_correctly_assigned(datas):
+    out = []
+    for mouse in datas:
+        t_home = get_time_spent(datas[mouse], 0)
+        t_chamber = get_time_spent(datas[mouse], 2)
+        if t_home > t_chamber:
+            out.append(0)
+        else:
+            out.append(2)
+
+    if get_time_spent(out, 0) > get_time_spent(out, 2):
+        return True
+    return False
+
 def get_states_mouse(antennas, times, t_start, t_end, home_antenna, dt):
     length = utils.get_timestamp(t_start, t_end, dt)
     states = np.zeros((length), dtype=int)
