@@ -124,7 +124,7 @@ def get_dominating_mice(ehd, cf, phase, mouse, states, home_cage_antenna, dt):
                 results[mice.index(mouse)] += 1
             idx += 2
         idx += 1
-    return results/len(antennas)
+    return results
 
 
 def dominating_mice(ehd, cf, phase, states, home_cage_antenna, dt=dt):
@@ -145,7 +145,7 @@ def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end, home
                                                      t_start, t_end)
     m2_times, m2_antennas = utils.get_times_antennas(ehd, mouse2,
                                                      t_start, t_end)
-    domination_counter = check_mouse1_defending(m1_antennas, m1_times, m2_antennas, m2_times, home_cage_antenna)/len(m2_times)
+    domination_counter = check_mouse1_defending(m1_antennas, m1_times, m2_antennas, m2_times, home_cage_antenna)
         
     return domination_counter
 
@@ -218,7 +218,6 @@ def check_mouse2_not_valid(mouse1_previous_timestamp, mouse1_timestamp,
 
     if antennas2[mouse2_pre] != home_cage_antenna:
         return True #mouse 2 didn't start at the home cage
-
     return False
 
 
