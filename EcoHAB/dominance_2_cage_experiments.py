@@ -193,8 +193,6 @@ def check_mouse2_not_valid(mouse1_previous_timestamp, mouse1_timestamp,
         return True # mouse2 is not moving during antenna readouts
 
     mouse2_after = utils.get_idx_post(mouse1_timestamp, times2)
-    if mouse2_after is None:
-        return True
 
     if antennas2[mouse2_pre] != home_cage_antenna:
         return True #mouse 2 didn't start at the home cage

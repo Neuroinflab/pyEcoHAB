@@ -175,11 +175,7 @@ class TestCheckMouse2NotValid(unittest.TestCase):
                                                self.antennas,
                                                self.times,
                                                3))
-    def test_no_after(self):
-        self.assertTrue(dom.check_mouse2_not_valid(15, 22,
-                                               self.antennas,
-                                               self.times,
-                                               3))
+
     def test_not_home_antenna(self):
         self.assertTrue(dom.check_mouse2_not_valid(11.5, 20,
                                                self.antennas,
