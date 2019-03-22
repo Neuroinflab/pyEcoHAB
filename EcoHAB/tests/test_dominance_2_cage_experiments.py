@@ -165,28 +165,28 @@ class TestCheckMouse2NotValid(unittest.TestCase):
         cls.times =    [11., 12., 13., 14., 21.]
 
     def test_no_pre(self):
-        self.assertTrue(dom.check_mouse2_valid(10, 20,
+        self.assertTrue(dom.check_mouse2_not_valid(10, 20,
                                                [3, 4],
                                                [11., 12.],
                                                3))
 
     def test_no_between(self):
-        self.assertTrue(dom.check_mouse2_valid(15, 20,
+        self.assertTrue(dom.check_mouse2_not_valid(15, 20,
                                                self.antennas,
                                                self.times,
                                                3))
     def test_no_after(self):
-        self.assertTrue(dom.check_mouse2_valid(15, 22,
+        self.assertTrue(dom.check_mouse2_not_valid(15, 22,
                                                self.antennas,
                                                self.times,
                                                3))
     def test_not_home_antenna(self):
-        self.assertTrue(dom.check_mouse2_valid(11.5, 20,
+        self.assertTrue(dom.check_mouse2_not_valid(11.5, 20,
                                                self.antennas,
                                                self.times,
                                                4))
     def test_return_False(self):
-        self.assertFalse(dom.check_mouse2_valid(11.5, 20,
+        self.assertFalse(dom.check_mouse2_not_valid(11.5, 20,
                                                self.antennas,
                                                self.times,
                                                3))

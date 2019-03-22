@@ -179,7 +179,7 @@ def check_mouse1_not_valid(mouse_previous_antenna,
     return False
 
 
-def check_mouse2_valid(mouse1_previous_timestamp, mouse1_timestamp,
+def check_mouse2_not_valid(mouse1_previous_timestamp, mouse1_timestamp,
                        antennas2, times2,
                        home_cage_antenna):
 
