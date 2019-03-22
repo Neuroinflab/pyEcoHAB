@@ -8,7 +8,6 @@ import utility_functions as utils
 import numpy as np
 from write_to_file import save_single_histograms, write_csv_rasters
 from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
-from numba import jit
 import matplotlib.pyplot as plt
 mouse_attention_span = 10  # sec
 nbins = 10
