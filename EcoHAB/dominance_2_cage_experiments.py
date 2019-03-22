@@ -93,7 +93,7 @@ def get_states(ehd, cf, mouse, home_antenna, dt=dt):
     0 -- home cage, 1 -- pipe, 2 -- cage with stimulus
     """
     t_start, t_end = cf.gettime('ALL')
-    times, antennas = utils.get_times_antennas(ehd, mouse1,
+    times, antennas = utils.get_times_antennas(ehd, mouse,
                                                t_start, t_end)
     return get_states_mouse(antennas, times, t_start,
                             t_end, home_antenna, dt)
