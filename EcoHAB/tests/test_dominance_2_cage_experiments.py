@@ -232,12 +232,10 @@ class TestMouseDefending(unittest.TestCase):
         cls.times2 =    [5., 12., 13., 14., 21., 22., 24., 25., 26., 28., 35., 41., 44. ]
 
     def test_mouse_1_in_sugar_cage(self):
-        print('Test 1')
         out = dom.check_mouse1_defending(self.antennas1, self.times1, self.antennas2, self.times2, 4)
         self.assertEqual(out, 1)
 
     def test_mouse_2_more_attempst(self):
-        print('Test 2')
         antennas1 = [4, 4, 4, 4]
         out = dom.check_mouse1_defending(antennas1, self.times1, self.antennas2, self.times2, 3)
         self.assertEqual(out, 3)
