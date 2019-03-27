@@ -20,8 +20,6 @@ parser.add_argument('--normalization', dest='normalization', action='store',
                     activity for activity of both mice""")
 
 args = parser.parse_args()
-print(args)
-
 how_many_antennas = 3
 
 mas = 10  # sec
@@ -207,7 +205,8 @@ if __name__ == '__main__':
         fname = 'tube_dominance_%s' % normalization
     utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
                                     tube_dominance_single_phase,
-                                    fname, 'dominating mouse', 'pushed
-                                    out mouse', '# dominances',
+                                    fname, 'dominating mouse',
+                                    'pushed out mouse',
+                                    '# dominances',
                                     args=[normalization])
 
