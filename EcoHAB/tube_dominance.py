@@ -24,7 +24,7 @@ print(args)
 
 how_many_antennas = 3
 
-mouse_attention_span = 10  # sec
+mas = 10  # sec
 nbins = 10
 homepath = os.path.expanduser("~/")
 
@@ -132,8 +132,10 @@ def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2, normal
     while True:
         if idx == len(antennas1) or idx > len(antennas1):
             break
-        m1_states, m1_readouts, idx = utils.get_more_states(antennas1, times1, idx,
-                                                            mouse_attention_span,
+        m1_states, m1_readouts, idx = utils.get_more_states(antennas1,
+                                                            times1,
+                                                            idx,
+                                                            mas,
                                                             how_many_antennas)
         if does_mouse1_push_out(m1_states, m1_readouts, antennas2, times2):
             dominance_counter += 1
@@ -205,8 +207,7 @@ if __name__ == '__main__':
         fname = 'tube_dominance_%s' % normalization
     utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
                                     tube_dominance_single_phase,
-                                    fname,
-                                    'dominating mouse',
-                                    'pushed out mouse',
-                                    '# dominances', args=[normalization])
+                                    fname, 'dominating mouse', 'pushed
+                                    out mouse', '# dominances',
+                                    args=[normalization])
 
