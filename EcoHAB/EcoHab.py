@@ -214,7 +214,7 @@ class EcoHabData(Data):
         self.rawdata = []
         self.get_data()
         self.max_break = max_break
-        how_many_appearances = kwargs.pop('how_many_appearances',1000)
+        how_many_appearances = kwargs.pop('how_many_appearances', 50)
         factor = kwargs.pop('factor',2)
         tags = kwargs.pop('remove_mice',[])
         self.rawdata = self.remove_ghost_tags(how_many_appearances,
@@ -222,7 +222,6 @@ class EcoHabData(Data):
                                               tags=tags)
          
         self.mice = self.get_mice()
-        print(self.mice)
         self.rawdata.sort(key=lambda x: self.convert_time(x[1]))
         _ant_pos = kwargs.pop('_ant_pos',None)
         mask = kwargs.pop('mask',None)
@@ -287,7 +286,6 @@ class EcoHabData(Data):
                 
             counters[mouse] += 1
             dates[mouse].add(d[1].split()[0])
-
         how_many_days = len(self.days)/factor
         for mouse in counters:
             if counters[mouse] < how_many_appearances or len(dates[mouse]) <= how_many_days:
@@ -672,7 +670,7 @@ class EcoHabSessions9states(Data,IEcoHabSession):
         path = kwargs.pop("path")
         _ant_pos = kwargs.pop('_ant_pos', None)
         _mask = kwargs.pop('mask', None)
-        how_many_appearances = kwargs.pop('how_many_appearances',1000)
+        how_many_appearances = kwargs.pop('how_many_appearances',100)
         factor = kwargs.pop('factor',2)
         tags = kwargs.pop('remove_mice',[])
         compensate_for_lost_antenna = kwargs.pop('compensate_for_lost_antenna',False)
