@@ -1,18 +1,16 @@
 from __future__ import print_function, division, absolute_import
-import os
-import EcoHAB
+from EcoHAB import mouse_speed as ms
 import unittest
-import numpy as np
-import mouse_speed as ms
+
 try:
     basestring
 except NameError:
     basestring = str
 
+class TestCheck2ndMouse(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-class TestCheck2ndMouse(unittest.TestCase):
-  
+        pass
         
 if __name__ == '__main__':
     unittest.main()
