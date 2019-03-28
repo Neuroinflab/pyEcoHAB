@@ -10,7 +10,7 @@ def write_single_chamber(f, header, heads, address, mice, phases, time, data_sti
         f.write(header+'\n')
         for i, mouse in enumerate(mice):
             
-            lines = [mouse for i in data_stim[j][phases[0]][mouse]]
+            lines = [mouse for i in data_stim[j][phases[1]][mouse]]
             
             for phase in phases:
                 for k,t in enumerate(time[phase]):
