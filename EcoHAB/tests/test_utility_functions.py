@@ -468,5 +468,26 @@ class TestGetAnennas(unittest.TestCase):
         self.assertEqual(out, [1, 2, 5])
 
 
+class TestGetKeyForFrequency(unittest.TestCase):
+    def test_78(self):
+        out = uf.get_key_for_frequencies(7, 8)
+        self.assertEqual(out, 15)
+
+    def test_87(self):
+        out = uf.get_key_for_frequencies(8, 7)
+        self.assertEqual(out, 15)
+
+    def test_chamber_18(self):
+        out = uf.get_key_for_frequencies(8, 1)
+        self.assertEqual(out, None)
+
+    def test_chamber_23(self):
+        out = uf.get_key_for_frequencies(2, 3)
+        self.assertEqual(out, None)
+
+    def test_stupid_(self):
+        out = uf.get_key_for_frequencies(2, 4)
+        self.assertEqual(out, None)
+
 if __name__ == '__main__':
     unittest.main()
