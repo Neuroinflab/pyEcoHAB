@@ -11,15 +11,7 @@ from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_hea
 from numba import jit
 import argparse
 
-parser = argparse.ArgumentParser(description='Calculate tube dominance matrices for each phase of an EcoHab experiment.')
-parser.add_argument('directory', type=str, help='EcoHab data directory')
-parser.add_argument('--normalization', dest='normalization', action='store',
-                    default=None,
-                    help="""Normalization method: None for no normalization, m1_activity for
-                    activity of pushing out mouse, m2_activity for pushed out mouse, m1_m2
-                    activity for activity of both mice""")
 
-args = parser.parse_args()
 how_many_antennas = 3
 
 mas = 10  # sec
@@ -181,6 +173,14 @@ def tube_dominance_single_phase(ehd, cf, phase, normalization):
     return dominance
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Calculate tube dominance matrices for each phase of an EcoHab experiment.')
+    parser.add_argument('directory', type=str, help='EcoHab data directory')
+    parser.add_argument('--normalization', dest='normalization', action='store',
+                        default=None,
+                        help="""Normalization method: None for no normalization, m1_activity for
+                        activity of pushing out mouse, m2_activity for pushed out mouse, m1_m2
+                    activity for activity of both mice""")
+    args = parser.parse_args()
     datasets = [
         "EcoHAB_data_November/C57 males long 11-22.05.18/",
         "EcoHAB_data_November/C57_males_long_26.05-06.06.2018_after_TIMP/",
