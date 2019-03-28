@@ -79,4 +79,4 @@ if __name__ == '__main__':
                                         'tube_dominance',
                                         'dominating mouse',
                                         'pushed out mouse',
-                                        '# dominances', args=[])
+                                        '# dominances', args=[None])
