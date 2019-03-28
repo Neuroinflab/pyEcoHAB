@@ -351,3 +351,15 @@ def get_key_for_frequencies(antenna, next_antenna):
          return next_antenna + antenna
      elif next_antenna % 2 and antenna == next_antenna + 1:
          return next_antenna + antenna
+
+def interval_overlap(int1, int2):
+    """Return overlap between two intervals."""
+    if int1[1] < int1[0]:
+        int1 = int1[::-1]
+    if int2[1] < int2[0]:
+        int2 = int2[::-1]
+    ints = sorted([int1, int2], key=lambda x: x[0])
+    if ints[1][0] > ints[0][1]:
+        return 0
+    else:
+        return min(ints[0][1], ints[1][1]) - ints[1][0]

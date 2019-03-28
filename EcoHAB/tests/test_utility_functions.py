@@ -489,5 +489,52 @@ class TestGetKeyForFrequency(unittest.TestCase):
         out = uf.get_key_for_frequencies(2, 4)
         self.assertEqual(out, None)
 
+
+class TestIntervalOverlap(unittest.TestCase):
+
+    def test_interval_overlap_1(self):
+        """Incorrect interval
+        """
+        inte_1 = [34, 45]
+        inte_2 = [34, 23]
+        print(uf.interval_overlap(inte_1, inte_2))
+        self.assertTrue(uf.interval_overlap(inte_1, inte_2) == 0)
+
+    def test_interval_overlap_2(self):
+        """2nd interval shorter than the first one, same start
+        """
+        inte_1 = [34, 45]
+        inte_2 = [34, 43]
+        self.assertTrue(uf.interval_overlap(inte_1, inte_2) == 9)
+
+    def test_interval_overlap_3(self):
+        """2nd interval beginning after the 1st interval has finished
+        """
+        inte_1 = [34, 45]
+        inte_2 = [46, 50]
+        self.assertTrue(uf.interval_overlap(inte_1, inte_2) == 0)
+
+    def test_interval_overlap_4(self):
+        """1st interval beginning after the 2nd interval has finished
+        """
+        inte_1 = [46, 50]
+        inte_2 = [34, 45]
+        self.assertTrue(uf.interval_overlap(inte_1, inte_2) == 0)
+
+    def test_interval_overlap_5(self):
+        """Overlapping
+        """
+        inte_1 = [46, 50]
+        inte_2 = [34, 48]
+        self.assertTrue(uf.interval_overlap(inte_1, inte_2) == 2)
+
+    def test_interval_overlap_6(self):
+        """Overlapping
+        """
+        inte_1 = [34, 48]
+        inte_2 = [46, 50]
+        self.assertTrue(uf.interval_overlap(inte_1, inte_2) == 2)
+
+
 if __name__ == '__main__':
     unittest.main()
