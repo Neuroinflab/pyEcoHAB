@@ -503,3 +503,75 @@ def single_in_cohort_soc_plot(results,
     
     fig.savefig(fname+'.pdf')
     fig.savefig(fname+'.png', dpi=300)
+
+
+def make_pooled_histograms(res,
+                           res_exp,
+                           phases,
+                           fname,
+                           main_directory,
+                           directory,
+                           prefix,
+                           additional_info):
+
+    fig, ax = plt.subplots(1, len(phases), figsize=(len(phases)//2*5, 5))
+    max_bins = 0
+    min_bins = 100
+    max_count = 0
+    min_count = 0
+    for i, phase in enumerate(phases):
+        results = res[i]
+        results_exp = res_exp[i]
+        deltas = results[results > 0] - results_exp[results > 0]
+        n, bins, patches = ax[i].hist(deltas, bins=nbins)
+        ax[i].set_title(phases[i], fontsize=14)
+        if bins.min() < min_bins:
+            min_bins = bins.min()
+        if bins.max() > max_bins:
+            max_bins = bins.max()
+        if max(n) > max_count:
+            max_count = max(n)
+        if min(n) < min_count:
+            min_count = min(n)
+        if i:
+            ax[i].set_yticklabels([])
+        else:
+            for tick in ax[i].yaxis.get_major_ticks():
+                    tick.label.set_fontsize(14)
+        for tick in ax[i].xaxis.get_major_ticks():
+            tick.label.set_fontsize(14) 
+
+    for x in ax:
+        x.set_xlim([min_bins, max_bins+1])
+        x.set_ylim([min_count, max_count+3])
+
+        
+    new_name = os.path.join(directory, 'figs')
+    directory = utils.check_directory(main_directory, new_name)
+    fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, phase))
+    print(fname)
+    fig.subplots_adjust(wspace=0.15)
+    fig.savefig(fname+'.png', dpi=300)
+    
+def histo():
+    figure, ax = plt.subplots(2, 2)
+    n, bins1, patches = ax[0][0].hist(out[3], bins=bins)
+    ax[0][0].set_title('12')
+    ax[0][0].set_xscale("log", nonposx='clip')
+    n, bins2, patches = ax[0][1].hist(out[7], bins=bins)
+    ax[0][1].set_title('34')
+    ax[0][1].set_xscale("log", nonposx='clip')
+    n, bins3, patches = ax[1][0].hist(out[11], bins=bins)
+    ax[1][0].set_title('56')
+    ax[1][0].set_xscale("log", nonposx='clip')
+    n, bins4, patches = ax[1][1].hist(out[15], bins=bins)
+    ax[1][1].set_title('78')
+    ax[1][1].set_xscale("log", nonposx='clip')
+
+    max_lim = max(max(bins1[-1], bins2[-1]), max(bins3[-1], bins4[-1]))
+    
+    ax[0][0].set_xlim([0, max_lim])
+    ax[0][1].set_xlim([0, max_lim])
+    ax[1][0].set_xlim([0, max_lim])
+    ax[1][1].set_xlim([0, max_lim])
+
