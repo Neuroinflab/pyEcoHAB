@@ -15,7 +15,6 @@ if sys.version_info < (3, 0):
 else:
     import configparser as ConfigParser
 from ExperimentConfigFile import ExperimentConfigFile
-from experiments_info import smells, antenna_positions
 from data_managment import *
 #Third party libraries
 import networkx as nx 
@@ -24,11 +23,282 @@ import scipy
 import os
 #Debug libraries
 import matplotlib.pyplot as plt   
-import matplotlib.patches as patches
-import plotfunctions
+from plotfunctions import raster_interactions, plot_graph, single_heat_map, make_RasterPlot
 import write_to_file as wtf
 import utility_functions as utils
 from numba import jit
+
+class EcoHabSessions9states(EcoHab.Data):
+    """Calculates 'visits' to Eco-HAB compartments."""
+    def plot_histograms_time_spent_each_state(self, mouse):
+        fig = plt.figure()
+        ax = []
+        fig.suptitle(mouse)
+        for i in range(8):
+            ax.append(fig.add_subplot(2,4,i+1))
+       
+        for i in range(4):
+            chamber = np.array(self.statistics[mouse]["state_time"][2*(i+1)])
+            corridor  = np.array(self.statistics[mouse]["state_time"][2*i+1])
+            ax[i].hist(corridor,bins=100)
+            ax[i].set_title(str(2*i+1))
+            ax[i+4].hist(chamber,bins=100)
+            ax[i+4].set_title(str(2*(i+1)))
+            
+        plt.show()
+        
+    def _initialize_statistics(self,statistics,mouse):
+        
+        statistics[mouse] = {}
+        statistics[mouse]["state_freq"]= np.zeros(9)
+        statistics[mouse]["state_time"]= [[] for i in range(9)]
+        statistics[mouse]["preference"]={}
+        for i in range(9):
+            statistics[mouse]["preference"][i] = np.zeros(2)
+            
+    def _calculate_visitis(self, too_fast=2,compensate_for_lost_antenna=False,in_pipe=0.7):
+        
+        statistics = {}
+        tempdata = []
+ 
+        
+        for mm in self.mice:
+            
+            tt = self._ehd.gettimes(mm)
+            an = self._ehd.getantennas(mm)
+            
+            self._initialize_statistics(statistics,mm)
+                 
+            previous = 0
+            
+            for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
+                
+                t_diff = tend - tstart
+
+                if  t_diff < self.threshold:
+                    state = 0
+                    previous = 0
+                    statistics[mm]["state_freq"][state]+=1
+                    statistics[mm]["state_time"][state].append(tend - tstart)
+                    continue
+                
+                diff = np.abs(anstart - anend)
+                s = int((tstart - self.t_start_exp)*self.fs)
+                e = int((tend- self.t_start_exp)*self.fs)
+
+                if diff in [0,1,7]:
+                    ############Most obvious reading##########
+                    if diff in [1, 7]:
+                        #printprevious,)
+                        state = self._find_state(anstart,anend)
+                        tempdata.append((state, mm, tstart, tend, t_diff, True))
+                        self.signal_data[mm][int(s):int(e)] = state
+                        previous = self._update_statistics(statistics,mm,state,anend,t_diff)
+                        
+                    elif diff == 0 and previous != 0:
+                       
+                        if t_diff < too_fast:
+                            continue
+                        diff2 = anstart - previous
+                        state  = 0
+                        if diff2 >=0:
+                            if diff2 == 0 and previous != 1:
+                                state = previous-1
+                            elif diff2 == 0 and previous == 1:
+                                state = 8
+                            elif diff2 == 1:
+                                state = previous+1
+                            elif diff2 == 7:
+                                state = 1
+                            
+                        tempdata.append((state, mm, tstart, tend, t_diff, True))
+                        self.signal_data[mm][int(s):int(e)] = state
+                        previous = self._update_statistics(statistics,mm,state,anend,t_diff)
+                    
+                elif compensate_for_lost_antenna and diff in [2,6]:
+                    
+                        if t_diff < too_fast:
+                            continue
+                        
+                        if anstart == 8 and anend == 2 :
+                            middle_antenna = 1
+                        elif anstart == 2 and anend == 8:
+                            middle_antenna = 1
+                        elif anstart == 7 and anend == 1 :
+                            middle_antenna = 8
+                        elif anstart == 1 and anend == 7:
+                            middle_antenna = 8
+                        else:
+                            middle_antenna = anstart + (anend-anstart)//2
+
+                        previous = self._find_state(anstart,middle_antenna)
+                        state = self._find_state(middle_antenna,anend)
+                    
+                        duration = e-s
+                   
+                        if anstart % 2:
+                            middle = s + int(in_pipe*self.fs)
+                            t_diff_prev = in_pipe
+                            t_diff_post = t_diff - in_pipe
+                        else:
+                            middle = s + duration - int(in_pipe*self.fs)
+                            t_diff_prev = t_diff - in_pipe
+                            t_diff_post = in_pipe
+                            
+                        self.signal_data[mm][s:middle] = previous
+                        self.signal_data[mm][middle:e] = state
+                    
+                        statistics[mm]["state_freq"][previous]+=1
+                        statistics[mm]["state_freq"][state]+=1
+                    
+                        statistics[mm]["state_time"][previous].append(t_diff_prev)
+                        statistics[mm]["state_time"][state].append(t_diff_post)
+                        tempdata.append((previous,mm, tstart,tend,t_diff_prev ,False))
+                        tempdata.append((previous,mm, tstart,tend,t_diff_post ,False))
+                        previous = state
+            
+
+        tempdata.sort(key=lambda x: x[2])
+        self.data = {'Tag': [],
+             'Address': [],
+             'AbsStartTimecode': [],
+             'AbsEndTimecode': [],
+             'VisitDuration': [],
+             'ValidVisitSolution': [],}
+        self.data['Address'] = [x[0] for x in tempdata]
+        self.data['Tag'] = [x[1] for x in tempdata]
+        self.data['AbsStartTimecode'] = [x[2] for x in tempdata]
+        self.data['AbsEndTimecode'] = [x[3] for x in tempdata]
+        self.data['VisitDuration'] = [x[4] for x in tempdata]
+        self.data['ValidVisitSolution'] = [x[5] for x in tempdata]
+
+        return statistics
+
+    def _find_state(self,anstart,anend):
+        if abs(anstart-anend) == 1:
+            return int((anstart + anend)/2.-0.5)
+        if abs(anstart-anend) == 7:
+            return 8
+        return 0
+
+    def _update_statistics(self,statistics,mm,state,anend,t_diff):
+        statistics[mm]["state_freq"][state]+=1
+        statistics[mm]["state_time"][state].append(t_diff)
+        if anend == state:
+            statistics[mm]["preference"][state][1]+=1
+        else:
+            statistics[mm]["preference"][state][0]+=1  
+
+        return state
+        
+    def __init__(self, **kwargs):
+        path = kwargs.pop("path")
+        _ant_pos = kwargs.pop('_ant_pos', None)
+        _mask = kwargs.pop('mask', None)
+        how_many_appearances = kwargs.pop('how_many_appearances',100)
+        factor = kwargs.pop('factor',2)
+        tags = kwargs.pop('remove_mice',[])
+        compensate_for_lost_antenna = kwargs.pop('compensate_for_lost_antenna',False)
+        ehd = EcoHab.EcoHabData(path=path,
+                                _ant_pos=_ant_pos,
+                                mask=_mask,
+                                how_many_appearances=how_many_appearances,
+                                factor=factor,
+                                remove_mice=tags)
+        self._ehd = ehd
+        data = {}
+        mask = None
+        self.mice = self._ehd.mice
+        super(EcoHabSessions9states,self).__init__(data=data,mask=mask)
+        self.threshold = kwargs.pop('shortest_session_threshold', 2)
+        self.fs = 10
+        self.t_start_exp = np.min(self._ehd.data['Time'])
+        self.t_end_exp = np.max(self._ehd.data['Time'])
+        t = np.arange(self.t_start_exp,self.t_end_exp,1/self.fs)
+        self.signal_data = {}
+        self.signal_data['time'] = t
+        for mouse in self.mice:
+            self.signal_data[mouse] = np.zeros(len(t),dtype=np.int8)          
+        
+        self.statistics = self._calculate_visitis(compensate_for_lost_antenna=compensate_for_lost_antenna)
+
+
+            
+            
+    def mask_data(self, *args):
+        """mask_data(endtime) or mask_data(starttime, endtime)
+        All future queries will be clipped to the visits starting between
+        starttime and endtime."""
+        try:
+            starttime = args[0]
+            endtime = args[1]
+        except IndexError:   
+            starttime = min(self.getstarttimes(self.mice))
+            endtime = args[0]
+        self.mask = (starttime, endtime) 
+        arr = np.array(self.data['AbsStartTimecode'])
+        idcs = np.where((arr >= starttime) & (arr < endtime))[0]
+        if len(idcs) >= 2:
+            self._mask_slice = (idcs[0], idcs[-1] + 1)
+        elif len(idcs) == 1:
+            self._mask_slice = (idcs[0], idcs[0] + 1)
+        else:
+            self._mask_slice = (0, 0)
+
+                     
+    def getstarttimes(self, mice): 
+        return self.getproperty(mice, 'AbsStartTimecode', 'float')
+                    
+    def getendtimes(self, mice):
+        return self.getproperty(mice, 'AbsEndTimecode', 'float')
+                    
+    def getdurations(self, mice): 
+        return self.getproperty(mice, 'VisitDuration', 'float')
+    
+    def getaddresses(self, mice): 
+        return self.getproperty(mice, 'Address')
+    
+    def getstats(self, mm):
+        """Return total number of visits 
+        and total time spent in compartments."""
+        durations = self.getdurations(mm)
+        adds = self.getaddresses(mm)
+        totv = [0, 0, 0, 0] #total number of visits
+        tott = [0., 0., 0., 0.] #total number of time
+        for idx, ad in enumerate([1, 2, 3, 4]):
+            durs = [x for x, y in zip(durations, adds) if y == ad]
+            totv[idx] = len(durs)
+            tott[idx] = sum(durs)
+        return totv, tott
+    def getproperty(self, mice, propname, astype=None):
+        if sys.version_info < (3, 0):
+            if isinstance(mice, (str, unicode)):
+                mice = [mice]
+        else:
+            if isinstance(mice, str):
+                mice = [mice]
+
+ 
+        if self.mask is None:
+            if astype is None:
+                return [x[0] for x in zip(self.data[propname], 
+                        self.data['Tag']) if x[1] in mice]
+            elif astype == 'float':                          
+                return [float(x[0]) for x in zip(self.data[propname], 
+                        self.data['Tag']) if x[1] in mice]
+        else:
+            if astype is None:
+                return [x[0] for x in zip(
+                        self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
+                        self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
+                        if x[1] in mice] 
+            elif astype == 'float':
+                return [float(x[0]) for x in zip(
+                        self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
+                        self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
+                        if x[1] in mice]
+
+
 
 class Experiment(object):
     """Class, which represent data from one experiment"""
@@ -104,14 +374,14 @@ class Experiment(object):
                 mask = self.cf.gettime(which_phase)
             except ConfigParser.NoSectionError:
                 mask = None
-        self.ehs = EcoHab.EcoHabSessions9states(path=self.path,
-                                                _ant_pos=_ant_pos,
-                                                mask=mask,
-                                                shortest_session_threshold=0,
-                                                how_many_appearances=h_m_a,
-                                                factor=factor,
-                                                remove_mice=tags,
-                                                compensate_for_lost_antenna=self.compensate_for_lost_antenna)
+        self.ehs = EcoHabSessions9states(path=self.path,
+                                         _ant_pos=_ant_pos,
+                                         mask=mask,
+                                         shortest_session_threshold=0,
+                                         how_many_appearances=h_m_a,
+                                         factor=factor,
+                                         remove_mice=tags,
+                                         compensate_for_lost_antenna=self.compensate_for_lost_antenna)
         self._remove_phases(mask)
         self.fs = self.ehs.fs
         mice = list(self.ehs.mice)
@@ -770,18 +1040,18 @@ class Experiment(object):
             return
         suffix = '%s_%s' % (self.prefix, phases_comment)
         
-        plotfunctions.raster_interactions(self.directory,
-                                          FAM,
-                                          IPP,
-                                          phases,
-                                          suffix,
-                                          self.mice,
-                                          scalefactor=scalefactor)
+        raster_interactions(self.directory,
+                            FAM,
+                            IPP,
+                            phases,
+                            suffix,
+                            self.mice,
+                            scalefactor=scalefactor)
         
         self.write_tables_to_file("FAM", phases=phases)
         mice = [mouse.split('-')[-1] for mouse in self.mice]
         for i, fam in enumerate(FAM):
-            plotfunctions.plot_graph(fam, phases[i], self.directory, labels=mice)
+            plot_graph(fam, phases[i], self.directory, labels=mice)
             
     def generate_heatmaps(self, what, phases=None):
         
@@ -797,31 +1067,31 @@ class Experiment(object):
         
         for i, phase in enumerate(phases):
             suffix = '%s_%s' % (self.prefix, phase.replace(' ', '_'))
-            plotfunctions.single_heat_map(result[i],
-                                          what,
-                                          self.directory,
-                                          self.mice,
-                                          suffix,
-                                          phase,
-                                          subdirectory=what,
-                                          vmin=vmin,
-                                          vmax=vmax)
+            single_heat_map(result[i],
+                            what,
+                            self.directory,
+                            self.mice,
+                            suffix,
+                            phase,
+                            subdirectory=what,
+                            vmin=vmin,
+                            vmax=vmax)
             
     def plotTubeDominanceRasters(self, name=None, mice=[]):
         subdirectory = 'tube_dominance/figs'
         n_s = self.tube_dominance_matrix.shape[0]
         phases = self.cf.sections()[:n_s]
-        plotfunctions.make_RasterPlot(self.directory,
-                                      subdirectory,
-                                      self.tube_dominance_matrix,
-                                      phases,
-                                      'tube_dominance',
-                                      self.mice,
-                                      self.prefix,
-                                      to_file=True,
-                                      vmin=None,
-                                      vmax=None,
-                                      title=None)
+        make_RasterPlot(self.directory,
+                        subdirectory,
+                        self.tube_dominance_matrix,
+                        phases,
+                        'tube_dominance',
+                        self.mice,
+                        self.prefix,
+                        to_file=True,
+                        vmin=None,
+                        vmax=None,
+                        title=None)
         wtf.write_csv_tables(self.tube_dominance_matrix,
                              phases,
                              self.mice,
