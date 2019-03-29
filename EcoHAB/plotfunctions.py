@@ -17,7 +17,7 @@ from networkx.drawing.nx_agraph import write_dot
 import matplotlib.colors as mcol
 import matplotlib.patches as patches
 from write_to_file import make_table_of_pairs
-
+nbins = 10
 def autolabel(rects,ax):
     """
 
