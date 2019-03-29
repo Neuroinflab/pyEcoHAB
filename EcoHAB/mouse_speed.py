@@ -76,18 +76,20 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
                                         prefix, remove_mouse=None):
     phases = utils.filter_dark(cf.sections())
     mice = [mouse[-4:] for mouse in ehd.mice]
-    phases = cf.sections()
-    phases = utils.filter_dark(phases)
-    mice = ehd.mice
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     following = np.zeros((len(phases), len(mice), len(mice)))
     following_exp = np.zeros((len(phases), len(mice), len(mice)))
     fname = 'following_in_pipe_2nd_mouse_in_pipe_%s' % (add_info_mice)
-    fname_ = 'following_in_pipe_2nd_mouse_in_pipe_%s%s' % (prefix, add_info_mice)
-    fname_exp = 'relative_following_in_pipe_excess_2nd_mouse_in_pipe_%s%s.csv' % (prefix, add_info_mice)
+    fname_ = 'following_in_pipe_2nd_mouse_in_pipe_%s%s' % (prefix,
+                                                           add_info_mice)
+    fname_beg = 'relative_following_in_pipe_excess_2nd_mouse_in_pipe'
+    fname_exp = '%s_%s%s.csv' % (fname_beg, prefix, add_info_mice)
     for i, phase in enumerate(phases):
-        following[i] = following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase)
-        following_exp[i] = expected_following_in_pipe_single_phase(ehd, cf,
+        following[i] = following_2nd_mouse_in_pipe_single_phase(ehd,
+                                                                cf,
+                                                                phase)
+        following_exp[i] = expected_following_in_pipe_single_phase(ehd,
+                                                                   cf,
                                                                    phase)
         save_single_histograms(following[i],
                                'following_in_pipe_2nd_mouse_in_pipe',
