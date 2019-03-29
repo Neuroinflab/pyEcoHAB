@@ -1,17 +1,11 @@
 from __future__ import print_function, division
 import EcoHab
 from ExperimentConfigFile import ExperimentConfigFile
-from data_info import *
-import os
 import utility_functions as utils
 import numpy as np
-import matplotlib.pyplot as plt
 from write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
-from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot
+from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, make_pooled_histograms
 from numba import jit
-from collections import OrderedDict
-nbins = 10
-homepath = os.path.expanduser("~/")
 titles = {
     3: '12',
     7: '34',
