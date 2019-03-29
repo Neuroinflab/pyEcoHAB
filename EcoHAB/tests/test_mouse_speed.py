@@ -40,6 +40,13 @@ class TestCheck2ndMouse(unittest.TestCase):
         out = ms.check_2nd_mouse(antenna1, antenna2, t1, threshold,
                                  antennas2, times2)
         self.assertEqual(out, 0)
+
+class TestCalculateExpectedFollowings(unittest.TestCase):
+    def test_summing(self):
+        wm1 = {'1': 2, '2':5}
+        fm2 = {'1':.5, '2':.5}
+        out = ms.calculate_expected_followings(wm1, fm2)
+        self.assertTrue(out, 3)
         
 if __name__ == '__main__':
     unittest.main()

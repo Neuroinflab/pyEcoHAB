@@ -14,6 +14,13 @@ titles = {
 }
 threshold = 2
 
+@jit
+def calculate_expected_followings(window_mouse1, frequency_mouse2):
+    expected_followings = 0
+    for key in window_mouse1:
+        expected_followings += window_mouse1[key]*frequency_mouse2[key]
+    return expected_followings
+
 def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2):
     idxs = utils.get_idx_between(t1, t1 + threshold, times2)
     for ci in idxs:
