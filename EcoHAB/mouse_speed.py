@@ -15,6 +15,33 @@ titles = {
 threshold = 2
 
 @jit
+def frequency_mouse_in_tube(times, antennas, period):
+    change_indices = utils.change_state(antennas)
+    frequency = {
+        3: 0,
+        7: 0,
+        11: 0,
+        15: 0,
+    }
+    window = {
+        3: 0,
+        7: 0,
+        11: 0,
+        15: 0,
+    }
+    for idx in change_indices:
+        antenna, next_antenna = antennas[idx:idx + 2]
+        delta_t = times[idx+1] - times[idx]
+        key = utils.get_key_for_frequencies(antenna, next_antenna)
+        if key and delta_t < threshold:
+            frequency[key] += 1
+            window[key] += delta_t
+    for key in frequency:
+        frequency[key] = frequency[key]/period
+    return frequency, window
+
+
+@jit
 def calculate_expected_followings(window_mouse1, frequency_mouse2):
     expected_followings = 0
     for key in window_mouse1:
@@ -173,98 +200,7 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
                            prefix,
                            additional_info=add_info_mice)
 
-@jit
-def frequency_mouse_in_tube(ehd, mouse, st, en):
-    ehd.mask_data(st, en)
-    antennas = ehd.getantennas(mouse)
-    times = ehd.gettimes(mouse)
-    change_indices = np.where((np.array(antennas[1:]) - np.array(antennas[:-1])) != 0)[0]
-    frequency = {
-        3: 0,
-        7: 0,
-        11: 0,
-        15: 0,
-    }
-    window = {
-        3: 0,
-        7: 0,
-        11: 0,
-        15: 0,
-    }
-    for idx in change_indices:
-        antenna = antennas[idx]
-        next_antenna = antennas[idx+1]
-        delta_t = times[idx+1] - times[idx]
-        key = False
-        if antenna % 2 and next_antenna == antenna + 1:
-            key = next_antenna + antenna
-        elif next_antenna % 2 and antenna == next_antenna + 1:
-            key = next_antenna + antenna
-            
-        if key and delta_t < threshold:
-            frequency[key] += 1
-            window[key] += delta_t
-    for key in frequency:
-        frequency[key] /= (en-st)
-    ehd.unmask_data()
-    return frequency, window
-   
-
-@jit
-def frequencies_for_all(phase, cf, ehd):
-    mice = ehd.mice
-    st, en = cf.gettime(phase)
-    frequency = {}
-    window = {}
-    for mouse1 in mice:
-        frequency[mouse1], window[mouse1] = frequency_mouse_in_tube(ehd, mouse1, st, en)
-    return frequency, window
-   
-@jit
-def expected_following_in_pipe_single_phase(ehd, cf, phase):
-    mice = ehd.mice
-    expected_followings = np.zeros((len(mice), len(mice)))
-    frequency, window = frequencies_for_all(phase, cf, ehd)
-    for j, mouse1 in enumerate(mice):
-        for k, mouse2 in enumerate(mice):
-            if mouse1 != mouse2:
-                for key in window[mouse1]:
-                    expected_followings[j, k] += window[mouse1][key]*frequency[mouse2][key]
-                expected_followings[j, k] = np.round(expected_followings[j, k])
-    return expected_followings
-            
-
-@jit
-def following_for_all_in_pipe_condition(ehd, cf):
-    mice = ehd.mice
-    phases = cf.sections()
-    phases = utils.filter_dark(phases)
-    followings = np.zeros((len(phases), len(mice), len(mice)))
-    for i, phase in enumerate(phases):
-        st, en = cf.gettime(phase)
-        for j, mouse1 in enumerate(mice):
-            for k, mouse2 in enumerate(mice):
-                if mouse2 != mouse1:
-                    followings[i, j, k] = following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en, collect_intervals)
-    return followings, phases, mice
-
-def save_all_followings_data_to_file(directory, prefix, followings, ending=''):
-    dir_ = utils.check_directory(directory, 'following_in_pipe')
-    fname_base = "%s_followings_wyniki_%s_%s.csv"
-    header = 'mouse pair; measurement\n'
-    measurement_keys = ['antennas', 'mouse1_time', 'mouse1_delta_t', 'mouse2_time', 'mouse2_delta_t']
-    phases = followings.keys()
-    for phase in phases:
-        fname = os.path.join(dir_, fname_base % (ending, prefix, phase))
-        f = open(fname, 'w')
-        f.write(header)
-        for key in followings[phase]:
-            for mk in measurement_keys:
-                f.write(key +';'+mk)
-                for meas in followings[phase][key][mk]:
-                    f.write(';'+str(meas))
-                f.write('\n')
-        f.close()
+    return following, following_exp, phases, mice
 
 
 if __name__ == '__main__':

@@ -47,6 +47,46 @@ class TestCalculateExpectedFollowings(unittest.TestCase):
         fm2 = {'1':.5, '2':.5}
         out = ms.calculate_expected_followings(wm1, fm2)
         self.assertTrue(out, 3)
-        
+
+
+class TestFrequencyMouseInTube(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.period = 16.
+        cls.antennas = [1, 1, 2, 3, 4, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8]
+        cls.times = [0, 1, 1.5, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        cls.freq, cls.window = ms.frequency_mouse_in_tube(cls.times,
+                                                          cls.antennas,
+                                                          cls.period)
+    def test_same_keys(self):
+        self.assertEqual(self.freq.keys(), self.window.keys())
+
+    def test_all_keys(self):
+        self.assertEqual(set(self.freq.keys()), set([3, 7, 11, 15]))
+
+    def test_freq_12(self):
+        self.assertEqual(self.freq[3], 3/16)
+
+    def test_freq_34(self):
+        self.assertEqual(self.freq[7], 3/16)
+
+    def test_freq_56(self):
+        self.assertEqual(self.freq[11], 1/16)
+
+    def test_freq_78(self):
+        self.assertEqual(self.freq[15], 1/16)
+
+    def test_window_12(self):
+        self.assertEqual(self.window[3], 2.5)
+
+    def test_window_34(self):
+        self.assertEqual(self.window[7], 3)
+
+    def test_window_56(self):
+        self.assertEqual(self.window[11], 1)
+
+    def test_window_78(self):
+        self.assertEqual(self.window[15], 1)
+
 if __name__ == '__main__':
     unittest.main()
