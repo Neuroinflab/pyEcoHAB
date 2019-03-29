@@ -264,21 +264,6 @@ def save_all_followings_data_to_file(directory, prefix, followings, ending=''):
                 f.write('\n')
         f.close()
 
-def save_all_intervals_to_file(directory, prefix, followings, ending=''):
-    dir_ = utils.check_directory(directory, 'intervals_following_in_pipe')
-    fname_base = "%s_followings_intervals_wyniki_%s_%s.csv"
-    header = 'mouse pair; following interval\n'
-    phases = followings.keys()
-    for phase in phases:
-        fname = os.path.join(dir_, fname_base % (ending, prefix, phase))
-        f = open(fname, 'w')
-        f.write(header)
-        for key in followings[phase]:
-            f.write(key)
-            for meas in followings[phase][key]:
-                f.write(';'+str(meas))
-            f.write('\n')
-        f.close()
 
 if __name__ == '__main__':
     nbins = 10
