@@ -14,6 +14,7 @@ titles = {
 }
 threshold = 2
 
+
 @jit
 def frequency_mouse_in_tube(times, antennas, period):
     change_indices = utils.change_state(antennas)
@@ -42,11 +43,36 @@ def frequency_mouse_in_tube(times, antennas, period):
 
 
 @jit
+def frequencies_for_all(ehd, cf, phase):
+    t_st, t_en = cf.gettime(phase)
+    period = t_en - t_st
+    frequency = {}
+    window = {}
+    for mouse1 in ehd.mice:
+        times, antennas = utils.get_times_antennas(ehd, mouse1, t_st, t_en)
+        frequency[mouse1], window[mouse1] = frequency_mouse_in_tube(times,
+                                                                    antennas,
+                                                                    period)
+    return frequency, window
+
+@jit
 def calculate_expected_followings(window_mouse1, frequency_mouse2):
     expected_followings = 0
     for key in window_mouse1:
         expected_followings += window_mouse1[key]*frequency_mouse2[key]
     return expected_followings
+
+
+def expected_following_in_pipe_single_phase(ehd, cf, phase):
+    out = np.zeros((len(ehd.mice), len(ehd.mice)))
+    frequency, window = frequencies_for_all(ehd, cf, phase)
+    for j, mouse1 in enumerate(ehd.mice):
+        for k, mouse2 in enumerate(ehd.mice):
+            if mouse1 != mouse2:
+                out[j, k] = calculate_expected_followings(window[mouse1],
+                                                          frequency[mouse2])
+    return out
+
 
 def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2):
     idxs = utils.get_idx_between(t1, t1 + threshold, times2)
@@ -62,15 +88,6 @@ def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2):
 def following_2_mice_in_pipe(antennas1, times1,
                              antennas2, times2):
     change_indices = utils.change_state(antennas1)
-#@jit            
-def following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en, print_out=False):
-    intervals = []
-    ehd.mask_data(st, en)
-    antennas1 = ehd.getantennas(mouse1)
-    times1 = ehd.gettimes(mouse1)
-    antennas2 = ehd.getantennas(mouse2)
-    times2 = ehd.gettimes(mouse2)
-    change_indices = np.where((np.array(antennas1[1:]) - np.array(antennas1[:-1])) != 0)[0]
     followings = 0
     for idx in change_indices:
         antenna1, next_antenna1 = antennas1[idx:idx+2]
@@ -82,24 +99,22 @@ def following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en, print_out=Fa
     return followings
 
 
-def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase, print_out=False):
-    mice = ehd.mice
+def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase):
     st, en = cf.gettime(phase) 
-    followings = np.zeros((len(mice), len(mice)))
-    all_mice_dict = {}
-    if print_out:
-        print(phase)
-    for j, mouse1 in enumerate(mice):
-        for k, mouse2 in enumerate(mice):
+    followings = np.zeros((len(ehd.mice), len(ehd.mice)))
+    for j, mouse1 in enumerate(ehd.mice):
+        times1, antennas1 = utils.get_times_antennas(ehd, mouse1,
+                                                     st, en)
+        for k, mouse2 in enumerate(ehd.mice):
             if mouse2 != mouse1:
-                followings[j, k], intervals = following_2_mice_in_pipe_condition(ehd,
-                                                                                 mouse1, mouse2, st, en,
-                                                                                 print_out=print_out)
-                key = '%s_%s' % (mouse1, mouse2)
-                all_mice_dict[key] = intervals
-    return followings, all_mice_dict
-    
-def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory, prefix, remove_mouse=None, print_out=False):
+                times2, antennas2 = utils.get_times_antennas(ehd, mouse2,
+                                                             st, en)
+                followings[j, k] = following_2_mice_in_pipe(antennas1,
+                                                            times1,
+                                                            antennas2,
+                                                            times2)
+    return followings
+
 
 def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
                                         prefix, remove_mouse=None):
