@@ -14,22 +14,15 @@ titles = {
 }
 threshold = 2
 
-#@jit
-def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2, out):
-    idxs1 = np.where(np.array(times2) >= t1)[0]
-    idxs2 = np.where(np.array(times2) <= t1 + threshold)[0]
-    common_idxs = list(set(idxs1)&set(idxs2))
-    for ci in common_idxs:
-        antenna2 = antennas2[ci]
-        if ci + 1 < len(antennas2) and antenna2 == antenna1:
-            next_antenna2 = antennas2[ci+1]
-            delta_t2 = times2[ci+1] - times2[ci]
-            if utils.in_tube(antenna2, next_antenna2):
-                delta_t = times2[ci] - t1
-                out.append(delta_t)
+def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2):
+    idxs = utils.get_idx_between(t1, t1 + threshold, times2)
+    for ci in idxs:
+        if ci + 1 >= len(antennas2):
+            return 0
+        if antennas2[ci] == antenna1 and antennas2[ci+1] == next_antenna1:
+            if times2[ci+1] > t1 + threshold:
                 return 1
     return 0
-                           
 
 #@jit            
 def following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en, print_out=False):
