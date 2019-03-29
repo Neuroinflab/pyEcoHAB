@@ -41,6 +41,45 @@ class TestCheck2ndMouse(unittest.TestCase):
                                  antennas2, times2)
         self.assertEqual(out, 0)
 
+
+class TestFollowing2ndMouseInPipe(unittest.TestCase):
+    def test_following_1(self):
+        antennas1 = [1, 2]
+        times1 = [15, 16.5]
+        antennas2 = [8, 1, 2, 3, 4, 5]
+        times2 = [10, 16, 19, 19.5, 22, 25]
+        out = ms.following_2_mice_in_pipe(antennas1, times1,
+                                          antennas2, times2)
+        self.assertEqual(out, 1)
+
+    def test_not_following(self):
+        antennas1 = [1, 2]
+        times1 = [15, 16.5]
+        antennas2 = [8, 1, 2, 3, 4, 5]
+        times2 = [10, 16, 19, 19.5, 22, 25]
+        out = ms.following_2_mice_in_pipe(antennas2, times2,
+                                          antennas1, times1)
+        self.assertEqual(out, 0)
+
+    def test_following_more(self):
+        antennas1 = [1, 2, 3, 4, 5]
+        times1 = [15, 16.5, 19, 20, 21]
+        antennas2 = [8, 1, 2, 3, 4, 5]
+        times2 = [10, 16, 19, 19.5, 22, 25]
+        out = ms.following_2_mice_in_pipe(antennas1, times1,
+                                          antennas2, times2)
+        self.assertEqual(out, 2)
+
+    def test_not_following_more(self):
+        antennas1 = [1, 2, 3, 4, 5]
+        times1 = [15, 16.5, 19, 20, 21]
+        antennas2 = [8, 1, 2, 3, 4, 5]
+        times2 = [10, 16, 19, 19.5, 22, 25]
+        out = ms.following_2_mice_in_pipe(antennas2, times2,
+                                          antennas1, times1)
+        self.assertEqual(out, 0)
+
+
 class TestCalculateExpectedFollowings(unittest.TestCase):
     def test_summing(self):
         wm1 = {'1': 2, '2':5}

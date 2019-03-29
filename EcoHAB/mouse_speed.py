@@ -58,6 +58,10 @@ def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2):
                 return 1
     return 0
 
+
+def following_2_mice_in_pipe(antennas1, times1,
+                             antennas2, times2):
+    change_indices = utils.change_state(antennas1)
 #@jit            
 def following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en, print_out=False):
     intervals = []
@@ -69,16 +73,14 @@ def following_2_mice_in_pipe_condition(ehd, mouse1, mouse2, st, en, print_out=Fa
     change_indices = np.where((np.array(antennas1[1:]) - np.array(antennas1[:-1])) != 0)[0]
     followings = 0
     for idx in change_indices:
-        antenna1 = antennas1[idx]
-        next_antenna1 = antennas1[idx+1]
+        antenna1, next_antenna1 = antennas1[idx:idx+2]
         delta_t1 = times1[idx+1] - times1[idx]
         if utils.in_tube(antenna1, next_antenna1) and delta_t1 < threshold:
-            followings += check_2nd_mouse(antenna1, next_antenna1, times1[idx], delta_t1,
-                                          antennas2, times2, out=intervals)
-    if print_out:
-        print('%s following %s %d times'%(mouse2, mouse1, followings))
-    return followings, intervals
-    
+            followings += check_2nd_mouse(antenna1, next_antenna1,
+                                          times1[idx], delta_t1,
+                                          antennas2, times2)
+    return followings
+
 
 def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase, print_out=False):
     mice = ehd.mice
