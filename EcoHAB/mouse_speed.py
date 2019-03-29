@@ -123,10 +123,10 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     following = np.zeros((len(phases), len(mice), len(mice)))
     following_exp = np.zeros((len(phases), len(mice), len(mice)))
-    fname = 'following_in_pipe_2nd_mouse_in_pipe_%s' % (add_info_mice)
-    fname_ = 'following_in_pipe_2nd_mouse_in_pipe_%s%s' % (prefix,
+    fname = 'following_in_pipe_%s' % (add_info_mice)
+    fname_ = 'following_in_pipe_%s%s' % (prefix,
                                                            add_info_mice)
-    fname_beg = 'relative_following_in_pipe_excess_2nd_mouse_in_pipe'
+    fname_beg = 'relative_following_in_pipe_excess'
     fname_exp = '%s_%s%s.csv' % (fname_beg, prefix, add_info_mice)
     for i, phase in enumerate(phases):
         following[i] = following_2nd_mouse_in_pipe_single_phase(ehd,
@@ -136,23 +136,23 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
                                                                    cf,
                                                                    phase)
         save_single_histograms(following[i],
-                               'following_in_pipe_2nd_mouse_in_pipe',
+                               'following_in_pipe',
                                ehd.mice,
                                phase,
                                main_directory,
-                               'following_in_pipe_2nd_mouse_in_pipe/histograms',
+                               'following_in_pipe/histograms',
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms(following_exp[i],
-                               'following_in_pipe_2nd_mouse_in_pipe_expected_time',
+                               'following_in_pipe_expected_time',
                                ehd.mice,
                                phase,
                                main_directory,
-                               'following_in_pipe_2nd_mouse_in_pipe/histograms',
+                               'following_in_pipe/histograms',
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms((following[i]-following_exp[i]),
-                               'following_in_pipe_2nd_mouse_in_pipe_relative_excess_following',
+                               'following_in_pipe_relative_excess_following',
                                ehd.mice,
                                phase,
                                main_directory,
@@ -167,7 +167,7 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
                                   phase,
                                   fname,
                                   main_directory,
-                                  'following_in_pipe_2nd_mouse_in_pipe/histograms',
+                                  'following_in_pipe/histograms',
                                   prefix+add_info_mice,
                                   hist=False,
                                   vmin=0,
@@ -183,25 +183,25 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
                       phases,
                       following,
                       main_directory,
-                      'following_in_pipe_2nd_mouse_in_pipe/raster_plots',
+                      'following_in_pipe/raster_plots',
                       fname_)
     write_csv_rasters(ehd.mice,
                       phases,
                       (following-following_exp),
                       main_directory,
-                      'following_in_pipe_2nd_mouse_in_pipe/raster_plots',
+                      'following_in_pipe/raster_plots',
                       fname_exp)
     
 
     make_RasterPlot(main_directory,
-                    'following_in_pipe_2nd_mouse_in_pipe/raster_plots',
+                    'following_in_pipe/raster_plots',
                     following,
                     phases,
                     fname_,
                     mice,
                     title='# followings')
     make_RasterPlot(main_directory,
-                    'following_in_pipe_2nd_mouse_in_pipe/raster_plots',
+                    'following_in_pipe/raster_plots',
                     (following-following_exp),
                     phases,
                     fname_exp,
