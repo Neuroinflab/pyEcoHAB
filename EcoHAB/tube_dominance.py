@@ -10,7 +10,7 @@ from write_to_file import save_single_histograms, write_csv_rasters
 from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
 from numba import jit
 import argparse
-
+import dispatch
 
 how_many_antennas = 3
 
@@ -203,10 +203,10 @@ if __name__ == '__main__':
         fname = 'tube_dominance_no_normalization'
     else:
         fname = 'tube_dominance_%s' % normalization
-    utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
-                                    tube_dominance_single_phase,
-                                    fname, 'dominating mouse',
-                                    'pushed out mouse',
-                                    '# dominances',
-                                    args=[normalization])
+    dispatch.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
+                                       tube_dominance_single_phase,
+                                       fname, 'dominating mouse',
+                                       'pushed out mouse',
+                                       '# dominances',
+                                       args=[normalization])
 

@@ -6,9 +6,9 @@ from data_info import *
 import os
 import utility_functions as utils
 import numpy as np
-from write_to_file import save_single_histograms, write_csv_rasters
-from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
 import matplotlib.pyplot as plt
+import dispatch
+
 mouse_attention_span = 10  # sec
 nbins = 10
 homepath = os.path.expanduser("~/")
@@ -285,18 +285,18 @@ if __name__ == '__main__':
         cf1 = ExperimentConfigFile(path)
        
         states, home_cage_antenna = get_states_and_home_cage_antenna(ehd1, cf1, dt)
-        utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
-                                        tube_dominance_2_cages,
-                                        'mouse_pushing_out_stimulus_chamber',
-                                        'dominating mouse',
-                                        'pushed out mouse',
-                                        '# pushes',
-                                        args=[home_cage_antenna])
-
-        utils.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
-                                        dominating_mice,
-                                        'subversion_evaluation',
-                                        'dominating mouse',
-                                        'subversive mouse',
-                                        '# times in small cage',
-                                        args=[states, home_cage_antenna, dt])
+        dispatch.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
+                                           tube_dominance_2_cages,
+                                           'mouse_pushing_out_stimulus_chamber',
+                                           'dominating mouse',
+                                           'pushed out mouse',
+                                           '# pushes',
+                                           args=[home_cage_antenna])
+        
+        dispatch.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
+                                           dominating_mice,
+                                           'subversion_evaluation',
+                                           'dominating mouse',
+                                           'subversive mouse',
+                                           '# times in small cage',
+                                           args=[states, home_cage_antenna, dt])

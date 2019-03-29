@@ -13,6 +13,7 @@ from data_info import *
 from write_to_file import save_data_cvs
 import interactions
 import tube_dominance as td
+import dispatch
 
 homepath = os.path.expanduser("~/")
 threshold = 3
@@ -74,9 +75,9 @@ if __name__ == '__main__':
         
 
             
-        utils.evaluate_whole_experiment(ehd, cf, directory, prefix,
-                                        td.tube_dominance_single_phase,
-                                        'tube_dominance',
-                                        'dominating mouse',
-                                        'pushed out mouse',
-                                        '# dominances', args=[None])
+        dispatch.evaluate_whole_experiment(ehd, cf, directory, prefix,
+                                           td.tube_dominance_single_phase,
+                                           'tube_dominance',
+                                           'dominating mouse',
+                                           'pushed out mouse',
+                                           '# dominances', args=[None])
