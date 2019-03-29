@@ -76,13 +76,6 @@ def mouse_alone(data_mice, address):
         
     return result
 
-def interval_overlap(int1, int2):
-    """Return overlap between two intervals."""
-    ints = sorted([int1, int2], key=lambda x: x[0])
-    if ints[1][0] > ints[0][1]:
-        return 0
-    else:
-        return min(ints[0][1], ints[1][1]) - ints[1][0]
 
 def mice_overlap(data_mice, m1, m2, address):
     """Return time overlap of mice m1 and m2 in cage <address>."""
@@ -93,7 +86,7 @@ def mice_overlap(data_mice, m1, m2, address):
     total = 0.
     for int1 in ints1:
         for int2 in ints2:
-            total += interval_overlap(int1, int2)
+            total += utils.interval_overlap(int1, int2)
     return total, sum(durs1), sum(durs2)
 @jit    
 def mice_together(data_mice, m1, m2, total_time):
