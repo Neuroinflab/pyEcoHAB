@@ -497,7 +497,6 @@ class TestIntervalOverlap(unittest.TestCase):
         """
         inte_1 = [34, 45]
         inte_2 = [34, 23]
-        print(uf.interval_overlap(inte_1, inte_2))
         self.assertTrue(uf.interval_overlap(inte_1, inte_2) == 0)
 
     def test_interval_overlap_2(self):
