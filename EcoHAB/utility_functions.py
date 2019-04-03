@@ -359,6 +359,13 @@ def interval_overlap(int1, int2):
 def intervals(data, address):
     return [[s, e] for a, s, e in data if a == address]
 
+
+def get_indices(t_start, t_end, starts, ends):
+    idx_start = get_idx_between(t_start, t_end, starts).tolist()
+    idx_end = get_idx_between(t_start, t_end, ends).tolist()
+    return sorted(list(set(idx_start +  idx_end)))
+
+
 def get_states_for_ehs(times, antennas, mouse, threshold):
     out = []
     for t_start, t_end, an_start, an_end in zip(times[:-1], times[1:],

@@ -610,5 +610,24 @@ class TestGetIntervals(unittest.TestCase):
         self.assertEqual(uf.intervals(test_input, 1), test_output)
 
 
+class TestGetIndices(unittest.TestCase):
+    def test_empty(self):
+        starts = [1, 5, 10]
+        ends = [4, 7, 15]
+        out = uf.get_indices(16, 20, starts, ends)
+        self.assertEqual(out, [])
+
+    def test_slice_overlap(self):
+        starts = [1, 5, 10]
+        ends = [4, 7, 15]
+        out = uf.get_indices(3, 12, starts, ends)
+        self.assertEqual(out, [0, 1, 2])
+
+    def test_slice(self):
+        starts = [1, 5, 10]
+        ends = [4, 7, 15]
+        out = uf.get_indices(4, 10, starts, ends)
+        self.assertEqual(out, [0, 1, 2])
+
 if __name__ == '__main__':
     unittest.main()
