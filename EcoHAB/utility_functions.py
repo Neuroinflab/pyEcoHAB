@@ -182,6 +182,7 @@ def get_idx_pre(t0, times):
 def get_idx_between(t0, t1, times):
     return  np.where((np.array(times) >= t0) & (np.array(times) <= t1))[0]
 
+
 def get_idx_post(t1, times):
     idxs = np.where(np.array(times) > t1)[0]
     if len(idxs):
@@ -364,6 +365,32 @@ def get_indices(t_start, t_end, starts, ends):
     idx_start = get_idx_between(t_start, t_end, starts).tolist()
     idx_end = get_idx_between(t_start, t_end, ends).tolist()
     return sorted(list(set(idx_start +  idx_end)))
+
+
+def get_ehs_data(ehs, mouse, t_start, t_end):
+    if t_start == 0 and t_end == -1:
+        return ehs.getaddresses(mouse),\
+            ehs.getstarttimes(mouse),\
+            ehs.getendtimes(mouse)
+    ehs.mask_data(t_start, t_end)
+    adresses = ehs.getaddresses(mouse)
+    starts = ehs.getstarttimes(mouse)
+    ends = ehs.getendtimes(mouse)
+    ehs.unmask_data()
+    return adresses, starts, ends
+
+
+def prepare_data(ehs, mice, times, margin=12*3600):
+    """Prepare masked data."""
+    data = {}
+    t_start, t_end = times
+    for mouse in mice:
+        data[mouse] = []
+        ads, sts, ens = get_ehs_data(ehs, mouse, t_start, t_end)
+        idxs = get_indices(t_start, t_end, sts, ens)
+        for i in idxs:
+            data[mouse].append((ads[i], sts[i], ens[i]))
+    return data
 
 
 def get_states_for_ehs(times, antennas, mouse, threshold):
