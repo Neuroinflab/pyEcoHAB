@@ -18,6 +18,7 @@ def mouse_alone(data_mice, address):
         ints[mouse] = utils.intervals(data_mice[mouse], address)
         if not len(ints[mouse]):
             del ints[mouse]
+
     result = {}
     for mouse in data_mice.keys():
         result[mouse] = 0
@@ -99,21 +100,6 @@ def mice_together(data_mice, m1, m2, total_time):
     exp_time_together = (fracs[:, 0] * fracs[:, 1]).sum()
     return time_together/total_time, exp_time_together
 
-def prepare_data(ehs, mice, times, margin=12*3600.): 
-    """Prepare masked data."""
-    t1, t2 = times
-    ehs.mask_data(t1 - margin, t2)
-    data = {}
-    for mm in mice:
-        ads = ehs.getaddresses(mm)
-        sts = ehs.getstarttimes(mm)
-        ens = ehs.getendtimes(mm)
-        data_mm = []
-        for ad, st, en in zip(ads, sts, ens):
-            if en > t1:
-                data_mm.append((ad, max(st, t1), min(en, t2)))
-        data[mm] = data_mm
-    return data
 
 def calculate_total_time(intervals):
     return sum([e-s for s, e in intervals])
@@ -145,7 +131,7 @@ def mouse_alone_ehs(ehs, cf, main_directory, prefix):
     mice = ehs.mice
     output = np.zeros((4, len(mice), len(phases)+1))
     for phase, sec in enumerate(phases):
-        data = prepare_data(ehs, mice, cf.gettime(sec))
+        data = utils.prepare_data(ehs, mice, cf.gettime(sec))
         for i in range(1,5):
             alone = mouse_alone(data, i)
             for j, mouse in enumerate(mice):
@@ -167,7 +153,7 @@ def get_dark_light_data(phase, cf, ehs):
     total_time = 0
     for i, ph in enumerate(phases):
         time = cf.gettime(ph)
-        datas.append(prepare_data(ehs, mice, time))
+        datas.append(utils.prepare_data(ehs, mice, time))
         total_time += time[1] - time[0]
     
     data = datas[0].copy()
@@ -193,7 +179,6 @@ def in_cohort_sociability_all_dark_light(ehs, cf, main_directory, prefix, remove
     full_results[0], full_results_exp[0] = single_phase_results(data,
                                                                 mice,
                                                                 total_time=total_time)
-    print(full_results[0], full_results_exp[0])
     save_single_histograms(full_results[0],
                            'incohort_sociability_measured_time',
                            mice,
@@ -271,7 +256,7 @@ def in_cohort_sociability_all_phases(ehs, cf, main_directory, prefix, remove_mou
     
     mice = ehs.mice
     time = cf.gettime("ALL")
-    data = prepare_data(ehs, mice, time)
+    data = utils.prepare_data(ehs, mice, time)
     full_results = np.zeros((1, len(mice), len(mice)))
     full_results_exp = np.zeros((1, len(mice), len(mice)))
     total_time = time[1] - time[0]
@@ -370,7 +355,7 @@ def in_cohort_sociability(ehs, cf, main_directory, prefix, remove_mouse=None):
     name_exp_ = 'incohort_sociability_excess_time_%s%s.csv' % (prefix, add_info_mice)
     
     for idx_phase, phase in enumerate(phases):
-        data = prepare_data(ehs, mice, cf.gettime(phase))
+        data = utils.prepare_data(ehs, mice, cf.gettime(phase))
         full_results[idx_phase], full_results_exp[idx_phase] = single_phase_results(data, mice)
         
         save_single_histograms(full_results[idx_phase],
