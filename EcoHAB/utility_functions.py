@@ -3,6 +3,44 @@ import os
 import numpy as np
 from numba import jit
 
+same_pipe = {1: [1, 2],
+             2: [1, 2],
+             3: [3, 4],
+             4: [3, 4],
+             5: [5, 6],
+             6: [5, 6],
+             7: [7, 8],
+             8: [7, 8]}
+
+opposite_pipe = {1: [5, 6],
+                 2: [5, 6],
+                 3: [7, 8],
+                 4: [7, 8],
+                 5: [1, 2],
+                 6: [1, 2],
+                 7: [3, 4],
+                 8: [3, 4]}
+
+address = {1: 4,
+           2: 1,
+           3: 1,
+           4: 2,
+           5: 2,
+           6: 3,
+           7: 3,
+           8: 4}
+
+address_not_adjacent = {1: 1,
+                        2: 4,
+                        3: 2,
+                        4: 1,
+                        5: 3,
+                        6: 2,
+                        7: 4,
+                        8: 3}
+# Surrounding: difference between antennas only 2 or 6 -- skipped one antenna
+surrounding = {(1, 3): 1, (1, 7): 4, (2, 4): 1, (2, 8): 4,
+               (3, 5): 2, (4, 6): 2, (5, 7): 3, (6, 8): 3}
 
 def check_directory(directory,subdirectory):
     new_path = os.path.join(directory, subdirectory)
@@ -316,3 +354,33 @@ def interval_overlap(int1, int2):
         return 0
     else:
         return min(ints[0][1], ints[1][1]) - ints[1][0]
+def get_states_for_ehs(times, antennas, mouse, threshold):
+    out = []
+    for t_start, t_end, an_start, an_end in zip(times[:-1], times[1:],
+                                                antennas[:-1],
+                                                antennas[1:]):
+        delta_t = t_end - t_start
+        # Workflow as agreed on 14 May 2014
+        if delta_t < threshold:
+            continue
+        delta_an = np.abs(an_end - an_start)
+        if delta_an == 0:
+            out.append((address[an_start], mouse,
+                        t_start, t_end, True))
+        elif delta_an in [1, 7]:
+            if an_end in same_pipe[an_start]:
+                continue
+            else:
+                out.append((address[an_start], mouse,
+                            t_start, t_end, True))
+        elif delta_an in [2, 6]:
+            out.append((surrounding[(min(an_start, an_end),
+                                     max(an_start, an_end))],
+                        mouse, t_start, t_end, False))
+        elif delta_an in [3, 4, 5]:
+            if an_end in opposite_pipe[an_start]:
+                continue
+            else:
+                out.append((address_not_adjacent[an_start],
+                            mouse, t_start, t_end, False))
+    return out
