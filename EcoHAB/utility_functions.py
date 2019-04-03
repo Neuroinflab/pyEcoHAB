@@ -354,6 +354,11 @@ def interval_overlap(int1, int2):
         return 0
     else:
         return min(ints[0][1], ints[1][1]) - ints[1][0]
+
+
+def intervals(data, address):
+    return [[s, e] for a, s, e in data if a == address]
+
 def get_states_for_ehs(times, antennas, mouse, threshold):
     out = []
     for t_start, t_end, an_start, an_end in zip(times[:-1], times[1:],

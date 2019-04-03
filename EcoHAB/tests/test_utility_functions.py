@@ -587,5 +587,28 @@ class TestGetStatesForEhs(unittest.TestCase):
                (2, "mouse 1", 45, 55, True)]
         self.assertEqual(out, res)
 
+
+class TestGetIntervals(unittest.TestCase):
+
+    def test_empty(self):
+        self.assertEqual(uf.intervals([[1, 2, 3]], 4), [])
+
+    def test_not_empty(self):
+        self.assertEqual(uf.intervals([[1, 2, 3]], 1), [[2, 3]])
+
+    def test_longer(self):
+        test_input = [
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9],
+            [1, 10, 12],
+        ]
+        test_output = [
+            [2, 3],
+            [10, 12],
+        ]
+        self.assertEqual(uf.intervals(test_input, 1), test_output)
+
+
 if __name__ == '__main__':
     unittest.main()
