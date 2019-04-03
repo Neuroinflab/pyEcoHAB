@@ -349,10 +349,10 @@ def single_phase_results(data, mice, total_time=43200.):
     results = np.zeros((len(mice), len(mice)))
     results_exp = np.zeros((len(mice), len(mice)))
 
-    for ii in range(len(mice)):
-        for jj in range(len(mice)):
+    for ii, mouse1 in enumerate(mice):
+        for jj, mouse2 in enumerate(mice):
             if ii < jj:
-                res = mice_together(data, mice[ii], mice[jj], total_time)
+                res = mice_together(data, mouse1, mouse2, total_time)
                 results[ii, jj] = res[0]
                 results_exp[ii, jj] = res[1]
     return results, results_exp
