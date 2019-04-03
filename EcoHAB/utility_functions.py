@@ -235,6 +235,8 @@ def mouse_going_counterclockwise(antennas):
 
 
 def get_times_antennas(ehd, mouse, t_1, t_2):
+    if t_1 == 0 and t_2 == -1:
+        return ehd.gettimes(mouse), ehd.getantennas(mouse)
     ehd.mask_data(t_1, t_2)
     antennas, times = ehd.getantennas(mouse), ehd.gettimes(mouse)
     ehd.unmask_data()
