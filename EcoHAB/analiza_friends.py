@@ -439,3 +439,25 @@ def in_cohort_sociability(ehs, cf, main_directory, prefix, remove_mouse=None):
                     title='% time together',
                     vmin=-.25,
                     vmax=.25)
+
+
+if __name__ == '__main__':
+    homepath = os.path.expanduser("~/")
+    threshold = 3
+    new_path = "EcoHAB_data_November/Maciek_01_30_2018"
+    path = os.path.join(homepath, new_path)
+    prefix = utils.make_prefix(path)
+    ehd = EcoHab.EcoHabData(path=path,
+                            _ant_pos=None,
+                            how_many_appearances=10)
+    ehs = EcoHab.EcoHabSessions(ehd)
+    cf = ExperimentConfigFile(path)
+    tstart, tend = cf.gettime('ALL')
+    directory = utils.results_path(path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    mouse_alone_ehs(ehs, cf, directory, prefix)
+    in_cohort_sociability(ehs, cf, directory, prefix)
+    in_cohort_sociability_all_phases(ehs, cf, directory, prefix)
+    in_cohort_sociability_all_dark_light(ehs, cf, directory, prefix, phase="light")
+    in_cohort_sociability_all_dark_light(ehs, cf, directory, prefix, phase="dark")
