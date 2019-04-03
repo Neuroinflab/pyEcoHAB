@@ -112,19 +112,7 @@ def total_time_results(mice_data, mice):
             result[address-1,i] = calculate_total_time(ints)
     return result
 
-def test_results(data_mice,mice):
-    #For surrogate data
-    total_time_spent = total_time_results(data_mice,mice)
-    alone = np.zeros((4,len(mice)))
-    time_together = np.zeros((4,len(mice),len(mice)))
-    for i,address in enumerate([1, 2, 3, 4]):
-        mouse_alone_dictionary = mouse_alone(data_mice,address)
-        for j, mouse in enumerate(mice):
-            alone[i,j] = mouse_alone_dictionary[mouse]
-            for k, other_mouse in enumerate(mice[j+1:]):
-                time_together[i,j,j+1+k] = mice_overlap(data_mice, mouse, other_mouse, address)[0]
-                time_together[i,j+1+k,j] = time_together[i,j,j+1+k]
-                
+
 @jit
 def mouse_alone_ehs(ehs, cf, main_directory, prefix):
     phases = utils.filter_dark(cf.sections())
