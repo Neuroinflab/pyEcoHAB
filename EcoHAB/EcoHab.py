@@ -4,6 +4,7 @@ import os
 import time
 import numpy as np
 import sys
+import utility_functions as utils
 max_break = 60*60
 
 class Data(object):
@@ -382,16 +383,15 @@ class EcoHabSessions(IEcoHabSession):
         All future queries will be clipped to the visits starting between
         starttime and endtime."""
         try:
-            starttime = args[0]
-            endtime = args[1]
+            start = args[0]
+            end = args[1]
         except IndexError:   
-            starttime = min(self.getstarttimes(self._ehd.mice))
-            endtime = args[0]
-        self.mask = (starttime, endtime) 
-        arr = np.array(self.data['AbsStartTimecode'])
-        idcs = np.where((arr >= starttime) & (arr < endtime))[0]
+            start = min(self.getstarttimes(self._ehd.mice))
+            end = args[0]
+        self.mask = (start, end)
+        idcs = utils.get_idx_between(start, end, self.data['AbsStartTimecode'])
         if len(idcs) >= 2:
-            self._mask_slice = (idcs[0], idcs[-1] + 1)
+            self._mask_slice = (idcs[0], idcs[-1])
         elif len(idcs) == 1:
             self._mask_slice = (idcs[0], idcs[0] + 1)
         else:
