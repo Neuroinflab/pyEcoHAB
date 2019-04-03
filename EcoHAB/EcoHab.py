@@ -351,7 +351,7 @@ class EcoHabSessions(IEcoHabSession):
                                                        mouse,
                                                        0,
                                                        -1)
-            tempdata.append(utils.get_states_for_ehs(times, antennas,
+            tempdata.extend(utils.get_states_for_ehs(times, antennas,
                                                      mouse,
                                                      self.threshold))
         tempdata.sort(key=lambda x: x[2])
@@ -369,8 +369,7 @@ class EcoHabSessions(IEcoHabSession):
         self.data['Tag'] = [x[1] for x in temp_data]
         self.data['AbsStartTimecode'] = [x[2] for x in temp_data]
         self.data['AbsEndTimecode'] = [x[3] for x in temp_data]
-        self.data['VisitDuration'] = [x[4] for x in temp_data]
-        self.data['ValidVisitSolution'] = [x[5] for x in temp_data]
+        self.data['ValidVisitSolution'] = [x[4] for x in temp_data]
         self.mice = self._ehd.mice
         
     def unmask_data(self):
@@ -383,15 +382,16 @@ class EcoHabSessions(IEcoHabSession):
         All future queries will be clipped to the visits starting between
         starttime and endtime."""
         try:
-            start = args[0]
-            end = args[1]
+            starttime = args[0]
+            endtime = args[1]
         except IndexError:   
-            start = min(self.getstarttimes(self._ehd.mice))
-            end = args[0]
-        self.mask = (start, end)
-        idcs = utils.get_idx_between(start, end, self.data['AbsStartTimecode'])
+            starttime = min(self.getstarttimes(self._ehd.mice))
+            endtime = args[0]
+        self.mask = (starttime, endtime) 
+        arr = np.array(self.data['AbsStartTimecode'])
+        idcs = np.where((arr >= starttime) & (arr < endtime))[0]
         if len(idcs) >= 2:
-            self._mask_slice = (idcs[0], idcs[-1])
+            self._mask_slice = (idcs[0], idcs[-1] + 1)
         elif len(idcs) == 1:
             self._mask_slice = (idcs[0], idcs[0] + 1)
         else:
