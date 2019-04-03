@@ -342,87 +342,36 @@ class IEcoHabSession(object):
         raise NotImplementedError("Virtual method called")
 
 class EcoHabSessions(IEcoHabSession):
-    """Calculates 'visits' to Eco-HAB compartments."""
+    """Calculates 'visits' to Eco-HAB chambers."""
+
+    def _calculate_states(self):
+        tempdata = []
+        for mouse in self._ehd.mice:
+            times, antennas = utils.get_times_antennas(self._ehd,
+                                                       mouse,
+                                                       0,
+                                                       -1)
+            tempdata.append(utils.get_states_for_ehs(times, antennas,
+                                                     mouse,
+                                                     self.threshold))
+        tempdata.sort(key=lambda x: x[2])
+        return tempdata
+
     def __init__(self, ehd, **kwargs):
         
         self._ehd = ehd
         self.mask = None
         self._mask_slice = None
-        # No longer used after 14 May 2014
-        # self.same_antenna_threshold = kwargs.pop('same_antenna_threshold', 2.)
-        self.shortest_session_threshold = kwargs.pop('shortest_session_threshold', 2.)
-        
-        tempdata = []
-        same_pipe = {1: [1, 2], 2: [1, 2], 3: [3, 4], 4: [3, 4],
-                     5: [5, 6], 6: [5, 6], 7: [7, 8], 8: [7, 8]}
-        opposite_pipe = {1: [5, 6], 2: [5, 6], 3: [7, 8], 4: [7, 8],
-                     5: [1, 2], 6: [1, 2], 7: [3, 4], 8: [3, 4]}
-        address = {1: 4, 2: 1, 3: 1, 4: 2, 5: 2, 6: 3, 7: 3, 8: 4}
-        address_not_adjacent = {1: 1, 2: 4, 3: 2, 4: 1, 5: 3, 6: 2, 7: 4, 8: 3}
-        # Surrounding: difference between antennas only 2 or 6 
-        surrounding = {(1, 3): 1, (1, 7): 4, (2, 4): 1, (2, 8): 4,
-                       (3, 5): 2, (4, 6): 2, (5, 7): 3, (6, 8): 3}
-        
-        for mm in ehd.mice:
-            tt = self._ehd.gettimes(mm)
-            an = self._ehd.getantennas(mm)
-
-            for tstart, tend, anstart, anend in zip(tt[:-1], tt[1:], an[:-1], an[1:]):
-                # # Old code - until 14 May 2014
-                # if tend - tstart < self.shortest_session_threshold:
-                #     continue
-                # if anend in same_pipe[anstart]:
-                #     if (anend != anstart) or (tend - tstart < self.same_antenna_threshold):
-                #         continue
-                #         # Jesli odczyty sa w tej samej rurze, ale w wiekszym odstepie niz
-                #         # 2 sekundy, to raczej przyjmujemy ze sesja byla - poprawic.
-                # valid_solution = np.abs(anstart - anend) in [0, 1, 7]
-                # tempdata.append((address[anstart], mm, tstart, tend, tend-tstart,
-                #              valid_solution))
-
-                
-                # Workflow as agreed on 14 May 2014
-                if tend - tstart < self.shortest_session_threshold:
-                    continue
-                diff = np.abs(anstart - anend)
-                if diff == 0:
-                    tempdata.append((address[anstart], mm, tstart, tend, tend-tstart,
-                                 True))
-                elif diff in [1, 7]:
-                    if anend in same_pipe[anstart]:
-                        continue
-                    else:
-                        tempdata.append((address[anstart], mm, tstart, tend, tend-tstart,
-                                     True))
-                elif diff in [2, 6]:
-                    tempdata.append((surrounding[(min(anstart, anend), max(anstart, anend))], 
-                                mm, tstart, tend, tend-tstart,
-                                False))
-                elif diff in [3, 4, 5]:
-                    if anend in opposite_pipe[anstart]:
-                        continue
-                    else:
-                        tempdata.append((address_not_adjacent[anstart], 
-                                    mm, tstart, tend, tend-tstart,
-                                    False))
-                
-                            
-        tempdata.sort(key=lambda x: x[2])
-
-        self.data = {'Tag': [],
-             'Address': [],
-             'AbsStartTimecode': [],
-             'AbsEndTimecode': [],
-             'VisitDuration': [],
-             'ValidVisitSolution': [],}
-        self.data['Address'] = [x[0] for x in tempdata]
-        self.data['Tag'] = [x[1] for x in tempdata]
-        self.data['AbsStartTimecode'] = [x[2] for x in tempdata]
-        self.data['AbsEndTimecode'] = [x[3] for x in tempdata]
-        self.data['VisitDuration'] = [x[4] for x in tempdata]
-        self.data['ValidVisitSolution'] = [x[5] for x in tempdata]
-        mice = self._ehd.mice
-        self.mice = [mouse for mouse in mice if len(self.getstarttimes(mouse)) > 30]
+        self.threshold = kwargs.pop('shortest_session_threshold', 2.)
+        temp_data = self._calculate_states()
+        self.data = {}
+        self.data['Address'] = [x[0] for x in temp_data]
+        self.data['Tag'] = [x[1] for x in temp_data]
+        self.data['AbsStartTimecode'] = [x[2] for x in temp_data]
+        self.data['AbsEndTimecode'] = [x[3] for x in temp_data]
+        self.data['VisitDuration'] = [x[4] for x in temp_data]
+        self.data['ValidVisitSolution'] = [x[5] for x in temp_data]
+        self.mice = self._ehd.mice
         
     def unmask_data(self):
         """Remove the mask - future queries will not be clipped"""
@@ -434,16 +383,15 @@ class EcoHabSessions(IEcoHabSession):
         All future queries will be clipped to the visits starting between
         starttime and endtime."""
         try:
-            starttime = args[0]
-            endtime = args[1]
+            start = args[0]
+            end = args[1]
         except IndexError:   
-            starttime = min(self.getstarttimes(self._ehd.mice))
-            endtime = args[0]
-        self.mask = (starttime, endtime) 
-        arr = np.array(self.data['AbsStartTimecode'])
-        idcs = np.where((arr >= starttime) & (arr < endtime))[0]
+            start = min(self.getstarttimes(self._ehd.mice))
+            end = args[0]
+        self.mask = (start, end)
+        idcs = utils.get_idx_between(start, end, self.data['AbsStartTimecode'])
         if len(idcs) >= 2:
-            self._mask_slice = (idcs[0], idcs[-1] + 1)
+            self._mask_slice = (idcs[0], idcs[-1])
         elif len(idcs) == 1:
             self._mask_slice = (idcs[0], idcs[0] + 1)
         else:
