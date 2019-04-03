@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function,division
+from __future__ import print_function, division
 import EcoHab
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,15 +8,14 @@ import utility_functions as utils
 from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot
 from write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
 from numba import jit
+from ExperimentConfigFile import ExperimentConfigFile
 
-def intervals(data_mice, mouse, address):
-    return [[s, e] for a, s, e in data_mice[mouse] if a == address]
 
 def mouse_alone(data_mice, address):
     ints = {}
     empty = 0
     for mouse in data_mice.keys():
-        ints[mouse] = intervals(data_mice, mouse, address)
+        ints[mouse] = utils.intervals(data_mice[mouse], address)
         if not len(ints[mouse]):
             del ints[mouse]
     result = {}
@@ -79,8 +78,8 @@ def mouse_alone(data_mice, address):
 
 def mice_overlap(data_mice, m1, m2, address):
     """Return time overlap of mice m1 and m2 in cage <address>."""
-    ints1 = intervals(data_mice, m1, address)
-    ints2 = intervals(data_mice, m2, address)
+    ints1 = utils.intervals(data_mice[m1], address)
+    ints2 = utils.intervals(data_mice[m2], address)
     durs1 = [x[1] - x[0] for x in ints1]
     durs2 = [x[1] - x[0] for x in ints2]
     total = 0.
@@ -123,7 +122,7 @@ def total_time_results(mice_data, mice):
     result = np.zeros((4, len(mice)))
     for address in [1, 2, 3, 4]:
         for i,mouse in enumerate(mice):
-            ints = intervals(mice_data, mouse, address)
+            ints = utils.intervals(mice_data[mouse], address)
             result[address-1,i] = calculate_total_time(ints)
     return result
 
