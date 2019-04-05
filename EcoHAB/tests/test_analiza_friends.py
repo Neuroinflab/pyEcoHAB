@@ -4,12 +4,11 @@ import EcoHAB
 import unittest
 import numpy as np
 import analiza_friends as af
- 
 
 try:
-  basestring
+    basestring
 except NameError:
-  basestring = str
+    basestring = str
 
         
 if __name__ == '__main__':
