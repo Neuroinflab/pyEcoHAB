@@ -11,13 +11,12 @@ from numba import jit
 from ExperimentConfigFile import ExperimentConfigFile
 
 
+def prepare_mice_intervals(data_mice, address):
 def mouse_alone(data_mice, address):
     ints = {}
-    empty = 0
     for mouse in data_mice.keys():
-        ints[mouse] = utils.intervals(data_mice[mouse], address)
-        if not len(ints[mouse]):
-            del ints[mouse]
+        ints[mouse] = utils.get_intervals_2_lists(data_mice[mouse], address)
+    return ints
 
     result = {}
     for mouse in data_mice.keys():

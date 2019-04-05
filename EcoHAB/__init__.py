@@ -4,3 +4,4 @@ sample_data_path = os.path.join(ecohab_loc, '..', 'data')
 
 from .EcoHab import EcoHabData, EcoHabSessions
 from .utility_functions import *
+from .analiza_friends import *
