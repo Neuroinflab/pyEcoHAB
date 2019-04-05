@@ -359,7 +359,8 @@ def interval_overlap(int1, int2):
 def get_duration(starts, ends):
     return sum([abs(ends[i] - start) for i, start in enumerate(starts)])
 
-def intervals(data, address):
+
+def get_intervals(data, address):
     return [[s, e] for a, s, e in data if a == address]
 
 

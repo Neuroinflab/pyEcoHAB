@@ -591,10 +591,10 @@ class TestGetStatesForEhs(unittest.TestCase):
 class TestGetIntervals(unittest.TestCase):
 
     def test_empty(self):
-        self.assertEqual(uf.intervals([[1, 2, 3]], 4), [])
+        self.assertEqual(uf.get_intervals([[1, 2, 3]], 4), [])
 
     def test_not_empty(self):
-        self.assertEqual(uf.intervals([[1, 2, 3]], 1), [[2, 3]])
+        self.assertEqual(uf.get_intervals([[1, 2, 3]], 1), [[2, 3]])
 
     def test_longer(self):
         test_input = [
@@ -607,7 +607,8 @@ class TestGetIntervals(unittest.TestCase):
             [2, 3],
             [10, 12],
         ]
-        self.assertEqual(uf.intervals(test_input, 1), test_output)
+        self.assertEqual(uf.get_intervals(test_input, 1), test_output)
+
 
 
 class TestGetIndices(unittest.TestCase):
