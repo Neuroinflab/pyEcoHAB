@@ -629,5 +629,16 @@ class TestGetIndices(unittest.TestCase):
         out = uf.get_indices(4, 10, starts, ends)
         self.assertEqual(out, [0, 1, 2])
 
+class TestGetDurations(unittest.TestCase):
+    def test_1(self):
+        a = [1, 5, 8]
+        b = [2, 7, 10]
+        self.assertEqual(uf.get_duration(a, b), 5)
+
+    def test_1(self):
+        a = [1, 5, 8]
+        b = [2, 7, 10]
+        self.assertEqual(uf.get_duration(b, a), 5)
+
 if __name__ == '__main__':
     unittest.main()
