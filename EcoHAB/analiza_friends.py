@@ -18,6 +18,41 @@ def mouse_alone(data_mice, address):
         ints[mouse] = utils.get_intervals_2_lists(data_mice[mouse], address)
     return ints
 
+
+def check_interval(intervals_mouse1, intervals_mouse2, idx, new_idx):
+    original_s, original_e = intervals_mouse1[0][idx], intervals_mouse1[1][idx]
+    other_s, other_e = intervals_mouse2[0][new_idx], intervals_mouse2[1][new_idx]
+    if  other_s > original_e:
+        return False
+    if original_s >  other_s and original_e > other_e:
+        intervals_mouse1[0][idx] = other_e
+        intervals_mouse2[1][new_idx] = original_s
+        return False
+    if original_s < other_s and original_e < other_e:
+        intervals_mouse1[1][idx] = other_s
+        intervals_mouse2[0][new_idx] = original_e
+        return False
+    if original_s >= other_s and original_e <= other_e:
+        # delete mouse1 interval
+        intervals_mouse1[0].remove(original_s)
+        intervals_mouse1[1].remove(original_e)
+        #  split mouse2 interval into 2
+        intervals_mouse2[1][new_idx] = original_s
+        if original_e < other_e:
+            intervals_mouse2[0].insert(new_idx+1, original_e)
+            intervals_mouse2[1].insert(new_idx+1, other_e)
+        return True
+    #  remove from mouse2 intervals
+    print("D")
+    intervals_mouse2[0].remove(other_s)
+    intervals_mouse2[1].remove(other_e)
+    #  cut the original interval in half
+    intervals_mouse1[0][idx] = other_s
+    if other_e < original_e:
+        intervals_mouse1[0].insert(idx + 1, other_e)
+        intervals_mouse1[1].insert(idx + 1, original_e)
+    return False
+
     result = {}
     for mouse in data_mice.keys():
         result[mouse] = 0
