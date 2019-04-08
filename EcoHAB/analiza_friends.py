@@ -153,7 +153,8 @@ def mouse_alone_ehs(ehs, cf, main_directory, prefix):
     mice = ehs.mice
     output = np.zeros((4, len(mice), len(phases)+1))
     for phase, sec in enumerate(phases):
-        data = utils.prepare_data(ehs, mice, cf.gettime(sec))
+        times = cf.gettime(sec)
+        data = utils.prepare_data(ehs, mice, times)
         for i in range(1,5):
             alone = mouse_alone(data, i)
             for j, mouse in enumerate(mice):
