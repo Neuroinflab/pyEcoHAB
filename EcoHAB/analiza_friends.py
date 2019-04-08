@@ -113,8 +113,8 @@ def check_interval(intervals_mouse1, intervals_mouse2, idx, new_idx):
 
 def mice_overlap(data_mice, m1, m2, address):
     """Return time overlap of mice m1 and m2 in cage <address>."""
-    ints1 = utils.intervals(data_mice[m1], address)
-    ints2 = utils.intervals(data_mice[m2], address)
+    ints1 = utils.get_intervals(data_mice[m1], address)
+    ints2 = utils.get_intervals(data_mice[m2], address)
     durs1 = [x[1] - x[0] for x in ints1]
     durs2 = [x[1] - x[0] for x in ints2]
     total = 0.
@@ -142,7 +142,7 @@ def total_time_results(mice_data, mice):
     result = np.zeros((4, len(mice)))
     for address in [1, 2, 3, 4]:
         for i,mouse in enumerate(mice):
-            ints = utils.intervals(mice_data[mouse], address)
+            ints = utils.get_intervals(mice_data[mouse], address)
             result[address-1,i] = calculate_total_time(ints)
     return result
 
