@@ -46,7 +46,7 @@ def check_interval(intervals_mouse1, intervals_mouse2, idx, new_idx):
     intervals_mouse2[0].remove(other_s)
     intervals_mouse2[1].remove(other_e)
     #  cut the original interval in half
-    intervals_mouse1[0][idx] = other_s
+    intervals_mouse1[1][idx] = other_s
     if other_e < original_e:
         intervals_mouse1[0].insert(idx + 1, other_e)
         intervals_mouse1[1].insert(idx + 1, original_e)
