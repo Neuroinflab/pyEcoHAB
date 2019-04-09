@@ -51,12 +51,13 @@ datasets = [
     "EcoHAB_data_November/BTBR_LONG_KSENIA_12-22.02.19/",
     "EcoHAB_data_November/Samce C57 sham 3 rep 22.02-04.03/",
     "EcoHAB_data_November/Samce C57 sham EH dominacja 05-08.03.2019/",
-    "EcoHAB_data_November/kraków dominacja 08.03-12.03.2019/"
+    "EcoHAB_data_November/kraków dominacja 08.03-12.03.2019/",
     "EcoHAB_data_November/Asia Krzemien wt 15-19.03.19/",
     "EcoHAB_data_November/Asia Krzemień ko 19-23.03.19/",
     "EcoHAB_data_November/Turkusowe rep3 12-15.03/",
     "EcoHAB_data_November/FMR1 KO Old  long  23.01-03.02.19/",
     "EcoHAB_data_November/Fmr1 KO young long 20.11-01.12.18/",
+    "EcoHAB_data_November/Turkusowe 26.03.-04.04.19 długi z bodźcem/",
 ]
 
 remove_tags = {
