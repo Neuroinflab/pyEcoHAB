@@ -148,10 +148,10 @@ class TestCheckInterval(unittest.TestCase):
         self.assertEqual(im1, [[14], [20]])
 
     def test_address_mouse1_mouse2_im2(self):
-        im1 = self.out1['mouse1'][:]
-        im2 = self.out1['mouse2'][:]
+        im2 = self.out1['mouse1'][:]
+        im1 = self.out1['mouse2'][:]
         out = af.check_interval(im1, im2, 0, 0)
-        self.assertEqual(im2, [[0, 13], [2, 18]])
+        self.assertEqual(im1, [[0, 13], [2, 18]])
 
     def test_address_mouse3_mouse2_remove_False(self):
         im1 = self.out1['mouse3'][:]
@@ -166,10 +166,10 @@ class TestCheckInterval(unittest.TestCase):
         self.assertEqual(im1, [[3, 14], [3.1, 20]])
 
     def test_address_mouse3_mouse2_im2(self):
-        im1 = self.out1['mouse3'][:]
-        im2 = self.out1['mouse2'][:]
+        im2 = self.out1['mouse3'][:]
+        im1 = self.out1['mouse2'][:]
         out = af.check_interval(im1, im2, 0, 0)
-        self.assertEqual(im2, [[0, 13], [2, 18]])
+        self.assertEqual(im1, [[0, 13], [2, 18]])
 
     def test_address_mouse4_mouse2_remove_False(self):
         im1 = self.out1['mouse4'][:]
@@ -184,10 +184,10 @@ class TestCheckInterval(unittest.TestCase):
         self.assertEqual(im1, [[14], [20]])
 
     def test_address_mouse4_mouse2_im2(self):
-        im1 = self.out1['mouse4'][:]
-        im2 = self.out1['mouse2'][:]
+        im2 = self.out1['mouse4'][:]
+        im1 = self.out1['mouse2'][:]
         out = af.check_interval(im1, im2, 0, 0)
-        self.assertEqual(im2, [[0, 2.5, 13], [2, 3, 18]])
+        self.assertEqual(im1, [[0, 2.5, 13], [2, 3, 18]])
 
 class TestRemoveOverlappingIntervals(unittest.TestCase):
     def setUp(self):
@@ -244,10 +244,22 @@ class TestRemoveOverlappingIntervals(unittest.TestCase):
         self.assertEqual(im1, [[18], [20]])
 
     def test_mouse1_mouse2_im2(self):
-        im1 = self.out1["mouse1"][:]
-        im2 = self.out1["mouse2"][:]
+        im2 = self.out1["mouse1"][:]
+        im1 = self.out1["mouse2"][:]
         af.remove_overlapping_intervals(im1, im2)
-        self.assertEqual(im2, [[0, 13], [2, 14]])
+        self.assertEqual(im1, [[0, 13], [2, 14]])
+
+    def test_mouse3_mouse1_im1(self):
+        im1 = self.out1["mouse3"][:]
+        im2 = self.out1["mouse1"][:]
+        af.remove_overlapping_intervals(im1, im2)
+        self.assertEqual(im1, [[3], [3.1]])
+
+    def test_mouse3_mouse1_im2(self):
+        im2 = self.out1["mouse3"][:]
+        im1 = self.out1["mouse1"][:]
+        af.remove_overlapping_intervals(im1, im2)
+        self.assertEqual(im1, [[], []])
 
     def test_mouse2_mouse3_im1(self):
         im1 = self.out1["mouse2"][:]
@@ -256,10 +268,10 @@ class TestRemoveOverlappingIntervals(unittest.TestCase):
         self.assertEqual(im1, [[0, 13], [2, 14]])
 
     def test_mouse2_mouse3_im2(self):
-        im1 = self.out1["mouse2"][:]
-        im2 = self.out1["mouse3"][:]
+        im2 = self.out1["mouse2"][:]
+        im1 = self.out1["mouse3"][:]
         af.remove_overlapping_intervals(im1, im2)
-        self.assertEqual(im2, [[3, 18], [3.1, 20]])
+        self.assertEqual(im1, [[3, 18], [3.1, 20]])
 
     def test_mouse2_mouse4_im1(self):
         im1 = self.out1["mouse2"][:]
@@ -268,10 +280,10 @@ class TestRemoveOverlappingIntervals(unittest.TestCase):
         self.assertEqual(im1, [[0, 2.5, 13], [2, 3, 14]])
 
     def test_mouse2_mouse4_im2(self):
-        im1 = self.out1["mouse2"][:]
-        im2 = self.out1["mouse4"][:]
+        im2 = self.out1["mouse2"][:]
+        im1 = self.out1["mouse4"][:]
         af.remove_overlapping_intervals(im1, im2)
-        self.assertEqual(im2, [[18], [20]])
+        self.assertEqual(im1, [[18], [20]])
 
     def test_mouse1_mouse2_im1_cage_4(self):
         im1 = self.out4["mouse1"][:]
@@ -280,10 +292,10 @@ class TestRemoveOverlappingIntervals(unittest.TestCase):
         self.assertEqual(im1, [[5], [6]])
 
     def test_mouse1_mouse2_im2_cage_4(self):
-        im1 = self.out4["mouse1"][:]
-        im2 = self.out4["mouse2"][:]
+        im2 = self.out4["mouse1"][:]
+        im1 = self.out4["mouse2"][:]
         af.remove_overlapping_intervals(im1, im2)
-        self.assertEqual(im2, [[10, 22, 45], [12, 40, 50]])
+        self.assertEqual(im1, [[10, 22, 45], [12, 40, 50]])
 
 if __name__ == '__main__':
     unittest.main()
