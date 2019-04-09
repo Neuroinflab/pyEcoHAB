@@ -12,7 +12,6 @@ from ExperimentConfigFile import ExperimentConfigFile
 
 
 def prepare_mice_intervals(data_mice, address):
-def mouse_alone(data_mice, address):
     ints = {}
     for mouse in data_mice.keys():
         ints[mouse] = utils.get_intervals_2_lists(data_mice[mouse], address)
@@ -71,61 +70,20 @@ def remove_overlapping_intervals(intervals_mouse1, intervals_mouse2):
             i = i + 1
 
 
+def mouse_alone(data_mice, address):
+    ints = prepare_mice_intervals(data_mice, address)
+    new_intervals = {}
     result = {}
-    for mouse in data_mice.keys():
-        result[mouse] = 0
-    if ints == {}:
-        return result
     for mouse in ints.keys():
-        other_mice = ints.keys()
-        other_mice.remove(mouse)
-        i = 0
-
-        while True:
-            for other_mouse in other_mice:
-                j = 0
-                remove = False
-                if not len(ints[other_mouse]):
-                    continue
-                while True:
-                    original_s, original_e = ints[mouse][i]
-                    other_s, other_e = ints[other_mouse][j]
-                    if other_e <= original_s:
-                        j = j+1
-                    elif other_s >= original_e:
-                        break
-                    elif original_s <= other_s:
-                        ints[mouse][i][1] = other_s
-                        if original_e >= other_e:
-                            ints[other_mouse].remove([other_s, other_e])
-                            ints[mouse].insert(i+1,[other_e, original_e])
-                            break
-                        else:
-                            ints[other_mouse][j][0] = original_e
-                            j = j+1
-                    else:
-                        ints[other_mouse][j][1] = original_s
-                        if original_e <= other_e:
-                            ints[mouse].remove([original_s, original_e])
-                            remove = True
-                            ints[other_mouse].insert(j+1, [original_e, other_e])
-                            break
-                        else:
-                            ints[mouse][i][0] = other_e
-                            j = j+1
-                    if j >= len(ints[other_mouse]):
-                        break
-                if remove:
-                    break
-            if not remove:
-                i = i+1
-            if i >= len(ints[mouse]):
-                break
-        
-   
-    for mouse in ints.keys():
-        result[mouse] = sum([e-s for s,e in ints[mouse]])
-        
+        mouse_ints = []
+        mouse_ints.append(ints[mouse][0][:])
+        mouse_ints.append(ints[mouse][1][:])
+        for other_mouse in ints.keys():
+            if mouse != other_mouse:
+                remove_overlapping_intervals(mouse_ints, ints[other_mouse])
+        new_intervals[mouse] = mouse_ints
+    for mouse in new_intervals:
+        result[mouse] = utils.get_duration(new_intervals[mouse][0], new_intervals[mouse][1])
     return result
 
 

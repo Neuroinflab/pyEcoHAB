@@ -297,5 +297,83 @@ class TestRemoveOverlappingIntervals(unittest.TestCase):
         af.remove_overlapping_intervals(im1, im2)
         self.assertEqual(im1, [[10, 22, 45], [12, 40, 50]])
 
+
+class TestMouseAlone(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        mouse1 = [[1, 2, 3],
+                  [4, 5, 6],
+                  [3, 8, 9],
+                  [2, 10, 12],
+                  [1, 14, 20],
+                  [2, 21, 28],
+                  [3, 31, 35],
+                  [4, 40, 45],
+                  ]
+        mouse2 = [[1, 0, 3],
+                  [2, 5, 6],
+                  [3, 8, 9],
+                  [4, 10, 12],
+                  [1, 13, 18],
+                  [4, 22, 50],
+                  ]
+        mouse3 = [[1, 2, 3.1],
+                  [4, 5, 6],
+                  [3, 7, 10],
+                  [2, 11, 15],
+                  [1, 16, 25],
+                  [2, 27, 35],
+                  [3, 38, 45],
+                  [4, 50, 52],
+                  ]
+
+
+        data = {
+            'mouse1': mouse1,
+            'mouse2': mouse2,
+            'mouse3': mouse3,
+            }
+        cls.out1 = af.mouse_alone(data, 1)
+        cls.out2 = af.mouse_alone(data, 2)
+        cls.out3 = af.mouse_alone(data, 3)
+        cls.out4 = af.mouse_alone(data, 4)
+
+    def test_address_1_mouse1(self):
+        self.assertEqual(self.out1["mouse1"], 0)
+
+    def test_address_1_mouse2(self):
+        self.assertEqual(self.out1["mouse2"], 3)
+
+    def test_address_1_mouse3(self):
+        self.assertEqual(self.out1["mouse3"], 5.1)
+
+    def test_address_2_mouse1(self):
+        self.assertEqual(self.out2["mouse1"], 7)
+
+    def test_address_2_mouse2(self):
+        self.assertEqual(self.out2["mouse2"], 1)
+
+    def test_address_2_mouse3(self):
+        self.assertEqual(self.out2["mouse3"], 10)
+
+    def test_address_3_mouse1(self):
+        self.assertEqual(self.out3["mouse1"], 4)
+
+    def test_address_3_mouse2(self):
+        self.assertEqual(self.out3["mouse2"], 0)
+
+    def test_address_3_mouse3(self):
+        self.assertEqual(self.out3["mouse3"], 9)
+
+    def test_address_4_mouse1(self):
+        self.assertEqual(self.out4["mouse1"], 0)
+
+    def test_address_4_mouse2(self):
+        self.assertEqual(self.out4["mouse2"], 25)
+
+    def test_address_4_mouse3(self):
+        self.assertEqual(self.out4["mouse3"], 2)
+
+
 if __name__ == '__main__':
     unittest.main()
