@@ -52,6 +52,31 @@ def check_interval(intervals_mouse1, intervals_mouse2, idx, new_idx):
         intervals_mouse1[1].insert(idx + 1, original_e)
     return False
 
+def remove_overlapping_intervals(intervals_mouse1, intervals_mouse2):
+    """"
+    Eliminate all the intervals, when mouse 1 is with mouse 2
+    """
+    if len(intervals_mouse1[0]) == 0:
+        return
+    if len(intervals_mouse2[0]) == 0:
+        return
+    i = 0
+    while i < len(intervals_mouse1[0]):
+        new_idx = utils.get_idx_pre(intervals_mouse1[0][i], intervals_mouse2[0])
+        if new_idx is None:
+            new_idx = utils.get_idx_pre(intervals_mouse1[1][i], intervals_mouse2[0])
+            if new_idx is None:
+                i = i + 1
+                continue
+        if intervals_mouse2[1][new_idx] < intervals_mouse1[0][i]:
+            new_idx += 1
+        if new_idx  >= len(intervals_mouse2[0]):
+            break
+        removed = check_interval(intervals_mouse1, intervals_mouse2, i, new_idx)
+        if not removed:
+            i = i + 1
+
+
     result = {}
     for mouse in data_mice.keys():
         result[mouse] = 0
