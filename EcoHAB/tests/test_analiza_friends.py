@@ -1,6 +1,7 @@
 from __future__ import print_function, division, absolute_import
 import os
 from EcoHAB import analiza_friends as af
+from EcoHAB import utility_functions as utils
 import unittest
 import numpy as np
 
@@ -375,5 +376,81 @@ class TestMouseAlone(unittest.TestCase):
         self.assertEqual(self.out4["mouse3"], 2)
 
 
+
+class TestMiceOverlap(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        mouse1 = [[1, 2, 3],
+                  [4, 5, 6],
+                  [3, 8, 9],
+                  [2, 10, 12],
+                  [1, 14, 20],
+                  [2, 21, 28],
+                  [3, 31, 35],
+                  [4, 40, 45],
+                  ]
+        mouse2 = [[1, 0, 3],
+                  [2, 5, 6],
+                  [3, 8, 9],
+                  [4, 10, 12],
+                  [1, 13, 18],
+                  [4, 22, 50],
+                  ]
+        cls.data = {
+            'mouse1': mouse1,
+            'mouse2': mouse2,
+            }
+
+    def test_mouse1_mouse2_address_1_symmetry(self):
+        ints1 = utils.get_intervals(self.data["mouse1"], 1)
+        ints2 = utils.get_intervals(self.data["mouse2"], 1)
+        out1 = af.mice_overlap(ints1, ints2)
+        out2 = af.mice_overlap(ints2, ints1)
+        self.assertEqual(out1, out2)
+
+    def test_mouse1_mouse2_address_1(self):
+        ints1 = utils.get_intervals(self.data["mouse1"], 1)
+        ints2 = utils.get_intervals(self.data["mouse2"], 1)
+        out1 = af.mice_overlap(ints1, ints2)
+        self.assertEqual(out1, 1 + 18 - 14)
+
+    def test_mouse1_mouse2_address_2_symmetry(self):
+        ints1 = utils.get_intervals(self.data["mouse1"], 2)
+        ints2 = utils.get_intervals(self.data["mouse2"], 2)
+        out1 = af.mice_overlap(ints1, ints2)
+        out2 = af.mice_overlap(ints2, ints1)
+        self.assertEqual(out1, out2)
+
+    def test_mouse1_mouse2_address_2(self):
+        ints1 = utils.get_intervals(self.data["mouse1"], 2)
+        ints2 = utils.get_intervals(self.data["mouse2"], 2)
+        out1 = af.mice_overlap(ints1, ints2)
+        self.assertEqual(out1, 0)
+
+    def test_mouse1_mouse2_address_3_symmetry(self):
+        ints1 = utils.get_intervals(self.data["mouse1"], 3)
+        ints2 = utils.get_intervals(self.data["mouse2"], 3)
+        out1 = af.mice_overlap(ints1, ints2)
+        out2 = af.mice_overlap(ints2, ints1)
+        self.assertEqual(out1, out2)
+
+    def test_mouse1_mouse2_address_3(self):
+        ints1 = utils.get_intervals(self.data["mouse1"], 3)
+        ints2 = utils.get_intervals(self.data["mouse2"], 3)
+        out1 = af.mice_overlap(ints1, ints2)
+        self.assertEqual(out1, 1)
+
+    def test_mouse1_mouse2_address_4_symmetry(self):
+        ints1 = utils.get_intervals(self.data["mouse1"], 4)
+        ints2 = utils.get_intervals(self.data["mouse2"], 4)
+        out1 = af.mice_overlap(ints1, ints2)
+        out2 = af.mice_overlap(ints2, ints1)
+        self.assertEqual(out1, out2)
+
+    def test_mouse1_mouse2_address_4(self):
+        ints1 = utils.get_intervals(self.data["mouse1"], 4)
+        ints2 = utils.get_intervals(self.data["mouse2"], 4)
+        out1 = af.mice_overlap(ints1, ints2)
+        self.assertEqual(out1, 5)
 if __name__ == '__main__':
     unittest.main()

@@ -86,29 +86,14 @@ def mouse_alone(data_mice, address):
         result[mouse] = utils.get_duration(new_intervals[mouse][0], new_intervals[mouse][1])
     return result
 
-
-def mice_overlap(data_mice, m1, m2, address):
+@jit
+def mice_overlap(ints1, ints2):
     """Return time overlap of mice m1 and m2 in cage <address>."""
-    ints1 = utils.get_intervals(data_mice[m1], address)
-    ints2 = utils.get_intervals(data_mice[m2], address)
-    durs1 = [x[1] - x[0] for x in ints1]
-    durs2 = [x[1] - x[0] for x in ints2]
-    total = 0.
+    total_overlap = 0
     for int1 in ints1:
         for int2 in ints2:
-            total += utils.interval_overlap(int1, int2)
-    return total, sum(durs1), sum(durs2)
-@jit    
-def mice_together(data_mice, m1, m2, total_time):
-    """Return the time spent together by two mice and expected time 
-    assuming independence."""
-    result = np.zeros((4, 3))
-    for address in [1, 2, 3, 4]:
-        result[address-1] = mice_overlap(data_mice, m1, m2, address)
-    fracs = result[:, 1:] / total_time
-    time_together = result[:, 0].sum()
-    exp_time_together = (fracs[:, 0] * fracs[:, 1]).sum()
-    return time_together/total_time, exp_time_together
+            total_overlap += utils.interval_overlap(int1, int2)
+    return total_overlap
 
 
 def calculate_total_time(intervals):
