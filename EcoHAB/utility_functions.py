@@ -361,6 +361,14 @@ def get_duration(starts, ends):
     return sum([abs(ends[i] - start) for i, start in enumerate(starts)])
 
 
+def get_interval_durations(ints):
+    return [x[1] - x[0] for x in ints]
+
+
+def calculate_total_duration(intervals):
+    return sum(get_interval_durations(intervals))
+
+
 def get_intervals(data, address):
     return [[s, e] for a, s, e in data if a == address]
 

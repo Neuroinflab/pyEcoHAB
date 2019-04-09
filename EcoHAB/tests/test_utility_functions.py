@@ -661,5 +661,16 @@ class TestGetDurations(unittest.TestCase):
         b = [2, 7, 10]
         self.assertEqual(uf.get_duration(b, a), 5)
 
+
+class TestIntervalGetDurations(unittest.TestCase):
+    def test_1(self):
+        a = [[1, 2],  [5, 7], [8, 10]]
+        self.assertEqual(uf.get_interval_durations(a), [1, 2, 2])
+
+class TestCalculateTotalDuration(unittest.TestCase):
+    def test_1(self):
+        a = [[1, 2],  [5, 7], [8, 10]]
+        self.assertEqual(uf.calculate_total_duration(a), 5)
+
 if __name__ == '__main__':
     unittest.main()
