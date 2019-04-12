@@ -370,7 +370,8 @@ class EcoHabSessions(IEcoHabSession):
         self.data['Tag'] = [x[1] for x in temp_data]
         self.data['AbsStartTimecode'] = [x[2] for x in temp_data]
         self.data['AbsEndTimecode'] = [x[3] for x in temp_data]
-        self.data['ValidVisitSolution'] = [x[4] for x in temp_data]
+        self.data['VisitDuration'] = [x[4] for x in temp_data]
+        self.data['ValidVisitSolution'] = [x[5] for x in temp_data]
         self.mice = self._ehd.mice
         
     def unmask_data(self):
@@ -430,7 +431,10 @@ class EcoHabSessions(IEcoHabSession):
     def getendtimes(self, mice):
         return self.getproperty(mice, 'AbsEndTimecode', 'float')
                     
-    def getdurations(self, mice): 
+    def getdurations(self, mice):
+        # starts = self.getproperty(mice, 'AbsStartTimecode', 'float')
+        # ends = self.getproperty(mice, 'AbsEndTimecode', 'float')
+        # return [abs(x[1] - x[0]) for x in zip(starts, ends)]
         return self.getproperty(mice, 'VisitDuration', 'float')
     
     def getaddresses(self, mice): 
