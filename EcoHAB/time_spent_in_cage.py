@@ -5,6 +5,9 @@ import numpy as np
 import os
 import utility_functions as utils
 from write_to_file import save_data_cvs
+from data_info import *
+from ExperimentConfigFile import ExperimentConfigFile
+
 ### How much time mice spend in the 'social' compartment
     
 def get_visits(mouse_address,mouse_durations,stim_address):
@@ -218,5 +221,49 @@ def approach_to_social(data,fname=None,path=None):
         np.savetxt(fname, np.array((time,ats,d_ats)).T,header='time; AtS; dAtS',delimiter=';',comments="")
         
     return time, ats, d_ats
+homepath = os.path.expanduser("~/")
+threshold = 3
 
+if __name__ == '__main__':
+    datapaths = ['EcoHAB_data_November/FxKO_Bodziec_1st_hour',
+                'EcoHAB_data_November/FxWT_bodziec_1st_hour_13.07.18',
+    ]
+    for new_path in datapaths:
+        path = os.path.join(homepath, new_path)
+        prefix = utils.make_prefix(path)
+        print(prefix)
+        if new_path in remove_tags:
+            remove_mouse = remove_tags[new_path]
+        else:
+            remove_mouse = None
+        if new_path not in antenna_positions:
+            antenna_positions[new_path] = None
+        if new_path not in how_many_appearances:
+            how_many_appearances[new_path] = 10
+        if remove_mouse:
+            ehd = EcoHab.EcoHabData(path=path,
+                                    _ant_pos=antenna_positions[new_path],
+                                    remove_mice=remove_mouse,
+                                    how_many_appearances=how_many_appearances[new_path])
+        else:
+            ehd = EcoHab.EcoHabData(path=path,
+                                    _ant_pos=antenna_positions[new_path],
+                                    how_many_appearances=how_many_appearances[new_path])
 
+        ehs = EcoHab.EcoHabSessions(ehd)
+        cf = ExperimentConfigFile(path)
+        for binsize in [3600]:
+            print('Binsize ',binsize/3600)
+            results_path = utils.results_path(path)
+            fname_all_chambers = '%scollective_results_all_chambers_binsize_%f_h.csv'%(prefix, binsize//3600)
+            try:
+                cages = non_standard_cages[path]
+            except KeyError:
+                cages = standard_cages
+            try:
+                headers = non_standard_headers[path]
+            except KeyError:
+                headers = standard_headers
+            data = get_time_spent_in_each_chamber(ehs, cf, cages, binsize=binsize)
+            data = sum_data(data)
+            save_data_cvs(data, fname_all_chambers, results_path, cages, headers)
