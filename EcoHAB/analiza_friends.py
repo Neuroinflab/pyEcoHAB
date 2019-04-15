@@ -96,8 +96,9 @@ def mice_overlap(ints1, ints2):
     return total_overlap
 
 
-def calculate_total_time(intervals):
-    return sum([e-s for s, e in intervals])
+def time_together_one_cage(ints1, ints2, total_time):
+    assert total_time > 0
+    return mice_overlap(ints1, ints2)/total_time
 
 def total_time_results(mice_data, mice):
     result = np.zeros((4, len(mice)))
