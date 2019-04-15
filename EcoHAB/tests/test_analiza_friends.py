@@ -452,7 +452,7 @@ class TestMiceOverlap(unittest.TestCase):
         self.assertEqual(out1, 5)
 
 
-class TestMiceOverlap(unittest.TestCase):
+class TestTimeTogether(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         mouse1 = [[1, 2, 3],
