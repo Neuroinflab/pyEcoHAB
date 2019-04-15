@@ -14,9 +14,8 @@ def write_single_chamber(f, header, heads, address, mice, phases, time, data_sti
             for phase in phases:
                 if len(data_stim[j][phase][mouse])> longest:
                     longest = len(data_stim[j][phase][mouse])
-            print(longest)
             lines = [mouse for i in range(longest)]
-            
+
             for phase in phases:
                 for k,t in enumerate(time[phase]):
                     if phase == phases[0]:
