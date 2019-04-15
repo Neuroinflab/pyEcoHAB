@@ -105,13 +105,23 @@ def expected_time_fraction_together_one_cage(ints1, ints2, total_time):
     durations_m1 = utils.calculate_total_duration(ints1)
     durations_m2 = utils.calculate_total_duration(ints2)
     return durations_m1/total_time*durations_m2/total_time
-def total_time_results(mice_data, mice):
-    result = np.zeros((4, len(mice)))
+
+
+def mice_together(data_mice, m1, m2, total_time):
+    """Return the time spent together by two mice and expected time 
+    assuming independence."""
+    time_together = 0
+    exp_time_together = 0
     for address in [1, 2, 3, 4]:
-        for i,mouse in enumerate(mice):
-            ints = utils.get_intervals(mice_data[mouse], address)
-            result[address-1,i] = calculate_total_time(ints)
-    return result
+        ints1 = utils.get_intervals(data_mice[m1], address)
+        ints2 = utils.get_intervals(data_mice[m2], address)
+        time_together += time_fraction_together_one_cage(ints1,
+                                                         ints2,
+                                                         total_time)
+        exp_time_together += expected_time_fraction_together_one_cage(ints1,
+                                                                      ints2,
+                                                                      total_time)
+    return time_together, exp_time_together
 
 
 @jit
@@ -136,7 +146,6 @@ def get_dark_light_data(phase, cf, ehs):
         phases = utils.filter_dark(cf.sections())
     elif phase == "light" or phase == "LIGHT":
         phases = utils.filter_light(cf.sections())
-    
     
     mice = ehs.mice
     datas = []
