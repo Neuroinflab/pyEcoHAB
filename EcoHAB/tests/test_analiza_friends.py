@@ -327,8 +327,6 @@ class TestMouseAlone(unittest.TestCase):
                   [3, 38, 45],
                   [4, 50, 52],
                   ]
-
-
         data = {
             'mouse1': mouse1,
             'mouse2': mouse2,
@@ -452,5 +450,6 @@ class TestMiceOverlap(unittest.TestCase):
         ints2 = utils.get_intervals(self.data["mouse2"], 4)
         out1 = af.mice_overlap(ints1, ints2)
         self.assertEqual(out1, 5)
+
 if __name__ == '__main__':
     unittest.main()
