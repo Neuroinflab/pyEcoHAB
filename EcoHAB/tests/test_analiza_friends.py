@@ -503,5 +503,60 @@ class TestMiceOverlap(unittest.TestCase):
 
 
 
+class TestExpectedTimeTogether(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        mouse1 = [[1, 2, 3],
+                  [4, 5, 6],
+                  [3, 8, 9],
+                  [2, 10, 12],
+                  [1, 14, 20],
+                  [2, 21, 28],
+                  [3, 31, 35],
+                  [4, 40, 45],
+                  ]
+        mouse2 = [[1, 0, 3],
+                  [2, 5, 6],
+                  [3, 8, 9],
+                  [4, 10, 12],
+                  [1, 13, 18],
+                  [4, 22, 50],
+                  ]
+        cls.data = {
+            'mouse1': mouse1,
+            'mouse2': mouse2,
+            }
+        cls.duration = 100
+
+    def test_mouse1_mouse2_address_1(self):
+        ints1 = utils.get_intervals(self.data["mouse1"], 1)
+        ints2 = utils.get_intervals(self.data["mouse2"], 1)
+        out1 = af.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
+        res = np.isclose(out1, 56/10000)
+        self.assertTrue(res)
+
+    def test_mouse1_mouse2_address_2(self):
+        ints1 = utils.get_intervals(self.data["mouse1"], 2)
+        ints2 = utils.get_intervals(self.data["mouse2"], 2)
+        out1 = af.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
+        res = np.isclose(out1, 9/10000)
+        self.assertTrue(res)
+
+    def test_mouse1_mouse2_address_3(self):
+        ints1 = utils.get_intervals(self.data["mouse1"], 3)
+        ints2 = utils.get_intervals(self.data["mouse2"], 3)
+        out1 = af.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
+        res = np.isclose(out1, 5/10000)
+        self.assertTrue(res)
+
+    def test_mouse1_mouse2_address_4(self):
+        ints1 = utils.get_intervals(self.data["mouse1"], 4)
+        ints2 = utils.get_intervals(self.data["mouse2"], 4)
+        out1 = af.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
+        res = np.isclose(out1, 6*30/10000)
+        self.assertTrue(res)
+
+
+
 if __name__ == '__main__':
     unittest.main()
