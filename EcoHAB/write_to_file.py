@@ -4,13 +4,18 @@ import utility_functions as utils
 import numpy as np
 
 def write_single_chamber(f, header, heads, address, mice, phases, time, data_stim ):
+    longest = 0
     
     for j, h in enumerate(heads):
         f.write(h%address)
         f.write(header+'\n')
         for i, mouse in enumerate(mice):
+            longest = 0
+            for phase in phases:
+                if len(data_stim[j][phase][mouse])> longest:
+                    longest = len(data_stim[j][phase][mouse])> longest
             
-            lines = [mouse for i in data_stim[j][phases[1]][mouse]]
+            lines = [mouse for i in range(longest)]
             
             for phase in phases:
                 for k,t in enumerate(time[phase]):
