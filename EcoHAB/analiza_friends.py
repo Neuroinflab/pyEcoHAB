@@ -96,7 +96,7 @@ def mice_overlap(ints1, ints2):
     return total_overlap
 
 
-def time_together_one_cage(ints1, ints2, total_time):
+def time_fraction_together_one_cage(ints1, ints2, total_time):
     assert total_time > 0
     return mice_overlap(ints1, ints2)/total_time
 

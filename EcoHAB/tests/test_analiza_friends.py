@@ -480,25 +480,25 @@ class TestMiceOverlap(unittest.TestCase):
     def test_mouse1_mouse2_address_1(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 1)
         ints2 = utils.get_intervals(self.data["mouse2"], 1)
-        out1 = af.time_together_one_cage(ints1, ints2, self. duration)
+        out1 = af.time_fraction_together_one_cage(ints1, ints2, self. duration)
         self.assertEqual(out1, 0.25)
 
     def test_mouse1_mouse2_address_2(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 2)
         ints2 = utils.get_intervals(self.data["mouse2"], 2)
-        out1 = af.time_together_one_cage(ints1, ints2, self. duration)
+        out1 = af.time_fraction_together_one_cage(ints1, ints2, self. duration)
         self.assertEqual(out1, 0)
 
     def test_mouse1_mouse2_address_3(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 3)
         ints2 = utils.get_intervals(self.data["mouse2"], 3)
-        out1 = af.time_together_one_cage(ints1, ints2, self. duration)
+        out1 = af.time_fraction_together_one_cage(ints1, ints2, self. duration)
         self.assertEqual(out1, 1/20)
 
     def test_mouse1_mouse2_address_4(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 4)
         ints2 = utils.get_intervals(self.data["mouse2"], 4)
-        out1 = af.time_together_one_cage(ints1, ints2, self. duration)
+        out1 = af.time_fraction_together_one_cage(ints1, ints2, self. duration)
         self.assertEqual(out1, 5/20)
 
 
