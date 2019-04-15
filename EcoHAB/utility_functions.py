@@ -74,15 +74,19 @@ def make_prefix(path):
     """
     key_list = [
         'genotype',
+        "Strain",
         'sex',
+        'gender', 
+        'Experimentator',
         'type of experiment',
+        "Type of Experiment",
         'date of experiment',
+        "Start date and hour",
         'social odor',
         'no social odor',
     ]
 
     fname = os.path.join(path, 'info.txt')
-
     try:
         f = open(fname)
     except IOError:
