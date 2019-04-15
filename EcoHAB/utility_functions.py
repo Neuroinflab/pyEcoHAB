@@ -430,21 +430,21 @@ def get_states_for_ehs(times, antennas, mouse, threshold):
         delta_an = np.abs(an_end - an_start)
         if delta_an == 0:
             out.append((address[an_start], mouse,
-                        t_start, t_end, True))
+                        t_start, t_end, t_end-t_start, True))
         elif delta_an in [1, 7]:
             if an_end in same_pipe[an_start]:
                 continue
             else:
                 out.append((address[an_start], mouse,
-                            t_start, t_end, True))
+                            t_start, t_end, t_end-t_start, True))
         elif delta_an in [2, 6]:
             out.append((surrounding[(min(an_start, an_end),
                                      max(an_start, an_end))],
-                        mouse, t_start, t_end, False))
+                        mouse, t_start, t_end, t_end-t_start, False))
         elif delta_an in [3, 4, 5]:
             if an_end in opposite_pipe[an_start]:
                 continue
             else:
                 out.append((address_not_adjacent[an_start],
-                            mouse, t_start, t_end, False))
+                            mouse, t_start, t_end, t_end-t_start, False))
     return out

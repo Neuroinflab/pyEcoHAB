@@ -537,12 +537,12 @@ class TestIntervalOverlap(unittest.TestCase):
 class TestGetStatesForEhs(unittest.TestCase):
     def test_chambers(self):
         out = uf.get_states_for_ehs([1, 5], [2, 3], "mouse 1", 2)
-        res = [(1, "mouse 1", 1, 5, True)]
+        res = [(1, "mouse 1", 1, 5, 4, True)]
         self.assertEqual(out, res)
 
     def test_chambers_8(self):
         out = uf.get_states_for_ehs([1, 5], [1, 8], "mouse 1", 2)
-        res = [(4, "mouse 1", 1, 5, True)]
+        res = [(4, "mouse 1", 1, 5, 4, True)]
         self.assertEqual(out, res)
 
     def test_too_fast(self):
@@ -555,17 +555,17 @@ class TestGetStatesForEhs(unittest.TestCase):
 
     def test_same_chamber(self):
         out = uf.get_states_for_ehs([1, 5], [1, 1], "mouse 1", 2)
-        res = [(4, "mouse 1", 1, 5, True)]
+        res = [(4, "mouse 1", 1, 5, 4, True)]
         self.assertEqual(out, res)
 
     def test_skipped_antenna(self):
         out = uf.get_states_for_ehs([1, 5], [1, 3], "mouse 1", 2)
-        res = [(1, "mouse 1", 1, 5, False)]
+        res = [(1, "mouse 1", 1, 5, 4, False)]
         self.assertEqual(out, res)
 
     def test_skipped_antenna_2(self):
         out = uf.get_states_for_ehs([1, 5], [7, 1], "mouse 1", 2)
-        res = [(4, "mouse 1", 1, 5, False)]
+        res = [(4, "mouse 1", 1, 5, 4, False)]
         self.assertEqual(out, res)
 
     def test_opposite_pipe_1(self):
@@ -577,14 +577,14 @@ class TestGetStatesForEhs(unittest.TestCase):
     def test_not_opposite_pipe_1(self):
         out = uf.get_states_for_ehs([1, 5], [2, 7],
                                     "mouse 1", 2)
-        self.assertEqual(out, [(4, "mouse 1", 1, 5, False)])
+        self.assertEqual(out, [(4, "mouse 1", 1, 5, 4, False)])
 
     def test_longer(self):
         out = uf.get_states_for_ehs([2, 7, 23, 45, 55, 61],
                                     [1, 2, 3, 4, 5, 6],
                                     "mouse 1", 2)
-        res = [(1, "mouse 1", 7, 23, True),
-               (2, "mouse 1", 45, 55, True)]
+        res = [(1, "mouse 1", 7, 23, 16, True),
+               (2, "mouse 1", 45, 55, 10, True)]
         self.assertEqual(out, res)
 
 
