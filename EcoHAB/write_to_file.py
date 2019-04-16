@@ -83,12 +83,13 @@ def write_csv_rasters(mice, phases, output, directory, dirname, fname):
         
     header += '\n'
     f.write(header)
-    new_output, pairs = make_table_of_pairs(output, phases, mice)
+    new_output, pairs = utils.make_table_of_pairs(output, phases, mice)
     for i, pair in enumerate(pairs):
         f.write(pair)
         for j in range(len(phases)):
             f.write(';')
             f.write(str(new_output[i,j]))
+            print(new_output[i,j])
         f.write('\n')
     f.close()
 
@@ -96,7 +97,6 @@ def write_csv_tables(results, phases, mice, main_directory, dirname, fname, pref
     new_name = os.path.join(dirname, 'data')
     directory = utils.check_directory(main_directory, new_name)
     fname =  os.path.join(directory, '%s_%s.csv' % (fname, prefix))
-    print(fname)
     try:
         f = open(fname, 'w')
     except IOError:
@@ -160,18 +160,3 @@ def write_csv_alone(alone, phases, mice, main_directory, prefix):
                 f.write(str(alone[i-1, j, k])+';')
             f.write('\n')
     f.close()
-    
-def make_table_of_pairs(FAM, phases, mice):
-    new_shape = (len(mice)*(len(mice)-1)//2, len(phases))
-    output = np.zeros(new_shape)
-    pair_labels = utils.list_of_pairs(mice)
-    for i, phase in enumerate(phases):
-        l = 0
-        for j, mouse in enumerate(mice):
-            for k in range(j+1, len(mice)):
-                output[l,i] = FAM[i,j,k]
-                l += 1
-
-    return output, pair_labels
-
-

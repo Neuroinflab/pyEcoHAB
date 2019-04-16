@@ -16,7 +16,6 @@ import networkx as nx
 from networkx.drawing.nx_agraph import write_dot
 import matplotlib.colors as mcol
 import matplotlib.patches as patches
-from write_to_file import make_table_of_pairs
 nbins = 10
 def autolabel(rects,ax):
     """
@@ -129,7 +128,7 @@ def make_RasterPlot(main_directory,
     assert FAM.shape[1] == len(mice)
     assert FAM.shape[2] == len(mice)
     
-    output, pair_labels = make_table_of_pairs(FAM, phases, mice)
+    output, pair_labels = utils.make_table_of_pairs(FAM, phases, mice)
                 
     if not vmax and not vmin:
         vmax = FAM.max()

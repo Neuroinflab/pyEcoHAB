@@ -770,5 +770,60 @@ class TestListOfpairs(unittest.TestCase):
                                'Zbysio|Rysio', 'Henio|Gienio',
                                'Henio|Rysio', 'Gienio|Rysio'])
 
+class TestMakeTableOfPairs(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.lista = ["Zdzisio",
+                     "Zbysio",
+                     "Henio",
+                     "Gienio"]
+        cls.phases = ["0", "1", "2"]
+        cls.data = np.zeros((len(cls.phases),
+                             len(cls.lista),
+                             len(cls.lista)))
+        cls.data[0, 0, 1] = 1
+        cls.data[0, 0, 2] = 2
+        cls.data[0, 0, 3] = 3
+        cls.data[0, 1, 2] = 4
+        cls.data[0, 1, 3] = 5
+        cls.data[0, 2, 3] = 6
+        cls.data[1, 0, 1] = 7
+        cls.data[1, 0, 2] = 8
+        cls.data[1, 0, 3] = 9
+        cls.data[1, 1, 2] = 10
+        cls.data[1, 1, 3] = 11
+        cls.data[1, 2, 3] = 12
+        cls.data[2, 0, 1] = 1
+        cls.data[2, 0, 2] = 2
+        cls.data[2, 0, 3] = 3
+        cls.data[2, 1, 2] = 4
+        cls.data[2, 1, 3] = 5
+        cls.data[2, 2, 3] = 6
+        cls.out_data, cls.out = uf.make_table_of_pairs(cls.data,
+                                                       cls.phases,
+                                                       cls.lista)
+    def test_shape(self):
+        out_lista = uf.list_of_pairs(self.lista)
+        self.assertEqual(self.out_data.shape, (len(out_lista), len(self.phases)))
+    def test_lista(self):
+        out_lista = uf.list_of_pairs(self.lista)
+        self.assertEqual(out_lista, self.out)
+
+    def test_1st_phase(self):
+        out = [1, 2, 3, 4, 5, 6]
+        first_column = self.out_data[:, 0].tolist()
+        self.assertEqual(out, first_column)
+
+    def test_2nd_phase(self):
+        out = [7, 8, 9, 10, 11, 12]
+        first_column = self.out_data[:, 1].tolist()
+        self.assertEqual(out, first_column)
+
+    def test_3rd_phase(self):
+        out = [1, 2, 3, 4, 5, 6]
+        first_column = self.out_data[:, 2].tolist()
+        self.assertEqual(out, first_column)
+                            
+
 if __name__ == '__main__':
     unittest.main()

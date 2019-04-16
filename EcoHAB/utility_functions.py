@@ -124,6 +124,20 @@ def list_of_pairs(mice):
     return pair_labels
 
 
+def make_table_of_pairs(FAM, phases, mice):
+    new_shape = (len(mice)*(len(mice)-1)//2, len(phases))
+    output = np.zeros(new_shape)
+    pair_labels = list_of_pairs(mice)
+    for i, phase in enumerate(phases):
+        l = 0
+        for j, mouse in enumerate(mice):
+            for k in range(j + 1, len(mice)):
+                output[l, i] = FAM[i, j, k]
+                l += 1
+
+    return output, pair_labels
+
+
 def filter_dark(phases):
     out = []
     for phase in phases:
