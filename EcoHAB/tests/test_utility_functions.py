@@ -746,5 +746,29 @@ class TestAddInfo(unittest.TestCase):
         self.assertEqual(uf.add_info_mice_filename(lista),
                          'remove_Zdzisio_Zbysio_Henio_Gienio')
 
+class TestListOfpairs(unittest.TestCase):
+    def test_list(self):
+        lista = ["Zdzisio",
+                 "Zbysio",
+                 "Henio",
+                 "Gienio"]
+        out = uf.list_of_pairs(lista)
+        self.assertEqual(out, ['Zdzisio|Zbysio', 'Zdzisio|Henio',
+                               'Zdzisio|Gienio', 'Zbysio|Henio',
+                               'Zbysio|Gienio', 'Henio|Gienio'])
+
+    def test_list_2(self):
+        lista = ["Zdzisio",
+                 "Zbysio",
+                 "Henio",
+                 "Gienio",
+                 "Rysio"]
+        out = uf.list_of_pairs(lista)
+        self.assertEqual(out, ['Zdzisio|Zbysio', 'Zdzisio|Henio',
+                               'Zdzisio|Gienio', 'Zdzisio|Rysio',
+                               'Zbysio|Henio', 'Zbysio|Gienio',
+                               'Zbysio|Rysio', 'Henio|Gienio',
+                               'Henio|Rysio', 'Gienio|Rysio'])
+
 if __name__ == '__main__':
     unittest.main()
