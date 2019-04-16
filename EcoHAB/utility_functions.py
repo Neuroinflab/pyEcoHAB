@@ -127,11 +127,11 @@ def list_of_pairs(mice):
 def filter_dark(phases):
     out = []
     for phase in phases:
-        if phase.endswith('dark'):
+        if 'dark' in phase:
             out.append(phase)
-        elif phase.endswith('DARK'):
+        elif 'DARK' in phase:
             out.append(phase)
-        elif phase.endswith('Dark'):
+        elif 'Dark' in phase:
             out.append(phase)
     return out
 
@@ -139,11 +139,11 @@ def filter_dark(phases):
 def filter_light(phases):
     out = []
     for phase in phases:
-        if phase.endswith('light'):
+        if 'light' in phase:
             out.append(phase)
-        elif phase.endswith('LIGHT'):
+        elif 'LIGHT' in phase:
             out.append(phase)
-        elif phase.endswith('Light'):
+        elif 'Light' in phase:
             out.append(phase)
     return out
 
@@ -151,17 +151,17 @@ def filter_light(phases):
 def filter_dark_light(phases):
     out = []
     for phase in phases:
-        if phase.endswith('dark'):
+        if 'light' in phase:
             out.append(phase)
-        elif phase.endswith('DARK'):
+        elif 'LIGHT' in phase:
             out.append(phase)
-        elif phase.endswith('Dark'):
+        elif 'Light' in phase:
             out.append(phase)
-        elif phase.endswith('light'):
+        elif 'dark' in phase:
             out.append(phase)
-        elif phase.endswith('LIGHT'):
+        elif 'DARK' in phase:
             out.append(phase)
-        elif phase.endswith('Light'):
+        elif 'Dark' in phase:
             out.append(phase)
 
     return out

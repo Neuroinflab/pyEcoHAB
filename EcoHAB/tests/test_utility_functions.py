@@ -5,6 +5,31 @@ from EcoHAB import utility_functions as uf
 import unittest
 import numpy as np
 
+
+class TestFilter(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.lista = ["Dark", "DARK", "dark", "Light", "LIGHT", "light", "ALL",
+        "Dark 6", "DARK 5", "dark 4", "Light 3", "LIGHT 2", "light 1", "ALL"]
+
+    def test_light(self):
+        out = uf.filter_light(self.lista)
+        self.assertEqual(out, ["Light", "LIGHT", "light",
+                               "Light 3", "LIGHT 2", "light 1"])
+
+    def test_dark(self):
+        out = uf.filter_dark(self.lista)
+        self.assertEqual(out, ["Dark", "DARK", "dark",
+                               "Dark 6", "DARK 5", "dark 4"])
+
+    def test_all(self):
+        out = uf.filter_dark_light(self.lista)
+        self.assertEqual(out, ["Dark", "DARK", "dark",
+                               "Light", "LIGHT", "light",
+                               "Dark 6", "DARK 5", "dark 4",
+                               "Light 3", "LIGHT 2", "light 1"])
+
+
 class TestGetMoreStates(unittest.TestCase):
     
     def test_2nd_tier_len_states(self):
