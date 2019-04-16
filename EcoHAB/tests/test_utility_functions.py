@@ -706,5 +706,20 @@ class TestGetMice(unittest.TestCase):
                          ["Zbysio", "Henio"])
         
 
+class TestAddInfo(unittest.TestCase):
+    def test_None(self):
+        self.assertEqual(uf.add_info_mice_filename(None), '')
+
+    def test_one(self):
+        self.assertEqual(uf.add_info_mice_filename("Zdzisio"),
+                         'remove_Zdzisio')
+    def test_more(self):
+        lista = ["Zdzisio",
+                 "Zbysio",
+                 "Henio",
+                 "Gienio"]
+        self.assertEqual(uf.add_info_mice_filename(lista),
+                         'remove_Zdzisio_Zbysio_Henio_Gienio')
+
 if __name__ == '__main__':
     unittest.main()
