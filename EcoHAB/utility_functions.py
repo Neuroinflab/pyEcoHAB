@@ -167,6 +167,19 @@ def filter_dark_light(phases):
     return out
 
 
+def get_mice(mouse_list, remove_mouse):
+    if remove_mouse is None:
+        return mouse_list
+
+    if isinstance(remove_mouse, str):
+        remove_mouse = [remove_mouse]
+
+    if isinstance(remove_mouse, list):
+        for mouse in mouse_list:
+            if mouse in remove_mouse:
+                mouse_list.remove(mouse)
+    return mouse_list
+
 def add_info_mice_filename(remove_mouse):
     add_info_mice = ''
     if isinstance(remove_mouse, list):

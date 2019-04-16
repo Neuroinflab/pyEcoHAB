@@ -672,5 +672,39 @@ class TestCalculateTotalDuration(unittest.TestCase):
         a = [[1, 2],  [5, 7], [8, 10]]
         self.assertEqual(uf.calculate_total_duration(a), 5)
 
+class TestGetMice(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.lista = ["Zdzisio",
+                     "Zbysio",
+                     "Henio",
+                     "Gienio"]
+
+    def test_check_none(self):
+        self.assertEqual(uf.get_mice(self.lista, None),
+                         self.lista)
+
+    def test_bogus(self):
+        self.assertEqual(uf.get_mice(self.lista, 5),
+                         self.lista)
+
+    def test_string(self):
+        self.assertEqual(uf.get_mice(self.lista, 'string'),
+                         self.lista)
+
+    def test_string_2(self):
+        self.assertEqual(uf.get_mice(self.lista, 'Gienio'),
+                         ["Zdzisio", "Zbysio", "Henio"])
+
+    def test_string_2(self):
+        self.assertEqual(uf.get_mice(self.lista, ['Genio']),
+                         self.lista)
+
+    def test_lista_2(self):
+        self.assertEqual(uf.get_mice(self.lista, ['Gienio',
+                                                  'Zdzisio']),
+                         ["Zbysio", "Henio"])
+        
+
 if __name__ == '__main__':
     unittest.main()
