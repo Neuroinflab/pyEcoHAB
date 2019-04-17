@@ -140,6 +140,18 @@ def mouse_alone_ehs(ehs, cf, main_directory, prefix):
     output[:,:,-1] = output[:,:,:-1].sum(axis=2)  # last column -- sum of activity in all dark phases
     write_csv_alone(output, phases, mice, main_directory, prefix)
 
+def single_phase_results(data, mice, total_time):
+    res = np.zeros((len(mice), len(mice)))
+    res_exp = np.zeros((len(mice), len(mice)))
+    for ii, mouse1 in enumerate(mice):
+        for jj in range(ii + 1, len(mice)):
+            mouse2 = mice[jj]
+            res[ii, jj], res_exp[ii, jj] = mice_together(data,
+                                                         mouse1,
+                                                         mouse2,
+                                                         total_time)
+    return res, res_exp
+
 def get_dark_light_data(phase, cf, ehs):
     print(phase)
     if phase == "dark" or phase == "DARK":
@@ -359,17 +371,6 @@ def in_cohort_sociability_all_phases(ehs, cf, main_directory, prefix, remove_mou
                     vmin=-.25,
                     vmax=.25)
     
-def single_phase_results(data, mice, total_time=43200.):
-    results = np.zeros((len(mice), len(mice)))
-    results_exp = np.zeros((len(mice), len(mice)))
-
-    for ii, mouse1 in enumerate(mice):
-        for jj, mouse2 in enumerate(mice):
-            if ii < jj:
-                res = mice_together(data, mouse1, mouse2, total_time)
-                results[ii, jj] = res[0]
-                results_exp[ii, jj] = res[1]
-    return results, results_exp
 
     
 def in_cohort_sociability(ehs, cf, main_directory, prefix, remove_mouse=None):
