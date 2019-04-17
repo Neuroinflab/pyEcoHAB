@@ -89,7 +89,6 @@ def write_csv_rasters(mice, phases, output, directory, dirname, fname):
         for j in range(len(phases)):
             f.write(';')
             f.write(str(new_output[i,j]))
-            print(new_output[i,j])
         f.write('\n')
     f.close()
 
