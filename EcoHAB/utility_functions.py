@@ -436,7 +436,7 @@ def get_ehs_data(ehs, mouse, t_start, t_end):
     return adresses, starts, ends
 
 
-def prepare_data(ehs, mice, times, margin=12*3600):
+def prepare_data(ehs, mice, times):
     """Prepare masked data."""
     data = {}
     t_start, t_end = times
