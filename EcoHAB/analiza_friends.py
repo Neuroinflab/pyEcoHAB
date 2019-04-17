@@ -162,15 +162,45 @@ def get_dark_light_data(phase, cf, ehs):
             
     return phases, total_time, mice, data
 
+def get_phases_filenames_and_totals(ehs, cf, prefix, which_phases, remove_mouse):
 @jit
 def in_cohort_sociability_all_dark_light(ehs, cf, main_directory, prefix, remove_mouse=None, phase="dark"):
     
     phases, total_time, mice, data = get_dark_light_data(phase, cf, ehs)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
+    prefix_1 = "incohort_sociability_"
+    prefix_2 = "incohort_sociability_measured_time_"
+    prefix_3 = "incohort_sociability_excess_time_"
+    get_data = True
+    if which_phases is None:
+        phases = utils.filter_dark(cf.sections())
+        data = None
+        total_time = 43200.
+        phase_name = ""
+    elif which_phases == "ALL" or which_phases == "all" or which_phases == "All":
+        phases = ["ALL"]
+        data = None
+        time = cf.gettime("ALL")
+        total_time = time[1] - time[0]
+        phase_name = which_phases
+    else:
+        phases, total_time, data = get_dark_light_data(which_phases, cf, ehs)
+        phase_name = "_ALL_%s" % which_phases
+        get_data = False
     fname = 'incohort_sociability_%s_ALL_%s' % (add_info_mice, phase)
     name_ = 'incohort_sociability_measured_time_%s_%s_ALL_%s.csv' % (prefix, add_info_mice, phase)
     name_exp_ = 'incohort_sociability_excess_time_%s_%s_ALL_%s.csv' % (prefix, add_info_mice, phase)
 
+    fname = '%s%s%s' % (prefix_1, add_info_mice, phase_name)
+    fname_measured = '%s%s_%s%s.csv' % (prefix_2,
+                                        prefix,
+                                        add_info_mice,
+                                        phase_name)
+    fname_expected = '%s%s_%s%s.csv' % (prefix_3,
+                                        prefix,
+                                        add_info_mice,
+                                        phase_name)
+    return phases, total_time, data, fname, fname_measured, fname_expected, get_data
     full_results = np.zeros((1, len(mice), len(mice)))
     full_results_exp = np.zeros((1, len(mice), len(mice)))
     
