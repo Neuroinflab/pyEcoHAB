@@ -140,6 +140,7 @@ def mouse_alone_ehs(ehs, cf, main_directory, prefix):
     output[:,:,-1] = output[:,:,:-1].sum(axis=2)  # last column -- sum of activity in all dark phases
     write_csv_alone(output, phases, mice, main_directory, prefix)
 
+
 def single_phase_results(data, mice, total_time):
     res = np.zeros((len(mice), len(mice)))
     res_exp = np.zeros((len(mice), len(mice)))
@@ -152,33 +153,24 @@ def single_phase_results(data, mice, total_time):
                                                          total_time)
     return res, res_exp
 
+
 def get_dark_light_data(phase, cf, ehs):
-    print(phase)
     if phase == "dark" or phase == "DARK":
         phases = utils.filter_dark(cf.sections())
     elif phase == "light" or phase == "LIGHT":
         phases = utils.filter_light(cf.sections())
-    
-    mice = ehs.mice
-    datas = []
+    out_phases = [phase]
+    data = {mouse:[] for mouse in ehs.mice}
     total_time = 0
     for i, ph in enumerate(phases):
         time = cf.gettime(ph)
-        datas.append(utils.prepare_data(ehs, mice, time))
-        total_time += time[1] - time[0]
-    
-    data = datas[0].copy()
-    for dat in datas[1:]:
-        for mm in dat.keys():
-            data[mm].extend(dat[mm])
-            
-    return phases, total_time, mice, data
+        out = utils.prepare_data(ehs, ehs.mice, time)
+        for mouse in ehs.mice:
+            data[mouse].extend(out[mouse])
+        total_time += (time[1] - time[0])
+    return out_phases, total_time, data
 
 def get_phases_filenames_and_totals(ehs, cf, prefix, which_phases, remove_mouse):
-@jit
-def in_cohort_sociability_all_dark_light(ehs, cf, main_directory, prefix, remove_mouse=None, phase="dark"):
-    
-    phases, total_time, mice, data = get_dark_light_data(phase, cf, ehs)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     prefix_1 = "incohort_sociability_"
     prefix_2 = "incohort_sociability_measured_time_"
@@ -199,9 +191,6 @@ def in_cohort_sociability_all_dark_light(ehs, cf, main_directory, prefix, remove
         phases, total_time, data = get_dark_light_data(which_phases, cf, ehs)
         phase_name = "_ALL_%s" % which_phases
         get_data = False
-    fname = 'incohort_sociability_%s_ALL_%s' % (add_info_mice, phase)
-    name_ = 'incohort_sociability_measured_time_%s_%s_ALL_%s.csv' % (prefix, add_info_mice, phase)
-    name_exp_ = 'incohort_sociability_excess_time_%s_%s_ALL_%s.csv' % (prefix, add_info_mice, phase)
 
     fname = '%s%s%s' % (prefix_1, add_info_mice, phase_name)
     fname_measured = '%s%s_%s%s.csv' % (prefix_2,
@@ -213,181 +202,25 @@ def in_cohort_sociability_all_dark_light(ehs, cf, main_directory, prefix, remove
                                         add_info_mice,
                                         phase_name)
     return phases, total_time, data, fname, fname_measured, fname_expected, get_data
-    full_results = np.zeros((1, len(mice), len(mice)))
-    full_results_exp = np.zeros((1, len(mice), len(mice)))
-    
-    phase = "ALL_"+phase
-    full_results[0], full_results_exp[0] = single_phase_results(data,
-                                                                mice,
-                                                                total_time=total_time)
-    save_single_histograms(full_results[0],
-                           'incohort_sociability_measured_time',
-                           mice,
-                           phase,
-                           main_directory,
-                           'in_cohort_sociability/histograms',
-                           prefix,
-                           additional_info=add_info_mice)
-    save_single_histograms(full_results_exp[0],
-                           'incohort_sociability_expected_time',
-                           mice,
-                           phase,
-                           main_directory,
-                           'in_cohort_sociability/histograms',
-                           prefix,
-                           additional_info=add_info_mice)
-    save_single_histograms(full_results[0]-full_results_exp[0],
-                           'incohort_sociability_excess_time',
-                           mice,
-                           phase,
-                           main_directory,
-                           'in_cohort_sociability/histograms',
-                           prefix,
-                           additional_info=add_info_mice)
-    
-    single_in_cohort_soc_plot(full_results[0],
-                              full_results_exp[0],
-                              mice,
-                              phase,
-                              fname,
-                              main_directory,
-                              'in_cohort_sociability/histograms',
-                              prefix+add_info_mice)
-    write_csv_rasters(mice,
-                      [phase],
-                      full_results,
-                      main_directory,
-                      'in_cohort_sociability/raster_plots',
-                      name_)
-    write_csv_rasters(mice,
-                      [phase],
-                      full_results-full_results_exp,
-                      main_directory,
-                      'in_cohort_sociability/raster_plots',
-                      name_exp_)
-    
 
-    make_RasterPlot(main_directory,
-                    'in_cohort_sociability/raster_plots',
-                    full_results,
-                    [phase],
-                    name_,
-                    mice,
-                    vmin=0,
-                    vmax=0.5,
-                    title='% time together')
-    make_RasterPlot(main_directory,
-                    'in_cohort_sociability/raster_plots',
-                    full_results-full_results_exp,
-                    [phase],
-                    name_exp_,
-                    mice,
-                    title='% time together',
-                    vmin=-.25,
-                    vmax=.25)
-    
-@jit
-def in_cohort_sociability_all_phases(ehs, cf, main_directory, prefix, remove_mouse=None):
-    phase="ALL"
-    phases = [phase]
+
+def in_cohort_sociability(ehs, cf, main_directory, prefix, which_phases=None, remove_mouse=None):
+    mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    fname = 'incohort_sociability_%s_ALL' % add_info_mice
-    name_ = 'incohort_sociability_measured_time_%s_%s_ALL.csv' % (prefix, add_info_mice)
-    name_exp_ = 'incohort_sociability_excess_time_%s_%s_ALL.csv' % (prefix, add_info_mice)
-    
-    mice = ehs.mice
-    time = cf.gettime("ALL")
-    data = utils.prepare_data(ehs, mice, time)
-    full_results = np.zeros((1, len(mice), len(mice)))
-    full_results_exp = np.zeros((1, len(mice), len(mice)))
-    total_time = time[1] - time[0]
-    full_results[0], full_results_exp[0] = single_phase_results(data,
-                                                                mice,
-                                                                total_time=total_time)
-
-    save_single_histograms(full_results[0],
-                           'incohort_sociability_measured_time',
-                           mice,
-                           phase,
-                           main_directory,
-                           'in_cohort_sociability/histograms',
-                           prefix,
-                           additional_info=add_info_mice)
-    save_single_histograms(full_results_exp[0],
-                           'incohort_sociability_expected_time',
-                           mice,
-                           phase,
-                           main_directory,
-                           'in_cohort_sociability/histograms',
-                           prefix,
-                           additional_info=add_info_mice)
-    save_single_histograms(full_results[0]-full_results_exp[0],
-                           'incohort_sociability_excess_time',
-                           mice,
-                           phase,
-                           main_directory,
-                           'in_cohort_sociability/histograms',
-                           prefix,
-                           additional_info=add_info_mice)
-    
-    single_in_cohort_soc_plot(full_results[0],
-                              full_results_exp[0],
-                              mice,
-                              phase,
-                              fname,
-                              main_directory,
-                              'in_cohort_sociability/histograms',
-                              prefix+add_info_mice)
-    write_csv_rasters(mice,
-                      phases,
-                      full_results,
-                      main_directory,
-                      'in_cohort_sociability/raster_plots',
-                      name_)
-    write_csv_rasters(mice,
-                      phases,
-                      full_results-full_results_exp,
-                      main_directory,
-                      'in_cohort_sociability/raster_plots',
-                      name_exp_)
-    
-
-    make_RasterPlot(main_directory,
-                    'in_cohort_sociability/raster_plots',
-                    full_results,
-                    phases,
-                    name_,
-                    mice,
-                    vmin=0,
-                    vmax=0.5,
-                    title='% time together')
-    make_RasterPlot(main_directory,
-                    'in_cohort_sociability/raster_plots',
-                    full_results-full_results_exp,
-                    phases,
-                    name_exp_,
-                    mice,
-                    title='% time together',
-                    vmin=-.25,
-                    vmax=.25)
-    
-
-    
-def in_cohort_sociability(ehs, cf, main_directory, prefix, remove_mouse=None):
-   
-    mice = ehs.mice
-    phases = utils.filter_dark(cf.sections())
+    phases, total_time, data,\
+    fname, fname_measured,\
+    fname_expected, get_data = get_phases_filenames_and_totals(ehs,
+                                                     cf,
+                                                     prefix,
+                                                     which_phases,
+                                                     remove_mouse)
     full_results = np.zeros((len(phases), len(mice), len(mice)))
     full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
-    add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    fname = 'incohort_sociability_%s' % add_info_mice
-    name_ = 'incohort_sociability_measured_time_%s%s.csv' % (prefix, add_info_mice)
-    name_exp_ = 'incohort_sociability_excess_time_%s%s.csv' % (prefix, add_info_mice)
-    
     for idx_phase, phase in enumerate(phases):
-        data = utils.prepare_data(ehs, mice, cf.gettime(phase))
-        full_results[idx_phase], full_results_exp[idx_phase] = single_phase_results(data, mice)
-        
+        if get_data:
+            data = utils.prepare_data(ehs, mice, cf.gettime(phase))
+        phase = phase.replace(' ', '_')
+        full_results[idx_phase], full_results_exp[idx_phase] = single_phase_results(data, mice, total_time)
         save_single_histograms(full_results[idx_phase],
                                'incohort_sociability_measured_time',
                                mice,
@@ -427,34 +260,29 @@ def in_cohort_sociability(ehs, cf, main_directory, prefix, remove_mouse=None):
                       full_results,
                       main_directory,
                       'in_cohort_sociability/raster_plots',
-                      name_)
+                      fname_measured)
     write_csv_rasters(mice,
                       phases,
                       full_results-full_results_exp,
                       main_directory,
                       'in_cohort_sociability/raster_plots',
-                      name_exp_)
+                      fname_expected)
     
 
     make_RasterPlot(main_directory,
                     'in_cohort_sociability/raster_plots',
                     full_results,
                     phases,
-                    name_,
-                    mice,
-                    vmin=0,
-                    vmax=0.5,
+                    fname_measured,
+                    mice, vmin=0, vmax=1,
                     title='% time together')
     make_RasterPlot(main_directory,
                     'in_cohort_sociability/raster_plots',
                     full_results-full_results_exp,
                     phases,
-                    name_exp_,
+                    fname_expected,
                     mice,
-                    title='% time together',
-                    vmin=-.25,
-                    vmax=.25)
-
+                    title='% time together')
 
 if __name__ == '__main__':
     homepath = os.path.expanduser("~/")
@@ -473,6 +301,6 @@ if __name__ == '__main__':
         os.makedirs(directory)
     mouse_alone_ehs(ehs, cf, directory, prefix)
     in_cohort_sociability(ehs, cf, directory, prefix)
-    in_cohort_sociability_all_phases(ehs, cf, directory, prefix)
-    in_cohort_sociability_all_dark_light(ehs, cf, directory, prefix, phase="light")
-    in_cohort_sociability_all_dark_light(ehs, cf, directory, prefix, phase="dark")
+    in_cohort_sociability(ehs, cf, directory, prefix, which_phases="ALL")
+    in_cohort_sociability(ehs, cf, directory, prefix, which_phases="dark")
+    in_cohort_sociability(ehs, cf, directory, prefix, which_phases="light")
