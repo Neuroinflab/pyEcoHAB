@@ -156,7 +156,7 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
                                ehd.mice,
                                phase,
                                main_directory,
-                               'following_in_pipe_2nd_mouse_in_pipe/histograms',
+                               'following_in_pipe/histograms',
                                prefix,
                                additional_info=add_info_mice)
         vmin1 = (following[i] - following_exp[i]).min()
