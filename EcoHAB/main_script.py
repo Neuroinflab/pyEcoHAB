@@ -66,7 +66,7 @@ if __name__ == '__main__':
         for binsize in binsizes:
             print('Binsize ',binsize/3600)
             results_path = utils.results_path(path)
-            fname_all_chambers = 'collective_results_all_chambers_binsize_%f_h.csv'%(binsize//3600)
+            fname_all_chambers = '%scollective_results_all_chambers_binsize_%f_h.csv'%(prefix, binsize//3600)
             try:
                 cages = non_standard_cages[path]
             except KeyError:
