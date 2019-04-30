@@ -59,6 +59,7 @@ datasets = [
     "EcoHAB_data_November/Fmr1 KO young long 20.11-01.12.18/",
     "EcoHAB_data_November/Turkusowe 26.03.-04.04.19 długi z bodźcem/",
     "EcoHAB_data_November/FxWT_10_L_EHcl_28.08-05.09.18/",
+    "EcoHAB_data_November/C57_males_19.04-30.04_Long_Sniff/",
 ]
 
 remove_tags = {
