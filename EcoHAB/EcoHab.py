@@ -246,6 +246,7 @@ class EcoHabData(Data):
                 print(antenna, ':')
                 for breaks in antenna_breaks[antenna]:
                     print(self.print_time_human(breaks[0]),  self.print_time_human(breaks[1]))
+                    print((breaks[1] - breaks[0])/3600, 'h')
         self.antenna_mismatch()
         
         if mask:
