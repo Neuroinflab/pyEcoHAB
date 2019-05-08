@@ -244,7 +244,7 @@ if __name__ == '__main__':
         if new_path not in antenna_positions:
             antenna_positions[new_path] = None
         if new_path not in how_many_appearances:
-            how_many_appearances[new_path] = 500
+            how_many_appearances[new_path] = 100
         if remove_mouse:
             ehd = EcoHab.EcoHabData(path=path,
                                     _ant_pos=antenna_positions[new_path],
