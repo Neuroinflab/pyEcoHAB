@@ -263,7 +263,7 @@ if __name__ == '__main__':
         res_dir = utils.results_path(path)
 
         cf = ExperimentConfigFile(path)
-        following, following_exp, phases, mice = following_for_all_2nd_mouse_in_pipe(ehd, cf, res_dir, prefix)
+        following, following_exp, phases, mice = get_following(ehd, cf, res_dir, prefix)
         followings_list.append(following)
         followings_exp_list.append(following_exp)
         phases_list.append(phases)
