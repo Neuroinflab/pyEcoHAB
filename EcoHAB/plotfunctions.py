@@ -514,6 +514,13 @@ def make_pooled_histograms(res,
                            additional_info):
 
     fig, ax = plt.subplots(1, len(phases), figsize=(len(phases)//2*5, 5))
+    if len(phases) == 1:
+        ax = [ax]
+        new_phase = phases[0].replace(' ', '__')
+    else:
+        new_phase = "%s_%s" %(phases[0].replace(' ', '__'),
+                              phases[-1].replace(' ', '__'))
+
     max_bins = 0
     min_bins = 100
     max_count = 0
@@ -543,13 +550,13 @@ def make_pooled_histograms(res,
     for x in ax:
         x.set_xlim([min_bins, max_bins+1])
         x.set_ylim([min_count, max_count+3])
-
-        
     new_name = os.path.join(directory, 'figs')
     directory = utils.check_directory(main_directory, new_name)
-    fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, phase))
+    fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, new_phase))
     print(fname)
-    fig.subplots_adjust(wspace=0.15)
+    if len(phases) > 1:
+        fig.subplots_adjust(wspace=0.15)
+    #plt.show()
     fig.savefig(fname+'.png', dpi=300)
     
 def histo():
