@@ -61,6 +61,8 @@ datasets = [
     "EcoHAB_data_November/FxWT_10_L_EHcl_28.08-05.09.18/",
      "EcoHAB_data_November/C57_males_19.04-30.04_Long_Sniff/",
     "EcoHAB_data_November/C57_males_domination_30.04-03.05/",
+    "EcoHAB_data_November/C57_Long_Sniff_06-16.05.19/",
+    "EcoHAB_data_November/C57_males_Domination test 20.05.19 - sniff phase/"
 ]
 
 remove_tags = {
@@ -79,6 +81,8 @@ how_many_appearances = {
     "EcoHAB_data_November/C57 males reward-neutral 26.06-01.07.18": 200,
     "EcoHAB_data_November/C57 males reward-neutral control 16.07-20.07.18/": 200,
     "EcoHAB_data_November/C57 social contagion stress/": 200,
+    "EcoHAB_data_November/C57_males_Domination test 20.05.19 - sniff phase/":3,
+    
 }
 antenna_positions = {
     'EcoHAB_data_November/long_experiment_KO_mismatched_antennas_to_phase_SNIFF_10_dark/':{'1': 1,
