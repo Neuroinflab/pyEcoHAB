@@ -116,8 +116,12 @@ def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase):
     return followings
 
 
-def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
-                                        prefix, remove_mouse=None):
+def get_following(ehd, cf, res_dir=None, prefix=None,
+              remove_mouse=None):
+    if res_dir is None:
+        res_dir = ehd.res_dir
+    if prefix is None:
+        prefix = ehd.prefix
     phases = utils.filter_dark(cf.sections())
     mice = [mouse[-4:] for mouse in ehd.mice]
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
@@ -139,7 +143,7 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
                                'following_in_pipe',
                                ehd.mice,
                                phase,
-                               main_directory,
+                               res_dir,
                                'following_in_pipe/histograms',
                                prefix,
                                additional_info=add_info_mice)
@@ -147,7 +151,7 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
                                'following_in_pipe_expected_time',
                                ehd.mice,
                                phase,
-                               main_directory,
+                               res_dir,
                                'following_in_pipe/histograms',
                                prefix,
                                additional_info=add_info_mice)
@@ -155,7 +159,7 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
                                'following_in_pipe_relative_excess_following',
                                ehd.mice,
                                phase,
-                               main_directory,
+                               res_dir,
                                'following_in_pipe/histograms',
                                prefix,
                                additional_info=add_info_mice)
@@ -166,7 +170,7 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
                                   mice,
                                   phase,
                                   fname,
-                                  main_directory,
+                                  res_dir,
                                   'following_in_pipe/histograms',
                                   prefix+add_info_mice,
                                   hist=False,
@@ -182,25 +186,25 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
     write_csv_rasters(ehd.mice,
                       phases,
                       following,
-                      main_directory,
+                      res_dir,
                       'following_in_pipe/raster_plots',
                       fname_)
     write_csv_rasters(ehd.mice,
                       phases,
                       (following-following_exp),
-                      main_directory,
+                      res_dir,
                       'following_in_pipe/raster_plots',
                       fname_exp)
     
 
-    make_RasterPlot(main_directory,
+    make_RasterPlot(res_dir,
                     'following_in_pipe/raster_plots',
                     following,
                     phases,
                     fname_,
                     mice,
                     title='# followings')
-    make_RasterPlot(main_directory,
+    make_RasterPlot(res_dir,
                     'following_in_pipe/raster_plots',
                     (following-following_exp),
                     phases,
@@ -212,7 +216,7 @@ def following_for_all_2nd_mouse_in_pipe(ehd, cf, main_directory,
                            following_exp,
                            phases,
                            'All_phases_histogram',
-                           main_directory,
+                           res_dir,
                            '',
                            prefix,
                            additional_info=add_info_mice)

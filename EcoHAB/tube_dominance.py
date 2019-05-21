@@ -172,6 +172,23 @@ def tube_dominance_single_phase(ehd, cf, phase, normalization):
                                                                      normalization)
     return dominance
 
+def get_tube_dominance(ehd, cf, prefix=None, res_dir=None, normalization=None):
+    if normalization is None:
+        fname = 'tube_dominance_no_normalization'
+    else:
+        fname = 'tube_dominance_%s' % normalization
+    if prefix is None:
+        prefix = ehd.prefix
+    if res_dir is None:
+        res_dir = ehd.res_dir
+    dispatch.evaluate_whole_experiment(ehd, cf, res_dir, prefix,
+                                       tube_dominance_single_phase,
+                                       fname, 'dominating mouse',
+                                       'pushed out mouse',
+                                       '# dominances',
+                                       args=[normalization])
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Calculate tube dominance matrices for each phase of an EcoHab experiment.')
     parser.add_argument('directory', type=str, help='EcoHab data directory')

@@ -251,6 +251,8 @@ class EcoHabData(Data):
         
         if mask:
             self._cut_out_data(mask)
+        self.prefix = utils.make_prefix(self.path)
+        self.res_dir = utils.results_path(self.path)
           
     def merge_experiment(self, other):
         assert self.mice == other.mice

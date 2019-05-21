@@ -204,16 +204,22 @@ def get_phases_filenames_and_totals(ehs, cf, prefix, which_phases, remove_mouse)
     return phases, total_time, data, fname, fname_measured, fname_expected, get_data
 
 
-def in_cohort_sociability(ehs, cf, main_directory, prefix, which_phases=None, remove_mouse=None):
+def get_in_cohort_sociability(ehs, cf, res_dir=None, prefix=None, which_phases=None, remove_mouse=None):
+    if prefix is None:
+        prefix = ehd.prefix
+    if res_dir is None:
+        res_dir = ehd.res_dir
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     phases, total_time, data,\
     fname, fname_measured,\
     fname_expected, get_data = get_phases_filenames_and_totals(ehs,
-                                                     cf,
-                                                     prefix,
-                                                     which_phases,
-                                                     remove_mouse)
+                                                               cf,
+                                                               prefix,
+                                                               which_phases,
+                                                               remove_mouse)
+    if total_time == 0:
+        return
     full_results = np.zeros((len(phases), len(mice), len(mice)))
     full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
     for idx_phase, phase in enumerate(phases):
@@ -225,7 +231,7 @@ def in_cohort_sociability(ehs, cf, main_directory, prefix, which_phases=None, re
                                'incohort_sociability_measured_time',
                                mice,
                                phase,
-                               main_directory,
+                               res_dir,
                                'in_cohort_sociability/histograms',
                                prefix,
                                additional_info=add_info_mice)
@@ -233,7 +239,7 @@ def in_cohort_sociability(ehs, cf, main_directory, prefix, which_phases=None, re
                                'incohort_sociability_expected_time',
                                mice,
                                phase,
-                               main_directory,
+                               res_dir,
                                'in_cohort_sociability/histograms',
                                prefix,
                                additional_info=add_info_mice)
@@ -241,7 +247,7 @@ def in_cohort_sociability(ehs, cf, main_directory, prefix, which_phases=None, re
                                'incohort_sociability_excess_time',
                                mice,
                                phase,
-                               main_directory,
+                               res_dir,
                                'in_cohort_sociability/histograms',
                                prefix,
                                additional_info=add_info_mice)
@@ -251,32 +257,32 @@ def in_cohort_sociability(ehs, cf, main_directory, prefix, which_phases=None, re
                               mice,
                               phase,
                               fname,
-                              main_directory,
+                              res_dir,
                                   'in_cohort_sociability/histograms',
                                   prefix+add_info_mice)
 
     write_csv_rasters(mice,
                       phases,
                       full_results,
-                      main_directory,
+                      res_dir,
                       'in_cohort_sociability/raster_plots',
                       fname_measured)
     write_csv_rasters(mice,
                       phases,
                       full_results-full_results_exp,
-                      main_directory,
+                      res_dir,
                       'in_cohort_sociability/raster_plots',
                       fname_expected)
     
 
-    make_RasterPlot(main_directory,
+    make_RasterPlot(res_dir,
                     'in_cohort_sociability/raster_plots',
                     full_results,
                     phases,
                     fname_measured,
                     mice, vmin=0, vmax=1,
                     title='% time together')
-    make_RasterPlot(main_directory,
+    make_RasterPlot(res_dir,
                     'in_cohort_sociability/raster_plots',
                     full_results-full_results_exp,
                     phases,

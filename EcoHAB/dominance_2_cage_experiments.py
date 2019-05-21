@@ -254,6 +254,40 @@ def check_mouse1_defending(antennas1, times1, antennas2, times2, home_cage_anten
     return dominance_counter
 
 
+def get_tube_dominance_2_cages(ehd, cf, res_dir=None, prefix=None, dt=dt):
+    states, home_cage_antenna = get_states_and_home_cage_antenna(ehd,
+                                                                 cf,
+                                                                 dt)
+    if res_dir is None:
+        res_dir = ehd.res_dir
+    if prefix is None:
+        prefix = ehd.prefix
+    dispatch.evaluate_whole_experiment(ehd, cf, res_dir, prefix,
+                                       tube_dominance_2_cages,
+                                       'mouse_pushing_out_stimulus_chamber',
+                                       'dominating mouse',
+                                       'pushed out mouse',
+                                       '# pushes',
+                                       args=[home_cage_antenna])
+
+
+def get_subversion_evaluation(ehd, cf, res_dir=None, prefix=None, dt=dt):
+    if res_dir is None:
+        res_dir = ehd.res_dir
+    if prefix is None:
+        prefix = ehd.prefix
+    states, home_cage_antenna = get_states_and_home_cage_antenna(ehd,
+                                                                 cf,
+                                                                 dt)
+    dispatch.evaluate_whole_experiment(ehd, cf, res_dir, prefix,
+                                       dominating_mice,
+                                       'subversion_evaluation',
+                                       'dominating mouse',
+                                       'subversive mouse',
+                                       '# times in small cage',
+                                       args=[states, home_cage_antenna, dt])
+
+
 if __name__ == '__main__':
     datasets = [
         "EcoHAB_data_November/Samce C57 sham EH dominacja 05-08.03.2019/",
