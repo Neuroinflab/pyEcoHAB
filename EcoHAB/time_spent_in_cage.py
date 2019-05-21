@@ -252,7 +252,7 @@ if __name__ == '__main__':
 
         ehs = EcoHab.EcoHabSessions(ehd)
         cf = ExperimentConfigFile(path)
-        for binsize in [3600]:
+        for binsize in [3600, 2*3600, 12*3600]:
             print('Binsize ',binsize/3600)
             results_path = utils.results_path(path)
             fname_all_chambers = '%scollective_results_all_chambers_binsize_%f_h.csv'%(prefix, binsize//3600)
