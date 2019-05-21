@@ -117,7 +117,7 @@ def make_RasterPlot(main_directory,
                     vmax=None,
                     title=None):
     
-    mice = [mouse[5:] for mouse in old_mice]
+    mice = [mouse[-4:] for mouse in old_mice]
     subdirectory = os.path.join(subdirectory, 'raster_plots')
     new_path = utils.check_directory(main_directory, subdirectory)
     fig = plt.figure(figsize=(12, 12))
