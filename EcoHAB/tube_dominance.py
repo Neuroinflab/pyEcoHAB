@@ -139,37 +139,21 @@ def check_mouse1_pushing_out_mouse2(antennas1, times1, antennas2, times2, normal
         return dominance_counter/len(antennas2)/len(antennas1)
     
 
-def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2,
-                                       t_start, t_end, normalization):
-    """We're checking here, how many times mouse1 dominates over mouse2
-    between t_start and t_end.
-
-    """
-      
-    m1_times, m1_antennas = utils.get_times_antennas(ehd, mouse1,
-                                                     t_start, t_end)
-    m2_times, m2_antennas = utils.get_times_antennas(ehd, mouse2,
-                                                     t_start, t_end)
-    dominance_counter = check_mouse1_pushing_out_mouse2(m1_antennas, m1_times,
-                                                        m2_antennas, m2_times,
-                                                        normalization)
-        
-    return dominance_counter
-
-
 def tube_dominance_single_phase(ehd, cf, phase, normalization):
     mice = ehd.mice
-    st, en = cf.gettime(phase)
+    t_start, t_end = cf.gettime(phase)
     dominance =  np.zeros((len(mice), len(mice)))
     for i, mouse1 in enumerate(mice):
+        m1_times, m1_antennas = utils.get_times_antennas(ehd, mouse1,
+                                                         t_start, t_end)
         for j, mouse2 in enumerate(mice):
             if i != j:
-                dominance[i, j] = tube_dominance_2_mice_single_phase(ehd,
-                                                                     mouse1,
-                                                                     mouse2,
-                                                                     st,
-                                                                     en,
-                                                                     normalization)
+                m2_times, m2_antennas = utils.get_times_antennas(ehd, mouse2,
+                                                                 t_start, t_end)
+
+                dominance[i, j] = check_mouse1_pushing_out_mouse2(m1_antennas, m1_times,
+                                                        m2_antennas, m2_times,
+                                                        normalization)
     return dominance
 
 def get_tube_dominance(ehd, cf, prefix=None, res_dir=None, normalization=None):
