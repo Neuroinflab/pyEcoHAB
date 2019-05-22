@@ -435,25 +435,7 @@ class EcoHabSessions(IEcoHabSession):
         return self.getproperty(mice, 'AbsEndTimecode', 'float')
                     
     def getdurations(self, mice):
-        # starts = self.getproperty(mice, 'AbsStartTimecode', 'float')
-        # ends = self.getproperty(mice, 'AbsEndTimecode', 'float')
-        # return [abs(x[1] - x[0]) for x in zip(starts, ends)]
         return self.getproperty(mice, 'VisitDuration', 'float')
     
     def getaddresses(self, mice): 
         return self.getproperty(mice, 'Address')
-    
-    def getstats(self, mm):
-        """Return total number of visits 
-        and total time spent in compartments."""
-        durations = self.getdurations(mm)
-        adds = self.getaddresses(mm)
-        totv = [0, 0, 0, 0]
-        tott = [0., 0., 0., 0.]
-        for idx, ad in enumerate([1, 2, 3, 4]):
-            durs = [x for x, y in zip(durations, adds) if y == ad]
-            totv[idx] = len(durs)
-            tott[idx] = sum(durs)
-        return totv, tott
-    
-
