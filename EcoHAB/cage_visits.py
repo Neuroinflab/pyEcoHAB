@@ -7,7 +7,7 @@ from write_to_file import save_data_cvs
 from ExperimentConfigFile import ExperimentConfigFile
 
 
-def get_chamber_visits_and_durations(intervals, t_start, t_end):
+def chamber_visits_and_durations(intervals, t_start, t_end):
     interval_array = np.array(intervals)
 
     pre = utils.get_idx_between(t_start, t_end,
