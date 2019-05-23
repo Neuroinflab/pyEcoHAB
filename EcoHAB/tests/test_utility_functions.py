@@ -823,7 +823,21 @@ class TestMakeTableOfPairs(unittest.TestCase):
         out = [1, 2, 3, 4, 5, 6]
         first_column = self.out_data[:, 2].tolist()
         self.assertEqual(out, first_column)
-                            
+
+
+class TestGetLength(unittest.TestCase):
+    def test_1(self):
+        out = uf.get_length(0, 14, 7)
+        self.assertEqual(out, 2)
+
+    def test_2(self):
+        out = uf.get_length(0, 13, 7)
+        self.assertEqual(out, 2)
+
+    def test_3(self):
+        out = uf.get_length(0, 15, 7)
+        self.assertEqual(out, 3)
+
 
 if __name__ == '__main__':
     unittest.main()

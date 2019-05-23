@@ -39,6 +39,7 @@ def visits_and_durations(intervals, t_start, t_stop):
 def visits_and_durations_phase(intervals, time_start,
                            time_end, binsize):
     length = int(np.ceil((time_end - time_start)/binsize))
+    length = get_length(time_start, time_end, binsize)
     visits = np.zeros(length)
     durations = np.zeros(length)
     time = time_start

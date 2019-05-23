@@ -479,3 +479,7 @@ def get_states_for_ehs(times, antennas, mouse, threshold):
                 out.append((address_not_adjacent[an_start],
                             mouse, t_start, t_end, t_end-t_start, False))
     return out
+
+
+def get_length(time_start, time_end, binsize):
+    return int(np.ceil((time_end - time_start)/binsize))
