@@ -7,27 +7,35 @@ from write_to_file import save_data_cvs
 from ExperimentConfigFile import ExperimentConfigFile
 
 
-def chamber_visits_and_durations(intervals, t_start, t_end):
+def visits_and_durations(intervals, t_start, t_stop):
     interval_array = np.array(intervals)
 
-    pre = utils.get_idx_between(t_start, t_end,
-                                interval_array[:, 0])
-    post = utils.get_idx_between(t_start, t_end,
-                                 interval_array[:, 1])
-    if len(pre) == 0 or len(post) == 0:
-        return 0, 0
-    #check if a visit started before
+    idx_pre = utils.get_idx_pre(t_start, interval_array[:, 0])
     visits, durations = 0, 0
-    if post[0] < pre[0]:
-        durations += interval_array[0, 1] - t_start
+    #check visit before t_start
+    if idx_pre is not None:
+        start_pre, stop_pre = intervals[int(idx_pre)]
+        if  stop_pre > t_start:
+            visits += 1
+            if stop_pre > t_stop:
+                durations += t_stop - t_start
+                return visits, durations
+            durations +=  stop_pre - t_start
 
-    #check if a visit finished after
-    if pre[-1] > post[-1]:
-        durations += t_end - interval_array[-1, 0]
+    idx_between = utils.get_idx_between(t_start, t_stop, interval_array[:, 0])
+
+    for idx in idx_between:
+        i_start, i_stop = intervals[idx]
+        if i_start >= t_stop:
+            break
         visits += 1
-    intervals_in_bin = interval_array[pre[0]:post[-1]+1, :]
-    durations += sum(intervals_in_bin[:, 1] - intervals_in_bin[:, 0])
-    visits += len(intervals_in_bin)
+        if i_stop < t_stop:
+            durations += i_stop - i_start
+        else:
+            durations += t_stop - i_start
+    return visits, durations
+
+
     return visits, durations
 
 
