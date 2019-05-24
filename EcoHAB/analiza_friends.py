@@ -206,9 +206,9 @@ def get_phases_filenames_and_totals(ehs, cf, prefix, which_phases, remove_mouse)
 
 def get_in_cohort_sociability(ehs, cf, res_dir=None, prefix=None, which_phases=None, remove_mouse=None):
     if prefix is None:
-        prefix = ehd.prefix
+        prefix = ehs.prefix
     if res_dir is None:
-        res_dir = ehd.res_dir
+        res_dir = ehs.res_dir
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     phases, total_time, data,\
