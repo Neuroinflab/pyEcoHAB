@@ -436,9 +436,12 @@ def get_ehs_data(ehs, mouse, t_start, t_end):
     return adresses, starts, ends
 
 
-def prepare_data(ehs, mice, times):
+def prepare_data(ehs, mice, times=None):
     """Prepare masked data."""
     data = {}
+    if times is None:
+        times = (ehs.data['AbsStartTimecode'][0],
+                 ehs.data['AbsEndTimecode'][-1])
     t_start, t_end = times
     for mouse in mice:
         data[mouse] = []
