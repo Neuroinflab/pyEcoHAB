@@ -46,13 +46,13 @@ def are_cages_correctly_assigned(datas):
     out = []
     for mouse in datas:
         t_home = get_time_spent(datas[mouse], 0)
-        t_chamber = get_time_spent(datas[mouse], 2)
+        t_chamber = get_time_spent(datas[mouse], 3)
         if t_home > t_chamber:
             out.append(0)
         else:
-            out.append(2)
+            out.append(3)
 
-    if get_time_spent(out, 0) > get_time_spent(out, 2):
+    if get_time_spent(out, 0) > get_time_spent(out, 3):
         return True
     return False
 
@@ -61,12 +61,12 @@ def get_states_mouse(antennas, times, t_start, t_end, home_antenna, dt):
     states = np.zeros((length), dtype=int)
     if antennas[0] != home_antenna:
         timestamp = utils.get_timestamp(t_start, times[0], dt)
-        states[:timestamp] = 2
+        states[:timestamp] = 3
         previous = 2
     else:
         previous = 1
 
-    for i, a in enumerate(antennas[:-1]):
+    for i, a in enumerate(antennas[1:-1]):
         timestamp = utils.get_timestamp(t_start, times[i], dt)
         next_timestamp = utils.get_timestamp(t_start, times[i+1], dt)
         next_a = antennas[i + 1]
@@ -77,26 +77,26 @@ def get_states_mouse(antennas, times, t_start, t_end, home_antenna, dt):
         elif a == next_a:
             if previous == 1:
                 if a != home_antenna:
-                    states[timestamp:next_timestamp] = 2
+                    states[timestamp:next_timestamp] = 3
 
             else:
                 if times[i+1] - times[i] > 2:
                     if a != home_antenna:
-                        states[timestamp:next_timestamp] = 2
+                        states[timestamp:next_timestamp] = 3
                 else:
                     states[timestamp:next_timestamp] = 1
-    # end
-    previous = states[next_timestamp-1]
+
+        previous = states[next_timestamp-1]
     if previous == 1:
         if next_a != home_antenna:
-            states[next_timestamp:] = 2
+            states[next_timestamp:] = 3
     else:
         if  t_end - times[-1] < 2:
             states[next_timestamp:] = 1
         else:
             if next_a != home_antenna:
-                states[next_timestamp:] = 2
-            
+                states[next_timestamp:] = 3
+
     return states
 
 
@@ -115,7 +115,7 @@ def find_stimulus_cage_mice(states, t_start, t_stop, beginning, dt):
     end = int(round((t_stop - beginning)/dt))
     mice = []
     for mouse in states:
-        if np.any(states[mouse][start:end+1] == 2):
+        if np.any(states[mouse][start:end+1] == 3):
             mice.append(mouse)
     return mice
 

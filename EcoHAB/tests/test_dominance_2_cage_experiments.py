@@ -90,8 +90,8 @@ class TestFindStimulusCageMice(unittest.TestCase):
         out_1 = np.ones((length))
         out_2 = np.ones((length))
         out_3 = np.ones((length))
-        out_1[45:100] = 2
-        out_2[80:108] = 2
+        out_1[45:100] = 3
+        out_2[80:108] = 3
         cls.data = {
             'mouse 1': out_1,
             'mouse 2': out_2,
@@ -257,12 +257,12 @@ class TestIfCagesAreCorrectlyAssigned(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.states_1 = {
-            'mouse_1': np.array([0, 1, 0, 2, 0, 2]),
-            'mouse_2': np.array([0, 2, 0, 1, 0, 2, 0]),
+            'mouse_1': np.array([0, 1, 0, 3, 0, 3]),
+            'mouse_3': np.array([0, 3, 0, 1, 0, 3, 0]),
         }
-        cls.states_2 = {
-            'mouse_1': np.array([0, 1, 0, 2, 2, 2]),
-            'mouse_2': np.array([0, 2, 0, 1, 2, 2]),
+        cls.states_3 = {
+            'mouse_1': np.array([0, 1, 0, 3, 3, 3]),
+            'mouse_3': np.array([0, 3, 0, 1, 3, 3]),
         }
 
     def test_correct(self):
@@ -270,7 +270,7 @@ class TestIfCagesAreCorrectlyAssigned(unittest.TestCase):
         self.assertTrue(out)
 
     def test_incorrect(self):
-        out = dom.are_cages_correctly_assigned(self.states_2)
+        out = dom.are_cages_correctly_assigned(self.states_3)
         self.assertFalse(out)
 
 
