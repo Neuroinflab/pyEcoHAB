@@ -395,9 +395,10 @@ class EcoHabSessions(IEcoHabSession):
             start = min(self.getstarttimes(self._ehd.mice))
             end = args[0]
         self.mask = (start, end)
-        idcs = utils.get_idx_between(start, end, self.data['AbsStartTimecode'])
+        arr = np.array(self.data['AbsStartTimecode'])
+        idcs = np.where((arr >= start) & (arr < end))[0]
         if len(idcs) >= 2:
-            self._mask_slice = (idcs[0], idcs[-1])
+            self._mask_slice = (idcs[0], idcs[-1] +1)
         elif len(idcs) == 1:
             self._mask_slice = (idcs[0], idcs[0] + 1)
         else:
