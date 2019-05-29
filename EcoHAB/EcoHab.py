@@ -376,6 +376,8 @@ class EcoHabSessions(IEcoHabSession):
         self.data['VisitDuration'] = [x[4] for x in temp_data]
         self.data['ValidVisitSolution'] = [x[5] for x in temp_data]
         self.mice = self._ehd.mice
+        self.prefix = self._ehd.prefix
+        self.res_dir = self._ehd.res_dir
         
     def unmask_data(self):
         """Remove the mask - future queries will not be clipped"""
