@@ -581,47 +581,67 @@ def histo():
     ax[1][0].set_xlim([0, max_lim])
     ax[1][1].set_xlim([0, max_lim])
 
-def make_histograms_for_every_mouse(results, fname, main_directory,
+def make_histograms_for_every_mouse(results, fname, mice, main_directory,
                                     directory, prefix, additional_info):
     """
     results should be a dictionary of lists
     """
-    mice = reusults.keys()
-    fig, ax = plt.subplots(1, len(mice), figsize=(len(mice)//2*5, 5))
+    fig, ax = plt.subplots(len(mice), len(mice), figsize=(len(mice)//2*5, len(mice)//2*5))
     new_name = "all_mice"
-
     max_bins = 0
     min_bins = 100
     max_count = 0
     min_count = 0
-    for mouse in mice:
-        intervals = results[mouse]
-        n, bins, patches = ax[i].hist(intervals)
-        ax[i].set_title(mouse, fontsize=14)
-        if bins.min() < min_bins:
-            min_bins = bins.min()
-        if bins.max() > max_bins:
-            max_bins = bins.max()
-        if max(n) > max_count:
-            max_count = max(n)
-        if min(n) < min_count:
-            min_count = min(n)
-        if i:
-            ax[i].set_yticklabels([])
-        else:
-            for tick in ax[i].yaxis.get_major_ticks():
+    for i, mouse1 in enumerate(mice):
+        for j, mouse2 in enumerate(mice):
+            if j:
+                ax[i, j].set_yticklabels([])
+            else:
+                for tick in ax[i, j].yaxis.get_major_ticks():
                     tick.label.set_fontsize(14)
-        for tick in ax[i].xaxis.get_major_ticks():
-            tick.label.set_fontsize(14) 
+            if i == len(mice) - 1:
+                for tick in ax[i, j].xaxis.get_major_ticks():
+                    tick.label.set_fontsize(14) 
+            else:
+                ax[i, j].set_xticklabels([])
+            if mouse1 == mouse2:
+                continue
+            key = "%s_%s" % (mouse1, mouse2)
+            title = "%s following %s" % (mouse2[-4:], mouse1[-4:])
+            intervals = results[key]
+            hist, bins = np.histogram(intervals, bins=10)
+            logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]),len(bins))
+            n, bins, patches = ax[i, j].hist(intervals, bins=logbins)
+            ax[i, j].set_xscale('log')
+            ax[i, j].set_title(title)
+            if not j:
+                ax[i, j].set_ylabel(mouse1[-4:] , fontsize=14)
+            if i == len(mice) - 1:
+                ax[i, j].set_xlabel(mouse2[-4:] , fontsize=14)
+            if bins.min() < min_bins:
+                min_bins = bins.min()
+            if bins.max() > max_bins:
+                max_bins = bins.max()
+            if max(n) > max_count:
+                max_count = max(n)
+            if min(n) < min_count:
+                min_count = min(n)
 
-    for x in ax:
-        x.set_xlim([min_bins, max_bins+1])
-        x.set_ylim([min_count, max_count+3])
-    new_name = os.path.join(directory, 'figs')
-    directory = utils.check_directory(main_directory, new_name)
-    fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, new_name))
+    for s in ax:
+        for x in s:
+            x.set_xlim([min_bins, max_bins+1])
+            x.set_ylim([min_count, max_count+3])
+
+    new_dir = utils.check_directory(directory, 'figs')
+    dir_name =  utils.check_directory(main_directory, new_dir)
+
+    if prefix != "":
+         new_name= '%s_%s_%s.png'% (fname, prefix, new_name)
+    else:
+        new_name =  '%s_%s.png'% (fname, new_name)
+
+    fname = os.path.join(dir_name, new_name)
     print(fname)
-    if len(phases) > 1:
-        fig.subplots_adjust(wspace=0.15)
-    #plt.show()
-    fig.savefig(fname+'.png', dpi=300)
+    fig.subplots_adjust(wspace=0.15)
+
+    fig.savefig(fname, dpi=300)
