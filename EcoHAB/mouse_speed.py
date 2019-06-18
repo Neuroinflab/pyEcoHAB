@@ -4,7 +4,8 @@ from ExperimentConfigFile import ExperimentConfigFile
 import utility_functions as utils
 import numpy as np
 from write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
-from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, make_pooled_histograms
+from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot
+from plotfunctions import make_pooled_histograms, make_histograms_for_every_mouse
 from numba import jit
 titles = {
     3: '12',
@@ -84,24 +85,43 @@ def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2):
                 return 1
     return 0
 
+def following_interval(antenna1, next_antenna1, t1, threshold, antennas2, times2):
+    idxs = utils.get_idx_between(t1, t1 + threshold, times2)
+    for ci in idxs:
+        if ci + 1 >= len(antennas2):
+            return 0
+        if antennas2[ci] == antenna1 and antennas2[ci+1] == next_antenna1:
+            if times2[ci+1] > t1 + threshold:
+                return  times2[ci+1] -  times2[ci]
+    return 0
 
 def following_2_mice_in_pipe(antennas1, times1,
                              antennas2, times2):
     change_indices = utils.change_state(antennas1)
     followings = 0
+    intervals = []
     for idx in change_indices:
         antenna1, next_antenna1 = antennas1[idx:idx+2]
         delta_t1 = times1[idx+1] - times1[idx]
         if utils.in_tube(antenna1, next_antenna1) and delta_t1 < threshold:
-            followings += check_2nd_mouse(antenna1, next_antenna1,
+            out = check_2nd_mouse(antenna1, next_antenna1,
                                           times1[idx], delta_t1,
                                           antennas2, times2)
-    return followings
+            if out:
+                followings += out
+                intervals += [following_interval(antenna1,
+                                                 next_antenna1,
+                                                 times1[idx],
+                                                 delta_t1,
+                                                 antennas2,
+                                                 times2)]
+    return followings, intervals
 
 
 def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase):
     st, en = cf.gettime(phase) 
     followings = np.zeros((len(ehd.mice), len(ehd.mice)))
+    intervals = {mouse:[] for mouse in ehd.mice}
     for j, mouse1 in enumerate(ehd.mice):
         times1, antennas1 = utils.get_times_antennas(ehd, mouse1,
                                                      st, en)
@@ -109,12 +129,18 @@ def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase):
             if mouse2 != mouse1:
                 times2, antennas2 = utils.get_times_antennas(ehd, mouse2,
                                                              st, en)
-                followings[j, k] = following_2_mice_in_pipe(antennas1,
-                                                            times1,
-                                                            antennas2,
-                                                            times2)
-    return followings
+                mouse_followings, mouse_intervals = following_2_mice_in_pipe(antennas1,
+                                                                             times1,
+                                                                             antennas2,
+                                                                             times2)
+                
+                followings[j, k] = mouse_followings
+                intervals[mouse2] += mouse_intervals
+    return followings, intervals
 
+def add_intervals(all_intervals, phase_intervals):
+    for mouse in phase_intervals.keys():
+        all_intervals[mouse].extend(phase_intervals[mouse])
 
 def get_following(ehd, cf, res_dir=None, prefix=None,
               remove_mouse=None):
@@ -132,13 +158,16 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                                            add_info_mice)
     fname_beg = 'relative_following_in_pipe_excess'
     fname_exp = '%s_%s%s.csv' % (fname_beg, prefix, add_info_mice)
+    intervals = {mouse:[] for mouse in ehd.mice}
     for i, phase in enumerate(phases):
-        following[i] = following_2nd_mouse_in_pipe_single_phase(ehd,
-                                                                cf,
-                                                                phase)
+        following[i], phase_intervals = following_2nd_mouse_in_pipe_single_phase(ehd,
+                                                                                 cf,
+                                                                                 phase)
         following_exp[i] = expected_following_in_pipe_single_phase(ehd,
                                                                    cf,
                                                                    phase)
+        add_intervals(intervals, phase_intervals)
+        
         save_single_histograms(following[i],
                                'following_in_pipe',
                                ehd.mice,
@@ -220,6 +249,9 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                            '',
                            prefix,
                            additional_info=add_info_mice)
+
+    make_histograms_for_every_mouse(results, "intervals_histogram", res_dir,
+                                    "", prefix, additional_info=add_info_mice)
 
     return following, following_exp, phases, mice
 

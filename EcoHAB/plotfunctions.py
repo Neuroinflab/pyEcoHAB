@@ -581,3 +581,47 @@ def histo():
     ax[1][0].set_xlim([0, max_lim])
     ax[1][1].set_xlim([0, max_lim])
 
+def make_histograms_for_every_mouse(results, fname, main_directory,
+                                    directory, prefix, additional_info):
+    """
+    results should be a dictionary of lists
+    """
+    mice = reusults.keys()
+    fig, ax = plt.subplots(1, len(mice), figsize=(len(mice)//2*5, 5))
+    new_name = "all_mice"
+
+    max_bins = 0
+    min_bins = 100
+    max_count = 0
+    min_count = 0
+    for mouse in mice:
+        intervals = results[mouse]
+        n, bins, patches = ax[i].hist(intervals)
+        ax[i].set_title(mouse, fontsize=14)
+        if bins.min() < min_bins:
+            min_bins = bins.min()
+        if bins.max() > max_bins:
+            max_bins = bins.max()
+        if max(n) > max_count:
+            max_count = max(n)
+        if min(n) < min_count:
+            min_count = min(n)
+        if i:
+            ax[i].set_yticklabels([])
+        else:
+            for tick in ax[i].yaxis.get_major_ticks():
+                    tick.label.set_fontsize(14)
+        for tick in ax[i].xaxis.get_major_ticks():
+            tick.label.set_fontsize(14) 
+
+    for x in ax:
+        x.set_xlim([min_bins, max_bins+1])
+        x.set_ylim([min_count, max_count+3])
+    new_name = os.path.join(directory, 'figs')
+    directory = utils.check_directory(main_directory, new_name)
+    fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, new_name))
+    print(fname)
+    if len(phases) > 1:
+        fig.subplots_adjust(wspace=0.15)
+    #plt.show()
+    fig.savefig(fname+'.png', dpi=300)

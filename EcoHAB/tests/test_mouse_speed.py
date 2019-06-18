@@ -48,36 +48,40 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
         times1 = [15, 16.5]
         antennas2 = [8, 1, 2, 3, 4, 5]
         times2 = [10, 16, 19, 19.5, 22, 25]
-        out = ms.following_2_mice_in_pipe(antennas1, times1,
-                                          antennas2, times2)
+        out, intervals = ms.following_2_mice_in_pipe(antennas1, times1,
+                                                     antennas2, times2)
         self.assertEqual(out, 1)
+        self.assertEqual(intervals, [3])
 
     def test_not_following(self):
         antennas1 = [1, 2]
         times1 = [15, 16.5]
         antennas2 = [8, 1, 2, 3, 4, 5]
         times2 = [10, 16, 19, 19.5, 22, 25]
-        out = ms.following_2_mice_in_pipe(antennas2, times2,
-                                          antennas1, times1)
+        out, intervals = ms.following_2_mice_in_pipe(antennas2, times2,
+                                                     antennas1, times1)
         self.assertEqual(out, 0)
+        self.assertEqual(intervals, [])
 
     def test_following_more(self):
         antennas1 = [1, 2, 3, 4, 5]
         times1 = [15, 16.5, 19, 20, 21]
         antennas2 = [8, 1, 2, 3, 4, 5]
         times2 = [10, 16, 19, 19.5, 22, 25]
-        out = ms.following_2_mice_in_pipe(antennas1, times1,
-                                          antennas2, times2)
+        out, intervals = ms.following_2_mice_in_pipe(antennas1, times1,
+                                                     antennas2, times2)
         self.assertEqual(out, 2)
+        self.assertEqual(intervals, [3, 2.5])
 
     def test_not_following_more(self):
         antennas1 = [1, 2, 3, 4, 5]
         times1 = [15, 16.5, 19, 20, 21]
         antennas2 = [8, 1, 2, 3, 4, 5]
         times2 = [10, 16, 19, 19.5, 22, 25]
-        out = ms.following_2_mice_in_pipe(antennas2, times2,
-                                          antennas1, times1)
+        out, intervals = ms.following_2_mice_in_pipe(antennas2, times2,
+                                                     antennas1, times1)
         self.assertEqual(out, 0)
+        self.assertEqual(intervals, [])
 
 
 class TestCalculateExpectedFollowings(unittest.TestCase):
