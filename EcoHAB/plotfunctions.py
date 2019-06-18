@@ -158,7 +158,6 @@ def make_RasterPlot(main_directory,
     ax.set_yticklabels(pair_labels)
     for tick in ax.get_xticklabels():
             tick.set_rotation(90)
-            
     fig.subplots_adjust(left=0.25)
     fig.subplots_adjust(bottom=0.25)
     name = name + prefix

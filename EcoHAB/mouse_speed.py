@@ -279,8 +279,7 @@ if __name__ == '__main__':
     phases_list = []
     prefixes = []
     max_len = 0
-    datasets = ['EcoHAB_data_November/C57 30.04-11.05 LONG TIMP/',
-                'EcoHAB_data_November/C57 13-24.04 long/',]
+
     for new_path in datasets:
        
         path = os.path.join(homepath, new_path)
@@ -308,58 +307,3 @@ if __name__ == '__main__':
 
         cf = ExperimentConfigFile(path)
         following, following_exp, phases, mice = get_following(ehd, cf, res_dir, prefix)
-        followings_list.append(following)
-        followings_exp_list.append(following_exp)
-        phases_list.append(phases)
-        prefixes.append(prefix)
-        if len(phases) > max_len:
-            max_len = len(phases)
-    if len(datasets) > 1:
-        shape = (len(datasets), max_len)
-        fig, axes = plt.subplots(*shape, figsize=(shape[1]*10,shape[0]*10))
-        max_bins = 0
-        min_bins = 200
-        min_count = 200
-        max_count = 0
-        for i in range(shape[0]):
-            plt.text(0.2, (0.8+i)/shape[0], datasets[i], fontsize=34, transform=fig.transFigure)
-            for j in range(shape[1]):
-                if j < followings_list[i].shape[0]:
-                    results = followings_list[i][j]
-                    results_exp = followings_exp_list[i][j]
-                    what = results[results > 0] - results_exp[results > 0]
-                    n, bins, patches = axes[i][j].hist(what, bins=nbins)
-
-                    axes[i][j].set_title(phases_list[i][j], fontsize=34)
-                    if bins.min() < min_bins:
-                        min_bins = bins.min()
-                    if bins.max() > max_bins:
-                        max_bins = bins.max()
-                    if max(n) > max_count:
-                        max_count = max(n)
-                    if min(n) < min_count:
-                        min_count = min(n)
-        print(min_bins, max_bins, min_count, max_count)
-        for i in range(shape[0]):
-            for j in range(shape[1]):
-                axes[i][j].set_xlim([min_bins, max_bins])
-                axes[i][j].set_ylim([min_count, max_count+4])
-                axes[i][j].plot([0, 0],
-                                [min_count, max_count+4],
-                                color='r',
-                                linewidth=2)
-                if j:
-                    axes[i][j].set_yticklabels([])
-                else:
-                    for tick in axes[i][j].yaxis.get_major_ticks():
-                        tick.label.set_fontsize(34) 
-                if i < shape[0]-1:
-                    axes[i][j].set_xticklabels([])
-                else:
-                    for tick in axes[i][j].xaxis.get_major_ticks():
-                        tick.label.set_fontsize(34) 
-
-        fig.subplots_adjust(wspace=0.2)
-        fig.subplots_adjust(hspace=0.2)
-        fig.savefig('Long_data_hist.png', dpi=300)
-        #plt.show()
