@@ -12,7 +12,7 @@ titles = {
     11: '56',
     15: '78',
 }
-threshold = 2
+threshold = 12*3600
 
 
 @jit
