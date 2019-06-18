@@ -598,25 +598,22 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
             else:
                 for tick in ax[i, j].yaxis.get_major_ticks():
                     tick.label.set_fontsize(14)
+            if not j:
+                ax[i, j].set_ylabel(mouse1[-4:] , fontsize=14)
             if i == len(mice) - 1:
-                for tick in ax[i, j].xaxis.get_major_ticks():
-                    tick.label.set_fontsize(14) 
-            else:
-                ax[i, j].set_xticklabels([])
+                ax[i, j].set_xlabel(mouse2[-4:] , fontsize=14)
             if mouse1 == mouse2:
                 continue
-            key = "%s_%s" % (mouse1, mouse2)
             title = "%s following %s" % (mouse2[-4:], mouse1[-4:])
+            ax[i, j].set_title(title)
+            key = "%s_%s" % (mouse1, mouse2)
+
             intervals = results[key]
             hist, bins = np.histogram(intervals, bins=10)
             logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]),len(bins))
             n, bins, patches = ax[i, j].hist(intervals, bins=logbins)
             ax[i, j].set_xscale('log')
-            ax[i, j].set_title(title)
-            if not j:
-                ax[i, j].set_ylabel(mouse1[-4:] , fontsize=14)
-            if i == len(mice) - 1:
-                ax[i, j].set_xlabel(mouse2[-4:] , fontsize=14)
+
             if bins.min() < min_bins:
                 min_bins = bins.min()
             if bins.max() > max_bins:
@@ -625,7 +622,11 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
                 max_count = max(n)
             if min(n) < min_count:
                 min_count = min(n)
-
+            if i == len(mice) - 1:
+                for tick in ax[i, j].xaxis.get_major_ticks():
+                    tick.label.set_fontsize(14) 
+            else:
+                ax[i, j].set_xticklabels([])
     for s in ax:
         for x in s:
             x.set_xlim([min_bins, max_bins+1])
