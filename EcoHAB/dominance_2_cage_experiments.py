@@ -8,6 +8,7 @@ import utility_functions as utils
 import numpy as np
 import matplotlib.pyplot as plt
 import dispatch
+from write_to_file import write_csv_alone
 
 mouse_attention_span = 10  # sec
 nbins = 10
@@ -288,11 +289,49 @@ def get_subversion_evaluation(ehd, cf, res_dir=None, prefix=None, dt=dt):
                                        args=[states, home_cage_antenna, dt])
 
 
+def how_many_visits(states, t_start, t_end, T_0, dt):
+    t1_stamp = utils.get_timestamp(T_0, t_start, dt)
+    t2_stamp = utils.get_timestamp(T_0, t_end, dt)
+    new_states = states[t1_stamp:t2_stamp]
+    transitions = new_states[1:] - new_states[:-1]
+    where = np.where(transitions == 2)[0]
+    return len(where)
+
+
+def visits_to_stimulus_cage(ehd, cf, res_dir=None, prefix=None, dt=dt):
+    if res_dir is None:
+        res_dir = ehd.res_dir
+    if prefix is None:
+        prefix = ehd.prefix
+    states, home_cage_antenna = get_states_and_home_cage_antenna(ehd,
+                                                                 cf,
+                                                                 dt)
+    phases = utils.filter_dark_light(cf.sections())
+    print(res_dir, home_cage_antenna, phases)
+    results = np.zeros((1,  len(ehd.mice), len(phases)))
+    cumulative = np.zeros((1, len(ehd.mice)))
+    T_0, T_1 = cf.gettime("ALL")
+    for i, phase in enumerate(phases):
+        t_start, t_end = cf.gettime(phase)
+        for j, mouse in enumerate(ehd.mice):
+            results[0, j, i] = how_many_visits(states[mouse], t_start, t_end, T_0, dt)
+    print(results)
+    for j, mouse in enumerate(ehd.mice):
+        cumulative[0, j] = how_many_visits(states[mouse], T_0, T_1, T_0, dt)
+        assert cumulative[0, j] == sum(results[0, j, :])
+    write_csv_alone(results, phases, ehd.mice,
+                    res_dir, prefix, labels=["stimulus chamber"],
+                    header='Number of visits %s\n',
+                    fname='visits_to_stimulus_chamber_%s.csv',
+                    directory="mice_in_stimulus_chamber")
+
+
 if __name__ == '__main__':
-    datasets = [
-        "EcoHAB_data_November/Samce C57 sham EH dominacja 05-08.03.2019/",
-        "EcoHAB_data_November/kraków dominacja 08.03-12.03.2019/"
-                 ]
+    # datasets = [
+    #     "EcoHAB_data_November/Samce C57 sham EH dominacja 05-08.03.2019/",
+    #     "EcoHAB_data_November/C57_males_socdomination_21-23.05.19/",
+    #     "EcoHAB_data_November/social_structure_16.01/"
+    # ]
     for new_path in datasets:
         path = os.path.join(homepath, new_path)
         prefix = utils.make_prefix(path)
@@ -303,7 +342,7 @@ if __name__ == '__main__':
         if new_path not in antenna_positions:
             antenna_positions[new_path] = None
         if new_path not in how_many_appearances:
-            how_many_appearances[new_path] = 500
+            how_many_appearances[new_path] = 100
         if remove_mouse:
             ehd1 = EcoHab.EcoHabData(path=path,
                                     _ant_pos=antenna_positions[new_path],
