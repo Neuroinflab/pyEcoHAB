@@ -59,10 +59,14 @@ datasets = [
     "EcoHAB_data_November/Fmr1 KO young long 20.11-01.12.18/",
     "EcoHAB_data_November/Turkusowe 26.03.-04.04.19 długi z bodźcem/",
     "EcoHAB_data_November/FxWT_10_L_EHcl_28.08-05.09.18/",
-     "EcoHAB_data_November/C57_males_19.04-30.04_Long_Sniff/",
+    "EcoHAB_data_November/C57_males_19.04-30.04_Long_Sniff/",
     "EcoHAB_data_November/C57_males_domination_30.04-03.05/",
     "EcoHAB_data_November/C57_Long_Sniff_06-16.05.19/",
-    "EcoHAB_data_November/C57_males_Domination test 20.05.19 - sniff phase/"
+    "EcoHAB_data_November/C57_males_Domination test 20.05.19 - sniff phase/",
+    "EcoHAB_data_November/C57_males_socdomination_21-23.05.19/",
+    "EcoHAB_data_November/C57_social_dominance_28-31.05/",
+    "EcoHAB_data_November/Kozinski_turkusowe_26.03-04.04_long_sniff/",
+    "EcoHAB_data_November/Kozinski_zlote_08.04-18.04_long_sniff/",
 ]
 
 remove_tags = {
