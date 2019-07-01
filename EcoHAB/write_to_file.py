@@ -137,21 +137,20 @@ def write_csv_tables(results, phases, mice, main_directory, dirname, fname, pref
         f.write('\n')
     f.close()
 
-def write_csv_alone(alone, phases, mice, main_directory, prefix):
-    directory = utils.check_directory(main_directory, 'mouse_alone')
-    fname =  os.path.join(directory, 'mouse_alone_%s.csv' % prefix)
+def write_csv_alone(alone, phases, mice, main_directory, prefix, labels=["1", "2", "3", "4"],  header='Mice alone in chamber %s\n', fname='mouse_alone_%s.csv', directory="mouse_alone"):
+    directory = utils.check_directory(main_directory, directory)
+    fname =  os.path.join(directory, fname % prefix)
     try:
         f = open(fname, 'w')
     except IOError:
         print('Could not write to ', fname)
         return
-    header = 'Mice alone in chamber %d\n'
     phases_header = 'Mouse;'
     for phase in phases:
         phases_header += phase + ';'
     phases_header += '\n'
-    for i in range(1, 5):
-        f.write(header % i)
+    for i in range(1, alone.shape[0]+1):
+        f.write(header % labels[i-1])
         f.write(phases_header)
         for j, mouse in enumerate(mice):
             f.write(mouse+';')
