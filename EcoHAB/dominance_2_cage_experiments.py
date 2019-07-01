@@ -307,7 +307,6 @@ def visits_to_stimulus_cage(ehd, cf, res_dir=None, prefix=None, dt=dt):
                                                                  cf,
                                                                  dt)
     phases = utils.filter_dark_light(cf.sections())
-    print(res_dir, home_cage_antenna, phases)
     results = np.zeros((1,  len(ehd.mice), len(phases)))
     cumulative = np.zeros((1, len(ehd.mice)))
     T_0, T_1 = cf.gettime("ALL")
@@ -315,7 +314,6 @@ def visits_to_stimulus_cage(ehd, cf, res_dir=None, prefix=None, dt=dt):
         t_start, t_end = cf.gettime(phase)
         for j, mouse in enumerate(ehd.mice):
             results[0, j, i] = how_many_visits(states[mouse], t_start, t_end, T_0, dt)
-    print(results)
     for j, mouse in enumerate(ehd.mice):
         cumulative[0, j] = how_many_visits(states[mouse], T_0, T_1, T_0, dt)
         assert cumulative[0, j] == sum(results[0, j, :])
