@@ -519,7 +519,6 @@ def make_pooled_histograms(res,
     else:
         new_phase = "%s_%s" %(phases[0].replace(' ', '__'),
                               phases[-1].replace(' ', '__'))
-
     max_bins = 0
     min_bins = 100
     max_count = 0
@@ -544,15 +543,13 @@ def make_pooled_histograms(res,
             for tick in ax[i].yaxis.get_major_ticks():
                     tick.label.set_fontsize(14)
         for tick in ax[i].xaxis.get_major_ticks():
-            tick.label.set_fontsize(14) 
-
+            tick.label.set_fontsize(14)
     for x in ax:
         x.set_xlim([min_bins, max_bins+1])
         x.set_ylim([min_count, max_count+3])
     new_name = os.path.join(directory, 'figs')
     directory = utils.check_directory(main_directory, new_name)
     fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, new_phase))
-    print(fname)
     if len(phases) > 1:
         fig.subplots_adjust(wspace=0.15)
     #plt.show()
@@ -574,7 +571,6 @@ def histo():
     ax[1][1].set_xscale("log", nonposx='clip')
 
     max_lim = max(max(bins1[-1], bins2[-1]), max(bins3[-1], bins4[-1]))
-    
     ax[0][0].set_xlim([0, max_lim])
     ax[0][1].set_xlim([0, max_lim])
     ax[1][0].set_xlim([0, max_lim])
@@ -624,7 +620,7 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
                 min_count = min(n)
             if i == len(mice) - 1:
                 for tick in ax[i, j].xaxis.get_major_ticks():
-                    tick.label.set_fontsize(14) 
+                    tick.label.set_fontsize(14)
             else:
                 ax[i, j].set_xticklabels([])
     for s in ax:
