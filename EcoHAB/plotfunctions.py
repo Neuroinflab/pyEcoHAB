@@ -643,5 +643,89 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
     fname = os.path.join(dir_name, new_name)
     print(fname)
     fig.subplots_adjust(wspace=0.15)
-
     fig.savefig(fname, dpi=300)
+
+
+def pool_results_following(res_dict, mice):
+    pooled_results = {mouse:[] for mouse in mice}
+    for mouse1 in mice:
+        for mouse2 in mice:
+            if mouse1 == mouse2:
+                continue
+            key = "%s_%s" %(mouse1, mouse2)
+            pooled_results[mouse2] += res_dict[key]
+    return pooled_results
+
+def pool_results_followed(res_dict, mice):
+    pooled_results = {mouse:[] for mouse in mice}
+    for mouse1 in mice:
+        for mouse2 in mice:
+            if mouse1 == mouse2:
+                continue
+            key = "%s_%s" %(mouse1, mouse2)
+            pooled_results[mouse1] += res_dict[key]
+    return pooled_results
+
+def make_fig_histogram(results, path, title):
+    mice = results.keys()
+    fig, ax = plt.subplots(1, len(mice), figsize=(len(mice)//2*5, 5))
+    max_bins = 0
+    min_bins = 100
+    max_count = 0
+    min_count = 0
+    for i, mouse in enumerate(mice):
+        if i:
+            ax[i].set_yticklabels([])
+        else:
+            for tick in ax[i].yaxis.get_major_ticks():
+                tick.label.set_fontsize(14)
+        new_title = "%s %s" % (mouse[-4:], title)
+        ax[i].set_title(new_title)
+        intervals = results[mouse]
+        hist, bins = np.histogram(intervals, bins=30)
+        logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]),len(bins))
+        n, bins, patches = ax[i].hist(intervals, bins=logbins)
+        ax[i].set_xscale('log')
+        if bins.min() < min_bins:
+            min_bins = bins.min()
+        if bins.max() > max_bins:
+            max_bins = bins.max()
+        if max(n) > max_count:
+            max_count = max(n)
+        if min(n) < min_count:
+            min_count = min(n)
+        for tick in ax[i].xaxis.get_major_ticks():
+            tick.label.set_fontsize(14)
+    for x in ax:
+        x.set_xlim([min_bins, max_bins+1])
+        x.set_ylim([min_count, max_count+3])
+    fig.subplots_adjust(wspace=0.15)
+    fig.savefig(path, dpi=300)
+    print(path)
+
+
+def make_pooled_histograms_for_every_mouse(results, fname,
+                                           mice, main_directory,
+                                           directory, prefix,
+                                           additional_info):
+    results_following = pool_results_following(results, mice)
+    results_followed = pool_results_followed(results, mice)
+    new_name_following = "pooled_following"
+    new_name_followed = "pooled_followed"
+
+    new_dir = utils.check_directory(directory, 'figs')
+    dir_name =  utils.check_directory(main_directory, new_dir)
+
+    if prefix != "":
+        new_name_following = '%s_%s_%s.png'% (fname, prefix, new_name_following)
+        new_name_followed = '%s_%s_%s.png'% (fname, prefix, new_name_followed)
+    else:
+        new_name_following =  '%s_%s.png'% (fname, new_name_following)
+        new_name_followed =  '%s_%s.png'% (fname, new_name_followed)
+
+    fname_following = os.path.join(dir_name, new_name_following)
+    fname_followed = os.path.join(dir_name, new_name_followed)
+    make_fig_histogram(results_following, fname_following,
+                       "following")
+    make_fig_histogram(results_followed, fname_followed,
+                       "followed")
