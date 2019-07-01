@@ -28,6 +28,10 @@ if __name__ == '__main__':
             remove_mouse = remove_tags[new_path]
         else:
             remove_mouse = None
+        if new_path == "EcoHAB_data_November/C57_social_dominance_28-31.05/":
+            remove_antennas = [3, 4, 5, 6, 7, 8]
+        else:
+            remove_antennas = []
         if new_path not in antenna_positions:
             antenna_positions[new_path] = None
         if new_path not in how_many_appearances:
@@ -36,11 +40,12 @@ if __name__ == '__main__':
             ehd = EcoHab.EcoHabData(path=path,
                                     _ant_pos=antenna_positions[new_path],
                                     remove_mice=remove_mouse,
-                                    how_many_appearances=how_many_appearances[new_path])
+                                    how_many_appearances=how_many_appearances[new_path], remove_antennas=remove_antennas)
         else:
             ehd = EcoHab.EcoHabData(path=path,
                                     _ant_pos=antenna_positions[new_path],
-                                    how_many_appearances=how_many_appearances[new_path])
+                                    how_many_appearances=how_many_appearances[new_path],
+                                    remove_antennas=remove_antennas)
 
         ehs = EcoHab.EcoHabSessions(ehd)
         cf = ExperimentConfigFile(path)
