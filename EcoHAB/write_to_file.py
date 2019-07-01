@@ -35,7 +35,6 @@ def save_data_cvs(data, fname, path, which, headers):
     f = open(fname,'w')
     phases = data['phases']
     mice = data['mice']
-    
     header = 'mouse;\"time [h]\"'
     for phase in phases:
         header += ';\"'+phase+"\""
@@ -158,3 +157,30 @@ def write_csv_alone(alone, phases, mice, main_directory, prefix, labels=["1", "2
                 f.write(str(alone[i-1, j, k])+';')
             f.write('\n')
     f.close()
+
+def write_interpair_intervals(results, main_directory,
+                              directory, fname, prefix,
+                              additional_info=None):
+    new_name = os.path.join(main_directory, 'data')
+    directory = utils.check_directory(directory, new_name)
+    if isinstance(additional_info, str):
+        fname =  os.path.join(directory, '%s_%s_%s.csv'% (fname,
+                                                          prefix,
+                                                          additional_info))
+    else:
+        fname =  os.path.join(directory, '%s_%s.csv'% (fname,
+                                                       prefix))
+    try:
+        f = open(fname, 'w')
+    except IOError:
+        print('Could not write to file', fname)
+        return None
+    print(fname)
+    f.write("followed mouse, following mouse, intervals\n")
+    keys = sorted(results.keys())
+    for key in keys:
+        mouse1, mouse2 = key.split('_')
+        f.write("%s,%s," % (mouse1, mouse2))
+        for interval in results[key]:
+            f.write("%f," % interval)
+        f.write("\n")
