@@ -103,6 +103,28 @@ class EcoHabData(Data):
             antennas.append(self.getantennas(mouse)[0])
         return max(set(antennas), key=antennas.count)
 
+    def _remove_antennas(self, data, antennas=[]):
+        if isinstance(antennas, list):
+            new_data = {}
+            new_data['Time'] = []
+            new_data['Antenna'] = []
+            new_data['Id'] = []
+            new_data['Tag'] = []
+            new_data['Duration'] = []
+
+            for i, antenna in enumerate(data['Antenna']):
+                if antenna not in antennas:
+                    new_data['Time'].append(data['Time'][i])
+                    new_data['Antenna'].append(data['Antenna'][i])
+                    new_data['Id'].append(data['Id'][i])
+                    new_data['Tag'].append(data['Tag'][i])
+                    new_data['Duration'].append(data['Duration'][i])
+                else:
+                    print(data['Time'][i], data['Antenna'][i],
+                          data['Id'][i], data['Tag'][i], data['Duration'][i])
+            return new_data
+        return data
+
     def process_line_6(self,elements):
         """remove point from 2nd column of new data files"""
         return [elements[0],' '.join([elements[1].replace('.', ''), elements[2]]), elements[3], elements[4], elements[5]]
@@ -216,6 +238,7 @@ class EcoHabData(Data):
         self.get_data()
         self.max_break = max_break
         how_many_appearances = kwargs.pop('how_many_appearances', 50)
+        remove_antennas = kwargs.pop('remove_antennas', [])
         factor = kwargs.pop('factor',2)
         tags = kwargs.pop('remove_mice',[])
         self.rawdata = self.remove_ghost_tags(how_many_appearances,
@@ -238,6 +261,7 @@ class EcoHabData(Data):
         data['Antenna'] = [self._ant_pos[d[2]] for d in self.rawdata]
         data['Tag'] = [d[4] for d in self.rawdata]
         data['Duration'] = [d[3] for d in self.rawdata]
+        data = self._remove_antennas(data, remove_antennas)
         super(EcoHabData,self).__init__(data, mask)
         antenna_breaks = self.check_antenna_presence()
         if antenna_breaks:
