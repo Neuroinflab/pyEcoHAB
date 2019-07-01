@@ -3,9 +3,15 @@ import EcoHab
 from ExperimentConfigFile import ExperimentConfigFile
 import utility_functions as utils
 import numpy as np
-from write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
+from write_to_file import save_single_histograms
+from write_to_file import write_csv_rasters
+from write_to_file import write_csv_tables
+from write_to_file import write_csv_alone
+from write_to_file import write_interpair_intervals
 from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot
-from plotfunctions import make_pooled_histograms, make_histograms_for_every_mouse
+from plotfunctions import make_pooled_histograms
+from plotfunctions import make_histograms_for_every_mouse
+from plotfunctions import make_pooled_histograms_for_every_mouse
 from numba import jit
 titles = {
     3: '12',
@@ -138,7 +144,6 @@ def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase):
                                                                              times1,
                                                                              antennas2,
                                                                              times2)
-                
                 followings[j, k] = mouse_followings
                 key =  "%s_%s" % (mouse1, mouse2)
                 interval_details[key] += mouse_intervals
@@ -262,9 +267,23 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                            prefix,
                            additional_info=add_info_mice)
 
-    make_histograms_for_every_mouse(interval_details, "followings_intervals_histogram", ehd.mice, res_dir,
-                                    "following_in_pipe", prefix, additional_info=add_info_mice)
-
+    make_histograms_for_every_mouse(interval_details,
+                                    "followings_intervals_histogram",
+                                    ehd.mice,
+                                    res_dir,
+                                    "following_in_pipe",
+                                    prefix,
+                                    additional_info=add_info_mice)
+    make_pooled_histograms_for_every_mouse(interval_details,
+                                           "followings_intervals_histogram",
+                                           ehd.mice,
+                                           res_dir,
+                                           "following_in_pipe",
+                                           prefix,
+                                           additional_info=add_info_mice)
+    write_interpair_intervals(interval_details, "following_in_pipe",
+                              res_dir, "following_intervals", prefix,
+                              additional_info=add_info_mice)
     return following, following_exp, phases, mice
 
 
