@@ -371,3 +371,4 @@ if __name__ == '__main__':
                                            'subversive mouse',
                                            '# times in small cage',
                                            args=[states, home_cage_antenna, dt])
+        visits_to_stimulus_cage(ehd1, cf1, res_dir, prefix, dt=dt)
