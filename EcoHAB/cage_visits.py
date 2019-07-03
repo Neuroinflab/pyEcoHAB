@@ -5,13 +5,15 @@ import os
 import utility_functions as utils
 from write_to_file import save_data_cvs
 from ExperimentConfigFile import ExperimentConfigFile
-
+from collections import OrderedDict
 
 def visits_and_durations(intervals, t_start, t_stop):
-    interval_array = np.array(intervals)
-
-    idx_pre = utils.get_idx_pre(t_start, interval_array[:, 0])
     visits, durations = 0, 0
+    interval_array = np.array(intervals)
+    if not len(interval_array):
+        return visits, durations
+    idx_pre = utils.get_idx_pre(t_start, interval_array[:, 0])
+
     #check visit before t_start
     if idx_pre is not None:
         start_pre, stop_pre = intervals[int(idx_pre)]
