@@ -51,23 +51,55 @@ def visits_and_durations_bins(intervals, time_start,
                                                        t_start, t_end)
     return visits, durations
 
+def calculate_visits_and_durations(data, mice, address, t_start, t_end, binsize):
+    visits = OrderedDict()
+    durations = OrderedDict()
+    for mouse in mice:
+        intervals = utils.get_intervals(data[mouse], address)
+        visits[mouse], durations[mouse] = visits_and_durations_bins(intervals,
+                                                                    t_start,
+                                                                    t_end,
+                                                                    binsize)
+    return visits, durations
 
-# def get_cage_visits(ehs, cf,
-#                     res_dir=None,
-#                     prefix=None,
-#                     which_phases=None,
-#                     remove_mouse=None):
-#     if prefix is None:
-#         prefix = ehd.prefix
-#     if res_dir is None:
-#         res_dir = ehd.res_dir
-#     mice = utils.get_mice(ehs.mice, remove_mouse)
-#     add_info_mice = utils.add_info_mice_filename(remove_mouse)
-#     full_results = np.zeros((len(phases), len(mice), len(mice)))
-#     full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
-#Get intervals for the whole experiment and then loop?
-#     for idx_phase, phase in enumerate(phases):
-#             t_start, t_end = cf.gettime(phase)
-#             data = utils.get_ehs_data(ehs, mouse, t_start, t_end)
-#             for address in range(1, 5):
-#                 intervals = utils.get_intervals(data, address)
+
+def get_all_visits_durations(ehs, cf, binsize,
+                             res_dir=None,
+                             prefix=None,
+                             remove_mouse=None,
+                             headers=None):
+    cages = [i for i in range(1, 5)]
+    if prefix is None:
+        prefix = ehs.prefix
+    if res_dir is None:
+        res_dir = ehs.res_dir
+    if headers is None:
+        basic = ['Number of visits to box %d\n',
+                 'Total time in box %d, seconds\n']
+        headers = {str(i):basic for i in cages}
+    phases = utils.filter_dark_light(cf.sections())
+    fname = '%scollective_results_all_chambers_binsize_%f_h.csv'%(prefix,
+                                                                  binsize//3600)
+    mice = utils.get_mice(ehs.mice, remove_mouse)
+    add_info_mice = utils.add_info_mice_filename(remove_mouse)
+    cages = {'1': 1, '3': 3, '2': 2, '4': 4}
+    data = {c:{0:{},1:{}} for c in cages.keys()}
+    data['mice'] = mice
+    data['phases'] = phases
+    data['time'] = {}
+    ehs_data = utils.prepare_data(ehs, mice)
+    for idx_phase, phase in enumerate(phases):
+        t_start, t_end = cf.gettime(phase)
+        for address in cages.keys():
+            visits, durations = calculate_visits_and_durations(ehs_data,
+                                                               mice,
+                                                               cages[address],
+                                                               t_start,
+                                                               t_end,
+                                                               binsize)
+            data[address][0][phase] = visits
+            data[address][1][phase] = durations
+            data['time'][phase] = utils.get_times(binsize)
+    save_data_cvs(data, fname, res_dir,
+                  cages,
+                  headers, target_dir="cage_visits")
