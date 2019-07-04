@@ -5,7 +5,6 @@ import numpy as np
 
 def write_single_chamber(f, header, heads, address, mice, phases, time, data_stim ):
     longest = 0
-    
     for j, h in enumerate(heads):
         f.write(h%address)
         f.write(header+'\n')
@@ -17,7 +16,7 @@ def write_single_chamber(f, header, heads, address, mice, phases, time, data_sti
             lines = [mouse for i in range(longest)]
 
             for phase in phases:
-                for k,t in enumerate(time[phase]):
+                for k, t in enumerate(time[phase]):
                     if phase == phases[0]:
                         lines[k] += ';%3.2f'%(t/3600)
 
@@ -26,11 +25,13 @@ def write_single_chamber(f, header, heads, address, mice, phases, time, data_sti
             for line in lines:
                 f.write(line+'\n')
 
-def save_data_cvs(data, fname, path, which, headers):
-    new_path = os.path.join(path, 'time_in_chambers')
+def save_data_cvs(data, fname, path, which, headers,
+                  target_dir="time_in_chambers"):
+    new_path = os.path.join(path, target_dir)
     if not os.path.exists(new_path):
         print(new_path)
         os.makedirs(new_path)
+
     fname = os.path.join(new_path, fname)
     f = open(fname,'w')
     phases = data['phases']
