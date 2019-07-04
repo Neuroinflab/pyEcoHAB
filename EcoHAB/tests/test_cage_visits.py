@@ -19,8 +19,8 @@ class TestVisitsAndDurations(unittest.TestCase):
                      [18, 20], [40, 70],
                      [80, 90], [110, 130]]
         v, d = cv.visits_and_durations(intervals, t_start, t_stop)
-        self.assertEqual(v, 5)
-        self.assertEqual(d, 46)
+        self.assertEqual(v, 4)
+        self.assertEqual(d, 45)
 
     def test_intervals_ending_after_the_bin(self):
         t_start = 10
@@ -30,7 +30,7 @@ class TestVisitsAndDurations(unittest.TestCase):
                      [80, 90], [95, 130]]
         v, d = cv.visits_and_durations(intervals, t_start, t_stop)
         self.assertEqual(v, 5)
-        self.assertEqual(d, 50)
+        self.assertEqual(d, 80)
 
     def test_intervals(self):
         t_start = 10
@@ -39,16 +39,16 @@ class TestVisitsAndDurations(unittest.TestCase):
                      [18, 20], [40, 70],
                      [80, 90], [95, 130]]
         v, d = cv.visits_and_durations(intervals, t_start, t_stop)
-        self.assertEqual(v, 6)
-        self.assertEqual(d, 51)
+        self.assertEqual(v, 5)
+        self.assertEqual(d, 80)
 
     def test_one_loonger_interval(self):
         t_start = 10
         t_stop = 100
         intervals = [[1, 110]]
         v, d = cv.visits_and_durations(intervals, t_start, t_stop)
-        self.assertEqual(v, 1)
-        self.assertEqual(d, 90)
+        self.assertEqual(v, 0)
+        self.assertEqual(d, 0)
 
 
 class TestVisitsDurationsPhase(unittest.TestCase):
@@ -69,8 +69,8 @@ class TestVisitsDurationsPhase(unittest.TestCase):
                      [18, 20], [40, 70],
                      [80, 90], [110, 130]]
         v, d = cv.visits_and_durations_bins(intervals, t_start, t_stop, 90)
-        out_visits = np.array_equal(v, np.array([5]))
-        out_durations = np.array_equal(d, np.array([46]))
+        out_visits = np.array_equal(v, np.array([4]))
+        out_durations = np.array_equal(d, np.array([45]))
         self.assertTrue(out_visits)
         self.assertTrue(out_durations)
 
@@ -82,7 +82,7 @@ class TestVisitsDurationsPhase(unittest.TestCase):
                      [80, 90], [95, 130]]
         v, d = cv.visits_and_durations_bins(intervals, t_start, t_stop, 90)
         out_visits = np.array_equal(v, np.array([5]))
-        out_durations = np.array_equal(d, np.array([50]))
+        out_durations = np.array_equal(d, np.array([80]))
         self.assertTrue(out_visits)
         self.assertTrue(out_durations)
 
@@ -93,8 +93,8 @@ class TestVisitsDurationsPhase(unittest.TestCase):
                      [18, 20], [40, 70],
                      [80, 90], [95, 130]]
         v, d = cv.visits_and_durations_bins(intervals, t_start, t_stop, 90)
-        out_visits = np.array_equal(v, np.array([6]))
-        out_durations = np.array_equal(d, np.array([51]))
+        out_visits = np.array_equal(v, np.array([5]))
+        out_durations = np.array_equal(d, np.array([80]))
         self.assertTrue(out_visits)
         self.assertTrue(out_durations)
 
@@ -105,9 +105,9 @@ class TestVisitsDurationsPhase(unittest.TestCase):
         intervals = [[1, 5], [12, 15], [18, 20], [40, 70], [80, 90], [110, 130]]
         v, d = cv.visits_and_durations_bins(intervals, t_start, t_stop, 10)
         out_visits = np.array_equal(v, np.array([1, 2, 0, 0, 1,
-                                                 1, 1, 0, 1, 0]))
-        out_durations = np.array_equal(d, np.array([4, 5, 0, 0, 10,
-                                                    10, 10, 0, 10, 0]))
+                                                 0, 0, 0, 1, 0]))
+        out_durations = np.array_equal(d, np.array([4, 5, 0, 0, 30,
+                                                    0, 0, 0, 10, 0]))
         self.assertTrue(out_visits)
         self.assertTrue(out_durations)
 
@@ -118,10 +118,10 @@ class TestVisitsDurationsPhase(unittest.TestCase):
                      [18, 20], [40, 70],
                      [80, 90], [110, 130]]
         v, d = cv.visits_and_durations_bins(intervals, t_start, t_stop, 10)
-        out_visits = np.array_equal(v, np.array([1, 3, 0, 0,
-                                                 1, 1, 1, 0, 1, 0]))
-        out_durations = np.array_equal(d, np.array([9, 6, 0, 0, 10,
-                                                    10, 10, 0, 10, 0]))
+        out_visits = np.array_equal(v, np.array([1, 2, 0, 0,
+                                                 1, 0, 0, 0, 1, 0]))
+        out_durations = np.array_equal(d, np.array([10, 5, 0, 0, 30,
+                                                    0, 0, 0, 10, 0]))
         self.assertTrue(out_visits)
         self.assertTrue(out_durations)
 

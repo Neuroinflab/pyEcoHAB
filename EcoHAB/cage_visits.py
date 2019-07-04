@@ -7,34 +7,19 @@ from write_to_file import save_data_cvs
 from ExperimentConfigFile import ExperimentConfigFile
 from collections import OrderedDict
 
+
 def visits_and_durations(intervals, t_start, t_stop):
     visits, durations = 0, 0
     interval_array = np.array(intervals)
     if not len(interval_array):
         return visits, durations
-    idx_pre = utils.get_idx_pre(t_start, interval_array[:, 0])
-
-    #check visit before t_start
-    if idx_pre is not None:
-        start_pre, stop_pre = intervals[int(idx_pre)]
-        if  stop_pre > t_start:
-            visits += 1
-            if stop_pre > t_stop:
-                durations += t_stop - t_start
-                return visits, durations
-            durations +=  stop_pre - t_start
-
     idx_between = utils.get_idx_between(t_start, t_stop, interval_array[:, 0])
-
     for idx in idx_between:
         i_start, i_stop = intervals[idx]
         if i_start >= t_stop:
             break
         visits += 1
-        if i_stop < t_stop:
-            durations += i_stop - i_start
-        else:
-            durations += t_stop - i_start
+        durations += i_stop - i_start
     return visits, durations
 
 
