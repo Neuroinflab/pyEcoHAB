@@ -41,7 +41,7 @@ def visits_and_durations(intervals, t_start, t_stop):
 def visits_and_durations_bins(intervals, time_start,
                               time_end, binsize):
     length = utils.get_length(time_start, time_end, binsize)
-    visits = np.zeros(length)
+    visits = np.zeros(length, dtype=int)
     durations = np.zeros(length)
     time = time_start
     for i in range(length):
