@@ -87,4 +87,4 @@ def get_all_visits_durations(ehs, cf, binsize,
             data['time'][phase] = utils.get_times(binsize)
     save_data_cvs(data, fname, res_dir,
                   cages,
-                  headers, target_dir="cage_visits")
+                  headers)
