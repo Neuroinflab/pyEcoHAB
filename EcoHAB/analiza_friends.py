@@ -299,18 +299,13 @@ if __name__ == '__main__':
     threshold = 3
     new_path = "EcoHAB_data_November/Maciek_01_30_2018"
     path = os.path.join(homepath, new_path)
-    prefix = utils.make_prefix(path)
     ehd = EcoHab.EcoHabData(path=path,
                             _ant_pos=None,
                             how_many_appearances=10)
     ehs = EcoHab.EcoHabSessions(ehd)
     cf = ExperimentConfigFile(path)
-    tstart, tend = cf.gettime('ALL')
-    directory = utils.results_path(path)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    mouse_alone_ehs(ehs, cf, directory, prefix)
-    in_cohort_sociability(ehs, cf, directory, prefix)
-    in_cohort_sociability(ehs, cf, directory, prefix, which_phases="ALL")
-    in_cohort_sociability(ehs, cf, directory, prefix, which_phases="dark")
-    in_cohort_sociability(ehs, cf, directory, prefix, which_phases="light")
+    get_mouse_alone(ehs, cf)
+    get_in_cohort_sociability(ehs, cf,)
+    get_in_cohort_sociability(ehs, cf, which_phases="ALL")
+    get_in_cohort_sociability(ehs, cf, which_phases="dark")
+    get_in_cohort_sociability(ehs, cf, which_phases="light")
