@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 import os
-import analiza_friends as af
-import cage_visits as cv
-import mouse_speed as ms
-import EcoHab
-from ExperimentConfigFile import ExperimentConfigFile
-from data_info import *
-import tube_dominance as td
+from EcoHab import * 
+from .data_info import *
 
 homepath = os.path.expanduser("~/")
 threshold = 3
@@ -30,30 +25,31 @@ if __name__ == '__main__':
         if new_path not in how_many_appearances:
             how_many_appearances[new_path] = 10
         if remove_mouse:
-            ehd = EcoHab.EcoHabData(path=path,
-                                    _ant_pos=antenna_positions[new_path],
-                                    remove_mice=remove_mouse,
-                                    how_many_appearances=how_many_appearances[new_path], remove_antennas=remove_antennas)
+            ehd = EcoHabData(path=path,
+                             _ant_pos=antenna_positions[new_path],
+                             remove_mice=remove_mouse,
+                             how_many_appearances=how_many_appearances[new_path],
+                             remove_antennas=remove_antennas)
         else:
-            ehd = EcoHab.EcoHabData(path=path,
-                                    _ant_pos=antenna_positions[new_path],
-                                    how_many_appearances=how_many_appearances[new_path],
-                                    remove_antennas=remove_antennas)
+            ehd = EcoHabData(path=path,
+                             _ant_pos=antenna_positions[new_path],
+                             how_many_appearances=how_many_appearances[new_path],
+                             remove_antennas=remove_antennas)
 
-        ehs = EcoHab.EcoHabSessions(ehd)
+        ehs = EcoHabSessions(ehd)
         cf = ExperimentConfigFile(path)
-        af.get_mouse_alone(ehs, cf)
-        af.get_in_cohort_sociability(ehs, cf, remove_mouse=remove_mouse)
-        af.get_in_cohort_sociability(ehs, cf,
-                                     which_phases="ALL",
-                                     remove_mouse=remove_mouse)
-        af.get_in_cohort_sociability(ehs, cf,
-                                     which_phases="dark",
-                                     remove_mouse=remove_mouse)
-        af.get_in_cohort_sociability(ehs, cf,
-                                     which_phases="light",
-                                     remove_mouse=remove_mouse)
-        ms.get_following(ehd, cf, remove_mouse=remove_mouse)
+        get_mouse_alone(ehs, cf)
+        get_in_cohort_sociability(ehs, cf, remove_mouse=remove_mouse)
+        get_in_cohort_sociability(ehs, cf,
+                                  which_phases="ALL",
+                                  remove_mouse=remove_mouse)
+        get_in_cohort_sociability(ehs, cf,
+                                  which_phases="dark",
+                                  remove_mouse=remove_mouse)
+        get_in_cohort_sociability(ehs, cf,
+                                  which_phases="light",
+                                  remove_mouse=remove_mouse)
+        get_following(ehd, cf, remove_mouse=remove_mouse)
         for binsize in binsizes:
-            cv.get_visits(ehs, cf, binsize)
-        td.get_tube_dominance(ehd, cf)
+            get_visits(ehs, cf, binsize)
+        get_tube_dominance(ehd, cf)
