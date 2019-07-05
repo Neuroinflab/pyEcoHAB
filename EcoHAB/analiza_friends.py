@@ -125,7 +125,11 @@ def mice_together(data_mice, m1, m2, total_time):
 
 
 @jit
-def mouse_alone_ehs(ehs, cf, main_directory, prefix):
+def get_mouse_alone(ehs, cf, main_directory=None, prefix=None):
+    if prefix is None:
+        prefix = ehs.prefix
+    if main_directory is None:
+        main_directory = ehs.res_dir
     phases = utils.filter_dark(cf.sections())
     mice = ehs.mice
     output = np.zeros((4, len(mice), len(phases)+1))

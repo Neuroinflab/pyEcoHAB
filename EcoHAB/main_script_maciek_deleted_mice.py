@@ -84,11 +84,18 @@ if __name__ == '__main__':
         directory = utils.results_path(path)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        af.mouse_alone_ehs(ehs, cf, directory, prefix)
-        af.in_cohort_sociability(ehs, cf, directory, prefix, remove_mouse=which_mice)
-        af.in_cohort_sociability_all_phases(ehs, cf, directory, prefix, remove_mouse=which_mice)
-        af.in_cohort_sociability_all_dark_light(ehs, cf, directory, prefix, remove_mouse=which_mice, phase="light")
-        af.in_cohort_sociability_all_dark_light(ehs, cf, directory, prefix, remove_mouse=which_mice, phase="dark")
+        af.get_mouse_alone(ehs, cf, directory, prefix)
+        af.get_in_cohort_sociability(ehs, cf, directory, prefix,
+                                 remove_mouse=remove_mouse)
+        af.get_in_cohort_sociability(ehs, cf, directory, prefix,
+                                 which_phases="ALL",
+                                 remove_mouse=remove_mouse)
+        af.get_in_cohort_sociability(ehs, cf, directory, prefix,
+                                 which_phases="dark",
+                                 remove_mouse=remove_mouse)
+        af.get_in_cohort_sociability(ehs, cf, directory, prefix,
+                                 which_phases="light",
+                                 remove_mouse=remove_mouse)
         for binsize in binsizes:
             print('Binsize ',binsize/3600)
             results_path = utils.results_path(path)

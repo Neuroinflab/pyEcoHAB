@@ -59,9 +59,8 @@ if __name__ == '__main__':
 
        
         
-    af.mouse_alone_ehs(ehs, cf, directory, prefix)
-    af.in_cohort_sociability(ehs, cf, directory, prefix, remove_mouse=remove_mouse)
-    af.in_cohort_sociability_all_dark_light(ehs, cf, directory, prefix, remove_mouse=remove_mouse, phase="dark")
-    af.in_cohort_sociability_all_dark_light(ehs, cf, directory, prefix, remove_mouse=remove_mouse, phase="light")
-    af.in_cohort_sociability_all_phases(ehs, cf, directory, prefix, remove_mouse=remove_mouse)
-            
+    af.get_mouse_alone(ehs, cf)
+    af.get_in_cohort_sociability(ehs, cf, remove_mouse=remove_mouse)
+    af.get_in_cohort_sociability(ehs, cf, which_phases="ALL", remove_mouse=remove_mouse)
+    af.get_in_cohort_sociability(ehs, cf, which_phases="dark", remove_mouse=remove_mouse)
+    af.get_in_cohort_sociability(ehs, cf, which_phases="light", remove_mouse=remove_mouse)

@@ -53,7 +53,7 @@ if __name__ == '__main__':
         directory = utils.results_path(path)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        af.mouse_alone_ehs(ehs, cf, directory, prefix)
+        af.get_mouse_alone(ehs, cf, directory, prefix)
         af.get_in_cohort_sociability(ehs, cf, directory, prefix,
                                  remove_mouse=remove_mouse)
         af.get_in_cohort_sociability(ehs, cf, directory, prefix,
