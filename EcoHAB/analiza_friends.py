@@ -174,7 +174,8 @@ def get_dark_light_data(phase, cf, ehs):
         total_time += (time[1] - time[0])
     return out_phases, total_time, data
 
-def get_phases_filenames_and_totals(ehs, cf, prefix, which_phases, remove_mouse):
+def prepare_fnames_and_totals(ehs, cf, prefix,
+                              which_phases, remove_mouse):
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     prefix_1 = "incohort_sociability_"
     prefix_2 = "incohort_sociability_measured_time_"
@@ -185,7 +186,7 @@ def get_phases_filenames_and_totals(ehs, cf, prefix, which_phases, remove_mouse)
         data = None
         total_time = 43200.
         phase_name = ""
-    elif which_phases == "ALL" or which_phases == "all" or which_phases == "All":
+    elif which_phases in ["ALL", "all", "All"]:
         phases = ["ALL"]
         data = None
         time = cf.gettime("ALL")
@@ -205,24 +206,26 @@ def get_phases_filenames_and_totals(ehs, cf, prefix, which_phases, remove_mouse)
                                         prefix,
                                         add_info_mice,
                                         phase_name)
-    return phases, total_time, data, fname, fname_measured, fname_expected, get_data
+    fnames = [fname, fname_measured, fname_expected]
+    return phases, total_time, data, fnames, get_data
 
 
-def get_in_cohort_sociability(ehs, cf, res_dir=None, prefix=None, which_phases=None, remove_mouse=None):
+def get_in_cohort_sociability(ehs, cf, res_dir=None,
+                              prefix=None, which_phases=None,
+                              remove_mouse=None):
     if prefix is None:
         prefix = ehs.prefix
     if res_dir is None:
         res_dir = ehs.res_dir
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    phases, total_time, data,\
-    fname, fname_measured,\
-    fname_expected, get_data = get_phases_filenames_and_totals(ehs,
-                                                               cf,
-                                                               prefix,
-                                                               which_phases,
-                                                               remove_mouse)
-    if total_time == 0:
+    phases, time, data, fnames, get_data = prepare_fnames_and_totals(ehs,
+                                                                     cf,
+                                                                     prefix,
+                                                                     which_phases,
+                                                                     remove_mouse)
+    fname, fname_measured, fname_expected = fnames
+    if time == 0:
         return
     full_results = np.zeros((len(phases), len(mice), len(mice)))
     full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
@@ -230,7 +233,7 @@ def get_in_cohort_sociability(ehs, cf, res_dir=None, prefix=None, which_phases=N
         if get_data:
             data = utils.prepare_data(ehs, mice, cf.gettime(phase))
         phase = phase.replace(' ', '_')
-        full_results[idx_phase], full_results_exp[idx_phase] = single_phase_results(data, mice, total_time)
+        full_results[idx_phase], full_results_exp[idx_phase] = single_phase_results(data, mice, time)
         save_single_histograms(full_results[idx_phase],
                                'incohort_sociability_measured_time',
                                mice,
