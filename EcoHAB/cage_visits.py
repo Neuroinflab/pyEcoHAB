@@ -48,11 +48,11 @@ def calculate_visits_and_durations(data, mice, address, t_start, t_end, binsize)
     return visits, durations
 
 
-def get_all_visits_durations(ehs, cf, binsize,
-                             res_dir=None,
-                             prefix=None,
-                             remove_mouse=None,
-                             headers=None):
+def get_visits(ehs, cf, binsize,
+               res_dir=None,
+               prefix=None,
+               remove_mouse=None,
+               headers=None):
     cages = [i for i in range(1, 5)]
     if prefix is None:
         prefix = ehs.prefix
