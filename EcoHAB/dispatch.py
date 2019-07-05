@@ -4,7 +4,10 @@ from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_hea
 import utility_functions as utils
 import numpy as np
 
-def evaluate_whole_experiment(ehd, cf, main_directory, prefix, func, fname, xlabel, ylabel, title, args=[], remove_mouse=None):
+def evaluate_whole_experiment(ehd, cf, main_directory,
+                              prefix, func, fname,
+                              xlabel, ylabel, title,
+                              args=[], remove_mouse=None):
     phases = cf.sections()
     phases = utils.filter_dark(phases)
     mice = [mouse[-4:] for mouse in ehd.mice]
