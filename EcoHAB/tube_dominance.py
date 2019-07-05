@@ -1,22 +1,16 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function, division
-import EcoHab
-from ExperimentConfigFile import ExperimentConfigFile
-from data_info import *
-import os
-import utility_functions as utils
+from __future__ import print_function, division, absolute_import
 import numpy as np
-from write_to_file import save_single_histograms, write_csv_rasters
-from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
 from numba import jit
-import argparse
-import dispatch
+from . import utility_functions as utils
+from .write_to_file import save_single_histograms, write_csv_rasters
+from .plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
+from . import dispatch
 
 how_many_antennas = 3
 
 mas = 10  # sec
 nbins = 10
-homepath = os.path.expanduser("~/")
 
 pipe_opposite_antenna = { 1:2,
                           2:1,
@@ -171,43 +165,3 @@ def get_tube_dominance(ehd, cf, prefix=None, res_dir=None, normalization=None):
                                        'pushed out mouse',
                                        '# dominances',
                                        args=[normalization])
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Calculate tube dominance matrices for each phase of an EcoHab experiment.')
-    parser.add_argument('directory', type=str, help='EcoHab data directory')
-    parser.add_argument('--normalization', dest='normalization', action='store',
-                        default=None,
-                        help="""Normalization method: None for no normalization, m1_activity for
-                        activity of pushing out mouse, m2_activity for pushed out mouse, m1_m2
-                    activity for activity of both mice""")
-    args = parser.parse_args()
-    datasets = [
-        "EcoHAB_data_November/C57 males long 11-22.05.18/",
-        "EcoHAB_data_November/C57_males_long_26.05-06.06.2018_after_TIMP/",
-        "EcoHAB_data_November/C57_males_social interaction-12.10-22.10/",
-         ]
-    path = args.directory
-    normalization = args.normalization
-    prefix = utils.make_prefix(path)
-    remove_mouse = None
-    antenna_positions = None
-    how_many_appearances = 500
-    ehd1 = EcoHab.EcoHabData(path=path,
-                             _ant_pos=antenna_positions,
-                             how_many_appearances=how_many_appearances)
-
-    prefix = utils.make_prefix(path)
-    res_dir = utils.results_path(path)
-    cf1 = ExperimentConfigFile(path)
-    if normalization is None:
-        fname = 'tube_dominance_no_normalization'
-    else:
-        fname = 'tube_dominance_%s' % normalization
-    dispatch.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
-                                       tube_dominance_single_phase,
-                                       fname, 'dominating mouse',
-                                       'pushed out mouse',
-                                       '# dominances',
-                                       args=[normalization])
-

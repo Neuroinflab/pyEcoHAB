@@ -1,7 +1,8 @@
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 import os
-import utility_functions as utils
 import numpy as np
+from . import utility_functions as utils
+
 
 def write_single_chamber(f, header, heads, address, mice, phases, time, data_stim ):
     longest = 0

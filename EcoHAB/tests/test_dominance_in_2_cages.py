@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function, division, absolute_import
-from EcoHAB import dominance_2_cage_experiments as dom
+from EcoHAB import dominance_in_2_cages as dom
 import unittest
 import numpy as np
 

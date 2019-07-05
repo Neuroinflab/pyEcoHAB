@@ -1,18 +1,13 @@
 #-*- coding: utf-8 -*-
-from __future__ import print_function, division
-import EcoHab
-from ExperimentConfigFile import ExperimentConfigFile
-from data_info import *
-import os
-import utility_functions as utils
+from __future__ import print_function, division, absolute_import
 import numpy as np
-import matplotlib.pyplot as plt
-import dispatch
-from write_to_file import write_csv_alone
+from . import utility_functions as utils
+from . import dispatch
+from .write_to_file import write_csv_alone
 
 mouse_attention_span = 10  # sec
 nbins = 10
-homepath = os.path.expanduser("~/")
+
 opposite_antenna_dict = {1: 2,
                          2: 1,
                          3: 4,
@@ -322,53 +317,3 @@ def get_visits_to_stimulus_cage(ehd, cf, res_dir=None, prefix=None, dt=dt):
                     header='Number of visits %s\n',
                     fname='visits_to_stimulus_chamber_%s.csv',
                     directory="mice_in_stimulus_chamber")
-
-
-if __name__ == '__main__':
-    # datasets = [
-    #     "EcoHAB_data_November/Samce C57 sham EH dominacja 05-08.03.2019/",
-    #     "EcoHAB_data_November/C57_males_socdomination_21-23.05.19/",
-    #     "EcoHAB_data_November/social_structure_16.01/"
-    # ]
-    for new_path in datasets:
-        path = os.path.join(homepath, new_path)
-        prefix = utils.make_prefix(path)
-        if new_path in remove_tags:
-            remove_mouse = remove_tags[new_path]
-        else:
-            remove_mouse = None
-        if new_path not in antenna_positions:
-            antenna_positions[new_path] = None
-        if new_path not in how_many_appearances:
-            how_many_appearances[new_path] = 100
-        if remove_mouse:
-            ehd1 = EcoHab.EcoHabData(path=path,
-                                    _ant_pos=antenna_positions[new_path],
-                                    remove_mice=remove_mouse,
-                                    how_many_appearances=how_many_appearances[new_path])
-        else:
-            ehd1 = EcoHab.EcoHabData(path=path,
-                                    _ant_pos=antenna_positions[new_path],
-                                    how_many_appearances=how_many_appearances[new_path])
-
-        prefix = utils.make_prefix(path)
-        res_dir = utils.results_path(path)
-        cf1 = ExperimentConfigFile(path)
-       
-        states, home_cage_antenna = get_states_and_home_cage_antenna(ehd1, cf1, dt)
-        dispatch.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
-                                           tube_dominance_2_cages,
-                                           'mouse_pushing_out_stimulus_chamber',
-                                           'dominating mouse',
-                                           'pushed out mouse',
-                                           '# pushes',
-                                           args=[home_cage_antenna])
-        
-        dispatch.evaluate_whole_experiment(ehd1, cf1, res_dir, prefix,
-                                           dominating_mice,
-                                           'subversion_evaluation',
-                                           'dominating mouse',
-                                           'subversive mouse',
-                                           '# times in small cage',
-                                           args=[states, home_cage_antenna, dt])
-        visits_to_stimulus_cage(ehd1, cf1, res_dir, prefix, dt=dt)

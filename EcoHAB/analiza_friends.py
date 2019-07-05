@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function, division
-import EcoHab
+from __future__ import print_function, division, absolute_import
+import os
+from numba import jit
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-import utility_functions as utils
-from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot
-from write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
-from numba import jit
-from ExperimentConfigFile import ExperimentConfigFile
-
+from . import utility_functions as utils
+from .plotfunctions import single_in_cohort_soc_plot, make_RasterPlot
+from .write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
 
 def prepare_mice_intervals(data_mice, address):
     ints = {}
@@ -296,19 +293,3 @@ def get_in_cohort_sociability(ehs, cf, res_dir=None,
                     fname_expected,
                     mice,
                     title='% time together')
-
-if __name__ == '__main__':
-    homepath = os.path.expanduser("~/")
-    threshold = 3
-    new_path = "EcoHAB_data_November/Maciek_01_30_2018"
-    path = os.path.join(homepath, new_path)
-    ehd = EcoHab.EcoHabData(path=path,
-                            _ant_pos=None,
-                            how_many_appearances=10)
-    ehs = EcoHab.EcoHabSessions(ehd)
-    cf = ExperimentConfigFile(path)
-    get_mouse_alone(ehs, cf)
-    get_in_cohort_sociability(ehs, cf,)
-    get_in_cohort_sociability(ehs, cf, which_phases="ALL")
-    get_in_cohort_sociability(ehs, cf, which_phases="dark")
-    get_in_cohort_sociability(ehs, cf, which_phases="light")

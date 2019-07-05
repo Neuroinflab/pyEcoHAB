@@ -1,12 +1,9 @@
-from __future__ import division, print_function
-import EcoHab
+from __future__ import division, print_function, absolute_import
 import numpy as np
 import os
-import utility_functions as utils
-from write_to_file import save_data_cvs
-from ExperimentConfigFile import ExperimentConfigFile
 from collections import OrderedDict
-
+from . import utility_functions as utils
+from .write_to_file import save_data_cvs
 
 def visits_and_durations(intervals, t_start, t_stop):
     visits, durations = 0, 0

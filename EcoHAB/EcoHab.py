@@ -1,10 +1,9 @@
-from __future__ import print_function, division
-
+from __future__ import print_function, division, absolute_import
 import os
 import time
 import numpy as np
 import sys
-import utility_functions as utils
+from . import utility_functions as utils
 max_break = 60*60
 
 class Data(object):

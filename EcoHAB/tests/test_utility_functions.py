@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 from __future__ import print_function, division, absolute_import
-from EcoHAB import utility_functions as uf
+import EcoHAB.utility_functions as uf
 import unittest
 import numpy as np
 

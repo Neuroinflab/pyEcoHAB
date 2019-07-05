@@ -1,18 +1,17 @@
-from __future__ import print_function, division
-import EcoHab
-from ExperimentConfigFile import ExperimentConfigFile
-import utility_functions as utils
+from __future__ import print_function, division, absolute_import
 import numpy as np
-from write_to_file import save_single_histograms
-from write_to_file import write_csv_rasters
-from write_to_file import write_csv_tables
-from write_to_file import write_csv_alone
-from write_to_file import write_interpair_intervals
-from plotfunctions import single_in_cohort_soc_plot, make_RasterPlot
-from plotfunctions import make_pooled_histograms
-from plotfunctions import make_histograms_for_every_mouse
-from plotfunctions import make_pooled_histograms_for_every_mouse
 from numba import jit
+from . import utility_functions as utils
+from .write_to_file import save_single_histograms
+from .write_to_file import write_csv_rasters
+from .write_to_file import write_csv_tables
+from .write_to_file import write_csv_alone
+from .write_to_file import write_interpair_intervals
+from .plotfunctions import single_in_cohort_soc_plot, make_RasterPlot
+from .plotfunctions import make_pooled_histograms
+from .plotfunctions import make_histograms_for_every_mouse
+from .plotfunctions import make_pooled_histograms_for_every_mouse
+
 titles = {
     3: '12',
     7: '34',
@@ -285,44 +284,3 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                               res_dir, "following_intervals", prefix,
                               additional_info=add_info_mice)
     return following, following_exp, phases, mice
-
-
-if __name__ == '__main__':
-    nbins = 10
-    import matplotlib.pyplot as plt
-    from data_info import *
-    import os
-    homepath = os.path.expanduser("~/")
-    followings_list = []
-    followings_exp_list = []
-    phases_list = []
-    prefixes = []
-    max_len = 0
-
-    for new_path in datasets:
-       
-        path = os.path.join(homepath, new_path)
-        prefix = utils.make_prefix(path)
-        if new_path in remove_tags:
-            remove_mouse = remove_tags[new_path]
-        else:
-            remove_mouse = None
-        if new_path not in antenna_positions:
-            antenna_positions[new_path] = None
-        if new_path not in how_many_appearances:
-            how_many_appearances[new_path] = 100
-        if remove_mouse:
-            ehd = EcoHab.EcoHabData(path=path,
-                                    _ant_pos=antenna_positions[new_path],
-                                    remove_mice=remove_mouse,
-                                    how_many_appearances=how_many_appearances[new_path])
-        else:
-            ehd = EcoHab.EcoHabData(path=path,
-                                    _ant_pos=antenna_positions[new_path],
-                                    how_many_appearances=how_many_appearances[new_path])
-
-        prefix = utils.make_prefix(path)
-        res_dir = utils.results_path(path)
-
-        cf = ExperimentConfigFile(path)
-        following, following_exp, phases, mice = get_following(ehd, cf, res_dir, prefix)
