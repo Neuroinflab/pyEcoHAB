@@ -84,7 +84,7 @@ if __name__ == '__main__':
                                  remove_mouse=remove_mouse)
         af.get_in_cohort_sociability(ehs, cf, which_phases="light",
                                  remove_mouse=remove_mouse)
-        ms.get_following(ehs, cf)
+        ms.get_following(ehd, cf)
         for binsize in binsizes:
             print('Binsize ',binsize/3600)
             cv.get_visits(ehs, cf)
