@@ -14,7 +14,7 @@ from ExperimentConfigFile import ExperimentConfigFile
 def prepare_mice_intervals(data_mice, address):
     ints = {}
     for mouse in data_mice.keys():
-        ints[mouse] = utils.get_intervals_2_lists(data_mice[mouse], address)
+        ints[mouse] = utils.intervals2lists(data_mice[mouse], address)
     return ints
 
 

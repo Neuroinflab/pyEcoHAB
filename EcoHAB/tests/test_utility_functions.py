@@ -634,13 +634,13 @@ class TestGetIntervals(unittest.TestCase):
         ]
         self.assertEqual(uf.get_intervals(test_input, 1), test_output)
 
-class TestGetIntervals2Lists(unittest.TestCase):
+class TestIntervals2Lists(unittest.TestCase):
 
     def test_empty(self):
-        self.assertEqual(uf.get_intervals_2_lists([[1, 2, 3]], 4), [[], []])
+        self.assertEqual(uf.intervals2lists([[1, 2, 3]], 4), [[], []])
 
     def test_not_empty(self):
-        self.assertEqual(uf.get_intervals_2_lists([[1, 2, 3]], 1), [[2], [3]])
+        self.assertEqual(uf.intervals2lists([[1, 2, 3]], 1), [[2], [3]])
 
     def test_longer(self):
         test_input = [
@@ -653,7 +653,7 @@ class TestGetIntervals2Lists(unittest.TestCase):
             [2, 10],
             [3, 12],
         ]
-        self.assertEqual(uf.get_intervals_2_lists(test_input, 1), test_output)
+        self.assertEqual(uf.intervals2lists(test_input, 1), test_output)
 
 
 class TestGetIndices(unittest.TestCase):

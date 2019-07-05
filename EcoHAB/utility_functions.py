@@ -408,7 +408,7 @@ def get_intervals(data, address):
     return [[s, e] for a, s, e in data if a == address]
 
 
-def get_intervals_2_lists(data, address):
+def intervals2lists(data, address):
     out = get_intervals(data, address)
     intervals_table = [[], []]
     for st, en in out:
