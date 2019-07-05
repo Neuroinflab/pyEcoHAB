@@ -48,11 +48,9 @@ def calculate_visits_and_durations(data, mice, address, t_start, t_end, binsize)
     return visits, durations
 
 
-def get_visits(ehs, cf, binsize,
-               res_dir=None,
-               prefix=None,
-               remove_mouse=None,
-               headers=None):
+def get_visits(ehs, cf, binsize, cages=None,
+               res_dir=None, prefix=None,
+               remove_mouse=None, headers=None):
     cages = [i for i in range(1, 5)]
     if prefix is None:
         prefix = ehs.prefix
@@ -67,7 +65,8 @@ def get_visits(ehs, cf, binsize,
                                                                   binsize//3600)
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    cages = {'1': 1, '3': 3, '2': 2, '4': 4}
+    if cages is None:
+        cages = {'1': 1, '3': 3, '2': 2, '4': 4}
     data = {c:{0:{},1:{}} for c in cages.keys()}
     data['mice'] = mice
     data['phases'] = phases
