@@ -55,7 +55,7 @@ def get_visits(ehs, cf, binsize, cages=None,
     if headers is None:
         basic = ['Number of visits to box %d\n',
                  'Total time in box %d, seconds\n']
-        headers = {str(i):basic for i in cages}
+    
     phases = utils.filter_dark_light(cf.sections())
     fname = '%scollective_results_all_chambers_binsize_%f_h.csv'%(prefix,
                                                                   binsize//3600)
@@ -63,6 +63,7 @@ def get_visits(ehs, cf, binsize, cages=None,
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     if cages is None:
         cages = {'1': 1, '3': 3, '2': 2, '4': 4}
+    headers = {str(i):basic for i in cages.keys()}
     data = {c:{0:{},1:{}} for c in cages.keys()}
     data['mice'] = mice
     data['phases'] = phases
