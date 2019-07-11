@@ -587,7 +587,6 @@ class TestExpectedTimeTogether(unittest.TestCase):
     def test_mouse1_mouse2_exp(self):
         dur2 = self.duration**2
         res = np.isclose(self.out2, 250/dur2)
-        print(self.out2)
         self.assertTrue(res)
 
     def test_mouse1_mouse2_measured(self):
