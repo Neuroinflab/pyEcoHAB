@@ -1,6 +1,6 @@
 from __future__ import print_function, division, absolute_import
 import os
-from EcoHAB import analiza_friends as af
+from EcoHAB import incohort_sociability as af
 from EcoHAB import utility_functions as utils
 import unittest
 import numpy as np

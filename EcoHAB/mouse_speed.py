@@ -7,10 +7,10 @@ from .write_to_file import write_csv_rasters
 from .write_to_file import write_csv_tables
 from .write_to_file import write_csv_alone
 from .write_to_file import write_interpair_intervals
-from .plotfunctions import single_in_cohort_soc_plot, make_RasterPlot
-from .plotfunctions import make_pooled_histograms
-from .plotfunctions import make_histograms_for_every_mouse
-from .plotfunctions import make_pooled_histograms_for_every_mouse
+from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot
+from .plotting_functions import make_pooled_histograms
+from .plotting_functions import make_histograms_for_every_mouse
+from .plotting_functions import make_pooled_histograms_for_every_mouse
 
 titles = {
     3: '12',

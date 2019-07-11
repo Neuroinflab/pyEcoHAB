@@ -1,1 +1,1 @@
-from .IncohortSociability import get_in_cohort_sociability
+from .incohort_sociability import get_in_cohort_sociability
