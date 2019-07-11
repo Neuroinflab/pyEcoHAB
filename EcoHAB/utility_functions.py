@@ -1,65 +1,48 @@
+from __future__ import division, print_function, absolute_import
 import os
-from datetime import datetime
-import pytz
-import sys
-import time
+import numpy as np
+from numba import jit
 
-EPOCH = datetime(1970,1,1)
-#UTC_OFFSET = time.mktime(EPOCH.timetuple())
+same_pipe = {1: [1, 2],
+             2: [1, 2],
+             3: [3, 4],
+             4: [3, 4],
+             5: [5, 6],
+             6: [5, 6],
+             7: [7, 8],
+             8: [7, 8]}
 
-EPOCH_UTC = datetime(1970, 1, 1, tzinfo=pytz.UTC)
+opposite_pipe = {1: [5, 6],
+                 2: [5, 6],
+                 3: [7, 8],
+                 4: [7, 8],
+                 5: [1, 2],
+                 6: [1, 2],
+                 7: [3, 4],
+                 8: [3, 4]}
 
-def how_many_days(dates1, factor1):
-    max_days = max([len(dates1[key]) for key in dates1.keys()])
-    return max_days//factor1
+address = {1: 4,
+           2: 1,
+           3: 1,
+           4: 2,
+           5: 2,
+           6: 3,
+           7: 3,
+           8: 4}
 
+address_not_adjacent = {1: 1,
+                        2: 4,
+                        3: 2,
+                        4: 1,
+                        5: 3,
+                        6: 2,
+                        7: 4,
+                        8: 3}
+# Surrounding: difference between antennas only 2 or 6 -- skipped one antenna
+surrounding = {(1, 3): 1, (1, 7): 4, (2, 4): 1, (2, 8): 4,
+               (3, 5): 2, (4, 6): 2, (5, 7): 3, (6, 8): 3}
 
-def process_line_6(elements, datehourobj):
-    """remove point from 2nd column of new data files"""
- 
-    return [elements[0],' '.join([elements[1].replace('.', ''), elements[2]]), elements[3], elements[4], elements[5]]
-
-
-def process_line_7(elements, datehourobj):
-    """remove point from 2nd column of new data files"""
-    return [elements[0],' '.join([elements[1].replace('.', ''), elements[2]]), elements[3], elements[4], elements[5], elements[6]]
-
-
-def process_line_5(elements, dateobj):
-    """Add date to data (old data files)"""
-    
-    hour, date, datenext = dateobj
-    
-    if hour == '23' and elements[1][:2] == '00':
-        elements[1] = ' '.join([datenetxt, elements[1]])
-    else:
-        elements[1] = ' '.join([date, elements[1]])
-    return elements
-
-
- 
-def convert_time(s): 
-    """Convert date and time to seconds since epoch"""
-    actual_date, millisec = s.split('.')
-    sec_to_epoch = time.mktime(time.strptime(actual_date, '%Y%m%d %H:%M:%S'))
-    return sec_to_epoch + float(millisec)/1000
-
-def to_timestamp_UTC(x):
-    return (x - EPOCH_UTC).total_seconds()
-
-
-def to_timestamp(x):
-    return (x - EPOCH).total_seconds()
-
-
-def is_string(obj):
-    if sys.version_info < (3, 0):
-        return isinstance(obj, basestring)
-    else:
-        return isinstance(obj, str)
-
-
-def check_directory(directory, subdirectory):
+def check_directory(directory,subdirectory):
     new_path = os.path.join(directory, subdirectory)
     if not os.path.exists(new_path):
         os.makedirs(new_path)
@@ -91,15 +74,19 @@ def make_prefix(path):
     """
     key_list = [
         'genotype',
+        "Strain",
         'sex',
+        'gender', 
+        'Experimentator',
         'type of experiment',
+        "Type of Experiment",
         'date of experiment',
+        "Start date and hour",
         'social odor',
         'no social odor',
     ]
 
     fname = os.path.join(path, 'info.txt')
-
     try:
         f = open(fname)
     except IOError:
@@ -128,9 +115,379 @@ def make_prefix(path):
             prefix += info_dict[key] + '_'
     return prefix
 
+
 def list_of_pairs(mice):
     pair_labels = []
     for j, mouse in enumerate(mice):
         for k in range(j+1, len(mice)):
             pair_labels.append(mice[j]+'|'+mice[k])
     return pair_labels
+
+
+def make_table_of_pairs(FAM, phases, mice):
+    new_shape = (len(mice)*(len(mice)-1)//2, len(phases))
+    output = np.zeros(new_shape)
+    pair_labels = list_of_pairs(mice)
+    for i, phase in enumerate(phases):
+        l = 0
+        for j, mouse in enumerate(mice):
+            for k in range(j + 1, len(mice)):
+                output[l, i] = FAM[i, j, k]
+                l += 1
+
+    return output, pair_labels
+
+
+def filter_dark(phases):
+    out = []
+    for phase in phases:
+        if 'dark' in phase:
+            out.append(phase)
+        elif 'DARK' in phase:
+            out.append(phase)
+        elif 'Dark' in phase:
+            out.append(phase)
+    return out
+
+
+def filter_light(phases):
+    out = []
+    for phase in phases:
+        if 'light' in phase:
+            out.append(phase)
+        elif 'LIGHT' in phase:
+            out.append(phase)
+        elif 'Light' in phase:
+            out.append(phase)
+    return out
+
+
+def filter_dark_light(phases):
+    out = []
+    for phase in phases:
+        if 'light' in phase:
+            out.append(phase)
+        elif 'LIGHT' in phase:
+            out.append(phase)
+        elif 'Light' in phase:
+            out.append(phase)
+        elif 'dark' in phase:
+            out.append(phase)
+        elif 'DARK' in phase:
+            out.append(phase)
+        elif 'Dark' in phase:
+            out.append(phase)
+
+    return out
+
+
+def get_mice(mouse_list, remove_mouse):
+    if remove_mouse is None:
+        return mouse_list
+
+    if isinstance(remove_mouse, str):
+        remove_mouse = [remove_mouse]
+
+    if isinstance(remove_mouse, list):
+        for mouse in mouse_list:
+            if mouse in remove_mouse:
+                mouse_list.remove(mouse)
+    return mouse_list
+
+
+def add_info_mice_filename(remove_mouse):
+    if remove_mouse is None:
+        return ''
+    if isinstance(remove_mouse, str):
+        remove_mouse = [remove_mouse]
+    add_info_mice = ''
+    if isinstance(remove_mouse, list):
+        add_info_mice = 'remove'
+        for mouse in remove_mouse:
+            add_info_mice += '_' + mouse 
+    return add_info_mice
+
+
+def get_idx_pre(t0, times):
+    idxs = np.where(np.array(times) < t0)[0]
+    if len(idxs):
+        return idxs[-1]
+    return None
+
+def get_idx_between(t0, t1, times):
+    return  np.where((np.array(times) >= t0) & (np.array(times) <= t1))[0]
+
+
+def get_idx_post(t1, times):
+    idxs = np.where(np.array(times) > t1)[0]
+    if len(idxs):
+        return idxs[0]
+    return None
+
+
+def in_tube(antenna, next_antenna):
+    if antenna % 2:
+        if next_antenna  == antenna  + 1:
+            return True
+    else:
+        if next_antenna == antenna - 1:
+            return True
+    return False
+
+
+def in_chamber(antenna, next_antenna):
+    antenna = antenna % 8
+    next_antenna = next_antenna % 8
+    if antenna % 2:
+        if next_antenna  == antenna - 1:
+            return True
+    else:
+        if next_antenna == antenna + 1:
+            return True
+    return False
+
+
+def change_state(antennas):
+    return np.where(abs(np.array(antennas[:-1]) - np.array(antennas[1:])) !=0)[0]
+
+def mouse_going_forward(antennas):
+    assert len(antennas) > 2
+    first_antenna, last_antenna = antennas[0], antennas[-1]
+    if first_antenna % 2 and last_antenna % 2:
+        return True
+    if not first_antenna % 2 and not last_antenna % 2:
+        return True
+    return False
+    
+def mouse_backing_off(antennas):
+    first_antenna, last_antenna = antennas[0], antennas[-1]
+    how_many = len(set(antennas))
+    if how_many == 3:
+        if first_antenna % 2 and not last_antenna % 2:
+            return True
+        if not first_antenna % 2 and last_antenna % 2:
+            return True
+        return False
+
+    if first_antenna == last_antenna and len(antennas) > 2:
+        return True
+    return False
+
+def skipped_antennas(antennas):
+    change = abs(np.array(antennas[:-1]) - np.array(antennas[1:]))
+    if len(np.intersect1d(np.where(change>=2)[0], np.where(change<=6)[0])):
+        return True
+    return False
+
+    
+def change_seven_to_one(change):
+    if isinstance(change, list):
+        change = np.array(change)
+    seven = np.where(change == 7)[0]
+    if len(seven):
+        change[seven] = -1
+    minus_seven = np.where(change == -7)[0]
+    if len(minus_seven):
+        change[minus_seven] = 1
+    return change
+
+
+def mouse_going_clockwise(antennas):
+    change = np.array(antennas[:-1]) - np.array(antennas[1:])
+    change = change_seven_to_one(change)
+    if sum(change) < 0:
+        return True
+    return False
+
+
+def mouse_going_counterclockwise(antennas):
+    change = np.array(antennas[:-1]) - np.array(antennas[1:])
+    change = change_seven_to_one(change)
+    if sum(change) > 0:
+        return True
+    return False
+
+
+def get_times_antennas(ehd, mouse, t_1, t_2):
+    if t_1 == 0 and t_2 == -1:
+        return ehd.gettimes(mouse), ehd.getantennas(mouse)
+    ehd.mask_data(t_1, t_2)
+    antennas, times = ehd.getantennas(mouse), ehd.gettimes(mouse)
+    ehd.unmask_data()
+    return times, antennas
+
+@jit
+def get_states_and_readouts(antennas, times, t1, t2):
+    before = get_idx_pre(t1, times)
+    between = get_idx_between(t1, t2, times)
+    after = get_idx_post(t2, times)
+    states = []
+    readouts = []
+    if before is not None:
+        states.append(antennas[before])
+        readouts.append(times[before])
+    for idx in between:
+        states.append(antennas[idx])
+        readouts.append(times[idx])
+    assert(len(states) == len(readouts))
+    return states, readouts
+
+@jit
+def get_more_states(antennas, times, midx,
+                    mouse_attention_span,
+                    how_many_antennas):
+    #save first antenna
+    states = [antennas[midx]]
+    readouts = [times[midx]]
+    midx += 1
+    idx = 1
+    while True:
+        if midx >= len(antennas):
+            break
+        #read in next antenna
+        new_antenna = antennas[midx]
+        new_readout = times[midx]
+        #if pause too long break
+        if new_readout > readouts[idx - 1] + mouse_attention_span:
+            break
+
+        states.append(new_antenna)
+        readouts.append(new_readout)
+
+        idx += 1
+        #if more than 2 antennas, break
+        if len(set(states)) == how_many_antennas:
+            # go back to the last readout of the opposite antenna not to loose it
+            break
+        midx += 1
+        
+    return states, readouts, midx
+
+def get_antennas(idxs, antennas):
+    antenna_slice = []
+    for new_idx in idxs:
+        antenna_slice.append(antennas[new_idx])
+    return antenna_slice
+
+
+def get_timestamp(t_start, t_end, dt):
+    return int(round((t_end - t_start)/dt))
+
+def get_key_for_frequencies(antenna, next_antenna):
+     if antenna % 2 and next_antenna == antenna + 1:
+         return next_antenna + antenna
+     elif next_antenna % 2 and antenna == next_antenna + 1:
+         return next_antenna + antenna
+
+def interval_overlap(int1, int2):
+    """Return overlap between two intervals."""
+    if int1[1] < int1[0]:
+        int1 = int1[::-1]
+    if int2[1] < int2[0]:
+        int2 = int2[::-1]
+    ints = sorted([int1, int2], key=lambda x: x[0])
+    if ints[1][0] > ints[0][1]:
+        return 0
+    else:
+        return min(ints[0][1], ints[1][1]) - ints[1][0]
+
+
+def get_duration(starts, ends):
+    return sum([abs(ends[i] - start) for i, start in enumerate(starts)])
+
+
+def get_interval_durations(ints):
+    return [x[1] - x[0] for x in ints]
+
+
+def calculate_total_duration(intervals):
+    return sum(get_interval_durations(intervals))
+
+
+def get_intervals(data, address):
+    return [[s, e] for a, s, e in data if a == address]
+
+
+def intervals2lists(data, address):
+    out = get_intervals(data, address)
+    intervals_table = [[], []]
+    for st, en in out:
+        intervals_table[0] += [st]
+        intervals_table[1] += [en]
+    return intervals_table
+
+
+def get_indices(t_start, t_end, starts, ends):
+    idx_start = get_idx_between(t_start, t_end, starts).tolist()
+    idx_end = get_idx_between(t_start, t_end, ends).tolist()
+    return sorted(list(set(idx_start +  idx_end)))
+
+
+def get_ehs_data(ehs, mouse, t_start, t_end):
+    if t_start == 0 and t_end == -1:
+        return ehs.getaddresses(mouse),\
+            ehs.getstarttimes(mouse),\
+            ehs.getendtimes(mouse)
+    ehs.mask_data(t_start, t_end)
+    adresses = ehs.getaddresses(mouse)
+    starts = ehs.getstarttimes(mouse)
+    ends = ehs.getendtimes(mouse)
+    ehs.unmask_data()
+    return adresses, starts, ends
+
+
+def prepare_data(ehs, mice, times=None):
+    """Prepare masked data."""
+    data = {}
+    if times is None:
+        times = (ehs.data['AbsStartTimecode'][0],
+                 ehs.data['AbsEndTimecode'][-1])
+    t_start, t_end = times
+    for mouse in mice:
+        data[mouse] = []
+        ads, sts, ens = get_ehs_data(ehs, mouse, t_start, t_end)
+        idxs = get_indices(t_start, t_end, sts, ens)
+        for i in idxs:
+            data[mouse].append((ads[i], sts[i], ens[i]))
+    return data
+
+
+def get_states_for_ehs(times, antennas, mouse, threshold):
+    out = []
+    for t_start, t_end, an_start, an_end in zip(times[:-1], times[1:],
+                                                antennas[:-1],
+                                                antennas[1:]):
+        delta_t = t_end - t_start
+        # Workflow as agreed on 14 May 2014
+        if delta_t < threshold:
+            continue
+        delta_an = np.abs(an_end - an_start)
+        if delta_an == 0:
+            out.append((address[an_start], mouse,
+                        t_start, t_end, t_end-t_start, True))
+        elif delta_an in [1, 7]:
+            if an_end in same_pipe[an_start]:
+                continue
+            else:
+                out.append((address[an_start], mouse,
+                            t_start, t_end, t_end-t_start, True))
+        elif delta_an in [2, 6]:
+            out.append((surrounding[(min(an_start, an_end),
+                                     max(an_start, an_end))],
+                        mouse, t_start, t_end, t_end-t_start, False))
+        elif delta_an in [3, 4, 5]:
+            if an_end in opposite_pipe[an_start]:
+                continue
+            else:
+                out.append((address_not_adjacent[an_start],
+                            mouse, t_start, t_end, t_end-t_start, False))
+    return out
+
+
+def get_length(time_start, time_end, binsize):
+    return int(np.ceil((time_end - time_start)/binsize))
+
+def get_times(binsize):
+    length = get_length(0, 43200, binsize)
+    out = np.linspace(0, 43200-binsize, length)
+    return out.tolist()
