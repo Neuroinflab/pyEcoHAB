@@ -20,9 +20,12 @@ def write_single_chamber(f, header, heads, address, mice, phases, time, data_sti
                 for k, t in enumerate(time[phase]):
                     if phase == phases[0]:
                         lines[k] += ';%3.2f'%(t/3600)
+                    try:
+                        lines[k] += ';'+str(data_stim[j][phase][mouse][k])
+                    except IndexError:
+                        print("Phase to short", phase)
+                        return
 
-                    lines[k] += ';'+str(data_stim[j][phase][mouse][k])
-                                                                
             for line in lines:
                 f.write(line+'\n')
 
