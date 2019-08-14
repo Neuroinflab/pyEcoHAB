@@ -5,49 +5,47 @@ from collections import OrderedDict
 from . import utility_functions as utils
 from .write_to_file import save_data_cvs
 
-def visits_and_durations(intervals, t_start, t_stop):
-    visits, durations = 0, 0
+def get_visits(intervals, t_start, t_stop):
     interval_array = np.array(intervals)
+    visit_list = []
     if not len(interval_array):
-        return visits, durations
+        return visit_list
     idx_between = utils.get_idx_between(t_start, t_stop, interval_array[:, 0])
     for idx in idx_between:
         i_start, i_stop = intervals[idx]
         if i_start >= t_stop:
             break
-        visits += 1
-        durations += i_stop - i_start
-    return visits, durations
+        visit_list.append(i_stop - i_start)
+    return visit_list
 
 
-def visits_and_durations_bins(intervals, time_start,
-                              time_end, binsize):
+def get_visits_in_bins(intervals, time_start,
+                       time_end, binsize):
     length = utils.get_length(time_start, time_end, binsize)
-    visits = np.zeros(length, dtype=int)
-    durations = np.zeros(length)
-    time = time_start
+    visits = []
     for i in range(length):
         t_start = time_start + i*binsize
         t_end = time_start + (i+1)*binsize
-        visits[i], durations[i] = visits_and_durations(intervals,
-                                                       t_start, t_end)
-    return visits, durations
+        visits.append(get_visits(intervals, t_start, t_end))
+    return visits
 
 def calculate_visits_and_durations(data, mice, address, t_start, t_end, binsize):
     visits = OrderedDict()
     durations = OrderedDict()
+    all_visits = OrderedDict()
     for mouse in mice:
         intervals = utils.get_intervals(data[mouse], address)
-        visits[mouse], durations[mouse] = visits_and_durations_bins(intervals,
-                                                                    t_start,
-                                                                    t_end,
-                                                                    binsize)
-    return visits, durations
+        out = visits_and_durations_bins(intervals, t_start,
+                                        t_end, binsize)
+        visits[mouse] = len(out)
+        durations[mouse] = sum(out)
+        all_visits[mouse] = out
+    return visits, durations, all_visits
 
 
-def get_visits(ehs, cf, binsize, cages=None,
-               res_dir=None, prefix=None,
-               remove_mouse=None, headers=None):
+def get_all_visits(ehs, cf, binsize, cages=None,
+                   res_dir=None, prefix=None,
+                   remove_mouse=None, headers=None):
     if prefix is None:
         prefix = ehs.prefix
     if res_dir is None:
@@ -69,18 +67,20 @@ def get_visits(ehs, cf, binsize, cages=None,
     data['phases'] = phases
     data['time'] = {}
     ehs_data = utils.prepare_data(ehs, mice)
+
     for idx_phase, phase in enumerate(phases):
         t_start, t_end = cf.gettime(phase)
         for address in cages.keys():
-            visits, durations = calculate_visits_and_durations(ehs_data,
-                                                               mice,
-                                                               cages[address],
-                                                               t_start,
-                                                               t_end,
-                                                               binsize)
-            data[address][0][phase] = visits
-            data[address][1][phase] = durations
+            visit_data = calculate_visits_and_durations(ehs_data,
+                                                        mice,
+                                                        cages[address],
+                                                        t_start,
+                                                        t_end,
+                                                        binsize)
+            data[address][0][phase] = visit_data[0]
+            data[address][1][phase] = visit_data[1]
             data['time'][phase] = utils.get_times(binsize)
+
     save_data_cvs(data, fname, res_dir,
                   cages,
                   headers)
