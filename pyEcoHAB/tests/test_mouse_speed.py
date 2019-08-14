@@ -1,5 +1,5 @@
 from __future__ import print_function, division, absolute_import
-from EcoHAB import mouse_speed as ms
+from pyEcoHAB import mouse_speed as ms
 import unittest
 
 try:
