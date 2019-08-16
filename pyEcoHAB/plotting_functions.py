@@ -215,7 +215,6 @@ def single_in_cohort_soc_plot(results,
     fig.subplots_adjust(bottom=0.3)
     fig.subplots_adjust(wspace=0.25)
     fig.subplots_adjust(hspace=0.3)
-    
     fig.savefig(fname+'.pdf')
     fig.savefig(fname+'.png', dpi=300)
 
@@ -236,42 +235,33 @@ def make_pooled_histograms(res,
     else:
         new_phase = "%s_%s" %(phases[0].replace(' ', '__'),
                               phases[-1].replace(' ', '__'))
-    max_bins = 0
-    min_bins = 100
-    max_count = 0
-    min_count = 0
+    bins, counts = [], []
+    xticks = True
     for i, phase in enumerate(phases):
         results = res[i]
         results_exp = res_exp[i]
         deltas = results[results > 0] - results_exp[results > 0]
-        n, bins, patches = ax[i].hist(deltas, bins=nbins)
-        ax[i].set_title(phases[i], fontsize=14)
-        if bins.min() < min_bins:
-            min_bins = bins.min()
-        if bins.max() > max_bins:
-            max_bins = bins.max()
-        if max(n) > max_count:
-            max_count = max(n)
-        if min(n) < min_count:
-            min_count = min(n)
-        if i:
-            ax[i].set_yticklabels([])
-        else:
-            for tick in ax[i].yaxis.get_major_ticks():
-                    tick.label.set_fontsize(14)
-        for tick in ax[i].xaxis.get_major_ticks():
-            tick.label.set_fontsize(14)
+        new_title = phases[i]
+        yticks = not i
+        minb, maxb, minc, maxc = make_single_histogram(ax[i],
+                                                       deltas,
+                                                       new_title,
+                                                       xticks=xticks,
+                                                       yticks=yticks,
+                                                       xlogscale=False)
+        bins.extend([minb, maxb])
+        counts.extend([minc, maxc])
+    min_bins, max_bins = min(bins), max(bins)
+    min_count, max_count = min(counts), max(counts
     for x in ax:
-        x.set_xlim([min_bins, max_bins+1])
-        x.set_ylim([min_count, max_count+3])
+        x.set_xlim([min_bins, max_bins + 1])
+        x.set_ylim([min_count, max_count + 3])
     new_name = os.path.join(directory, 'figs')
     directory = utils.check_directory(main_directory, new_name)
     fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, new_phase))
     if len(phases) > 1:
         fig.subplots_adjust(wspace=0.15)
-    #plt.show()
     fig.savefig(fname+'.png', dpi=300)
-    
 
 
 def make_histograms_for_every_mouse(results, fname, mice, main_directory,
@@ -279,52 +269,47 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
     """
     results should be a dictionary of lists
     """
-    fig, ax = plt.subplots(len(mice), len(mice), figsize=(len(mice)//2*5, len(mice)//2*5))
+    fig, ax = plt.subplots(len(mice), len(mice),
+                           figsize=(len(mice)//2*5, len(mice)//2*5))
+    bins, counts = [], []
     new_name = "all_mice"
-    max_bins = 0
-    min_bins = 100
-    max_count = 0
-    min_count = 0
     for i, mouse1 in enumerate(mice):
         for j, mouse2 in enumerate(mice):
-            if j:
-                ax[i, j].set_yticklabels([])
-            else:
-                for tick in ax[i, j].yaxis.get_major_ticks():
-                    tick.label.set_fontsize(14)
-            if not j:
-                ax[i, j].set_ylabel(mouse1[-4:] , fontsize=14)
-            if i == len(mice) - 1:
-                ax[i, j].set_xlabel(mouse2[-4:] , fontsize=14)
             if mouse1 == mouse2:
                 continue
-            title = "%s following %s" % (mouse2[-4:], mouse1[-4:])
-            ax[i, j].set_title(title)
-            key = "%s_%s" % (mouse1, mouse2)
-
-            intervals = results[key]
-            hist, bins = np.histogram(intervals, bins=10)
-            logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]),len(bins))
-            n, bins, patches = ax[i, j].hist(intervals, bins=logbins)
-            ax[i, j].set_xscale('log')
-
-            if bins.min() < min_bins:
-                min_bins = bins.min()
-            if bins.max() > max_bins:
-                max_bins = bins.max()
-            if max(n) > max_count:
-                max_count = max(n)
-            if min(n) < min_count:
-                min_count = min(n)
-            if i == len(mice) - 1:
-                for tick in ax[i, j].xaxis.get_major_ticks():
-                    tick.label.set_fontsize(14)
+            if j:
+                yticks = False
+                ylabel = None
             else:
-                ax[i, j].set_xticklabels([])
+                yticks = True
+                ylabel = mouse1[-4:]
+            if i == len(mice) - 1:
+                xticks = True
+                xlabel = mouse2[-4:]
+
+            else:
+                xticks = False
+                xlabel = None
+
+            new_title = "%s following %s" % (mouse2[-4:], mouse1[-4:])
+            key = "%s_%s" % (mouse1, mouse2)
+            intervals = results[key]
+            minb, maxb, minc, maxc = make_single_histogram(ax[i, j],
+                                                           intervals,
+                                                           new_title,
+                                                           xticks=xticks,
+                                                           yticks=yticks,
+                                                           xlabel=xlabel,
+                                                           ylabel=ylabel,
+                                                           xlogscale=True)
+            bins.extend([minb, maxb])
+            counts.extend([minc, maxc])
+    min_bin, max_bin = min(bins), max(bins)
+    min_count, max_count = min(counts), max(counts)
     for s in ax:
         for x in s:
-            x.set_xlim([min_bins, max_bins+1])
-            x.set_ylim([min_count, max_count+3])
+            x.set_xlim([min_bin, max_bin + 1])
+            x.set_ylim([min_count, max_count + 3])
 
     new_dir = utils.check_directory(directory, 'figs')
     dir_name =  utils.check_directory(main_directory, new_dir)
@@ -361,40 +346,57 @@ def pool_results_followed(res_dict, mice):
             pooled_results[mouse1] += res_dict[key]
     return pooled_results
 
+def make_single_histogram(ax, single_results, title, xticks=False,
+                          yticks=False, xlabel=None, ylabel=None
+                          xlogscale=False, ylogscale=False):
+    hist, bins = np.histogram(single_results, bins=30)
+    logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]),len(bins))
+    n, bins, patches = ax.hist(single_results, bins=logbins)
+    if xlogscale:
+        ax.set_xscale('log')
+    if ylogscale:
+        ax.set_yscale('log')
+    if xlabel is not None:
+        ax.set_xlabel(xlabel, fontsize=14)
+    if ylabel is not None:
+        ax.set_ylabel(ylabel, fontsize=14)
+    if yticks:
+        for tick in ax.yaxis.get_major_ticks():
+                tick.label.set_fontsize(14)
+    else:
+        ax.set_yticklabels([])
+    if xticks:
+        for tick in ax.xaxis.get_major_ticks():
+            tick.label.set_fontsize(14)
+    else:
+        ax.set_xticklabels([])
+    ax.set_title(title, fontsize=14)
+
+    return bins.min(), bins.max(), min(n), max(n)
 
 def make_fig_histogram(results, path, title):
     mice = results.keys()
     fig, ax = plt.subplots(1, len(mice), figsize=(len(mice)//2*5, 5))
-    max_bins = 0
-    min_bins = 100
-    max_count = 0
-    min_count = 0
+    bins = []
+    counts = []
+    xticks = True
     for i, mouse in enumerate(mice):
-        if i:
-            ax[i].set_yticklabels([])
-        else:
-            for tick in ax[i].yaxis.get_major_ticks():
-                tick.label.set_fontsize(14)
+        yticks = not i
         new_title = "%s %s" % (mouse[-4:], title)
-        ax[i].set_title(new_title)
         intervals = results[mouse]
-        hist, bins = np.histogram(intervals, bins=30)
-        logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]),len(bins))
-        n, bins, patches = ax[i].hist(intervals, bins=logbins)
-        ax[i].set_xscale('log')
-        if bins.min() < min_bins:
-            min_bins = bins.min()
-        if bins.max() > max_bins:
-            max_bins = bins.max()
-        if max(n) > max_count:
-            max_count = max(n)
-        if min(n) < min_count:
-            min_count = min(n)
-        for tick in ax[i].xaxis.get_major_ticks():
-            tick.label.set_fontsize(14)
+        minb, maxb, minc, maxc = make_single_histogram(ax,
+                                                       intervals,
+                                                       new_title,
+                                                       xticks=xticks,
+                                                       yticks=yticks,
+                                                       xlogscale=True)
+        bins.extend([minb, maxb])
+        counts.extend([minc, maxc])
+    min_bin, max_bin = min(bins), max(bins)
+    min_count, max_count = min(counts), max(counts)
     for x in ax:
-        x.set_xlim([min_bins, max_bins+1])
-        x.set_ylim([min_count, max_count+3])
+        x.set_xlim([min_bin, max_bin + 1])
+        x.set_ylim([min_count, max_count + 3])
     fig.subplots_adjust(wspace=0.15)
     fig.savefig(path, dpi=300)
     print(path)
