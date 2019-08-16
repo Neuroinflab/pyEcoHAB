@@ -1,6 +1,6 @@
 from __future__ import print_function, division, absolute_import
 import numpy as np
-from numba import jit
+
 from . import utility_functions as utils
 from .write_to_file import save_single_histograms
 from .write_to_file import write_csv_rasters
@@ -21,7 +21,6 @@ titles = {
 threshold = 12*3600
 
 
-@jit
 def frequency_mouse_in_tube(times, antennas, period):
     change_indices = utils.change_state(antennas)
     frequency = {
@@ -48,7 +47,6 @@ def frequency_mouse_in_tube(times, antennas, period):
     return frequency, window
 
 
-@jit
 def frequencies_for_all(ehd, cf, phase):
     t_st, t_en = cf.gettime(phase)
     period = t_en - t_st
@@ -61,7 +59,7 @@ def frequencies_for_all(ehd, cf, phase):
                                                                     period)
     return frequency, window
 
-@jit
+
 def calculate_expected_followings(window_mouse1, frequency_mouse2):
     expected_followings = 0
     for key in window_mouse1:
