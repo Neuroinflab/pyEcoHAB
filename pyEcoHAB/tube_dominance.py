@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division, absolute_import
 import numpy as np
-from numba import jit
+
 from . import utility_functions as utils
 from .write_to_file import save_single_histograms, write_csv_rasters
 from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
@@ -37,7 +37,7 @@ def mice_in_different_spots(states1, states2):
             return False
     return True
 
-@jit
+
 def does_mouse1_push_out(m1_states, m1_times, antennas2, times2):
     first_antenna = m1_states[0]
     opposite_antenna = pipe_opposite_antenna[first_antenna]

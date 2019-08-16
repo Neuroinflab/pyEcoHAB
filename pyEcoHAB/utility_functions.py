@@ -1,7 +1,7 @@
 from __future__ import division, print_function, absolute_import
 import os
 import numpy as np
-from numba import jit
+
 
 same_pipe = {1: [1, 2],
              2: [1, 2],
@@ -316,7 +316,7 @@ def get_times_antennas(ehd, mouse, t_1, t_2):
     ehd.unmask_data()
     return times, antennas
 
-@jit
+
 def get_states_and_readouts(antennas, times, t1, t2):
     before = get_idx_pre(t1, times)
     between = get_idx_between(t1, t2, times)
@@ -332,7 +332,7 @@ def get_states_and_readouts(antennas, times, t1, t2):
     assert(len(states) == len(readouts))
     return states, readouts
 
-@jit
+
 def get_more_states(antennas, times, midx,
                     mouse_attention_span,
                     how_many_antennas):

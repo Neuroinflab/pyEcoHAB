@@ -5,7 +5,6 @@ import os
 import numpy as np
 
 import matplotlib.pyplot as plt
-from numba import jit
 
 from . import utility_functions as utils
 from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot
@@ -86,7 +85,7 @@ def mouse_alone(data_mice, address):
         result[mouse] = utils.get_duration(new_intervals[mouse][0], new_intervals[mouse][1])
     return result
 
-@jit
+
 def mice_overlap(ints1, ints2):
     """Return time overlap of mice m1 and m2 in cage <address>."""
     total_overlap = 0
@@ -124,7 +123,6 @@ def mice_together(data_mice, m1, m2, total_time):
     return time_together, exp_time_together
 
 
-@jit
 def get_mouse_alone(ehs, cf, main_directory=None, prefix=None):
     if prefix is None:
         prefix = ehs.prefix
