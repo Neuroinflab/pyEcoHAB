@@ -1,7 +1,7 @@
 from __future__ import division, print_function, absolute_import
 import numpy as np
 from .write_to_file import save_single_histograms, write_csv_rasters
-from .plotfunctions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
+from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
 from . import utility_functions as utils
 
 def evaluate_whole_experiment(ehd, cf, main_directory,

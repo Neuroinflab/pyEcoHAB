@@ -4,7 +4,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from . import utility_functions as utils
-from .plotfunctions import single_in_cohort_soc_plot, make_RasterPlot
+from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot
 from .write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
 
 def prepare_mice_intervals(data_mice, address):
