@@ -1,1 +1,8 @@
 from .incohort_sociability import get_in_cohort_sociability
+from .cage_visits import get_all_visits
+from .mouse_speed import
+from .dominance_in_2_cages import get_visits_to_stimulus_cage
+from .dominance_in_2_cages import get_tube_dominance_2_cages
+from .dominance_in_2_cages import get_subversion_evaluation
+from .mouse_speed import get_following
+from .tube_dominance import get_tube_dominance
