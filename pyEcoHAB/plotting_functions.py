@@ -246,7 +246,7 @@ def make_pooled_histograms(res,
         bins.extend([minb, maxb])
         counts.extend([minc, maxc])
     min_bins, max_bins = min(bins), max(bins)
-    min_count, max_count = min(counts), max(counts
+    min_count, max_count = min(counts), max(counts)
     for x in ax:
         x.set_xlim([min_bins, max_bins + 1])
         x.set_ylim([min_count, max_count + 3])
@@ -341,7 +341,7 @@ def pool_results_followed(res_dict, mice):
     return pooled_results
 
 def make_single_histogram(ax, single_results, title, xticks=False,
-                          yticks=False, xlabel=None, ylabel=None
+                          yticks=False, xlabel=None, ylabel=None,
                           xlogscale=False, ylogscale=False):
     hist, bins = np.histogram(single_results, bins=30)
     logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]),len(bins))
