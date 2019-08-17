@@ -35,10 +35,10 @@ def calculate_visits_and_durations(data, mice, address, t_start, t_end, binsize)
     all_visits = OrderedDict()
     for mouse in mice:
         intervals = utils.get_intervals(data[mouse], address)
-        out = visits_and_durations_bins(intervals, t_start,
+        out = get_visits_in_bins(intervals, t_start,
                                         t_end, binsize)
-        visits[mouse] = len(out)
-        durations[mouse] = sum(out)
+        visits[mouse] = [len(o) for o in out]
+        durations[mouse] = [sum(o) for o in out]
         all_visits[mouse] = out
     return visits, durations, all_visits
 
