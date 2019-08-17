@@ -4,7 +4,7 @@ import numpy as np
 from . import utility_functions as utils
 from .write_to_file import save_single_histograms, write_csv_rasters
 from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
-from . import dispatch
+import .exec_functions as dispatch
 
 how_many_antennas = 3
 
