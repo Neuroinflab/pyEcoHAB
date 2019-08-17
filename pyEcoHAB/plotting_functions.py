@@ -7,13 +7,7 @@ Created on Fri Mar 24 13:38:58 2017
 from __future__ import division, print_function, absolute_import
 import os
 import numpy as np
-import scipy.stats as st
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import matplotlib.colors as mcol
-import matplotlib.patches as patches
-import networkx as nx
-from networkx.drawing.nx_agraph import write_dot
 from . import utility_functions as utils
 
 nbins = 10
