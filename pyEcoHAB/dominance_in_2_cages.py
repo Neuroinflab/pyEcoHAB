@@ -2,7 +2,7 @@
 from __future__ import print_function, division, absolute_import
 import numpy as np
 from . import utility_functions as utils
-from . import dispatch
+from . import exec_functions as dispatch
 from .write_to_file import write_csv_alone
 
 mouse_attention_span = 10  # sec
