@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function, division, absolute_import
-from EcoHAB import tube_dominance as tubed
+from pyEcoHAB import tube_dominance as tubed
 import unittest
 
 
