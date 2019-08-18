@@ -429,3 +429,57 @@ def make_pooled_histograms_for_every_mouse(results, fname,
                        "following")
     make_fig_histogram(results_followed, fname_followed,
                        "followed")
+
+
+def make_visit_interval_histogram(results, phase, mice, fname, main_directory,
+                                  directory, prefix, additional_info):
+
+    dir_name =  utils.check_directory(main_directory, directory)
+    dir_name =  utils.check_directory(dir_name, "figs")
+
+    for mouse in mice:
+        if prefix != "":
+            new_name = '%s_%s_%s_%s.png'% (fname, mouse, prefix, phase)
+        else:
+            new_name =  '%s_%s_%s.png'% (fname, mouse, phase)
+        new_name = os.path.join(dir_name, new_name)
+        ncols = len(results.keys())
+        nrows = len(results[results.keys()[0]][mouse])
+        fig, ax = plt.subplots(nrows, ncols, figsize = (ncols*5, nrows*5))
+        if nrows == 1:
+            ax = np.expand_dims(ax, 0)
+        bins, counts = [], []
+        for key in results:
+            i = int(key) - 1
+            for j, out in enumerate(results[key][mouse]):
+                if i:
+                    yticks = False
+                    ylabel = None
+                else:
+                    yticks = True
+                    ylabel = "# visits"
+                if j == nrows - 1:
+                    xticks = True
+                    xlabel = "visit duration"
+                else:
+                    xticks = False
+                    xlabel = None
+                minb, maxb, minc, maxc = make_single_histogram(ax[j, i], out, 30,
+                                                               title=key,
+                                                               xticks=xticks,
+                                                               yticks=yticks,
+                                                               xlabel=xlabel,
+                                                               ylabel=ylabel,
+                                                               xlogscale=True)
+                bins.extend([minb, maxb])
+                counts.extend([minc, maxc])
+        min_bin, max_bin = min(bins), max(bins)
+        min_count, max_count = min(counts), max(counts)
+        for s in ax:
+            for x in s:
+                x.set_xlim([min_bin, max_bin + 1])
+                x.set_ylim([min_count, max_count + 3])
+        fig.suptitle("%s visits in %s" % (mouse, phase))
+        fig.subplots_adjust(wspace=0.15)
+        fig.savefig(new_name, dpi=300)
+        print(new_name)
