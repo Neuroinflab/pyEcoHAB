@@ -239,7 +239,8 @@ def make_pooled_histograms(res,
         yticks = not i
         minb, maxb, minc, maxc = make_single_histogram(ax[i],
                                                        deltas,
-                                                       new_title,
+                                                       10,
+                                                       title=new_title,
                                                        xticks=xticks,
                                                        yticks=yticks,
                                                        xlogscale=False)
@@ -255,7 +256,8 @@ def make_pooled_histograms(res,
     fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, new_phase))
     if len(phases) > 1:
         fig.subplots_adjust(wspace=0.15)
-    fig.savefig(fname+'.png', dpi=300)
+    fig.savefig(fname + '.png', dpi=300)
+    print(fname)
 
 
 def make_histograms_for_every_mouse(results, fname, mice, main_directory,
@@ -290,7 +292,8 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
             intervals = results[key]
             minb, maxb, minc, maxc = make_single_histogram(ax[i, j],
                                                            intervals,
-                                                           new_title,
+                                                           30,
+                                                           title=new_title,
                                                            xticks=xticks,
                                                            yticks=yticks,
                                                            xlabel=xlabel,
@@ -340,14 +343,19 @@ def pool_results_followed(res_dict, mice):
             pooled_results[mouse1] += res_dict[key]
     return pooled_results
 
-def make_single_histogram(ax, single_results, title, xticks=False,
+def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
                           yticks=False, xlabel=None, ylabel=None,
                           xlogscale=False, ylogscale=False):
-    hist, bins = np.histogram(single_results, bins=30)
-    logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]),len(bins))
-    n, bins, patches = ax.hist(single_results, bins=logbins)
+
+
     if xlogscale:
-        ax.set_xscale('log')
+        hist, bins = np.histogram(single_results, nbins)
+        logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]), len(bins))
+        n, bins, patches = ax.hist(single_results, bins=logbins)
+        ax.set_xscale("log")
+    else:
+        n, bins, patches = ax.hist(single_results, bins=nbins)
+
     if ylogscale:
         ax.set_yscale('log')
     if xlabel is not None:
@@ -365,7 +373,6 @@ def make_single_histogram(ax, single_results, title, xticks=False,
     else:
         ax.set_xticklabels([])
     ax.set_title(title, fontsize=14)
-
     return bins.min(), bins.max(), min(n), max(n)
 
 def make_fig_histogram(results, path, title):
@@ -378,9 +385,10 @@ def make_fig_histogram(results, path, title):
         yticks = not i
         new_title = "%s %s" % (mouse[-4:], title)
         intervals = results[mouse]
-        minb, maxb, minc, maxc = make_single_histogram(ax,
+        minb, maxb, minc, maxc = make_single_histogram(ax[i],
                                                        intervals,
-                                                       new_title,
+                                                       30,
+                                                       title=new_title,
                                                        xticks=xticks,
                                                        yticks=yticks,
                                                        xlogscale=True)
