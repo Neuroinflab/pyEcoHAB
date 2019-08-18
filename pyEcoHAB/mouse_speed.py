@@ -88,6 +88,7 @@ def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2):
                 return 1
     return 0
 
+
 def following_interval(antenna1, next_antenna1, t1, threshold, antennas2, times2):
     idxs = utils.get_idx_between(t1, t1 + threshold, times2)
     for ci in idxs:
@@ -97,6 +98,7 @@ def following_interval(antenna1, next_antenna1, t1, threshold, antennas2, times2
             if times2[ci+1] > t1 + threshold:
                 return  times2[ci+1] -  times2[ci]
     return 0
+
 
 def following_2_mice_in_pipe(antennas1, times1,
                              antennas2, times2):
@@ -146,9 +148,11 @@ def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase):
                 interval_details[key] += mouse_intervals
     return followings, interval_details
 
+
 def add_intervals(all_intervals, phase_intervals):
     for mouse in phase_intervals.keys():
         all_intervals[mouse].extend(phase_intervals[mouse])
+
 
 def get_following(ehd, cf, res_dir=None, prefix=None,
               remove_mouse=None):
@@ -181,7 +185,6 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                                                    cf,
                                                                    phase)
         add_intervals(interval_details, phase_intervals)
-        
         save_single_histograms(following[i],
                                'following_in_pipe',
                                ehd.mice,
