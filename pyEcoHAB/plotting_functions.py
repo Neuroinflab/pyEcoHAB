@@ -2,7 +2,7 @@
 """
 Created on Fri Mar 24 13:38:58 2017
 
-@author: Jan Maka
+@author: Jan Maka, Joanna Jędrzejewska-Szmek
 """
 from __future__ import division, print_function, absolute_import
 import os
@@ -75,6 +75,7 @@ def make_RasterPlot(main_directory,
                 bbox_inches=None,
                 pad_inches=2,
                 frameon=None)
+    plt.close(fig)
 
 
 
@@ -125,6 +126,7 @@ def single_heat_map(result,
     fig.subplots_adjust(left=0.25)
     fig.subplots_adjust(bottom=0.25)
     fig.savefig(new_name, transparent=False, bbox_inches=None, pad_inches=2, frameon=None)
+    plt.close(fig)
 
 
 def single_in_cohort_soc_plot(results,
@@ -258,6 +260,7 @@ def make_pooled_histograms(res,
         fig.subplots_adjust(wspace=0.15)
     fig.savefig(fname + '.png', dpi=300)
     print(fname)
+    plt.close(fig)
 
 
 def make_histograms_for_every_mouse(results, fname, mice, main_directory,
@@ -320,6 +323,7 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
     print(fname)
     fig.subplots_adjust(wspace=0.15)
     fig.savefig(fname, dpi=300)
+    plt.close(fig)
 
 
 def pool_results_following(res_dict, mice):
@@ -402,6 +406,7 @@ def make_fig_histogram(results, path, title):
     fig.subplots_adjust(wspace=0.15)
     fig.savefig(path, dpi=300)
     print(path)
+    plt.close(fig)
 
 
 def make_pooled_histograms_for_every_mouse(results, fname,
@@ -483,3 +488,4 @@ def make_visit_interval_histogram(results, phase, mice, fname, main_directory,
         fig.subplots_adjust(wspace=0.15)
         fig.savefig(new_name, dpi=300)
         print(new_name)
+        plt.close(fig)
