@@ -359,7 +359,10 @@ def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
                           yticks=False, xlabel=None, ylabel=None,
                           xlogscale=False, ylogscale=False):
 
-
+    if len(single_results) == 0:
+        ax.set_yticklabels([])
+        ax.set_xticklabels([])
+        return 0, 0, 0, 0
     if xlogscale:
         hist, bins = np.histogram(single_results, nbins)
         logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]), len(bins))
@@ -409,8 +412,8 @@ def make_fig_histogram(results, path, title):
     min_bin, max_bin = min(bins), max(bins)
     min_count, max_count = min(counts), max(counts)
     for x in ax:
-        x.set_xlim([min_bin, max_bin + 1])
-        x.set_ylim([min_count, max_count + 3])
+        if min_bin == max_bin == max_count == min_count:
+            continue
     fig.subplots_adjust(wspace=0.15)
     fig.savefig(path, dpi=300)
     print(path)
@@ -444,7 +447,8 @@ def make_pooled_histograms_for_every_mouse(results, fname,
                        "followed")
 
 
-def make_visit_interval_histogram(results, phase, mice, fname, main_directory,
+def make_visit_interval_histogram(results, time, phase, mice,
+                                  fname, main_directory,
                                   directory, prefix, additional_info):
 
     dir_name =  utils.check_directory(main_directory, directory)
@@ -470,14 +474,15 @@ def make_visit_interval_histogram(results, phase, mice, fname, main_directory,
                     ylabel = None
                 else:
                     yticks = True
-                    ylabel = "# visits"
+                    ylabel = "# visits starting at %2.0f h" % time[j]
                 if j == nrows - 1:
                     xticks = True
                     xlabel = "visit duration"
                 else:
                     xticks = False
                     xlabel = None
-                minb, maxb, minc, maxc = make_single_histogram(ax[j, i], out, 30,
+                minb, maxb, minc, maxc = make_single_histogram(ax[j, i], out,
+                                                               10,
                                                                title=key,
                                                                xticks=xticks,
                                                                yticks=yticks,

@@ -86,9 +86,13 @@ def get_all_visits(ehs, cf, binsize, cages=None,
             data['time'][phase] = utils.get_times(binsize)
             visits_in_cages[address] = visit_data[2]
         if "dark" in phase or "DARK" in phase:
-            make_visit_interval_histogram(visits_in_cages, phase, mice,
+            print(data['time'][phase])
+            make_visit_interval_histogram(visits_in_cages,
+                                          data['time'][phase],
+                                          phase, mice,
                                           histogram_fname, res_dir,
-                                          "histograms_of_visits_binsize_%f" % (binsize//3600),
+                                          "histograms_of_visits_binsize_%f"
+                                          % (binsize//3600),
                                           prefix, add_info_mice)
     save_data_cvs(data, fname, res_dir,
                   cages,
