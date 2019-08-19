@@ -272,9 +272,15 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
                            figsize=(len(mice)//2*5, len(mice)//2*5))
     bins, counts = [], []
     new_name = "all_mice"
+    xlabel = None
     for i, mouse1 in enumerate(mice):
         for j, mouse2 in enumerate(mice):
             if mouse1 == mouse2:
+                if i == 0:
+                    ax[i, j].set_ylabel(mouse1[-4:], fontsize = 14)
+                    ax[i, j].set_title(mouse2[-4:], fontsize = 14)
+                ax[i, j].set_yticklabels([])
+                ax[i, j].set_xticklabels([])
                 continue
             if j:
                 yticks = False
@@ -284,13 +290,13 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
                 ylabel = mouse1[-4:]
             if i == len(mice) - 1:
                 xticks = True
-                xlabel = mouse2[-4:]
-
             else:
                 xticks = False
-                xlabel = None
+            if i == 0:
+                new_title = mouse2[-4:]
+            else:
+                new_title = ""
 
-            new_title = "%s following %s" % (mouse2[-4:], mouse1[-4:])
             key = "%s_%s" % (mouse1, mouse2)
             intervals = results[key]
             minb, maxb, minc, maxc = make_single_histogram(ax[i, j],
@@ -313,6 +319,8 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
 
     new_dir = utils.check_directory(directory, 'figs')
     dir_name =  utils.check_directory(main_directory, new_dir)
+    plt.gcf().text(0.02, 0.5, "Followed mouse", fontsize=28, rotation=90)
+    plt.gcf().text(0.5, 0.02, "Following mouse", fontsize=28)
 
     if prefix != "":
          new_name= '%s_%s_%s.png'% (fname, prefix, new_name)
@@ -387,7 +395,7 @@ def make_fig_histogram(results, path, title):
     xticks = True
     for i, mouse in enumerate(mice):
         yticks = not i
-        new_title = "%s %s" % (mouse[-4:], title)
+        new_title = "%s %s" % (title, mouse[-4:])
         intervals = results[mouse]
         minb, maxb, minc, maxc = make_single_histogram(ax[i],
                                                        intervals,

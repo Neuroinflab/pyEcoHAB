@@ -271,17 +271,17 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                     "followings_intervals_histogram",
                                     ehd.mice,
                                     res_dir,
-                                    "following_in_pipe",
+                                    "following_in_pipe/histograms_of_following_intervals",
                                     prefix,
                                     additional_info=add_info_mice)
     make_pooled_histograms_for_every_mouse(interval_details,
                                            "followings_intervals_histogram",
                                            ehd.mice,
                                            res_dir,
-                                           "following_in_pipe",
+                                           "following_in_pipe/histograms_of_following_intervals",
                                            prefix,
                                            additional_info=add_info_mice)
-    write_interpair_intervals(interval_details, "following_in_pipe",
+    write_interpair_intervals(interval_details, "following_in_pipe/histograms_of_following_intervals",
                               res_dir, "following_intervals", prefix,
                               additional_info=add_info_mice)
     return following, following_exp, phases, mice
