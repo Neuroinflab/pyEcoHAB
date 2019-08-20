@@ -1,8 +1,7 @@
 from __future__ import print_function, division, absolute_import
 import os
-import time
-import numpy as np
 import sys
+import numpy as np
 from . import utility_functions as utils
 max_break = 60*60
 
@@ -84,15 +83,7 @@ class Data(object):
     def getdurations(self, mice):
         return self.getproperty(mice, 'Duration')
 
-def parse_fname(fname):
-    """"Extracts time and date from data's filename"""
 
-    hour = fname[9:11]
-    date = fname[:8]
-    datenext = time.strftime('%Y%m%d',
-                             time.localtime(time.mktime(time.strptime(date, '%Y%m%d')) + 24 * 3600.))
-
-    return hour, date, datenext
 
 class EcoHabData(Data):
     """Reads in a folder with data from Eco-HAB"""
@@ -136,9 +127,9 @@ class EcoHabData(Data):
         elements[1] = ' '.join([date, elements[1]])
         return elements
 
-    def read_file(self,fname):
+    def read_file(self, fname):
         """Reads in data file"""
-        hour, date, datenext = parse_fname(fname)
+        hour, date, datenext = utils.parse_fname(fname)
 
         f = open(os.path.join(self.path, fname),'r')
 
@@ -245,7 +236,7 @@ class EcoHabData(Data):
                                               tags=tags)
          
         self.mice = self.get_mice()
-        self.rawdata.sort(key=lambda x: self.convert_time(x[1]))
+        self.rawdata.sort(key=lambda x: utils.time_to_sec(x[1]))
         _ant_pos = kwargs.pop('_ant_pos',None)
         mask = kwargs.pop('mask',None)
         
@@ -255,7 +246,7 @@ class EcoHabData(Data):
             self._ant_pos = _ant_pos
  
         data = {}
-        data['Time'] = [self.convert_time(d[1]) for d in self.rawdata]
+        data['Time'] = [utils.time_to_sec(d[1]) for d in self.rawdata]
         data['Id'] = [d[0] for d in self.rawdata]
         data['Antenna'] = [self._ant_pos[d[2]] for d in self.rawdata]
         data['Tag'] = [d[4] for d in self.rawdata]
@@ -268,7 +259,8 @@ class EcoHabData(Data):
             for antenna in antenna_breaks:
                 print(antenna, ':')
                 for breaks in antenna_breaks[antenna]:
-                    print(self.print_time_human(breaks[0]),  self.print_time_human(breaks[1]))
+                    print(utils.print_human_time(breaks[0]),
+                          utils.print_human_time(breaks[1]))
                     print((breaks[1] - breaks[0])/3600, 'h')
         self.antenna_mismatch()
         
@@ -331,15 +323,6 @@ class EcoHabData(Data):
                    self._fnames.__str__(), self.path) 
         return mystring
 
-    @staticmethod
-    def print_time_human(tt):
-        """convert seconds to date and time since epoch """
-        st = time.localtime(tt)
-        return time.asctime(st)
-    @staticmethod
-    def convert_time(s): 
-        """Convert date and time to seconds since epoch"""
-        return (time.mktime(time.strptime(s.split('.')[0], '%Y%m%d %H:%M:%S'))  + float(s.split('.')[-1])/1000.)
     def checkData_one_mouse(self,mouse):
         antennas = self.getantennas(mouse)
         times  = self.gettimes(mouse)

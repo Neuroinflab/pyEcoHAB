@@ -839,5 +839,49 @@ class TestGetLength(unittest.TestCase):
         self.assertEqual(out, 3)
 
 
+class TestParseFilename(unittest.TestCase):
+    def test_normal(self):
+        fname = "20190403_120000.txt"
+        hour, date, datenext = uf.parse_fname(fname)
+        self.assertEqual(hour, "120000")
+        self.assertEqual(date, "20190403")
+        self.assertEqual(datenext, "20190404")
+
+    def test_weird(self):
+        fname = "20190403_120000_0001.txt"
+        hour, date, datenext = uf.parse_fname(fname)
+        self.assertEqual(hour, "120000")
+        self.assertEqual(date, "20190403")
+        self.assertEqual(datenext, "20190404")
+
+    def test_throw_exception(self):
+        fname = "20190403_120000_0001_kk.txt"
+        self.assertRaises(ValueError, uf.parse_fname, fname=fname)
+
+
+class TestPrintHumanTime(unittest.TestCase):
+    def test_date(self):
+        tt = 1554247067
+        self.assertTrue('Wed Apr  3 00:00:00 2019', uf.print_human_time(tt))
+
+
+class TestTimeToSec(unittest.TestCase):
+    def test_sec(self):
+        string = "20190709 20:05:13.333"
+        self.assertTrue(1562695513.333, uf.time_to_sec(string))
+
+    def test_sec_2(self):
+        string = "20190709 20:05:13"
+        self.assertTrue(1562695513., uf.time_to_sec(string))
+
+    def test_sec_raise_1(self):
+        string = "2019070920:05:13"
+        self.assertRaises(ValueError, uf.time_to_sec, tt=string)
+
+    def test_sec_raise_2(self):
+        string = "20190709.20:05:13"
+        self.assertRaises(ValueError, uf.time_to_sec, tt=string)
+
+
 if __name__ == '__main__':
     unittest.main()

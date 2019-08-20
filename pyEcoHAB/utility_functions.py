@@ -1,5 +1,7 @@
 from __future__ import division, print_function, absolute_import
 import os
+import time
+import sys
 import numpy as np
 
 
@@ -491,3 +493,39 @@ def get_times(binsize):
     length = get_length(0, 43200, binsize)
     out = np.linspace(0, 43200-binsize, length)
     return out.tolist()
+
+def parse_fname(fname):
+    """"Extracts time and date from data filename"""
+    try:
+        date, hour = fname.split("_")
+    except ValueError:
+        parts = fname.split("_")
+        if len(parts) == 3:
+            date, hour = parts[:2]
+        else:
+            print("Unnkown filename format %s.")
+            raise
+    hour = hour.split(".")[0]
+    date_in_sec = time.mktime(time.strptime(date, '%Y%m%d'))
+    datenext = time.strftime('%Y%m%d', time.localtime(
+        date_in_sec + 24*3600.))
+
+    return hour, date, datenext
+
+def print_human_time(tt):
+    """convert seconds to date and time since epoch """
+    st = time.localtime(tt)
+    return time.asctime(st)
+
+
+def time_to_sec(tt):
+    """Convert date and time to seconds since epoch"""
+    try:
+        more_than_sec, less_than_sec = tt.split('.')
+    except ValueError:
+        return time.mktime(time.strptime(tt,
+                                             '%Y%m%d %H:%M:%S'))
+
+    seconds = time.mktime(time.strptime(more_than_sec,
+                                        '%Y%m%d %H:%M:%S'))
+    return seconds + float(less_than_sec)/1000.
