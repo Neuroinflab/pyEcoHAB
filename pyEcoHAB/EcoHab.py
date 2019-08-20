@@ -7,33 +7,27 @@ max_break = 60*60
 
 class Data(object):
     
-    def __init__(self,data,mask):
+    def __init__(self, data, mask):
         self.mask = None
         self._mask_slice = None
         self.data = data
         if self.mask:
             self._cut_out_data(mask)
             
-    def _cut_out_data(self,new_mask):
+    def _cut_out_data(self, new_mask):
         mask = self._find_mask_indices(new_mask)
-        self.data['Id'] = self.data['Id'][mask[0]:mask[1]]
-        self.data['Time'] = self.data['Time'][mask[0]:mask[1]]
-        
-        self.data['Antenna'] = self.data['Antenna'][mask[0]:mask[1]]
-        self.data['Tag'] = self.data['Tag'][mask[0]:mask[1]]
-        self.data['Duration'] = self.data['Duration'][mask[0]:mask[1]]
+        for key in self.data.keys():
+            self.data[key] = self.data[key][mask[0]:mask[1]]
 
-    def _find_mask_indices(self,mask):
-        
+    def _find_mask_indices(self, mask):
         starttime, endtime = mask
         arr = np.array(self.data['Time'])
         idcs = np.where((arr >= starttime) & (arr < endtime))[0]
-
         if len(idcs) >= 2:
             return (idcs[0], idcs[-1] + 1)
         if len(idcs) == 1:
             return (idcs[0], idcs[0] + 1)
-        return (0,0)
+        return (0, 0)
     
     def mask_data(self, starttime, endtime):
         """mask_data(starttime, endtime)
@@ -88,30 +82,28 @@ class Data(object):
 class EcoHabData(Data):
     """Reads in a folder with data from Eco-HAB"""
     def get_home_cage_antenna(self):
+        """
+        Finds home antenna. This is a function used to calculate one
+        of the measures of dominance in two cage experiments, when mice
+        are living in an environment 
+        """
         antennas = []
         for mouse in self.mice:
             antennas.append(self.getantennas(mouse)[0])
         return max(set(antennas), key=antennas.count)
 
     def _remove_antennas(self, data, antennas=[]):
+        keys = data.keys()
+        if isinstance(antennas, int):
+            antennas = [antennas]
         if isinstance(antennas, list):
-            new_data = {}
-            new_data['Time'] = []
-            new_data['Antenna'] = []
-            new_data['Id'] = []
-            new_data['Tag'] = []
-            new_data['Duration'] = []
-
+            new_data = {key:[] for key in keys}
             for i, antenna in enumerate(data['Antenna']):
                 if antenna not in antennas:
-                    new_data['Time'].append(data['Time'][i])
-                    new_data['Antenna'].append(data['Antenna'][i])
-                    new_data['Id'].append(data['Id'][i])
-                    new_data['Tag'].append(data['Tag'][i])
-                    new_data['Duration'].append(data['Duration'][i])
+                    for key in keys:
+                        new_data[key].append(data[key][i])
                 else:
-                    print(data['Time'][i], data['Antenna'][i],
-                          data['Id'][i], data['Tag'][i], data['Duration'][i])
+                    print([data[key][i] for key in keys])
             return new_data
         return data
 
@@ -323,17 +315,15 @@ class EcoHabData(Data):
                    self._fnames.__str__(), self.path) 
         return mystring
 
-    def checkData_one_mouse(self,mouse):
+    def check_single_mouse_data(self,mouse):
         antennas = self.getantennas(mouse)
         times  = self.gettimes(mouse)
-        wrong_times = []
+        error_crossing_times = []
         for i,next_antenna in enumerate(antennas[1:]):
-            if abs(next_antenna - antennas[i]) not in [0,1]:
+            if abs(next_antenna - antennas[i]) not in [0, 1]:
                 if next_antenna !=8 and antennas[i] != 8:
-                    wrong_times.append(times[i])
-                    #print('mouse',mouse,'wrong antenna',antennas[i],'time',times[i],'antenna',next_antenna,'next time',times[i+1],times[i+1]-times[i])
-        
-        return wrong_times
+                    error_crossing_times.append(times[i])
+        return error_crossing_times
     
 class IEcoHabSession(object):
     def getstarttimes(self, *arg, **kwarg):
