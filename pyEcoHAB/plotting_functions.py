@@ -475,7 +475,7 @@ def make_visit_duration_histogram(results, time, phase, mice,
                     ylabel = None
                 else:
                     yticks = True
-                    ylabel = "# visits starting at %2.0f h" % time[j]
+                    ylabel = "# at %2.0f h" % time[j]
                 if j == nrows - 1:
                     xticks = True
                     xlabel = "visit duration"
@@ -499,7 +499,8 @@ def make_visit_duration_histogram(results, time, phase, mice,
             for x in s:
                 x.set_xlim([min_bin, max_bin + 1])
                 x.set_ylim([min_count, max_count + 3])
-        fig.suptitle("%s visit durations in %s" % (mouse, phase))
+        fig.suptitle("%s visit durations in %s" % (mouse, phase),
+                     fontsize=fontsize+2)
         fig.subplots_adjust(wspace=0.15)
         fig.savefig(new_name, dpi=300)
         print(new_name)
