@@ -317,7 +317,7 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
             x.set_xlim([min_bin, max_bin + 1])
             x.set_ylim([min_count, max_count + 3])
 
-    new_dir = utils.check_directory(directory, 'figs')
+    new_dir = os.path.join(directory, 'figs')
     dir_name =  utils.check_directory(main_directory, new_dir)
     plt.gcf().text(0.02, 0.5, "Followed mouse", fontsize=28, rotation=90)
     plt.gcf().text(0.5, 0.02, "Following mouse", fontsize=28)
@@ -429,7 +429,7 @@ def make_pooled_histograms_for_every_mouse(results, fname,
     new_name_following = "pooled_following"
     new_name_followed = "pooled_followed"
 
-    new_dir = utils.check_directory(directory, 'figs')
+    new_dir = os.path.join(directory, 'figs')
     dir_name =  utils.check_directory(main_directory, new_dir)
 
     if prefix != "":
@@ -451,7 +451,7 @@ def make_visit_interval_histogram(results, time, phase, mice,
                                   fname, main_directory,
                                   directory, prefix, additional_info):
 
-    dir_name =  utils.check_directory(main_directory, directory)
+    dir_name =  os.path.join(main_directory, directory)
     dir_name =  utils.check_directory(dir_name, "figs")
 
     for mouse in mice:
