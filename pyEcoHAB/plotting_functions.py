@@ -357,7 +357,7 @@ def pool_results_followed(res_dict, mice):
 
 def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
                           yticks=False, xlabel=None, ylabel=None,
-                          xlogscale=False, ylogscale=False):
+                          xlogscale=False, ylogscale=False, fontsize=14):
 
     if len(single_results) == 0:
         ax.set_yticklabels([])
@@ -374,20 +374,20 @@ def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
     if ylogscale:
         ax.set_yscale('log')
     if xlabel is not None:
-        ax.set_xlabel(xlabel, fontsize=14)
+        ax.set_xlabel(xlabel, fontsize=fontsize)
     if ylabel is not None:
-        ax.set_ylabel(ylabel, fontsize=14)
+        ax.set_ylabel(ylabel, fontsize=fontsize)
     if yticks:
         for tick in ax.yaxis.get_major_ticks():
-                tick.label.set_fontsize(14)
+                tick.label.set_fontsize(fontsize)
     else:
         ax.set_yticklabels([])
     if xticks:
         for tick in ax.xaxis.get_major_ticks():
-            tick.label.set_fontsize(14)
+            tick.label.set_fontsize(fontsize)
     else:
         ax.set_xticklabels([])
-    ax.set_title(title, fontsize=14)
+    ax.set_title(title, fontsize=fontsize)
     return bins.min(), bins.max(), min(n), max(n)
 
 def make_fig_histogram(results, path, title):
@@ -447,7 +447,7 @@ def make_pooled_histograms_for_every_mouse(results, fname,
                        "followed")
 
 
-def make_visit_interval_histogram(results, time, phase, mice,
+def make_visit_duration_histogram(results, time, phase, mice,
                                   fname, main_directory,
                                   directory, prefix, additional_info):
 
@@ -462,7 +462,8 @@ def make_visit_interval_histogram(results, time, phase, mice,
         new_name = os.path.join(dir_name, new_name)
         ncols = len(results.keys())
         nrows = len(results[results.keys()[0]][mouse])
-        fig, ax = plt.subplots(nrows, ncols, figsize = (ncols*5, nrows*5))
+        fig, ax = plt.subplots(nrows, ncols, figsize = (ncols*4, nrows*2.5))
+        fontsize = 14 + nrows
         if nrows == 1:
             ax = np.expand_dims(ax, 0)
         bins, counts = [], []
@@ -488,7 +489,8 @@ def make_visit_interval_histogram(results, time, phase, mice,
                                                                yticks=yticks,
                                                                xlabel=xlabel,
                                                                ylabel=ylabel,
-                                                               xlogscale=True)
+                                                               xlogscale=True,
+                                                               fontsize=fontsize)
                 bins.extend([minb, maxb])
                 counts.extend([minc, maxc])
         min_bin, max_bin = min(bins), max(bins)
@@ -497,7 +499,7 @@ def make_visit_interval_histogram(results, time, phase, mice,
             for x in s:
                 x.set_xlim([min_bin, max_bin + 1])
                 x.set_ylim([min_count, max_count + 3])
-        fig.suptitle("%s visits in %s" % (mouse, phase))
+        fig.suptitle("%s visit durations in %s" % (mouse, phase))
         fig.subplots_adjust(wspace=0.15)
         fig.savefig(new_name, dpi=300)
         print(new_name)
