@@ -121,7 +121,56 @@ class Visits(DataBase):
 
 
 class EcoHabData(Data):
-    """Reads in a folder with data from Eco-HAB"""
+    """Reads in EcoHAB data"""
+
+    def __init__(self, **kwargs):# path, _ant_pos=None,mask=None):
+        self.days = set()
+        self.path = kwargs.pop("path")
+        self.rawdata = []
+        self.get_data()
+        self.max_break = max_break
+        how_many_appearances = kwargs.pop('how_many_appearances', 50)
+        remove_antennas = kwargs.pop('remove_antennas', [])
+        factor = kwargs.pop('factor',2)
+        tags = kwargs.pop('remove_mice',[])
+        self.rawdata = self.remove_ghost_tags(how_many_appearances,
+                                              factor,
+                                              tags=tags)
+         
+        self.mice = self.get_mice()
+        self.rawdata.sort(key=lambda x: utils.time_to_sec(x[1]))
+        _ant_pos = kwargs.pop('_ant_pos',None)
+        mask = kwargs.pop('mask',None)
+        
+        if _ant_pos is None:
+            self._ant_pos = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8}
+        else:
+            self._ant_pos = _ant_pos
+ 
+        data = {}
+        data['Time'] = [utils.time_to_sec(d[1]) for d in self.rawdata]
+        data['Id'] = [d[0] for d in self.rawdata]
+        data['Antenna'] = [self._ant_pos[d[2]] for d in self.rawdata]
+        data['Tag'] = [d[4] for d in self.rawdata]
+        data['Duration'] = [d[3] for d in self.rawdata]
+        data = self._remove_antennas(data, remove_antennas)
+        super(EcoHabData,self).__init__(data, mask)
+        antenna_breaks = self.check_antenna_presence()
+        if antenna_breaks:
+            print('Antenna not working')
+            for antenna in antenna_breaks:
+                print(antenna, ':')
+                for breaks in antenna_breaks[antenna]:
+                    print(utils.print_human_time(breaks[0]),
+                          utils.print_human_time(breaks[1]))
+                    print((breaks[1] - breaks[0])/3600, 'h')
+        self.antenna_mismatch()
+        
+        if mask:
+            self._cut_out_data(mask)
+        self.prefix = utils.make_prefix(self.path)
+        self.res_dir = utils.results_path(self.path)
+
     def get_home_cage_antenna(self):
         """
         Finds home antenna. This is a function used to calculate one
@@ -133,7 +182,8 @@ class EcoHabData(Data):
             antennas.append(self.getantennas(mouse)[0])
         return max(set(antennas), key=antennas.count)
 
-    def _remove_antennas(self, data, antennas=[]):
+    @staticmethod
+    def _remove_antennas(data, antennas=[]):
         keys = data.keys()
         if isinstance(antennas, int):
             antennas = [antennas]
@@ -148,14 +198,18 @@ class EcoHabData(Data):
             return new_data
         return data
 
-    def process_line_6(self,elements):
+    @staticmethod
+    def process_line_6(elements):
         """remove point from 2nd column of new data files"""
         return [elements[0],' '.join([elements[1].replace('.', ''), elements[2]]), elements[3], elements[4], elements[5]]
-    
-    def process_line_7(self,elements):
+
+    @staticmethod
+    def process_line_7(elements):
         """remove point from 2nd column of new data files"""
         return [elements[0],' '.join([elements[1].replace('.', ''), elements[2]]), elements[3], elements[4], elements[5], elements[6]]
-    def process_line_5(self, elements, date):
+
+    @staticmethod
+    def process_line_5(elements, date):
         """Add date to data (old data files)"""
         elements[1] = ' '.join([date, elements[1]])
         return elements
@@ -253,54 +307,6 @@ class EcoHabData(Data):
         mouse_dict = {mouse[-4:]:mouse for mouse in mouse_list}
         mouse_keys = sorted(mouse_dict.keys())
         return [mouse_dict[mouse] for mouse in mouse_keys]
-
-    def __init__(self, **kwargs):# path, _ant_pos=None,mask=None):
-        self.days = set()
-        self.path = kwargs.pop("path")
-        self.rawdata = []
-        self.get_data()
-        self.max_break = max_break
-        how_many_appearances = kwargs.pop('how_many_appearances', 50)
-        remove_antennas = kwargs.pop('remove_antennas', [])
-        factor = kwargs.pop('factor',2)
-        tags = kwargs.pop('remove_mice',[])
-        self.rawdata = self.remove_ghost_tags(how_many_appearances,
-                                              factor,
-                                              tags=tags)
-         
-        self.mice = self.get_mice()
-        self.rawdata.sort(key=lambda x: utils.time_to_sec(x[1]))
-        _ant_pos = kwargs.pop('_ant_pos',None)
-        mask = kwargs.pop('mask',None)
-        
-        if _ant_pos is None:
-            self._ant_pos = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8}
-        else:
-            self._ant_pos = _ant_pos
- 
-        data = {}
-        data['Time'] = [utils.time_to_sec(d[1]) for d in self.rawdata]
-        data['Id'] = [d[0] for d in self.rawdata]
-        data['Antenna'] = [self._ant_pos[d[2]] for d in self.rawdata]
-        data['Tag'] = [d[4] for d in self.rawdata]
-        data['Duration'] = [d[3] for d in self.rawdata]
-        data = self._remove_antennas(data, remove_antennas)
-        super(EcoHabData,self).__init__(data, mask)
-        antenna_breaks = self.check_antenna_presence()
-        if antenna_breaks:
-            print('Antenna not working')
-            for antenna in antenna_breaks:
-                print(antenna, ':')
-                for breaks in antenna_breaks[antenna]:
-                    print(utils.print_human_time(breaks[0]),
-                          utils.print_human_time(breaks[1]))
-                    print((breaks[1] - breaks[0])/3600, 'h')
-        self.antenna_mismatch()
-        
-        if mask:
-            self._cut_out_data(mask)
-        self.prefix = utils.make_prefix(self.path)
-        self.res_dir = utils.results_path(self.path)
           
     def merge_experiment(self, other):
         assert self.mice == other.mice
