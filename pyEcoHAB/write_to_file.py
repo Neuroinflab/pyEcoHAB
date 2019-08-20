@@ -189,3 +189,33 @@ def write_interpair_intervals(results, main_directory,
         for interval in results[key]:
             f.write("%f," % interval)
         f.write("\n")
+
+def save_visit_duration(results, time, phase, mice,
+                        fname, main_directory,
+                        directory, prefix,
+                        add_info=None):
+    new_dir = os.path.join(main_directory, directory)
+    new_dir = utils.check_directory(new_dir, "data")
+    for mouse in mice:
+        if isinstance(add_info, str):
+            new_name =  os.path.join(new_dir, '%s_%s_%s_%s_%s.csv'%(fname,
+                                                                      mouse,
+                                                                      phase,
+                                                                      prefix,
+                                                                      add_info))
+        else:
+            new_name =  os.path.join(new_dir, '%s_%s_%s_%s.csv'%(fname,
+                                                                   mouse,
+                                                                   phase,
+                                                                   prefix))
+        print(new_name)
+        f = open(new_name, "w")
+        for address in results.keys():
+            f.write("Visit durations to chamber %s" % address)
+            f.write("time, durations\n")
+            for j, out in enumerate(results[address][mouse]):
+                f.write("%2.2f" % time[j])
+                for single in out:
+                    f.write(",%2.2f" % single)
+                f.write("\n")
+        f.close()

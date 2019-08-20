@@ -3,8 +3,8 @@ import numpy as np
 import os
 from collections import OrderedDict
 from . import utility_functions as utils
-from .write_to_file import save_data_cvs
-from .plotting_functions import make_visit_interval_histogram
+from .write_to_file import save_data_cvs, save_visit_duration
+from .plotting_functions import make_visit_duration_histogram
 
 
 def get_visits(intervals, t_start, t_stop):
@@ -86,14 +86,20 @@ def get_all_visits(ehs, cf, binsize, cages=None,
             data['time'][phase] = utils.get_times(binsize)
             visits_in_cages[address] = visit_data[2]
         if "dark" in phase or "DARK" in phase:
-            print(data['time'][phase])
-            make_visit_interval_histogram(visits_in_cages,
-                                          data['time'][phase],
-                                          phase, mice,
-                                          histogram_fname, res_dir,
-                                          "histograms_of_visits_binsize_%f"
-                                          % (binsize//3600),
-                                          prefix, add_info_mice)
+             make_visit_duration_histogram(visits_in_cages,
+                                           data['time'][phase],
+                                           phase, mice,
+                                           histogram_fname, res_dir,
+                                           "histograms_of_visits_binsize_%f"
+                                           % (binsize//3600),
+                                           prefix, add_info_mice)
+             save_visit_duration(visits_in_cages,
+                                 data['time'][phase],
+                                 phase, mice,
+                                 histogram_fname, res_dir,
+                                 "histograms_of_visits_binsize_%f"
+                                 % (binsize//3600),
+                                 prefix, add_info_mice)
     save_data_cvs(data, fname, res_dir,
                   cages,
                   headers)
