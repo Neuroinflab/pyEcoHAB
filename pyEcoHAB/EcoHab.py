@@ -198,42 +198,24 @@ class EcoHabData(Data):
             return new_data
         return data
 
-    @staticmethod
-    def process_line_6(elements):
-        """remove point from 2nd column of new data files"""
-        return [elements[0],' '.join([elements[1].replace('.', ''), elements[2]]), elements[3], elements[4], elements[5]]
-
-    @staticmethod
-    def process_line_7(elements):
-        """remove point from 2nd column of new data files"""
-        return [elements[0],' '.join([elements[1].replace('.', ''), elements[2]]), elements[3], elements[4], elements[5], elements[6]]
-
-    @staticmethod
-    def process_line_5(elements, date):
-        """Add date to data (old data files)"""
-        elements[1] = ' '.join([date, elements[1]])
-        return elements
-
     def read_file(self, fname):
         """Reads in data file"""
         hour, date, datenext = utils.parse_fname(fname)
-
         f = open(os.path.join(self.path, fname),'r')
-
         for line in f:
             elements = line.split()
-
-            if len(elements) == 6:
-                self.rawdata.append(self.process_line_6(elements))
-            elif len(elements) == 7:
-                self.rawdata.append(self.process_line_7(elements))
-            elif len(elements) == 5:
+            if len(elements) == 5:
                 if hour == '23' and elements[1][:2] == '00':
-                    self.rawdata.append(self.process_line_5(elements, datenext))
+                    line = utils.process_line_5_elements(elements,
+                                                         datenext)
                 else:
-                    self.rawdata.append(self.process_line_5(elements, date))
+                    line = utils.process_line_5_elements(elements,
+                                                         date)
+            elif len(elements) > 5:
+                line = utils.process_line_more_elements(elements)
             else:
-                    raise(IOError('Unknown data format in file %s' %f))
+                raise(IOError('Unknown data format in file %s' %f))
+            self.rawdata += [line]
 
     def get_data(self):
         """Finds files in provided directory (path) and reads in data"""

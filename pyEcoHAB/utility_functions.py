@@ -529,3 +529,19 @@ def time_to_sec(tt):
     seconds = time.mktime(time.strptime(more_than_sec,
                                         '%Y%m%d %H:%M:%S'))
     return seconds + float(less_than_sec)/1000.
+
+
+def reformat_date_time(date, time):
+    return "%s %s" %(date.replace('.',''), time)
+
+
+def process_line_more_elements(elements):
+    """remove dot from 2nd column of new data files"""
+    date_time = reformat_date_time(elements[1], elements[2])
+    return [elements[0], date_time] + elements[3:]
+
+
+def process_line_5_elements(elements, date):
+    """Add date to data (old data files)"""
+    elements[1] = ' '.join([date, elements[1]])
+    return elements
