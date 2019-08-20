@@ -5,7 +5,7 @@ import numpy as np
 from . import utility_functions as utils
 max_break = 60*60
 
-class Data(object):
+class DataBase(object):
     
     def __init__(self, data, mask):
         self.mask = None
@@ -18,16 +18,6 @@ class Data(object):
         mask = self._find_mask_indices(new_mask)
         for key in self.data.keys():
             self.data[key] = self.data[key][mask[0]:mask[1]]
-
-    def _find_mask_indices(self, mask):
-        starttime, endtime = mask
-        arr = np.array(self.data['Time'])
-        idcs = np.where((arr >= starttime) & (arr < endtime))[0]
-        if len(idcs) >= 2:
-            return (idcs[0], idcs[-1] + 1)
-        if len(idcs) == 1:
-            return (idcs[0], idcs[0] + 1)
-        return (0, 0)
     
     def mask_data(self, starttime, endtime):
         """mask_data(starttime, endtime)
@@ -68,6 +58,21 @@ class Data(object):
                         self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
                         if x[1] in mice]
 
+
+class Data(DataBase):
+    def __init__(self, data, mask):
+        super(Data, self).__init__(data, mask)
+
+    def _find_mask_indices(self, mask):
+        starttime, endtime = mask
+        arr = np.array(self.data['Time'])
+        idcs = np.where((arr >= starttime) & (arr < endtime))[0]
+        if len(idcs) >= 2:
+            return (idcs[0], idcs[-1] + 1)
+        if len(idcs) == 1:
+            return (idcs[0], idcs[0] + 1)
+        return (0, 0)
+
     def getantennas(self, mice):
         return self.getproperty(mice, 'Antenna')
                                                   
@@ -77,6 +82,42 @@ class Data(object):
     def getdurations(self, mice):
         return self.getproperty(mice, 'Duration')
 
+class Visits(DataBase):
+
+    def __init__(self, data, mask):
+        super(Visits, self).__init__(data, mask)
+
+    def mask_data(self, *args):
+        """mask_data(endtime) or mask_data(starttime, endtime)
+        All future queries will be clipped to the visits starting between
+        starttime and endtime."""
+        try:
+            start = args[0]
+            end = args[1]
+        except IndexError:
+            start = min(self.getstarttimes(self._ehd.mice))
+            end = args[0]
+        self.mask = (start, end)
+        arr = np.array(self.data['AbsStartTimecode'])
+        idcs = np.where((arr >= start) & (arr < end))[0]
+        if len(idcs) >= 2:
+            self._mask_slice = (idcs[0], idcs[-1] +1)
+        elif len(idcs) == 1:
+            self._mask_slice = (idcs[0], idcs[0] + 1)
+        else:
+            self._mask_slice = (0, 0)
+
+    def getstarttimes(self, mice):
+        return self.getproperty(mice, 'AbsStartTimecode', 'float')
+
+    def getendtimes(self, mice):
+        return self.getproperty(mice, 'AbsEndTimecode', 'float')
+
+    def getdurations(self, mice):
+        return self.getproperty(mice, 'VisitDuration', 'float')
+
+    def getaddresses(self, mice):
+        return self.getproperty(mice, 'Address')
 
 
 class EcoHabData(Data):
@@ -325,23 +366,9 @@ class EcoHabData(Data):
                     error_crossing_times.append(times[i])
         return error_crossing_times
     
-class IEcoHabSession(object):
-    def getstarttimes(self, *arg, **kwarg):
-        raise NotImplementedError("Virtual method called")
 
-    def getendtimes(self, *arg, **kwarg):
-        raise NotImplementedError("Virtual method called")
 
-    def getdurations(self, *arg, **kwarg):
-        raise NotImplementedError("Virtual method called")
-
-    def getaddresses(self, *arg, **kwarg):
-        raise NotImplementedError("Virtual method called")
-
-    def getproperty(self, *arg, **kwarg):
-        raise NotImplementedError("Virtual method called")
-
-class EcoHabSessions(IEcoHabSession):
+class EcoHabSessions(Visits):
     """Calculates 'visits' to Eco-HAB chambers."""
 
     def _calculate_states(self):
@@ -360,81 +387,20 @@ class EcoHabSessions(IEcoHabSession):
     def __init__(self, ehd, **kwargs):
         
         self._ehd = ehd
-        self.mask = None
-        self._mask_slice = None
         self.threshold = kwargs.pop('shortest_session_threshold', 2.)
         temp_data = self._calculate_states()
-        self.data = {}
-        self.data['Address'] = [x[0] for x in temp_data]
-        self.data['Tag'] = [x[1] for x in temp_data]
-        self.data['AbsStartTimecode'] = [x[2] for x in temp_data]
-        self.data['AbsEndTimecode'] = [x[3] for x in temp_data]
-        self.data['VisitDuration'] = [x[4] for x in temp_data]
-        self.data['ValidVisitSolution'] = [x[5] for x in temp_data]
+        data = {}
+        data['Address'] = [x[0] for x in temp_data]
+        data['Tag'] = [x[1] for x in temp_data]
+        data['AbsStartTimecode'] = [x[2] for x in temp_data]
+        data['AbsEndTimecode'] = [x[3] for x in temp_data]
+        data['VisitDuration'] = [x[4] for x in temp_data]
+        data['ValidVisitSolution'] = [x[5] for x in temp_data]
+        super(EcoHabSessions,self).__init__(data, None)
         self.mice = self._ehd.mice
         self.prefix = self._ehd.prefix
         self.res_dir = self._ehd.res_dir
         
-    def unmask_data(self):
-        """Remove the mask - future queries will not be clipped"""
-        self.mask = None
-        self._mask_slice = None
 
-    def mask_data(self, *args):
-        """mask_data(endtime) or mask_data(starttime, endtime)
-        All future queries will be clipped to the visits starting between
-        starttime and endtime."""
-        try:
-            start = args[0]
-            end = args[1]
-        except IndexError:   
-            start = min(self.getstarttimes(self._ehd.mice))
-            end = args[0]
-        self.mask = (start, end)
-        arr = np.array(self.data['AbsStartTimecode'])
-        idcs = np.where((arr >= start) & (arr < end))[0]
-        if len(idcs) >= 2:
-            self._mask_slice = (idcs[0], idcs[-1] +1)
-        elif len(idcs) == 1:
-            self._mask_slice = (idcs[0], idcs[0] + 1)
-        else:
-            self._mask_slice = (0, 0)
 
-    def getproperty(self, mice, propname, astype=None):
-        if sys.version_info < (3, 0):
-            if isinstance(mice, (str, unicode)):
-                mice = [mice]
-        else:
-            if isinstance(mice, str):
-                mice = [mice]
-
-        if self.mask is None:
-            if astype is None:
-                return [x[0] for x in zip(self.data[propname], 
-                        self.data['Tag']) if x[1] in mice]
-            elif astype == 'float':                          
-                return [float(x[0]) for x in zip(self.data[propname], 
-                        self.data['Tag']) if x[1] in mice]
-        else:
-            if astype is None:
-                return [x[0] for x in zip(
-                        self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
-                        self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
-                        if x[1] in mice] 
-            elif astype == 'float':
-                return [float(x[0]) for x in zip(
-                        self.data[propname][self._mask_slice[0]:self._mask_slice[1]], 
-                        self.data['Tag'][self._mask_slice[0]:self._mask_slice[1]]) 
-                        if x[1] in mice]
-                    
-    def getstarttimes(self, mice): 
-        return self.getproperty(mice, 'AbsStartTimecode', 'float')
-                    
-    def getendtimes(self, mice):
-        return self.getproperty(mice, 'AbsEndTimecode', 'float')
-                    
-    def getdurations(self, mice):
-        return self.getproperty(mice, 'VisitDuration', 'float')
     
-    def getaddresses(self, mice): 
-        return self.getproperty(mice, 'Address')
