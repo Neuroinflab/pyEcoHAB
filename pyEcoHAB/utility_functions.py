@@ -545,3 +545,18 @@ def process_line_5_elements(elements, date):
     """Add date to data (old data files)"""
     elements[1] = ' '.join([date, elements[1]])
     return elements
+
+
+def get_filenames(path):
+    f_list = os.listdir(path)
+    out = []
+    for f_name in f_list:
+        if f_name.endswith("0000.txt"):
+            out.append(f_name)
+        else:
+            split = f_name.split("_")
+            if len(split) < 3:
+                continue
+            if split[-1].endswith(".txt") and split[1].endswith("0000"):
+                out.append(f_name)
+    return out

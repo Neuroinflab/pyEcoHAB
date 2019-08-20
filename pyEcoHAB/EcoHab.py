@@ -127,7 +127,7 @@ class EcoHabData(Data):
         self.days = set()
         self.path = kwargs.pop("path")
         self.rawdata = []
-        self.get_data()
+        self.read_in_data()
         self.max_break = max_break
         how_many_appearances = kwargs.pop('how_many_appearances', 50)
         remove_antennas = kwargs.pop('remove_antennas', [])
@@ -198,8 +198,8 @@ class EcoHabData(Data):
             return new_data
         return data
 
-    def read_file(self, fname):
-        """Reads in data file"""
+    def read_single_file(self, fname):
+        """Reads in single data file"""
         hour, date, datenext = utils.parse_fname(fname)
         f = open(os.path.join(self.path, fname),'r')
         for line in f:
@@ -217,15 +217,11 @@ class EcoHabData(Data):
                 raise(IOError('Unknown data format in file %s' %f))
             self.rawdata += [line]
 
-    def get_data(self):
+    def read_in_data(self):
         """Finds files in provided directory (path) and reads in data"""
-
-        self._fnames =  filter(lambda x: x.endswith('0000.txt') or
-                             (x[-12:-7] == '0000_' and x.endswith('.txt')),
-                             os.listdir(self.path))
-        
+        self._fnames = utils.get_filenames(self.path)
         for f_name in self._fnames:
-            self.read_file(f_name)
+            self.read_single_file(f_name)
             self.days.add(f_name.split('_')[0])        
         
     def check_antenna_presence(self):
@@ -251,9 +247,6 @@ class EcoHabData(Data):
                         breaks[antenna].append([np.round(times[i]), np.round(times[i+1])])
             else:
                 breaks[antenna].append([np.round(t_start),self.data['Time'][-1]])         
-                    
-        # for antenna in breaks:
-        #     printantenna, breaks[antenna])
         return breaks
     
     def antenna_mismatch(self):
