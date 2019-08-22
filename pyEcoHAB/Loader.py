@@ -108,7 +108,6 @@ class Loader(object):
         if len(tags):
             for tag in tags:
                 ghost_mice.append(tag)
-        print(len(raw_data))
         for d in raw_data:
             mouse = d[4]
             if mouse not in counters:
@@ -144,16 +143,18 @@ class Loader(object):
                                        how_many_appearances,
                                        how_many_days,
                                        tags=tags)
+        data.sort(key=lambda x: utils.time_to_sec(x[1]))
         return data
 
     def _from_raw_data(self, raw_data, antenna_pos,
                        remove_antennas=[]):
         data = {}
-        data['Time'] = [utils.time_to_sec(d[1]) for d in raw_data]
         data['Id'] = [d[0] for d in raw_data]
+        data['Time'] = [utils.time_to_sec(d[1]) for d in raw_data]
         data['Antenna'] = [antenna_pos[d[2]] for d in raw_data]
-        data['Tag'] = [d[4] for d in raw_data]
         data['Duration'] = [d[3] for d in raw_data]
+        data['Tag'] = [d[4] for d in raw_data]
+
 
         return self._remove_antennas(data, remove_antennas)
 
