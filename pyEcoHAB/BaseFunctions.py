@@ -47,7 +47,7 @@ class DataBase(object):
             mask_0, mask_1 = self._mask_slice[0], self._mask_slice[1]
             if astype is None:
                 return [x[0] for x in zip(self.data[propname][mask_0:mask_1],
-                                          self.data['Tag'][mask_0:mask_1)
+                                          self.data['Tag'][mask_0:mask_1])
                                           if x[1] in mice]
             elif astype == 'float':
                 return [float(x[0]) for x in zip(
