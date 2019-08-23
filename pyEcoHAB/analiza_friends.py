@@ -131,7 +131,7 @@ def get_mouse_alone(ehs, cf, main_directory=None, prefix=None):
     output = np.zeros((4, len(mice), len(phases)+1))
     for phase, sec in enumerate(phases):
         times = cf.gettime(sec)
-        data = utils.prepare_data(ehs.visits, mice, times)
+        data = utils.prepare_data(ehs, mice, times)
         for i in range(1,5):
             alone = mouse_alone(data, i)
             for j, mouse in enumerate(mice):
@@ -164,7 +164,7 @@ def get_dark_light_data(phase, cf, ehs):
     total_time = 0
     for i, ph in enumerate(phases):
         time = cf.gettime(ph)
-        out = utils.prepare_data(ehs.visits, ehs.mice, time)
+        out = utils.prepare_data(ehs, ehs.mice, time)
         for mouse in ehs.mice:
             data[mouse].extend(out[mouse])
         total_time += (time[1] - time[0])
@@ -227,7 +227,7 @@ def get_in_cohort_sociability(ehs, cf, res_dir=None,
     full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
     for idx_phase, phase in enumerate(phases):
         if get_data:
-            data = utils.prepare_data(ehs.visits, mice, cf.gettime(phase))
+            data = utils.prepare_data(ehs, mice, cf.gettime(phase))
         phase = phase.replace(' ', '_')
         full_results[idx_phase], full_results_exp[idx_phase] = single_phase_results(data, mice, time)
         save_single_histograms(full_results[idx_phase],

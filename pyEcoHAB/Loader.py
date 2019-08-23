@@ -23,7 +23,7 @@ class Loader(object):
         else:
             self._ant_pos = _ant_pos
 
-        mask = kwargs.pop('mask', None)
+        self.mask = kwargs.pop('mask', None)
         self.threshold = kwargs.pop('antenna_threshold', 2.)
         self.res_dir = kwargs.pop("results_path",
                                   utils.results_path(self.path))
@@ -42,7 +42,7 @@ class Loader(object):
                                  self._ant_pos,
                                  remove_antennas)
         #As in antenna readings
-        self.readings = BaseFunctions.Data(data, mask)
+        self.readings = BaseFunctions.Data(data, self.mask)
         self.mice = self.get_mice()
         self.run_diagnostics()
         self.visits = self._calculate_visits()
@@ -55,7 +55,7 @@ class Loader(object):
         """
         antennas = []
         for mouse in self.mice:
-            antennas.append(self.readings.data.getantennas(mouse)[0])
+            antennas.append(self.getantennas(mouse)[0])
         return max(set(antennas), key=antennas.count)
 
     @staticmethod
@@ -230,7 +230,7 @@ class Loader(object):
                    self._fnames.__str__(), self.path) 
         return mystring
 
-    def check_single_mouse_data(self,mouse):
+    def check_single_mouse_data(self, mouse):
         antennas = self.data.getantennas(mouse)
         times  = self.data.gettimes(mouse)
         error_crossing_times = []
@@ -263,4 +263,40 @@ class Loader(object):
         data['ValidVisitSolution'] = [x[5] for x in temp_data]
         return BaseFunctions.Visits(data, None)
 
+    def mask_data(self, starttime, endtime):
+        self.mask = (starttime, endtime)
+        self.readings.mask_data(*self.mask)
+        self.visits.mask_data(*self.mask)
+
+    def unmask_data(self):
+        """Remove the mask - future queries will not be clipped"""
+        self.mask = None
+        self.readings.unmask_data()
+        self.visits.unmask_data()
+
+    def getantennas(self, mice):
+        return self.readings.getproperty(mice,
+                                     'Antenna')
+
+    def gettimes(self, mice):
+        return self.readings.getproperty(mice,
+                                     'Time',
+                                     'float')
     #add get_visits, get_readings
+    def getaddresses(self, mice):
+        return self.visits.getproperty(mice,
+                                       'Address')
+    def getstarttimes(self, mice):
+        return self.visits.getproperty(mice,
+                                       'AbsStartTimecode',
+                                       'float')
+
+    def getendtimes(self, mice):
+        return self.visits.getproperty(mice,
+                                       'AbsEndTimecode',
+                                       'float')
+
+    def getvisitdurations(self, mice):
+        return self.visits.getproperty(mice,
+                                       'VisitDuration',
+                                       'float')

@@ -442,8 +442,9 @@ def prepare_data(ehs, mice, times=None):
     """Prepare masked data."""
     data = {}
     if times is None:
-        times = (ehs.data['AbsStartTimecode'][0],
-                 ehs.data['AbsEndTimecode'][-1])
+        ehs.unmask_data()
+        times = (ehs.getstarttimes(mice)[0],
+                 ehs.getendtimes(mice)[-1])
     t_start, t_end = times
     for mouse in mice:
         data[mouse] = []
