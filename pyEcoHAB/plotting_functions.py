@@ -8,6 +8,8 @@ from __future__ import division, print_function, absolute_import
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('SVG')
 from . import utility_functions as utils
 
 nbins = 10
@@ -69,12 +71,16 @@ def make_RasterPlot(main_directory,
     fig.subplots_adjust(left=0.25)
     fig.subplots_adjust(bottom=0.25)
     name = name + prefix
-    new_name = os.path.join(new_path, name+'.png')
-    plt.savefig(new_name,
+    new_name = os.path.join(new_path, name)
+    plt.savefig(new_name+".png",
                 transparent=False,
                 bbox_inches=None,
-                pad_inches=2,
-                frameon=None)
+                pad_inches=.5,
+                frameon=None, dpi=900)
+    plt.savefig(new_name+".svg",
+                bbox_inches=None,
+                pad_inches=.5,
+                frameon=None, dpi=900)
     plt.close(fig)
 
 
@@ -92,7 +98,7 @@ def single_heat_map(result,
                     vmin=None,
                     xticks=None,
                     yticks=None):
-    name = '%s_%s_%s.png' % (name, prefix, phase)
+    name = '%s_%s_%s' % (name, prefix, phase)
     fig, ax = plt.subplots()
     if not vmin:
         vmin = result.min()
@@ -125,7 +131,11 @@ def single_heat_map(result,
     new_name = os.path.join(dir_name, name)
     fig.subplots_adjust(left=0.25)
     fig.subplots_adjust(bottom=0.25)
-    fig.savefig(new_name, transparent=False, bbox_inches=None, pad_inches=2, frameon=None)
+    fig.savefig(new_name + ".png", transparent=False, bbox_inches=None,
+                pad_inches=0.5, frameon=None, dpi=900)
+    fig.savefig(new_name + ".svg", bbox_inches=None,
+                pad_inches=0.5, frameon=None, dpi=900)
+
     plt.close(fig)
 
 
@@ -207,12 +217,14 @@ def single_in_cohort_soc_plot(results,
         ax[3].get_xaxis().set_ticks([-0.1, 0., 0.1, 0.2, 0.3])
         ax[3].set_xticklabels([-0.1, 0., 0.1, 0.2, 0.3])
     fig.suptitle(phase)
-    fig.subplots_adjust(left=0.3)
-    fig.subplots_adjust(bottom=0.3)
+
+    fig.subplots_adjust(bottom=0.1)
     fig.subplots_adjust(wspace=0.25)
     fig.subplots_adjust(hspace=0.3)
-    fig.savefig(fname+'.pdf')
-    fig.savefig(fname+'.png', dpi=300)
+    fig.savefig(fname+'.pdf', dpi=900)
+    fig.savefig(fname+'.png', dpi=900)
+    fig.savefig(fname+'.svg',  bbox_inches=None,
+                pad_inches=0.5, frameon=None, dpi=900)
 
 
 def make_pooled_histograms(res,
@@ -258,7 +270,9 @@ def make_pooled_histograms(res,
     fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, new_phase))
     if len(phases) > 1:
         fig.subplots_adjust(wspace=0.15)
-    fig.savefig(fname + '.png', dpi=300)
+    fig.savefig(fname + '.png', dpi=900)
+    fig.savefig(fname + ".svg", bbox_inches=None,
+                pad_inches=0.5, frameon=None, dpi=900)
     print(fname)
     plt.close(fig)
 
@@ -323,14 +337,18 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
     plt.gcf().text(0.5, 0.02, "Following mouse", fontsize=28)
 
     if prefix != "":
-         new_name= '%s_%s_%s.png'% (fname, prefix, new_name)
+         new_name= '%s_%s_%s'% (fname, prefix, new_name)
     else:
-        new_name =  '%s_%s.png'% (fname, new_name)
+        new_name =  '%s_%s'% (fname, new_name)
 
     fname = os.path.join(dir_name, new_name)
     print(fname)
     fig.subplots_adjust(wspace=0.15)
-    fig.savefig(fname, dpi=300)
+    fig.savefig(fname + ".png", dpi=900)
+    fig.savefig(fname + ".svg",
+                bbox_inches=None,
+                pad_inches=.5,
+                frameon=None, dpi=900)
     plt.close(fig)
 
 
@@ -415,7 +433,11 @@ def make_fig_histogram(results, path, title):
         if min_bin == max_bin == max_count == min_count:
             continue
     fig.subplots_adjust(wspace=0.15)
-    fig.savefig(path, dpi=300)
+    fig.savefig(path + ".png", dpi=900)
+    fig.savefig(path + ".svg",
+                bbox_inches=None,
+                pad_inches=.5,
+                frameon=None, dpi=900)
     print(path)
     plt.close(fig)
 
@@ -433,11 +455,11 @@ def make_pooled_histograms_for_every_mouse(results, fname,
     dir_name =  utils.check_directory(main_directory, new_dir)
 
     if prefix != "":
-        new_name_following = '%s_%s_%s.png'% (fname, prefix, new_name_following)
-        new_name_followed = '%s_%s_%s.png'% (fname, prefix, new_name_followed)
+        new_name_following = '%s_%s_%s'% (fname, prefix, new_name_following)
+        new_name_followed = '%s_%s_%s'% (fname, prefix, new_name_followed)
     else:
-        new_name_following =  '%s_%s.png'% (fname, new_name_following)
-        new_name_followed =  '%s_%s.png'% (fname, new_name_followed)
+        new_name_following =  '%s_%s'% (fname, new_name_following)
+        new_name_followed =  '%s_%s'% (fname, new_name_followed)
 
     fname_following = os.path.join(dir_name, new_name_following)
     fname_followed = os.path.join(dir_name, new_name_followed)
@@ -456,9 +478,9 @@ def make_visit_duration_histogram(results, time, phase, mice,
 
     for mouse in mice:
         if prefix != "":
-            new_name = '%s_%s_%s_%s.png'% (fname, mouse, prefix, phase)
+            new_name = '%s_%s_%s_%s'% (fname, mouse, prefix, phase)
         else:
-            new_name =  '%s_%s_%s.png'% (fname, mouse, phase)
+            new_name =  '%s_%s_%s'% (fname, mouse, phase)
         new_name = os.path.join(dir_name, new_name)
         ncols = len(results.keys())
         nrows = len(results[results.keys()[0]][mouse])
@@ -502,6 +524,8 @@ def make_visit_duration_histogram(results, time, phase, mice,
         fig.suptitle("%s visit durations in %s" % (mouse, phase),
                      fontsize=fontsize+2)
         fig.subplots_adjust(wspace=0.15)
-        fig.savefig(new_name, dpi=300)
+        fig.savefig(new_name + ".png", dpi=900)
+        fig.savefig(new_name + ".svg", dpi=900)
+
         print(new_name)
         plt.close(fig)
