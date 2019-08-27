@@ -300,3 +300,6 @@ class Loader(object):
         return self.visits.getproperty(mice,
                                        'VisitDuration',
                                        'float')
+    def how_many_antennas(self):
+        all_antennas = set(self.getantennas(self.mice))
+        return len(all_antennas)

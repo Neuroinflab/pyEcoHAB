@@ -5,7 +5,7 @@ from . import utility_functions as utils
 from .write_to_file import save_single_histograms, write_csv_rasters
 from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
 from . import exec_functions as dispatch
-
+from . import dominance_in_2_cages as dom2
 how_many_antennas = 3
 
 mas = 10  # sec
@@ -150,6 +150,12 @@ def tube_dominance_single_phase(ehd, cf, phase, normalization):
     return dominance
 
 def get_tube_dominance(ehd, cf, prefix=None, res_dir=None, normalization=None):
+
+    if ehd.how_many_antennas == 2:
+        dom2.get_tube_dominance_2_cages(ehd, cf, res_dir, prefix)
+        dom2.get_subversion_evaluation(ehd, cf, res_dir, prefix)
+        dom2.get_visits_to_stimulus_cage(ehd, cf, res_dir, prefix)
+
     if normalization is None:
         fname = 'tube_dominance_no_normalization'
     else:
