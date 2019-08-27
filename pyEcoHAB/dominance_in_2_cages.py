@@ -98,7 +98,7 @@ def get_states_mouse(antennas, times, t_start, t_end, home_antenna, dt):
 
 def get_states(ehd, cf, mouse, home_antenna, dt=dt):
     """
-    0 -- home cage, 1 -- pipe, 2 -- cage with stimulus
+    0 -- home cage, 1 -- pipe, 2 -- conditioning compartment
     """
     t_start, t_end = cf.gettime('ALL')
     times, antennas = utils.get_times_antennas(ehd, mouse,
@@ -260,7 +260,7 @@ def get_tube_dominance_2_cages(ehd, cf, res_dir=None, prefix=None, dt=dt):
         prefix = ehd.prefix
     dispatch.evaluate_whole_experiment(ehd, cf, res_dir, prefix,
                                        tube_dominance_2_cages,
-                                       'mouse_pushing_out_stimulus_chamber',
+                                       'mouse_pushing_out_conditioning_compartment',
                                        'dominating mouse',
                                        'pushed out mouse',
                                        '# pushes',
@@ -313,7 +313,7 @@ def get_visits_to_stimulus_cage(ehd, cf, res_dir=None, prefix=None, dt=dt):
         cumulative[0, j] = how_many_visits(states[mouse], T_0, T_1, T_0, dt)
         assert cumulative[0, j] == sum(results[0, j, :])
     write_csv_alone(results, phases, ehd.mice,
-                    res_dir, prefix, labels=["stimulus chamber"],
+                    res_dir, prefix, labels=["conditioning compartment"],
                     header='Number of visits %s\n',
-                    fname='visits_to_stimulus_chamber_%s.csv',
-                    directory="mice_in_stimulus_chamber")
+                    fname='visits_to_conditioning_compartment_%s.csv',
+                    directory="mice_in_conditioning_compartment")
