@@ -52,6 +52,7 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
                                                      antennas2, times2)
         self.assertEqual(out, 1)
         self.assertEqual(intervals, [3])
+        self.assertEqual(intervals, [4])
 
     def test_not_following(self):
         antennas1 = [1, 2]
@@ -72,6 +73,7 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
                                                      antennas2, times2)
         self.assertEqual(out, 2)
         self.assertEqual(intervals, [3, 2.5])
+        self.assertEqual(intervals, [4, 3])
 
     def test_not_following_more(self):
         antennas1 = [1, 2, 3, 4, 5]
