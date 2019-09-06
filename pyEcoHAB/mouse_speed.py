@@ -104,7 +104,7 @@ def following_interval(antenna1, next_antenna1, t1, threshold, antennas2, times2
             return 0
         if antennas2[ci] == antenna1 and antennas2[ci+1] == next_antenna1:
             if times2[ci+1] > t1 + threshold:
-                return  times2[ci+1] -  times2[ci]
+                return  times2[ci + 1] -  t1
     return 0
 
 
