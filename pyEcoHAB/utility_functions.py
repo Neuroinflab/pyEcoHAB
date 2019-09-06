@@ -376,10 +376,11 @@ def get_timestamp(t_start, t_end, dt):
     return int(round((t_end - t_start)/dt))
 
 def get_key_for_frequencies(antenna, next_antenna):
-     if antenna % 2 and next_antenna == antenna + 1:
-         return next_antenna + antenna
-     elif next_antenna % 2 and antenna == next_antenna + 1:
-         return next_antenna + antenna
+    if antenna % 2 and next_antenna == antenna + 1:
+        return "%s%s" % (antenna, next_antenna)
+    elif next_antenna % 2 and antenna == next_antenna + 1:
+        return "%s%s" % (antenna, next_antenna)
+
 
 def interval_overlap(int1, int2):
     """Return overlap between two intervals."""

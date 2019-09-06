@@ -24,16 +24,24 @@ threshold = 12*3600
 def frequency_mouse_in_tube(times, antennas, period):
     change_indices = utils.change_state(antennas)
     frequency = {
-        3: 0,
-        7: 0,
-        11: 0,
-        15: 0,
+        "12": 0,
+        "21": 0,
+        "34": 0,
+        "43": 0,
+        "56": 0,
+        "65": 0,
+        "78": 0,
+        "87": 0,
     }
     window = {
-        3: 0,
-        7: 0,
-        11: 0,
-        15: 0,
+        "12": 0,
+        "21": 0,
+        "34": 0,
+        "43": 0,
+        "56": 0,
+        "65": 0,
+        "78": 0,
+        "87": 0,
     }
     for idx in change_indices:
         antenna, next_antenna = antennas[idx:idx + 2]
