@@ -9,7 +9,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use('SVG')
 from . import utility_functions as utils
 
 nbins = 10
