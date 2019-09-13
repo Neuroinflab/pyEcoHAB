@@ -20,29 +20,31 @@ titles = {
 }
 threshold = 12*3600
 
+FREQUENCY = {
+    "12": 0,
+    "21": 0,
+    "34": 0,
+    "43": 0,
+    "56": 0,
+    "65": 0,
+    "78": 0,
+    "87": 0,
+}
+WINDOW = {
+    "12": 0,
+    "21": 0,
+    "34": 0,
+    "43": 0,
+    "56": 0,
+    "65": 0,
+    "78": 0,
+    "87": 0,
+}
 
-def frequency_mouse_in_tube(times, antennas, period):
+def time_count_mouse_in_tunnels(times, antennas):
     change_indices = utils.change_state(antennas)
-    frequency = {
-        "12": 0,
-        "21": 0,
-        "34": 0,
-        "43": 0,
-        "56": 0,
-        "65": 0,
-        "78": 0,
-        "87": 0,
-    }
-    window = {
-        "12": 0,
-        "21": 0,
-        "34": 0,
-        "43": 0,
-        "56": 0,
-        "65": 0,
-        "78": 0,
-        "87": 0,
-    }
+    frequency = FREQUENCY.copy()
+    window = WINDOW.copy()
     for idx in change_indices:
         antenna, next_antenna = antennas[idx:idx + 2]
         delta_t = times[idx+1] - times[idx]
@@ -50,8 +52,6 @@ def frequency_mouse_in_tube(times, antennas, period):
         if key and delta_t < threshold:
             frequency[key] += 1
             window[key] += delta_t
-    for key in frequency:
-        frequency[key] = frequency[key]/period
     return frequency, window
 
 
@@ -62,17 +62,17 @@ def frequencies_for_all(ehd, cf, phase):
     window = {}
     for mouse1 in ehd.mice:
         times, antennas = utils.get_times_antennas(ehd, mouse1, t_st, t_en)
-        frequency[mouse1], window[mouse1] = frequency_mouse_in_tube(times,
-                                                                    antennas,
-                                                                    period)
+        frequency[mouse1], window[mouse1] = time_count_mouse_in_tunnels(times,
+                                                                        antennas)
     return frequency, window
 
 
-def calculate_expected(window_mouse1, frequency_mouse2):
-    expected_followings = 0
-    for key in window_mouse1:
-        expected_followings += window_mouse1[key]*frequency_mouse2[key]
-    return expected_followings
+def calculate_expected(p1, p2):
+    expected = 0
+    for key in p1:
+        expected += p1[key]*p2[key]
+    return expected
+
 
 def expected_following_in_pipe_single_phase(ehd, cf, phase):
     out = np.zeros((len(ehd.mice), len(ehd.mice)))
@@ -84,9 +84,9 @@ def expected_following_in_pipe_single_phase(ehd, cf, phase):
         for k, mouse2 in enumerate(ehd.mice):
             if mouse1 != mouse2:
                 out[j, k] = calculate_expected(window[mouse1],
-                                               frequency[mouse2])
-                time_out[j, k] = calculate_expected(window[mouse1],
-                                                    window[mouse2])/period**2
+                                               frequency[mouse2]/period)
+                time_out[j, k] = calculate_expected(window[mouse1]/period,
+                                                    window[mouse2]/period)
     return out, time_out
 
 

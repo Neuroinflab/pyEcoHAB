@@ -111,9 +111,8 @@ class TestFrequencyMouseInTube(unittest.TestCase):
         cls.period = 16.
         cls.antennas = [1, 1, 2, 3, 4, 4, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8]
         cls.times = [0, 1, 1.5, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-        cls.freq, cls.window = ms.frequency_mouse_in_tube(cls.times,
-                                                          cls.antennas,
-                                                          cls.period)
+        cls.freq, cls.window = ms.time_count_mouse_in_tunnels(cls.times,
+                                                              cls.antennas)
     def test_same_keys(self):
         self.assertEqual(self.freq.keys(), self.window.keys())
 
@@ -123,25 +122,25 @@ class TestFrequencyMouseInTube(unittest.TestCase):
                                                      '78', '87']))
 
     def test_freq_12(self):
-        self.assertEqual(self.freq['12'], 2/16)
+        self.assertEqual(self.freq['12'], 2)
 
     def test_freq_21(self):
-        self.assertEqual(self.freq['21'], 1/16)
+        self.assertEqual(self.freq['21'], 1)
 
     def test_freq_34(self):
-        self.assertEqual(self.freq['34'], 2/16)
+        self.assertEqual(self.freq['34'], 2)
 
     def test_freq_43(self):
-        self.assertEqual(self.freq['43'], 1/16)
+        self.assertEqual(self.freq['43'], 1)
 
     def test_freq_56(self):
-        self.assertEqual(self.freq['56'], 1/16)
+        self.assertEqual(self.freq['56'], 1)
 
     def test_freq_65(self):
         self.assertEqual(self.freq['65'], 0)
 
     def test_freq_78(self):
-        self.assertEqual(self.freq['78'], 1/16)
+        self.assertEqual(self.freq['78'], 1)
 
     def test_freq_87(self):
         self.assertEqual(self.freq['87'], 0)
