@@ -770,6 +770,17 @@ class TestListOfpairs(unittest.TestCase):
                                'Zbysio|Rysio', 'Henio|Gienio',
                                'Henio|Rysio', 'Gienio|Rysio'])
 
+
+class TestAllPairs(unittest.TestCase):
+    def test_list(self):
+        lista = ["Zdzisio",
+                 "Zbysio",
+                 "Henio",
+                 "Gienio"]
+        out = uf.all_pairs(lista)
+        self.assertEqual(len(out), 12)
+
+
 class TestMakeTableOfPairs(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

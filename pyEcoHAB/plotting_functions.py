@@ -302,7 +302,7 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
             else:
                 new_title = ""
 
-            key = "%s_%s" % (mouse1, mouse2)
+            key = "%s|%s" % (mouse1, mouse2)
             intervals = results[key]
             minb, maxb, minc, maxc = make_single_histogram(ax[i, j],
                                                            intervals,
@@ -348,7 +348,7 @@ def pool_results_following(res_dict, mice):
         for mouse2 in mice:
             if mouse1 == mouse2:
                 continue
-            key = "%s_%s" %(mouse1, mouse2)
+            key = "%s|%s" %(mouse1, mouse2)
             pooled_results[mouse2] += res_dict[key]
     return pooled_results
 
@@ -359,7 +359,7 @@ def pool_results_followed(res_dict, mice):
         for mouse2 in mice:
             if mouse1 == mouse2:
                 continue
-            key = "%s_%s" %(mouse1, mouse2)
+            key = "%s|%s" %(mouse1, mouse2)
             pooled_results[mouse1] += res_dict[key]
     return pooled_results
 

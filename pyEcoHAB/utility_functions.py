@@ -117,12 +117,20 @@ def make_prefix(path):
             prefix += info_dict[key] + '_'
     return prefix
 
-
 def list_of_pairs(mice):
     pair_labels = []
     for j, mouse in enumerate(mice):
         for k in range(j+1, len(mice)):
             pair_labels.append(mice[j]+'|'+mice[k])
+    return pair_labels
+
+def all_pairs(mice):
+    pair_labels = []
+    for mouse1 in mice:
+        for mouse2 in mice:
+            if mouse1 == mouse2:
+                continue
+            pair_labels.append('%s|%s' % (mouse1, mouse2))
     return pair_labels
 
 

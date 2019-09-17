@@ -150,6 +150,8 @@ def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase):
                 key = "%s_%s" % (mouse1, mouse2)
                 interval_details[key] = []
 
+            key =  "%s|%s" % (mouse1, mouse2)
+            interval_details[key] += mouse_intervals
     for j, mouse1 in enumerate(ehd.mice):
         times1, antennas1 = utils.get_times_antennas(ehd, mouse1,
                                                      st, en)
@@ -195,13 +197,9 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
     fname_beg = 'relative_following_in_pipe_excess'
     fname_exp = '%s_%s%s.csv' % (fname_beg, prefix,
                                  add_info_mice)
-    interval_details = {}
 
-    for mouse1 in ehd.mice:
-        for mouse2 in ehd.mice:
-            if mouse1 != mouse2:
-                key = "%s_%s" % (mouse1, mouse2)
-                interval_details[key] = []
+    keys = utils.all_pairs(ehd.mice)
+    interval_details = {key:[] for key in keys}
 
     for i, phase in enumerate(phases):
         out = following_2nd_mouse_in_pipe_single_phase(ehd,

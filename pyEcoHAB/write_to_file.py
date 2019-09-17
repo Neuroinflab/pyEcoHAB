@@ -184,7 +184,7 @@ def write_interpair_intervals(results, main_directory,
     f.write("followed mouse, following mouse, intervals\n")
     keys = sorted(results.keys())
     for key in keys:
-        mouse1, mouse2 = key.split('_')
+        mouse1, mouse2 = key.split('|')
         f.write("%s,%s," % (mouse1, mouse2))
         for interval in results[key]:
             f.write("%f," % interval)
