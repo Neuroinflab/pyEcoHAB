@@ -4,8 +4,98 @@ import numpy as np
 from . import BaseFunctions
 from . import utility_functions as utils
 
+class EcoHabDataBase(object):
 
-class Loader(object):
+    def __init__(self, data, mask, threshold):
+        self.readings = BaseFunctions.Data(data, mask)
+        self.threshold = threshold
+        self.mice = self.get_mice()
+        self.visits = self._calculate_visits()
+        self.session_start = sorted(self.gettimes(self.mice))[0]
+        self.session_end = sorted(self.gettimes(self.mice))[-1]
+
+    def _calculate_states(self):
+        tempdata = []
+        for mouse in self.mice:
+            times, antennas = utils.get_times_antennas(self.readings,
+                                                       mouse,
+                                                       0, -1)
+            tempdata.extend(utils.get_states_for_ehs(times, antennas,
+                                                     mouse,
+                                                     self.threshold))
+        tempdata.sort(key=lambda x: x[2])
+        return tempdata
+
+    def _calculate_visits(self):
+        temp_data = self._calculate_states()
+        data = {}
+        data['Address'] = [x[0] for x in temp_data]
+        data['Tag'] = [x[1] for x in temp_data]
+        data['AbsStartTimecode'] = [x[2] for x in temp_data]
+        data['AbsEndTimecode'] = [x[3] for x in temp_data]
+        data['VisitDuration'] = [x[4] for x in temp_data]
+        data['ValidVisitSolution'] = [x[5] for x in temp_data]
+        return BaseFunctions.Visits(data, None)
+
+    def mask_data(self, starttime, endtime):
+        self.mask = (starttime, endtime)
+        self.readings.mask_data(*self.mask)
+        self.visits.mask_data(*self.mask)
+
+    def unmask_data(self):
+        """Remove the mask - future queries will not be clipped"""
+        self.mask = None
+        self.readings.unmask_data()
+        self.visits.unmask_data()
+
+    def getantennas(self, mice):
+        return self.readings.getproperty(mice,
+                                     'Antenna')
+
+    def gettimes(self, mice):
+        return self.readings.getproperty(mice,
+                                     'Time',
+                                     'float')
+    #add get_visits, get_readings
+    def getaddresses(self, mice):
+        return self.visits.getproperty(mice,
+                                       'Address')
+    def getstarttimes(self, mice):
+        return self.visits.getproperty(mice,
+                                       'AbsStartTimecode',
+                                       'float')
+
+    def getendtimes(self, mice):
+        return self.visits.getproperty(mice,
+                                       'AbsEndTimecode',
+                                       'float')
+
+    def getvisitdurations(self, mice):
+        return self.visits.getproperty(mice,
+                                       'VisitDuration',
+                                       'float')
+    def how_many_antennas(self):
+        all_antennas = set(self.getantennas(self.mice))
+        return len(all_antennas)
+
+    def get_mice(self):
+        mouse_list = list(set(self.readings.data["Tag"]))
+        mouse_dict = {mouse[-4:]:mouse for mouse in mouse_list}
+        mouse_keys = sorted(mouse_dict.keys())
+        return [mouse_dict[mouse] for mouse in mouse_keys]
+
+    def get_home_cage_antenna(self):
+        """
+        Finds home antenna. This is a function used to calculate one
+        of the measures of dominance in two cage experiments. 
+        """
+        antennas = []
+        for mouse in self.mice:
+            antennas.append(self.getantennas(mouse)[0])
+        return max(set(antennas), key=antennas.count)
+
+
+class Loader(EcoHabDataBase):
     """Reads in EcoHAB data"""
     STANDARD_ANTENNAS = {'1': 1, '2': 2,
                          '3': 3, '4': 4,
@@ -42,21 +132,10 @@ class Loader(object):
                                  self._ant_pos,
                                  remove_antennas)
         #As in antenna readings
-        self.readings = BaseFunctions.Data(data, self.mask)
-        self.mice = self.get_mice()
-        self.run_diagnostics()
-        self.visits = self._calculate_visits()
 
-    def get_home_cage_antenna(self):
-        """
-        Finds home antenna. This is a function used to calculate one
-        of the measures of dominance in two cage experiments, when mice
-        are living in an environment 
-        """
-        antennas = []
-        for mouse in self.mice:
-            antennas.append(self.getantennas(mouse)[0])
-        return max(set(antennas), key=antennas.count)
+        self.run_diagnostics(data)
+        super(Loader, self).__init__(data, self.mask,
+                                     self.threshold)
 
     @staticmethod
     def _remove_antennas(data, antennas):
@@ -158,8 +237,8 @@ class Loader(object):
 
         return self._remove_antennas(data, remove_antennas)
 
-    def run_diagnostics(self):
-        antenna_breaks = self.check_antenna_presence()
+    def run_diagnostics(self, raw_data):
+        antenna_breaks = self.check_antenna_presence(raw_data)
         if antenna_breaks:
             print('Antenna not working')
             for antenna in antenna_breaks:
@@ -168,15 +247,15 @@ class Loader(object):
                     print(utils.print_human_time(breaks[0]),
                           utils.print_human_time(breaks[1]))
                     print((breaks[1] - breaks[0])/3600, 'h')
-        self.antenna_mismatch()
+        self.antenna_mismatch(raw_data)
 
-    def check_antenna_presence(self):
-        t_start = self.readings.data['Time'][0]
-        all_times = np.array(self.readings.data['Time'])
+    def check_antenna_presence(self, raw_data):
+        t_start = raw_data['Time'][0]
+        all_times = np.array(raw_data['Time'])
         breaks = {}
         
         for antenna in range(1, 9):
-            antenna_idx = np.where(np.array(self.readings.data['Antenna']) == antenna)[0]
+            antenna_idx = np.where(np.array(raw_data['Antenna']) == antenna)[0]
             times = all_times[antenna_idx] 
             breaks[antenna] = []
             if len(times):
@@ -189,18 +268,19 @@ class Loader(object):
                         breaks[antenna].append([np.round(times[i]), np.round(times[i+1])])
             else:
                 breaks[antenna].append([np.round(t_start),
-                                        self.readings.data['Time'][-1]])
+                                        raw_data['Time'][-1]])
         return breaks
     
-    def antenna_mismatch(self):
+    def antenna_mismatch(self, raw_data):
         
-        t_start = self.readings.data['Time'][0]
-        all_times = np.array(self.readings.data['Time'])
+        t_start = raw_data['Time'][0]
+        all_times = np.array(raw_data['Time'])
         weird_transit = [[], []]
-        for mouse in self.mice:
-            mouse_idx = np.where(np.array(self.readings.data['Tag']) == mouse)[0]
+        mice = set(raw_data['Tag'])
+        for mouse in mice:
+            mouse_idx = np.where(np.array(raw_data['Tag']) == mouse)[0]
             times = all_times[mouse_idx]
-            antennas = np.array(self.readings.data['Antenna'])[mouse_idx]
+            antennas = np.array(raw_data['Antenna'])[mouse_idx]
             for i, a in enumerate(antennas[:-1]):
                 if abs(a - antennas[i+1]) not in [0,1,7]:
                     weird_transit[0].append(times[i])
@@ -214,15 +294,10 @@ class Loader(object):
         for pair in pairs:
             mismatches[pair] = weird_transit[1].count(pair)
             print(pair, mismatches[pair],
-                  np.round(100*mismatches[pair]/len(self.readings.data['Antenna'])),
+                  np.round(100*mismatches[pair]/len(raw_data['Antenna'])),
                   'per 100')
         return weird_transit
 
-    def get_mice(self):
-        mouse_list = list(set(self.readings.data["Tag"]))
-        mouse_dict = {mouse[-4:]:mouse for mouse in mouse_list}
-        mouse_keys = sorted(mouse_dict.keys())
-        return [mouse_dict[mouse] for mouse in mouse_keys]
                         
     def __repr__ (self):
         """Nice string representation for prtinting this class."""
@@ -240,33 +315,8 @@ class Loader(object):
                     error_crossing_times.append(times[i])
         return error_crossing_times
 
-    def _calculate_states(self):
-        tempdata = []
-        for mouse in self.mice:
-            times, antennas = utils.get_times_antennas(self.readings,
-                                                       mouse,
-                                                       0, -1)
-            tempdata.extend(utils.get_states_for_ehs(times, antennas,
-                                                     mouse,
-                                                     self.threshold))
-        tempdata.sort(key=lambda x: x[2])
-        return tempdata
 
-    def _calculate_visits(self):
-        temp_data = self._calculate_states()
-        data = {}
-        data['Address'] = [x[0] for x in temp_data]
-        data['Tag'] = [x[1] for x in temp_data]
-        data['AbsStartTimecode'] = [x[2] for x in temp_data]
-        data['AbsEndTimecode'] = [x[3] for x in temp_data]
-        data['VisitDuration'] = [x[4] for x in temp_data]
-        data['ValidVisitSolution'] = [x[5] for x in temp_data]
-        return BaseFunctions.Visits(data, None)
 
-    def mask_data(self, starttime, endtime):
-        self.mask = (starttime, endtime)
-        self.readings.mask_data(*self.mask)
-        self.visits.mask_data(*self.mask)
 
     def unmask_data(self):
         """Remove the mask - future queries will not be clipped"""
