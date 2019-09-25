@@ -12,15 +12,9 @@ from .plotting_functions import make_pooled_histograms
 from .plotting_functions import make_histograms_for_every_mouse
 from .plotting_functions import make_pooled_histograms_for_every_mouse
 
-titles = {
-    3: '12',
-    7: '34',
-    11: '56',
-    15: '78',
-}
-threshold = 12*3600
+phase_duration = 12*3600
 
-FREQUENCY = {
+KEY_DICT = {
     "12": 0,
     "21": 0,
     "34": 0,
@@ -30,41 +24,6 @@ FREQUENCY = {
     "78": 0,
     "87": 0,
 }
-WINDOW = {
-    "12": 0,
-    "21": 0,
-    "34": 0,
-    "43": 0,
-    "56": 0,
-    "65": 0,
-    "78": 0,
-    "87": 0,
-}
-
-def time_count_mouse_in_tunnels(times, antennas):
-    change_indices = utils.change_state(antennas)
-    frequency = FREQUENCY.copy()
-    window = WINDOW.copy()
-    for idx in change_indices:
-        antenna, next_antenna = antennas[idx:idx + 2]
-        delta_t = times[idx+1] - times[idx]
-        key = utils.get_key_for_frequencies(antenna, next_antenna)
-        if key and delta_t < threshold:
-            frequency[key] += 1
-            window[key] += delta_t
-    return frequency, window
-
-
-def frequencies_for_all(ehd, cf, phase):
-    t_st, t_en = cf.gettime(phase)
-    period = t_en - t_st
-    frequency = {}
-    window = {}
-    for mouse1 in ehd.mice:
-        times, antennas = utils.get_times_antennas(ehd, mouse1, t_st, t_en)
-        frequency[mouse1], window[mouse1] = time_count_mouse_in_tunnels(times,
-                                                                        antennas)
-    return frequency, window
 
 
 def calculate_expected(p1, p2):
@@ -74,23 +33,50 @@ def calculate_expected(p1, p2):
     return expected
 
 
-def expected_following_in_pipe_single_phase(ehd, cf, phase):
-    out = np.zeros((len(ehd.mice), len(ehd.mice)))
-    time_out = np.zeros((len(ehd.mice), len(ehd.mice)))
-    frequency, window = frequencies_for_all(ehd, cf, phase)
-    t_st, t_en = cf.gettime(phase)
-    period = t_en - t_st
-    for j, mouse1 in enumerate(ehd.mice):
-        for k, mouse2 in enumerate(ehd.mice):
+def calculate_expected_matrices(time_dict_m1,
+                                time_dict_m2,
+                                tot_time_dict_m1,
+                                count_dict_m2,
+                                duration,
+                                mice_list):
+    assert len(mice_list) > 1
+    assert duration > 0
+    followings = np.zeros((len(mice_list), len(mice_list)))
+    time = np.zeros((len(mice_list), len(mice_list)))
+    for j, mouse1 in enumerate(mice_list):
+        for k, mouse2 in enumerate(mice_list):
             if mouse1 != mouse2:
-                out[j, k] = calculate_expected(window[mouse1],
-                                               frequency[mouse2]/period)
-                time_out[j, k] = calculate_expected(window[mouse1]/period,
-                                                    window[mouse2]/period)
-    return out, time_out
+                assert mouse1 in time_dict_m1
+                assert mouse2 in time_dict_m2
+                assert mouse1 in tot_time_dict_m1
+                assert mouse2 in count_dict_m2
+                time_m1 = time_dict_m1[mouse1]
+                time_m2 = time_dict_m2[mouse2]
+                tot_time_m1 = tot_time_dict_m1[mouse1]
+                count_m2 = count_dict_m2[mouse2]
+
+                are_mouse_dicts_correct(time_m2, count_m2)
+                time[j, k] = calculate_expected(time_m1, time_m2)
+                time[j, k] /=  (duration**2)
+                followings[j, k] = calculate_expected(tot_time_m1, count_m2)
+                followings[j, k] /= duration
+    return followings, time
 
 
-def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2):
+def are_mouse_dicts_correct(dict1, dict2):
+    keys = []
+    for key in dict1.keys():
+        if key not in dict2:
+            raise KeyError
+        if dict1[key] == 0:
+            if dict2[key] != 0:
+                raise ValueError
+        keys.append(key)
+    assert sorted(keys) == sorted(dict2.keys())
+
+
+def check_2nd_mouse(antenna1, next_antenna1, t1,
+                    threshold, antennas2, times2):
     idxs = utils.get_idx_between(t1, t1 + threshold, times2)
     for ci in idxs:
         if ci + 1 >= len(antennas2):
@@ -101,14 +87,17 @@ def check_2nd_mouse(antenna1, next_antenna1, t1, threshold, antennas2, times2):
     return 0
 
 
-def following_interval(antenna1, next_antenna1, t1, threshold, antennas2, times2):
+def get_intervals(antenna1, next_antenna1,
+                  t1, threshold,
+                  antennas2, times2):
     idxs = utils.get_idx_between(t1, t1 + threshold, times2)
     for ci in idxs:
         if ci + 1 >= len(antennas2):
             return 0
         if antennas2[ci] == antenna1 and antennas2[ci+1] == next_antenna1:
             if times2[ci+1] > t1 + threshold:
-                return  times2[ci + 1] -  t1, t1 + threshold - times2[ci]
+                #time spent together in tunnel, whole time, time spent in tunnel by mouse 2
+                return  times2[ci + 1] -  t1, t1 + threshold - times2[ci], times2[ci + 1] - times2[ci]
     return 0
 
 
@@ -117,59 +106,96 @@ def following_2_mice_in_pipe(antennas1, times1,
     change_indices = utils.change_state(antennas1)
     followings = 0
     intervals = []
+    deltas_t1 = KEY_DICT.copy() #time spent in tunnels by mouse1, while being followed
+    deltas_t2 = KEY_DICT.copy() #time spent in tunnels by mouse2, while following mouse1
+    followings_mouse2 = KEY_DICT.copy() #count of instances of mouse2 following
+    tot_time_tunnel = KEY_DICT.copy()
     time_together = 0
+
     for idx in change_indices:
         antenna1, next_antenna1 = antennas1[idx:idx+2]
         delta_t1 = times1[idx+1] - times1[idx]
-        if utils.in_tube(antenna1, next_antenna1) and delta_t1 < threshold:
+        key = utils.get_key_for_frequencies(antenna1, next_antenna1)
+        if key:
+            tot_time_tunnel[key] += delta_t1
+        if utils.in_tube(antenna1, next_antenna1) and delta_t1 < phase_duration:
             out = check_2nd_mouse(antenna1, next_antenna1,
                                   times1[idx], delta_t1,
                                   antennas2, times2)
             if out:
                 followings += out
-                int_combined, int_overlap = following_interval(antenna1,
-                                                               next_antenna1,
-                                                               times1[idx],
-                                                               delta_t1,
-                                                               antennas2,
-                                                               times2)
+                int_combined, int_overlap, delta_t2 = get_intervals(antenna1,
+                                                                      next_antenna1,
+                                                                      times1[idx],
+                                                                      delta_t1,
+                                                                      antennas2,
+                                                                      times2)
                 intervals += [int_combined]
                 time_together += int_overlap
-    return followings, time_together, intervals
+                key = "%d%d" % (antenna1, next_antenna1)
+                deltas_t1[key] += delta_t1
+                deltas_t2[key] += delta_t2
+                followings_mouse2[key] += 1
+    assert followings == sum(followings_mouse2.values())
+    return followings, time_together, intervals, deltas_t1, deltas_t2, tot_time_tunnel, followings_mouse2
+
+
+def add_values_to_dict(dictionary, values):
+    for key in values.keys():
+        dictionary[key] += values[key]
+
+
+def initialize_dict(mice):
+    return {mouse:KEY_DICT.copy() for mouse in mice}
+
+
+def following_matrices(times_antennas, mice, durations):
+    followings = np.zeros((len(mice), len(mice)))
+    time_together = np.zeros((len(mice), len(mice)))
+    labels = utils.all_pairs(mice)
+    interval_details = {label:[] for label in labels}
+    intervals_mouse1 = initialize_dict(mice)
+    intervals_mouse2 = initialize_dict(mice)
+    time_tunnel_mouse1 = initialize_dict(mice)
+    followings_mouse2 = initialize_dict(mice)
+
+    for i, mouse1 in enumerate(mice):
+        for j, mouse2 in enumerate(mice):
+            if mouse1 == mouse2:
+                continue
+            times1, antennas1 = times_antennas[mouse1]
+            times2, antennas2 = times_antennas[mouse2]
+            out = following_2_mice_in_pipe(antennas1,
+                                           times1,
+                                           antennas2,
+                                           times2)
+            followings[i, j], time_in_pipe, mouse_intervals, int_m1, int_m2, time_m1, f_m2 = out
+            time_together[i, j] = time_in_pipe/durations
+            key =  "%s|%s" % (mouse1, mouse2)
+            interval_details[key] += mouse_intervals
+            add_values_to_dict(intervals_mouse1[mouse1], int_m1)
+            add_values_to_dict(intervals_mouse2[mouse2], int_m2)
+            add_values_to_dict(time_tunnel_mouse1[mouse1], time_m1)
+            add_values_to_dict(followings_mouse2[mouse2], f_m2)
+    return followings, time_together, interval_details, intervals_mouse1, intervals_mouse2, time_tunnel_mouse1, followings_mouse2
+
+
+def prepare_data(ehd, st, en):
+    times_antennas = OrderedDict()
+    for j, mouse1 in enumerate(ehd.mice):
+        times_antennas[mouse1] = utils.get_times_antennas(ehd,
+                                                          mouse1,
+                                                          st,
+                                                          en)
+    return times_antennas
 
 
 def following_2nd_mouse_in_pipe_single_phase(ehd, cf, phase):
     st, en = cf.gettime(phase) 
-    followings = np.zeros((len(ehd.mice), len(ehd.mice)))
-    time_together = np.zeros((len(ehd.mice), len(ehd.mice)))
-    interval_details = {}
-
-    for mouse1 in ehd.mice:
-        for mouse2 in ehd.mice:
-            if mouse1 != mouse2:
-                key = "%s_%s" % (mouse1, mouse2)
-                interval_details[key] = []
-
-            key =  "%s|%s" % (mouse1, mouse2)
-            interval_details[key] += mouse_intervals
-    for j, mouse1 in enumerate(ehd.mice):
-        times1, antennas1 = utils.get_times_antennas(ehd, mouse1,
-                                                     st, en)
-        for k, mouse2 in enumerate(ehd.mice):
-            if mouse2 != mouse1:
-                times2, antennas2 = utils.get_times_antennas(ehd, mouse2,
-                                                             st, en)
-                out = following_2_mice_in_pipe(antennas1,
-                                               times1,
-                                               antennas2,
-                                               times2)
-                mouse_followings, time_in_pipe, mouse_intervals = out
-                followings[j, k] = mouse_followings
-                time_together[j, k] = time_in_pipe/(en-st)
-                key =  "%s_%s" % (mouse1, mouse2)
-                interval_details[key] += mouse_intervals
-
-    return followings, time_together, interval_details
+    duration = en - st
+    assert duration > 0
+    times_readings = prepare_data(ehd, st, en)
+    return following_matrices(times_readings, ehd.mice, duration)
 
 
 def add_intervals(all_intervals, phase_intervals):
@@ -205,10 +231,16 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
         out = following_2nd_mouse_in_pipe_single_phase(ehd,
                                                        cf,
                                                        phase)
-        following[i], time_together[i], phase_intervals  = out
-        out_expected = expected_following_in_pipe_single_phase(ehd,
-                                                               cf,
-                                                               phase)
+        following[i], time_together[i], phase_intervals, ints_m1, ints_m2, time_m1, foll_m2  = out
+        start, end = cf.gettime(phase)
+        duration = end - start
+        assert duration > 0
+        out_expected = calculate_expected_matrices(ints_m1,
+                                                   ints_m2,
+                                                   time_m1,
+                                                   foll_m2,
+                                                   duration,
+                                                   ehd.mice)
         following_exp[i], time_together_exp[i] = out_expected
         add_intervals(interval_details, phase_intervals)
         save_single_histograms(following[i],
