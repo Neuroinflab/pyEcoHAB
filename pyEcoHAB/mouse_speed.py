@@ -181,7 +181,7 @@ def following_matrices(times_antennas, mice, durations):
 
 
 def prepare_data(ehd, st, en):
-    times_antennas = OrderedDict()
+    times_antennas = {}
     for j, mouse1 in enumerate(ehd.mice):
         times_antennas[mouse1] = utils.get_times_antennas(ehd,
                                                           mouse1,
