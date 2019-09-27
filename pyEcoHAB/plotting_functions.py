@@ -228,7 +228,8 @@ def make_pooled_histograms(res,
                            prefix,
                            additional_info):
 
-    fig, ax = plt.subplots(1, len(phases), figsize=(len(phases)//2*5, 5))
+    fig, ax = plt.subplots(1, len(phases),
+                           figsize=(2.5+(len(phases)-1)//2*5, 5))
     if len(phases) == 1:
         ax = [ax]
         new_phase = phases[0].replace(' ', '__')
