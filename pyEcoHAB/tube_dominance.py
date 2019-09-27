@@ -150,12 +150,6 @@ def tube_dominance_single_phase(ehd, cf, phase, normalization):
     return dominance
 
 def get_tube_dominance(ehd, cf, prefix=None, res_dir=None, normalization=None):
-
-    if ehd.how_many_antennas == 2:
-        dom2.get_tube_dominance_2_cages(ehd, cf, res_dir, prefix)
-        dom2.get_subversion_evaluation(ehd, cf, res_dir, prefix)
-        dom2.get_visits_to_stimulus_cage(ehd, cf, res_dir, prefix)
-
     if normalization is None:
         fname = 'tube_dominance_no_normalization'
     else:
@@ -164,6 +158,11 @@ def get_tube_dominance(ehd, cf, prefix=None, res_dir=None, normalization=None):
         prefix = ehd.prefix
     if res_dir is None:
         res_dir = ehd.res_dir
+
+    if ehd.how_many_antennas == 2:
+        dom2.get_tube_dominance_2_cages(ehd, cf, res_dir, prefix)
+        dom2.get_subversion_evaluation(ehd, cf, res_dir, prefix)
+        dom2.get_visits_to_stimulus_cage(ehd, cf, res_dir, prefix)
     dispatch.evaluate_whole_experiment(ehd, cf, res_dir, prefix,
                                        tube_dominance_single_phase,
                                        fname, 'dominating mouse',
