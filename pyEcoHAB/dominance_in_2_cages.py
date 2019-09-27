@@ -264,7 +264,7 @@ def get_tube_dominance_2_cages(ehd, cf, res_dir=None, prefix=None, dt=dt):
                                        'dominating mouse',
                                        'pushed out mouse',
                                        '# pushes',
-                                       args=[home_cage_antenna])
+                                       args=[home_cage_antenna], vmin=0, vmax=200)
 
 
 def get_subversion_evaluation(ehd, cf, res_dir=None, prefix=None, dt=dt):
@@ -281,7 +281,7 @@ def get_subversion_evaluation(ehd, cf, res_dir=None, prefix=None, dt=dt):
                                        'dominating mouse',
                                        'subversive mouse',
                                        '# times in small cage',
-                                       args=[states, home_cage_antenna, dt])
+                                       args=[states, home_cage_antenna, dt], vmin=0, vmax=200)
 
 
 def how_many_visits(states, t_start, t_end, T_0, dt):

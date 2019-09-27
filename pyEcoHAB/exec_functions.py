@@ -7,7 +7,7 @@ from . import utility_functions as utils
 def evaluate_whole_experiment(ehd, cf, main_directory,
                               prefix, func, fname,
                               xlabel, ylabel, title,
-                              args=[], remove_mouse=None):
+                              args=[], remove_mouse=None, vmin=None, vmax=None):
     phases = cf.sections()
     phases = utils.filter_dark(phases)
     mice = [mouse[-4:] for mouse in ehd.mice]
@@ -38,8 +38,8 @@ def evaluate_whole_experiment(ehd, cf, main_directory,
                         xlabel=xlabel,
                         ylabel=ylabel,
                         subdirectory=hist_dir,
-                        vmax=None,
-                        vmin=None,
+                        vmax=vmin,
+                        vmin=vmax,
                         xticks=mice,
                         yticks=mice)
     write_csv_rasters(ehd.mice,

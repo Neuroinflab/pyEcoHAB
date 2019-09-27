@@ -169,4 +169,4 @@ def get_tube_dominance(ehd, cf, prefix=None, res_dir=None, normalization=None):
                                        fname, 'dominating mouse',
                                        'pushed out mouse',
                                        '# dominances',
-                                       args=[normalization])
+                                       args=[normalization], vmin=0, vmax=25)

@@ -95,9 +95,9 @@ def single_heat_map(result,
                     yticks=None):
     name = '%s_%s_%s' % (name, prefix, phase)
     fig, ax = plt.subplots()
-    if not vmin:
+    if vmin is None:
         vmin = result.min()
-    if not vmax:
+    if vmax is None:
         vmax = result.max()
         
     cax = ax.imshow(result,interpolation='none', aspect='auto', cmap="viridis", origin="lower", vmin=vmin, vmax=vmax)
