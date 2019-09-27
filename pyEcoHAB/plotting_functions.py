@@ -149,6 +149,7 @@ def single_in_cohort_soc_plot(results,
                                       'Excess % time together',
                                       'Histogram of excess % time together'],
                               labels=['', '']):
+
     new_name = os.path.join(directory, 'figs')
     directory = utils.check_directory(main_directory, new_name)
     fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, phase))
@@ -208,8 +209,18 @@ def single_in_cohort_soc_plot(results,
         ax[3].set_xlim([-0.1, 0.5])
         ax[3].get_xaxis().set_ticks([-0.1, 0., 0.1, 0.2, 0.3])
         ax[3].set_xticklabels([-0.1, 0., 0.1, 0.2, 0.3])
-    fig.suptitle(phase)
+    else:
+        ax[3].set_xlim([vmin1, vmax1])
+        ticks = np.linspace(vmin1, vmax1, 4)
+        ax[3].get_xaxis().set_ticks(ticks)
+        if vmax1 > 20:
+            ax[3].set_xticklabels([np.round(tick) for tick in ticks])
+            ax[3].set_ylim([0, 100])
+        elif vmax1< 0.01:
+            ax[3].set_xticklabels([np.round(tick, 3) for tick in ticks])
+            ax[3].set_ylim([0, 200])
 
+    fig.suptitle(phase)
     fig.subplots_adjust(bottom=0.1)
     fig.subplots_adjust(wspace=0.25)
     fig.subplots_adjust(hspace=0.3)
@@ -265,7 +276,6 @@ def make_pooled_histograms(res,
         fig.subplots_adjust(wspace=0.15)
     fig.savefig(fname + '.png', dpi=300, bbox_inches=None,
                 pad_inches=0.5, frameon=None)
-    print(fname)
     plt.close(fig)
 
 

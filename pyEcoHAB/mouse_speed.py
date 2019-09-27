@@ -226,6 +226,20 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
 
     keys = utils.all_pairs(ehd.mice)
     interval_details = {key:[] for key in keys}
+    if ehd.how_many_antennas() > 2:
+        vmax = 40
+        vmin1 = -40
+        vmax1 = 40
+        vmaxt = 0.005
+        vmin1t = -0.005
+        vmax1t = 0.005
+    else:
+        vmax = 150
+        vmin1 = -150
+        vmax1 = 150
+        vmaxt = 0.01
+        vmin1t = -0.01
+        vmax1t = 0.01
 
     for i, phase in enumerate(phases):
         out = following_2nd_mouse_in_pipe_single_phase(ehd,
@@ -267,8 +281,6 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                'following_in_pipe/histograms',
                                prefix,
                                additional_info=add_info_mice)
-        vmin1 = (following[i] - following_exp[i]).min()
-        vmax1 = (following[i] - following_exp[i]).max()
         single_in_cohort_soc_plot(following[i],
                                   following_exp[i],
                                   mice,
@@ -279,7 +291,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                   prefix+add_info_mice,
                                   hist=False,
                                   vmin=0,
-                                  vmax=max(following[i].max(), following_exp[i].max()),
+                                  vmax=vmax,
                                   vmin1=vmin1,
                                   vmax1=vmax1,
                                   titles=['# followings',
@@ -287,7 +299,6 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                           '# excess followings',
                                           'histogram of # excess followings',],
                                   labels=['following mouse', 'followed mouse'])
-
 
         save_single_histograms(time_together[i],
                                'time_together_in_pipe',
@@ -313,8 +324,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                'time_together_in_pipe/histograms',
                                prefix,
                                additional_info=add_info_mice)
-        vmin1 = (time_together[i] - time_together_exp[i]).min()
-        vmax1 = (time_together[i] - time_together_exp[i]).max()
+
         single_in_cohort_soc_plot(time_together[i],
                                   time_together_exp[i],
                                   mice,
@@ -325,9 +335,9 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                   prefix+add_info_mice,
                                   hist=False,
                                   vmin=0,
-                                  vmax=max(time_together[i].max(), time_together_exp[i].max()),
-                                  vmin1=vmin1,
-                                  vmax1=vmax1,
+                                  vmax=vmaxt,
+                                  vmin1=vmin1t,
+                                  vmax1=vmax1t,
                                   titles=['Fraction of time following',
                                           '# expected time',
                                           '# excess time',
@@ -346,7 +356,6 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                       res_dir,
                       'following_in_pipe/raster_plots',
                       fname_exp)
-    
 
     make_RasterPlot(res_dir,
                     'following_in_pipe/raster_plots',
