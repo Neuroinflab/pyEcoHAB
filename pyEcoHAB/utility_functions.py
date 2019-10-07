@@ -499,9 +499,13 @@ def get_states_for_ehs(times, antennas, mouse, threshold):
 def get_length(time_start, time_end, binsize):
     return int(np.ceil((time_end - time_start)/binsize))
 
-def get_times(binsize):
-    length = get_length(0, 43200, binsize)
-    out = np.linspace(0, 43200-binsize, length)
+def get_times(binsize, time_start=None, time_end=None):
+    if time_start is None:
+        time_start = 0
+    if time_end is None:
+        time_end = 43200
+    length = get_length(time_start, time_end, binsize)
+    out = np.linspace(time_start, time_end - binsize, length)
     return out.tolist()
 
 def parse_fname(fname):
