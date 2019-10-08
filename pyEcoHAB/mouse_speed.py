@@ -209,7 +209,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
         res_dir = ehd.res_dir
     if prefix is None:
         prefix = ehd.prefix
-    phases = utils.filter_dark(cf.sections())
+    phases = utils.filter_dark_light(cf.sections())
     mice = [mouse[-4:] for mouse in ehd.mice]
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     following = np.zeros((len(phases), len(mice), len(mice)))
