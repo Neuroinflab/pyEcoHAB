@@ -225,7 +225,7 @@ def get_idx_pre(t0, times):
     return None
 
 def get_idx_between(t0, t1, times):
-    return  np.where((np.array(times) >= t0) & (np.array(times) <= t1))[0]
+    return  np.where((np.array(times) >= t0) & (np.array(times) < t1))[0]
 
 
 def get_idx_post(t1, times):

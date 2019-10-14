@@ -337,7 +337,7 @@ class TestGetIdxBetween(unittest.TestCase):
         
     def test_correct1(self):
         out = uf.get_idx_between(2, 3, [-1, 0, 1, 2, 3])
-        res = np.array([3, 4], dtype=int)
+        res = np.array([3], dtype=int)
         self.assertEqual(len(out), len(res))
 
 
@@ -673,7 +673,7 @@ class TestGetIndices(unittest.TestCase):
         starts = [1, 5, 10]
         ends = [4, 7, 15]
         out = uf.get_indices(4, 10, starts, ends)
-        self.assertEqual(out, [0, 1, 2])
+        self.assertEqual(out, [0, 1])
 
 class TestGetDurations(unittest.TestCase):
     def test_1(self):
