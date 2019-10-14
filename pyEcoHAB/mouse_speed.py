@@ -217,10 +217,10 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
     time_together = np.zeros((len(phases), len(mice), len(mice)))
     time_together_exp = np.zeros((len(phases), len(mice),
                                        len(mice)))
-    fname = 'following_in_pipe_%s' % (add_info_mice)
-    fname_ = 'following_in_pipe_%s%s' % (prefix,
+    fname = 'following_in_pipe_version_2019_10_14_%s' % (add_info_mice)
+    fname_ = 'following_in_pipe_version_2019_10_14_%s%s' % (prefix,
                                          add_info_mice)
-    fname_beg = 'relative_following_in_pipe_excess'
+    fname_beg = 'relative_following_in_pipe_excess_version_2019_10_14'
     fname_exp = '%s_%s%s.csv' % (fname_beg, prefix,
                                  add_info_mice)
 
@@ -258,7 +258,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
         following_exp[i], time_together_exp[i] = out_expected
         add_intervals(interval_details, phase_intervals)
         save_single_histograms(following[i],
-                               'following_in_pipe',
+                               'following_in_pipe_version_2019_10_14',
                                ehd.mice,
                                phase,
                                res_dir,
@@ -266,7 +266,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms(following_exp[i],
-                               'following_in_pipe_expected_time',
+                               'following_in_pipe_expected_time_version_2019_10_14',
                                ehd.mice,
                                phase,
                                res_dir,
@@ -274,7 +274,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms((following[i]-following_exp[i]),
-                               'following_in_pipe_relative_excess_following',
+                               'following_in_pipe_relative_excess_following_version_2019_10_14',
                                ehd.mice,
                                phase,
                                res_dir,
@@ -295,13 +295,13 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                   vmin1=vmin1,
                                   vmax1=vmax1,
                                   titles=['# followings',
-                                          '# expected followings',
+                                          '# anticipated followings',
                                           '# excess followings',
                                           'histogram of # excess followings',],
                                   labels=['following mouse', 'followed mouse'])
 
         save_single_histograms(time_together[i],
-                               'time_together_in_pipe',
+                               'time_together_in_pipe_version_2019_10_14',
                                ehd.mice,
                                phase,
                                res_dir,
@@ -309,7 +309,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms(time_together_exp[i],
-                               'time_together_in_pipe_expected_time',
+                               'time_together_in_pipe_expected_time_version_2019_10_14',
                                ehd.mice,
                                phase,
                                res_dir,
@@ -317,7 +317,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms((time_together[i]-time_together_exp[i]),
-                               'time_together_in_pipe_relative_excess_time_together',
+                               'time_together_in_pipe_relative_excess_time_together_version_2019_10_14',
                                ehd.mice,
                                phase,
                                res_dir,
@@ -329,7 +329,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                   time_together_exp[i],
                                   mice,
                                   phase,
-                                  "fraction_time_following",
+                                  "fraction_time_following_version_2019_10_14",
                                   res_dir,
                                   'time_together_in_pipe/histograms',
                                   prefix+add_info_mice,
@@ -339,7 +339,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                   vmin1=vmin1t,
                                   vmax1=vmax1t,
                                   titles=['Fraction of time following',
-                                          '# expected time',
+                                          '# anticipated time',
                                           '# excess time',
                                           'histogram of # excess time following',],
                                   labels=['following mouse', 'followed mouse'])
