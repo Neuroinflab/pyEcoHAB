@@ -131,20 +131,21 @@ class TestCalculateExpected(unittest.TestCase):
         self.assertEqual(self.out_t[1, 1], 0)
 
     def test_out_f01(self):
+        
         self.assertEqual(self.out_f[0, 1],
-                         1./9 +2./13 + 1./24 + 1./35)
+                         0.09938857762559292)
 
     def test_out_f10(self):
         self.assertEqual(self.out_f[1, 0],
-                         1./9 + 2./16 + 1./70 + 1./14)
-
+                         0.09434996119025715)
+        
     def test_out_t01(self):
         self.assertEqual(self.out_t[0, 1],
-                         (4./18 + 4.5/13 + 1./35 + 5./24)/70)
+                         0.003786155756201839)
 
     def test_out_t10(self):
         self.assertEqual(self.out_t[1, 0],
-                         (4./18 + 5.5/16 + 2./70 + 3./14)/70)
+                         0.003784684414262045)
 
 
 class TestCheck2ndMouse(unittest.TestCase):
