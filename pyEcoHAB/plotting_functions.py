@@ -147,7 +147,7 @@ def single_in_cohort_soc_plot(results,
                               titles=['% time together',
                                       'Expected % time together',
                                       'Excess % time together',
-                                      'Histogram of excess % time together'],
+                                      'Probability distribution of excess % time together'],
                               labels=['', '']):
 
     new_name = os.path.join(directory, 'figs')
@@ -159,12 +159,14 @@ def single_in_cohort_soc_plot(results,
     for i in range(1,5):
         ax.append(fig.add_subplot(2,2,i))
     plt.subplot(221)
-    im2 = ax[0].imshow(results, vmin=vmin, vmax=vmax, interpolation='none', origin='lower')
+    im2 = ax[0].imshow(results, vmin=vmin, vmax=vmax,
+                       interpolation='none', origin='lower')
     cbar = fig.colorbar(im2)
     ax[0].set_xticks([])
     ax[0].set_yticks([])
     ax[0].set_title(titles[0])
-    ax[1].imshow(results_exp, vmin=vmin, vmax=vmax, interpolation='none', origin='lower')
+    ax[1].imshow(results_exp, vmin=vmin, vmax=vmax,
+                 interpolation='none', origin='lower')
     ax[1].set_xticks([])
     ax[1].set_yticks([])
     ax[1].set_title(titles[1])
@@ -213,12 +215,11 @@ def single_in_cohort_soc_plot(results,
         ax[3].set_xlim([vmin1, vmax1])
         ticks = np.linspace(vmin1, vmax1, 4)
         ax[3].get_xaxis().set_ticks(ticks)
+        ax[3].set_ylim([0, 1])
         if vmax1 > 20:
             ax[3].set_xticklabels([np.round(tick) for tick in ticks])
-            ax[3].set_ylim([0, 100])
         elif vmax1< 0.01:
             ax[3].set_xticklabels([np.round(tick, 3) for tick in ticks])
-            ax[3].set_ylim([0, 200])
 
     fig.suptitle(phase)
     fig.subplots_adjust(bottom=0.1)
@@ -228,8 +229,9 @@ def single_in_cohort_soc_plot(results,
                 pad_inches=0.5, frameon=None)
     fig.savefig(fname+'.png', dpi=300,  bbox_inches=None,
                 pad_inches=0.5, frameon=None)
+    print(fname+'.png')
 
-
+    
 def make_pooled_histograms(res,
                            res_exp,
                            phases,
