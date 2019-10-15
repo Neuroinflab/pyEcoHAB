@@ -63,6 +63,30 @@ def calculate_expected_per_tunnel(times, antennas, key, bins, t_stop):
     return out_follows.tolist(), out_times.tolist()
 
 
+def expected_for_one_pair(times_antennas, tot_time_tunnels,
+                          t_start, t_stop):
+    times2, antennas2 = times_antennas
+    mean_follows = np.zeros((len(tot_time_tunnels.keys(),)))
+    std_follows = np.zeros((len(tot_time_tunnels.keys(),)))
+    mean_times = np.zeros((len(tot_time_tunnels.keys(),)))
+    std_times = np.zeros((len(tot_time_tunnels.keys(),)))
+    for i, key in enumerate(tot_time_tunnels.keys()):
+        binsize = tot_time_tunnels[key]
+        try:
+            t_begs = utils.get_times(binsize, t_start, t_stop)
+        except ZeroDivisionError:
+            continue
+        follows, times = calculate_expected_per_tunnel(times2,
+                                                       antennas2,
+                                                       key,
+                                                       t_begs,
+                                                       t_stop)
+        mean_follows[i] = np.mean(follows)
+        mean_times[i] =  np.mean(times)
+        std_follows[i] = np.std(follows)
+        std_times[i] =  np.mean(times)
+    return mean_follows, std_follows, mean_times, std_times
+
 def expected_matrices(times_antennas, mice_list,
                       t_start, t_stop):
     assert len(mice_list) > 1
@@ -74,19 +98,14 @@ def expected_matrices(times_antennas, mice_list,
         for k, mouse2 in enumerate(mice_list):
             if mouse1 != mouse2:
                 times2, antennas2 = times_antennas[mouse2]
-                for key in tot_time_tunnels.keys():
-                    binsize = tot_time_tunnels[key]
-                    try:
-                        t_begs = utils.get_times(binsize, t_start, t_stop)
-                    except ZeroDivisionError:
-                        continue
-                    follows, times = calculate_expected_per_tunnel(times2,
-                                                                   antennas2,
-                                                                   key,
-                                                                   t_begs,
-                                                                   t_stop)
-                    exp_followings[j, k] += np.mean(follows)
-                    exp_time[j, k] += np.mean(times)
+                out = expected_for_one_pair(times_antennas[mouse2],
+                                            tot_time_tunnels,
+                                            t_start, t_stop)
+                mean_follows, std_follows, mean_times, std_times = out
+                exp_followings[j, k] = np.dot(mean_follows,
+                                              std_follows)/sum(std_follows)
+                exp_time[j, k] = np.dot(mean_times,
+                                              std_times)/sum(std_times)
                 exp_time[j, k] /=  (t_stop - t_start)
     return exp_followings, exp_time
 
@@ -215,10 +234,10 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
     time_together = np.zeros((len(phases), len(mice), len(mice)))
     time_together_exp = np.zeros((len(phases), len(mice),
                                        len(mice)))
-    fname = 'following_in_pipe_%s' % (add_info_mice)
-    fname_ = 'following_in_pipe_%s%s' % (prefix,
+    fname = 'following_weighted_mean_in_pipe_%s' % (add_info_mice)
+    fname_ = 'following_weighted_mean_in_pipe_%s%s' % (prefix,
                                          add_info_mice)
-    fname_beg = 'relative_following_in_pipe_excess'
+    fname_beg = 'relative_following_weighted_mean_in_pipe_excess'
     fname_exp = '%s_%s%s.csv' % (fname_beg, prefix,
                                  add_info_mice)
 
@@ -263,7 +282,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms(following_exp[i],
-                               'following_in_pipe_expected_time',
+                               'following_in_pipe_expected_time_weighted_mean',
                                ehd.mice,
                                phase,
                                res_dir,
@@ -271,7 +290,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms((following[i]-following_exp[i]),
-                               'following_in_pipe_relative_excess_following',
+                               'following_in_pipe_relative_excess_following_weighted_mean',
                                ehd.mice,
                                phase,
                                res_dir,
@@ -306,7 +325,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms(time_together_exp[i],
-                               'time_together_in_pipe_expected_time',
+                               'time_together_in_pipe_expected_time_weighted_mean',
                                ehd.mice,
                                phase,
                                res_dir,
@@ -314,7 +333,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms((time_together[i]-time_together_exp[i]),
-                               'time_together_in_pipe_relative_excess_time_together',
+                               'time_together_in_pipe_relative_excess_time_together_weighted_mean',
                                ehd.mice,
                                phase,
                                res_dir,
@@ -326,7 +345,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                   time_together_exp[i],
                                   mice,
                                   phase,
-                                  "fraction_time_following",
+                                  "fraction_time_following_weighted_mean",
                                   res_dir,
                                   'time_together_in_pipe/histograms',
                                   prefix+add_info_mice,
