@@ -102,10 +102,8 @@ def expected_matrices(times_antennas, mice_list,
                                             tot_time_tunnels,
                                             t_start, t_stop)
                 mean_follows, std_follows, mean_times, std_times = out
-                exp_followings[j, k] = np.dot(mean_follows,
-                                              std_follows)/sum(std_follows)
-                exp_time[j, k] = np.dot(mean_times,
-                                              std_times)/sum(std_times)
+                exp_followings[j, k] = (mean_follows/std_follows).sum()
+                exp_time[j, k] = (mean_times/std_times).sum()
                 exp_time[j, k] /=  (t_stop - t_start)
     return exp_followings, exp_time
 
@@ -234,10 +232,10 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
     time_together = np.zeros((len(phases), len(mice), len(mice)))
     time_together_exp = np.zeros((len(phases), len(mice),
                                        len(mice)))
-    fname = 'following_weighted_mean_in_pipe_%s' % (add_info_mice)
-    fname_ = 'following_weighted_mean_in_pipe_%s%s' % (prefix,
+    fname = 'following_weighted_sum_in_pipe_%s' % (add_info_mice)
+    fname_ = 'following_weighted_sum_in_pipe_%s%s' % (prefix,
                                          add_info_mice)
-    fname_beg = 'relative_following_weighted_mean_in_pipe_excess'
+    fname_beg = 'relative_following_weighted_sum_in_pipe_excess'
     fname_exp = '%s_%s%s.csv' % (fname_beg, prefix,
                                  add_info_mice)
 
@@ -282,7 +280,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms(following_exp[i],
-                               'following_in_pipe_expected_time_weighted_mean',
+                               'following_in_pipe_expected_time_weighted_sum',
                                ehd.mice,
                                phase,
                                res_dir,
@@ -290,7 +288,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms((following[i]-following_exp[i]),
-                               'following_in_pipe_relative_excess_following_weighted_mean',
+                               'following_in_pipe_relative_excess_following_weighted_sum',
                                ehd.mice,
                                phase,
                                res_dir,
@@ -325,7 +323,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms(time_together_exp[i],
-                               'time_together_in_pipe_expected_time_weighted_mean',
+                               'time_together_in_pipe_expected_time_weighted_sum',
                                ehd.mice,
                                phase,
                                res_dir,
@@ -333,7 +331,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms((time_together[i]-time_together_exp[i]),
-                               'time_together_in_pipe_relative_excess_time_together_weighted_mean',
+                               'time_together_in_pipe_relative_excess_time_together_weighted_sum',
                                ehd.mice,
                                phase,
                                res_dir,
@@ -345,7 +343,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                   time_together_exp[i],
                                   mice,
                                   phase,
-                                  "fraction_time_following_weighted_mean",
+                                  "fraction_time_following_weighted_sum",
                                   res_dir,
                                   'time_together_in_pipe/histograms',
                                   prefix+add_info_mice,
