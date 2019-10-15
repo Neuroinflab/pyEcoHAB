@@ -201,7 +201,7 @@ def single_in_cohort_soc_plot(results,
     except ValueError:
         pass
     try:
-        ax[3].hist(deltas)
+        ax[3].hist(deltas, density=1)
     except ValueError:
         pass
     ax[3].set_title(titles[3])
