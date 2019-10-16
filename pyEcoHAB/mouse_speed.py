@@ -84,7 +84,7 @@ def expected_for_one_pair(times_antennas, tot_time_tunnels,
         mean_follows[i] = np.mean(follows)
         mean_times[i] =  np.mean(times)
         std_follows[i] = np.std(follows)
-        std_times[i] =  np.mean(times)
+        std_times[i] =  np.std(times)
     return mean_follows, std_follows, mean_times, std_times
 
 def expected_matrices(times_antennas, mice_list,
