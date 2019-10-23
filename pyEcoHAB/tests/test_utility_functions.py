@@ -496,11 +496,11 @@ class TestGetAnennas(unittest.TestCase):
 class TestGetKeyForFrequency(unittest.TestCase):
     def test_78(self):
         out = uf.get_key_for_frequencies(7, 8)
-        self.assertEqual(out, 15)
+        self.assertEqual(out, "78")
 
     def test_87(self):
         out = uf.get_key_for_frequencies(8, 7)
-        self.assertEqual(out, 15)
+        self.assertEqual(out, "87")
 
     def test_chamber_18(self):
         out = uf.get_key_for_frequencies(8, 1)
