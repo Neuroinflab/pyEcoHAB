@@ -26,6 +26,40 @@ KEY_DICT = {
     '87': 0,
 }
 
+def insert_interval(candidate_t_start, interval,
+                    t_starts, t_ends, duration):
+
+    if candidate_t_start in t_starts:
+        return 0
+
+    candidate_t_end = candidate_t_start + interval
+
+    if candidate_t_end in t_ends:
+        return 0
+
+    if candidate_t_end > duration:
+        return 0
+
+    beg = utils.get_idx_pre(candidate_t_end, t_starts)
+    if beg is None:
+        t_starts.insert(0, candidate_t_start)
+        t_ends.insert(0, candidate_t_end)
+        return 1
+
+    end = utils.get_idx_pre(candidate_t_start, t_ends)
+    if end is None:
+        t_starts.append(candidate_t_start)
+        t_ends.append(candidate_t_end)
+        return 1
+
+    if beg != end:
+        return 0
+
+    t_starts.insert(beg + 1, candidate_t_start)
+    t_ends.insert(beg + 1, candidate_t_end)
+    return 1
+
+
 
 def following_single_pair(directions_m1, directions_m2):
     

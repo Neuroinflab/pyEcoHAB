@@ -1,6 +1,8 @@
 from __future__ import print_function, division, absolute_import
-from pyEcoHAB import mouse_speed as ms
+import random
 import unittest
+from pyEcoHAB import mouse_speed as ms
+
 
 try:
     basestring
@@ -182,6 +184,112 @@ class TestFollowingMatrices(unittest.TestCase):
 
     def test_interval_details_empty(self):
         self.assertEqual(self.time_together[2, 1], 0)
+
+
+class TestInsertInterval(unittest.TestCase):
+    def insert_first_1(self):
+        t_starts = []
+        t_ends = []
+        out = ms.insert_interval(0, 1, t_starts, t_ends, 10)
+        self.assertEqual(out, 1)
+
+    def insert_first_2(self):
+        t_starts = []
+        t_ends = []
+        out = ms.insert_interval(0, 1, t_starts, t_ends, 10)
+        self.assertEqual(t_starts, [0])
+
+    def insert_first_3(self):
+        t_starts = []
+        t_ends = []
+        out = ms.insert_interval(0, 1, t_starts, t_ends, 10)
+        self.assertEqual(t_ends, [1])
+
+    def no_insert_first(self):
+        t_starts = []
+        t_ends = []
+        out = ms.insert_interval(0, 1, t_starts, t_ends, .5)
+        self.assertEqual(out, 0)
+
+    def test_t_start_in_starts(self):
+        t_starts = [1, 5, 10]
+        t_ends = [2, 8, 11]
+        out = ms.insert_interval(1, 1, t_starts, t_ends, 20)
+        self.assertEqual(out, 0)
+
+    def test_t_ends_in_ends(self):
+        t_starts = [1, 5, 10]
+        t_ends = [2, 8, 11]
+        out = ms.insert_interval(0, 2, t_starts, t_ends, 20)
+        self.assertEqual(out, 0)
+
+    def test_insert_at_the_beginning_1(self):
+        t_starts = [3, 5, 10]
+        t_ends = [4, 8, 11]
+        out = ms.insert_interval(0, 2, t_starts, t_ends, 20)
+        self.assertEqual(out, 1)
+
+    def test_insert_at_the_beginning_2(self):
+        t_starts = [3, 5, 10]
+        t_ends = [4, 8, 11]
+        out = ms.insert_interval(0, 2, t_starts, t_ends, 20)
+        self.assertEqual(t_starts, [0, 3, 5, 10])
+
+    def test_insert_at_the_beginning_3(self):
+        t_starts = [3, 5, 10]
+        t_ends = [4, 8, 11]
+        out = ms.insert_interval(0, 2, t_starts, t_ends, 20)
+        self.assertEqual(t_ends, [2, 4, 8, 11])
+
+    def test_insert_at_the_end_1(self):
+        t_starts = [3, 5, 10]
+        t_ends = [4, 8, 11]
+        out = ms.insert_interval(12, 2, t_starts, t_ends, 20)
+        self.assertEqual(out, 1)
+
+    def test_insert_at_the_end_2(self):
+        t_starts = [3, 5, 10]
+        t_ends = [4, 8, 11]
+        out = ms.insert_interval(12, 2, t_starts, t_ends, 20)
+        self.assertEqual(t_starts, [3, 5, 10, 12])
+
+    def test_insert_at_the_end_3(self):
+        t_starts = [3, 5, 10]
+        t_ends = [4, 8, 11]
+        out = ms.insert_interval(12, 2, t_starts, t_ends, 20)
+        self.assertEqual(t_ends, [4, 8, 11, 14])
+
+
+    def test_does_not_fit_1(self):
+        t_starts = [3, 5, 10]
+        t_ends = [4, 8, 11]
+        out = ms.insert_interval(4.5, 2, t_starts, t_ends, 20)
+        self.assertEqual(out, 0)
+
+    def test_does_not_fit_2(self):
+        t_starts = [3, 5, 10]
+        t_ends = [4, 8, 11]
+        out = ms.insert_interval(8, 2, t_starts, t_ends, 20)
+        self.assertEqual(out, 0)
+
+    def test_in_the_middle_1(self):
+        t_starts = [3, 5, 10]
+        t_ends = [4, 8, 11]
+        out = ms.insert_interval(8.5, 1, t_starts, t_ends, 20)
+        self.assertEqual(out, 1)
+
+    def test_in_the_middle_2(self):
+        t_starts = [3, 5, 10]
+        t_ends = [4, 8, 11]
+        out = ms.insert_interval(8.5, 1, t_starts, t_ends, 20)
+        self.assertEqual(t_starts, [3, 5, 8.5, 10])
+
+    def test_in_the_middle_3(self):
+        t_starts = [3, 5, 10]
+        t_ends = [4, 8, 11]
+        out = ms.insert_interval(8.5, 1, t_starts, t_ends, 20)
+        self.assertEqual(t_ends, [4, 8, 9.5, 11])
+
 
 if __name__ == '__main__':
     unittest.main()
