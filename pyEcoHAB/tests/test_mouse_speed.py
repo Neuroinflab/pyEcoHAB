@@ -2,6 +2,7 @@ from __future__ import print_function, division, absolute_import
 import random
 import unittest
 from pyEcoHAB import mouse_speed as ms
+from pyEcoHAB import utility_functions as uf
 
 
 try:
@@ -289,6 +290,55 @@ class TestInsertInterval(unittest.TestCase):
         t_ends = [4, 8, 11]
         out = ms.insert_interval(8.5, 1, t_starts, t_ends, 20)
         self.assertEqual(t_ends, [4, 8, 9.5, 11])
+
+
+class TestIntervalGeneration(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        t_starts = [3, 5, 10]
+        t_ends = [4, 8, 12]
+        cls.intervals = set(uf.get_interval_durations_2_lists(t_starts,
+                                                              t_ends))
+        duration = 40
+        random.seed(1)
+        cls.out1 = ms.generate_intervals(t_starts, t_ends, duration)
+        random.seed(100)
+        cls.out2 = ms.generate_intervals(t_starts, t_ends, duration)
+
+    def test_length_1(self):
+        self.assertEqual(len(self.out1[0]), 3)
+
+    def test_length_2(self):
+        self.assertEqual(len(self.out1[1]), 3)
+
+    def test_length_3(self):
+        self.assertEqual(len(self.out2[0]), 3)
+
+    def test_length_4(self):
+        self.assertEqual(len(self.out2[1]), 3)
+
+    def test_intervals_1(self):
+        intervals = set(uf.get_interval_durations_2_lists(self.out1[0],
+                                                          self.out1[1]))
+        self.assertEqual(intervals, self.intervals)
+
+    def test_intervals_2(self):
+        intervals = set(uf.get_interval_durations_2_lists(self.out2[0],
+                                                          self.out2[1]))
+        self.assertEqual(intervals, self.intervals)
+
+    def test_different_1(self):
+        self.assertFalse(self.out1[0] == self.out2[0])
+
+    def test_different_2(self):
+        self.assertFalse(self.out1[1] == self.out2[1])
+
+    def test_different_2(self):
+        ints1 = uf.get_interval_durations_2_lists(self.out1[0],
+                                                  self.out1[1])
+        ints2 = uf.get_interval_durations_2_lists(self.out2[0],
+                                                  self.out2[1])
+        self.assertFalse(ints1 == ints2)
 
 
 if __name__ == '__main__':

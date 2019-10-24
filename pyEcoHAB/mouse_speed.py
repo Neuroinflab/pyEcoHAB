@@ -1,5 +1,6 @@
 from __future__ import print_function, division, absolute_import
 import timeit
+import random
 import numpy as np
 
 from . import utility_functions as utils
@@ -59,6 +60,20 @@ def insert_interval(candidate_t_start, interval,
     t_ends.insert(beg + 1, candidate_t_end)
     return 1
 
+
+def generate_intervals(t_starts, t_stops, duration):
+    intervals = utils.shuffle_intervals(t_starts, t_stops)
+    new_t_starts, new_t_stops = [], []
+    ints_len = len(intervals)
+    i = 0
+    while i < ints_len:
+        interval = intervals[i]
+        can_t_start = random.randrange(0, duration)
+        out = insert_interval(can_t_start, interval,
+                              new_t_starts, new_t_stops,
+                              duration)
+        i += out
+    return new_t_starts, new_t_stops
 
 
 def following_single_pair(directions_m1, directions_m2):
