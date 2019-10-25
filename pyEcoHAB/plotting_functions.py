@@ -386,7 +386,7 @@ def single_histogram_figures(single_results, fname, main_directory,
     dir_name =  utils.check_directory(main_directory, new_dir)
     new_fname = os.path.join(dir_name, fname)
     if nbins is False:
-        nbins = max(single_results)
+        nbins = int(max(single_results))
     if add_text:
         title += add_text
     make_single_histogram(ax, single_results, nbins, title=title,
