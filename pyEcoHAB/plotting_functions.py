@@ -441,7 +441,7 @@ def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
         ax.axvline(median, color='r', linestyle='dashed', linewidth=1)
         ylims = ax.get_ylim()
         ax.text(mean*0.9, (ylims[1]-ylims[0])*0.8, "mean = %4.1f"%mean)
-        ax.text(median*0.9, 2*(ylims[1]-ylims[0])*0.9, "median = %4.1f"%median)
+        ax.text(median*0.9, (ylims[1]-ylims[0])*0.9, "median = %4.1f"%median)
     return bins.min(), bins.max(), min(n), max(n)
 
 
