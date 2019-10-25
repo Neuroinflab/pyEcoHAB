@@ -9,10 +9,12 @@ from .write_to_file import write_csv_rasters
 from .write_to_file import write_csv_tables
 from .write_to_file import write_csv_alone
 from .write_to_file import write_interpair_intervals
+from .write_to_file import write_bootstrap_results
 from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot
 from .plotting_functions import make_pooled_histograms
 from .plotting_functions import make_histograms_for_every_mouse
 from .plotting_functions import make_pooled_histograms_for_every_mouse
+from .plotting_functions import single_histogram_figures
 
 phase_duration = 12*3600
 keys = ['12', '21', '34', '43', '56', '65', '78', '87']
@@ -127,14 +129,6 @@ def compare_single_phase(ehd, cf, phase, N=100):
         for j, mouse2 in enumerate(mice):
             if mouse1 != mouse2:
                 key = "%s|%s" % (mouse1, mouse2)
-                print(mouse1, mouse2,
-                      "following", following[i, j],
-                      "expected mean", out[0][i, j].mean(),
-                      "expected median", np.median(out[0][i, j]))
-                print(mouse1, mouse2,
-                      "time together", time_together[i, j],
-                      "expected mean", out[1][i, j].mean(),
-                      "expected median", np.median(out[1][i, j]))
                 fname1 = "%s_histogram_%s_%s_N_%d" % ("following",
                                                       phase.replace(' ', '_'),
                                                       key, N)
