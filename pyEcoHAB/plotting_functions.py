@@ -376,9 +376,34 @@ def pool_results_followed(res_dict, mice):
             pooled_results[mouse1] += res_dict[key]
     return pooled_results
 
+def single_histogram_figures(single_results, fname, main_directory,
+                             path, title, nbins=10,
+                             xlabel=None, ylabel=None,
+                             fontsize=14,
+                             median_mean=False, add_text=""):
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    new_dir = os.path.join(path, 'figs')
+    dir_name =  utils.check_directory(main_directory, new_dir)
+    new_fname = os.path.join(dir_name, fname)
+    if add_text:
+        title += add_text
+    make_single_histogram(ax, single_results, nbins, title=title,
+                          xticks=True,
+                          yticks=True, xlabel=xlabel, ylabel=ylabel,
+                          xlogscale=False, ylogscale=False,
+                          fontsize=fontsize,
+                          median_mean=median_mean)
+    fig.savefig(new_fname + ".png",
+                bbox_inches=None,
+                pad_inches=.5,
+                frameon=None, dpi=300)
+    plt.close(fig)
+
+
 def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
                           yticks=False, xlabel=None, ylabel=None,
-                          xlogscale=False, ylogscale=False, fontsize=14):
+                          xlogscale=False, ylogscale=False, fontsize=14,
+                          median_mean=False):
 
     if len(single_results) == 0:
         ax.set_yticklabels([])
@@ -409,7 +434,16 @@ def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
     else:
         ax.set_xticklabels([])
     ax.set_title(title, fontsize=fontsize)
+    if median_mean == True:
+        mean = single_results.mean()
+        median = np.median(single_results)
+        ax.axvline(mean, color='k', linestyle='dashed', linewidth=1)
+        ax.axvline(median, color='r', linestyle='dashed', linewidth=1)
+        ylims = ax.get_ylim()
+        ax.text(mean*0.9, (ylims[1]-ylims[0])*0.8, "mean = %4.1f"%mean)
+        ax.text(median*0.9, 2*(ylims[1]-ylims[0])*0.9, "median = %4.1f"%median)
     return bins.min(), bins.max(), min(n), max(n)
+
 
 def make_fig_histogram(results, path, title):
     mice = results.keys()
