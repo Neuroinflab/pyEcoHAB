@@ -76,6 +76,94 @@ def generate_intervals(t_starts, t_stops, duration):
     return new_t_starts, new_t_stops
 
 
+def generate_directions_dict(directions_dict, duration):
+    new_dict = {}
+    for key in keys:
+        old_intervals = directions_dict[key]
+        new_dict[key] = generate_intervals(old_intervals[0],
+                                           old_intervals[1],
+                                           duration)
+    return new_dict
+
+def bootstrap_single_phase(directions_dict, mice_list,
+                           t_start, t_stop, N=1000):
+    tstart = timeit.default_timer()
+    followings = np.zeros((len(mice_list), len(mice_list), N))
+    times_together = np.zeros((len(mice_list), len(mice_list), N))
+    new_directions = {}
+    assert t_stop - t_start > 0
+    for i in range(N):
+        for mouse in mice_list:
+            new_directions[mouse] = generate_directions_dict(directions_dict[mouse],
+                                                             t_stop - t_start)
+        out = following_matrices(new_directions, mice_list,
+                                 t_start, t_stop)
+        followings[:, :, i] = out[0]
+        times_together[:, :, i] = out[1]
+    tstop = timeit.default_timer()
+    print("Took", tstop - tstart)
+    return followings, times_together
+
+
+def compare_single_phase(ehd, cf, phase, N=100):
+    t_start, t_stop = cf.gettime(phase)
+    mice = ehd.mice
+    assert  t_stop - t_start > 0
+    res_dir = ehd.res_dir
+    prefix = ehd.prefix
+    fname_following = "following_count_distribution_%d" % N
+    fname_times = "following_times_distribution_%d" % N
+    out = get_matrices_single_phase(ehd,
+                                    cf,
+                                    phase,
+                                    following_matrices)
+    following, time_together, intervals = out
+    directions_dict = prepare_data(ehd, t_start, t_stop)
+    out = bootstrap_single_phase(directions_dict,
+                                 mice,
+                                 t_start, t_stop,
+                                 N=N)
+    for i, mouse1 in enumerate(mice):
+        for j, mouse2 in enumerate(mice):
+            if mouse1 != mouse2:
+                key = "%s|%s" % (mouse1, mouse2)
+                print(mouse1, mouse2,
+                      "following", following[i, j],
+                      "expected mean", out[0][i, j].mean(),
+                      "expected median", np.median(out[0][i, j]))
+                print(mouse1, mouse2,
+                      "time together", time_together[i, j],
+                      "expected mean", out[1][i, j].mean(),
+                      "expected median", np.median(out[1][i, j]))
+                fname1 = "%s_histogram_%s_%s_N_%d" % ("following",
+                                                      phase.replace(' ', '_'),
+                                                      key, N)
+                fname2 = "%s_histogram_%s_%s_N_%d" % ("time_together",
+                                                      phase.replace(' ', '_'),
+                                                      key, N)
+                add_text_1 = "measured following count %d" %  following[i, j]
+                add_text_2 = "measured time_together %f" %  time_together[i, j]
+                single_histogram_figures(out[0][i, j], fname1, res_dir,
+                                         "following_hists", add_text_1,
+                                         xlabel="followings", ylabel="count",
+                                         median_mean=True)
+                single_histogram_figures(out[1][i, j], fname2, res_dir,
+                                         "time_following_hists", add_text_2,
+                                         xlabel="time_together", ylabel="count", nbins=10,
+                                         median_mean=True)
+
+    write_bootstrap_results(out[0], phase, mice,
+                            fname_following, res_dir,
+                            "following_hists", prefix)
+    write_bootstrap_results(out[1], phase, mice,
+                            fname_times, res_dir,
+                            "time_following_hists", prefix)
+
+def bootstrap_2_mice(directions_dict1, directions_dict2, duration=12*3600.,
+                     N=1000):
+    pass
+
+
 def following_single_pair(directions_m1, directions_m2):
     
     followings = 0
