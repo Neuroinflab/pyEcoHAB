@@ -206,3 +206,25 @@ def save_visit_duration(results, time, phase, mice,
                     f.write(",%2.2f" % single)
                 f.write("\n")
         f.close()
+
+def write_bootstrap_results(results, phase, mice_list,
+                            fname, main_directory,
+                            directory, prefix,
+                            add_info=""):
+    new_dir = os.path.join(main_directory, directory)
+    new_dir = utils.check_directory(new_dir, "data")
+    new_name =  os.path.join(new_dir, '%s_%s_%s_%s.csv'%(fname,
+                                                         phase.replace(' ', '_'),
+                                                         prefix,
+                                                         add_info))
+    new_name = os.path.join(new_dir, new_name)
+    f = open(new_name, "w")
+    for i, mouse1 in enumerate(mice_list):
+        for j, mouse2 in enumerate(mice_list):
+            if mouse1 != mouse2:
+                key = "%s|%s," % (mouse1, mouse2)
+                f.write(key)
+                for value in results[i, j]:
+                    f.write(str(value) + ",")
+                f.write("\n")
+    f.close()
