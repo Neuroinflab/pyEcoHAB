@@ -377,7 +377,7 @@ def pool_results_followed(res_dict, mice):
     return pooled_results
 
 def single_histogram_figures(single_results, fname, main_directory,
-                             path, title, nbins=10,
+                             path, title, nbins=False,
                              xlabel=None, ylabel=None,
                              fontsize=14,
                              median_mean=False, add_text=""):
@@ -385,6 +385,8 @@ def single_histogram_figures(single_results, fname, main_directory,
     new_dir = os.path.join(path, 'figs')
     dir_name =  utils.check_directory(main_directory, new_dir)
     new_fname = os.path.join(dir_name, fname)
+    if nbins is False:
+        nbins = max(single_results)
     if add_text:
         title += add_text
     make_single_histogram(ax, single_results, nbins, title=title,
