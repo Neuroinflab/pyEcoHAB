@@ -49,14 +49,11 @@ def save_data_cvs(data, fname, path, which, headers,
         write_single_chamber(f,header, heads, which[stim], mice, phases, data['time'], data[stim])
 
 
-def save_single_histograms(result, fname, mice, phase, main_directory, directory, prefix, additional_info=None):
+def save_single_histograms(result, fname, mice, phase, main_directory,
+                           directory, prefix, additional_info=""):
     new_name = os.path.join(directory, 'data')
     directory = utils.check_directory(main_directory, new_name)
-    if isinstance(additional_info, str):
-        fname =  os.path.join(directory, '%s_%s_%s_%s.csv'% (fname, prefix, phase, additional_info))
-        
-    else:
-        fname =  os.path.join(directory, '%s_%s_%s.csv'% (fname, prefix, phase))
+    fname =  os.path.join(directory, '%s_%s_%s_%s.csv'% (fname, prefix, phase, additional_info))
     try:
         f = open(fname, 'w')
     except IOError:
@@ -165,16 +162,12 @@ def write_csv_alone(alone, phases, mice, main_directory, prefix, labels=["1", "2
 
 def write_interpair_intervals(results, main_directory,
                               directory, fname, prefix,
-                              additional_info=None):
+                              additional_info=""):
     new_name = os.path.join(main_directory, 'data')
     directory = utils.check_directory(directory, new_name)
-    if isinstance(additional_info, str):
-        fname =  os.path.join(directory, '%s_%s_%s.csv'% (fname,
+    fname =  os.path.join(directory, '%s_%s_%s.csv'% (fname,
                                                           prefix,
                                                           additional_info))
-    else:
-        fname =  os.path.join(directory, '%s_%s.csv'% (fname,
-                                                       prefix))
     try:
         f = open(fname, 'w')
     except IOError:
@@ -193,21 +186,15 @@ def write_interpair_intervals(results, main_directory,
 def save_visit_duration(results, time, phase, mice,
                         fname, main_directory,
                         directory, prefix,
-                        add_info=None):
+                        add_info=""):
     new_dir = os.path.join(main_directory, directory)
     new_dir = utils.check_directory(new_dir, "data")
     for mouse in mice:
-        if isinstance(add_info, str):
-            new_name =  os.path.join(new_dir, '%s_%s_%s_%s_%s.csv'%(fname,
+        new_name =  os.path.join(new_dir, '%s_%s_%s_%s_%s.csv'%(fname,
                                                                       mouse,
                                                                       phase,
                                                                       prefix,
                                                                       add_info))
-        else:
-            new_name =  os.path.join(new_dir, '%s_%s_%s_%s.csv'%(fname,
-                                                                   mouse,
-                                                                   phase,
-                                                                   prefix))
         print(new_name)
         f = open(new_name, "w")
         for address in results.keys():
