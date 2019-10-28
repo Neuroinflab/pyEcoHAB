@@ -107,56 +107,63 @@ def bootstrap_single_phase(directions_dict, mice_list,
     return followings, times_together
 
 
-def compare_single_phase(ehd, cf, phase, N=100):
+def resample_single_phase(ehd, cf, phase, N,
+                          return_median=False,
+                          save_figures=False,
+                          save_distributions=True,
+                          res_dir=None, prefix=None):
+    """If return_median is False, function returns mean value
+    of the resampled following distribution"""
     t_start, t_stop = cf.gettime(phase)
     mice = ehd.mice
     assert  t_stop - t_start > 0
-    res_dir = ehd.res_dir
-    prefix = ehd.prefix
-    fname_following = "following_count_distribution_%d" % N
-    fname_times = "following_times_distribution_%d" % N
-    out = get_matrices_single_phase(ehd,
-                                    cf,
-                                    phase,
-                                    following_matrices)
-    following, time_together, intervals = out
+    if res_dir is None:
+        res_dir = ehd.res_dir
+    if prefix is None:
+        prefix = ehd.prefix
     directions_dict = prepare_data(ehd, t_start, t_stop)
-    out = bootstrap_single_phase(directions_dict,
-                                 mice,
-                                 t_start, t_stop,
-                                 N=N)
-    for i, mouse1 in enumerate(mice):
-        for j, mouse2 in enumerate(mice):
-            if mouse1 != mouse2:
-                key = "%s|%s" % (mouse1, mouse2)
-                fname1 = "%s_histogram_%s_%s_N_%d" % ("following",
-                                                      phase.replace(' ', '_'),
-                                                      key, N)
-                fname2 = "%s_histogram_%s_%s_N_%d" % ("time_together",
-                                                      phase.replace(' ', '_'),
-                                                      key, N)
-                add_text_1 = "measured following count %d" %  following[i, j]
-                add_text_2 = "measured time_together %f" %  time_together[i, j]
-                single_histogram_figures(out[0][i, j], fname1, res_dir,
-                                         "following_hists", add_text_1,
-                                         xlabel="followings", ylabel="count",
-                                         median_mean=True)
-                single_histogram_figures(out[1][i, j], fname2, res_dir,
-                                         "time_following_hists", add_text_2,
-                                         xlabel="time_together", ylabel="count", nbins=10,
-                                         median_mean=True)
+    followings, times_following = bootstrap_single_phase(directions_dict,
+                                                         mice,
+                                                         t_start, t_stop,
+                                                         N=N)
+    if save_figures:
+        fname_following = "following_count_distribution_%d" % N
+        fname_times = "following_times_distribution_%d" % N
+        for i, mouse1 in enumerate(mice):
+            for j, mouse2 in enumerate(mice):
+                if mouse1 != mouse2:
+                    key = "%s|%s" % (mouse1, mouse2)
+                    fname1 = "%s_histogram_%s_%s_N_%d" % ("following",
+                                                          phase.replace(' ', '_'),
+                                                          key, N)
+                    fname2 = "%s_histogram_%s_%s_N_%d" % ("time_together",
+                                                          phase.replace(' ', '_'),
+                                                          key, N)
+                    single_histogram_figures(followings[i, j],
+                                             fname1, res_dir,
+                                             "following_hists",
+                                             "Following count distribution",
+                                             xlabel="followings", ylabel="count",
+                                             median_mean=True)
+                    single_histogram_figures(times_following[i, j], fname2,
+                                             "Following times distribution",
+                                             "time_following_hists", add_text_2,
+                                             xlabel="time_together",
+                                             ylabel="count", nbins=10,
+                                             median_mean=True)
+    if save_distributions:
+        fname_following = "following_count_distribution_%d" % N
+        fname_times = "following_times_distribution_%d" % N
+        write_bootstrap_results(followings, phase, mice,
+                                fname_following, res_dir,
+                                "following_hists", prefix)
+        write_bootstrap_results(times_following, phase, mice,
+                                fname_times, res_dir,
+                                "time_following_hists", prefix)
 
-    write_bootstrap_results(out[0], phase, mice,
-                            fname_following, res_dir,
-                            "following_hists", prefix)
-    write_bootstrap_results(out[1], phase, mice,
-                            fname_times, res_dir,
-                            "time_following_hists", prefix)
-
-def bootstrap_2_mice(directions_dict1, directions_dict2, duration=12*3600.,
-                     N=1000):
-    pass
-
+    if return_median:
+        return np.median(followings, axis=2), np.median(times_following, axis=2)
+    return followings.mean(axis=2), times_following.mean(axis=2)
 
 def following_single_pair(directions_m1, directions_m2):
     
@@ -257,8 +264,9 @@ def add_intervals(all_intervals, phase_intervals):
         all_intervals[mouse].extend(phase_intervals[mouse])
 
 
-def get_following(ehd, cf, res_dir=None, prefix=None,
-              remove_mouse=None):
+def get_following(ehd, cf, N, res_dir=None, prefix=None,
+                  remove_mouse=None, save_distributions=True,
+                  save_figures=False, return_median=False):
     if res_dir is None:
         res_dir = ehd.res_dir
     if prefix is None:
@@ -271,19 +279,24 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
     time_together = np.zeros((len(phases), len(mice), len(mice)))
     time_together_exp = np.zeros((len(phases), len(mice),
                                        len(mice)))
-    fname = 'following_resampling_in_pipe_%s' % (add_info_mice)
-    fname_ = 'following_resampling_in_pipe_%s%s' % (prefix,
+    if return_median:
+        method = "bootstrap_median_%d" % N
+    else:
+        method = "bootstrap_mean_%d" % N
+    fname = 'following_%s_in_pipe_%s' % (method, add_info_mice)
+    fname_ = 'following_%s_in_pipe_%s%s' % (method, prefix,
                                          add_info_mice)
-    fname_beg = 'relative_following_resampling_in_pipe_excess'
-    fname_exp = '%s_%s%s.csv' % (fname_beg, prefix,
-                                 add_info_mice)
-
+    fname_beg = 'relative_following_%s_in_pipe_excess'
+    fname_exp = '%s_%s_%s%s.csv' % (fname_beg,
+                                    method,
+                                    prefix,
+                                    add_info_mice)
     keys = utils.all_pairs(ehd.mice)
     interval_details = {key:[] for key in keys}
     if ehd.how_many_antennas() > 2:
-        vmax = 40
-        vmin1 = -40
-        vmax1 = 40
+        vmax = 20
+        vmin1 = -20
+        vmax1 = 20
         vmaxt = 0.005
         vmin1t = -0.005
         vmax1t = 0.005
@@ -307,11 +320,13 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
         start, end = cf.gettime(phase)
         duration = end - start
         assert duration > 0
-        # out_expected = get_matrices_single_phase(ehd,
-        #                                          cf,
-        #                                          phase,
-        #                                          expected_matrices)
-        # following_exp[i], time_together_exp[i] = out_expected
+        out_expected = resample_single_phase(ehd,
+                                             cf,
+                                             phase,
+                                             N,
+                                             res_dir=res_dir,
+                                             prefix=prefix)
+        following_exp[i], time_together_exp[i] = out_expected
         add_intervals(interval_details, phase_intervals)
         save_single_histograms(following[i],
                                'following_in_pipe',
@@ -322,7 +337,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms(following_exp[i],
-                               'following_in_pipe_expected_time_resampling',
+                               'following_in_pipe_expected_time_%s' % method,
                                ehd.mice,
                                phase,
                                res_dir,
@@ -330,7 +345,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms((following[i]-following_exp[i]),
-                               'following_in_pipe_relative_excess_following_resampling',
+                               'following_in_pipe_relative_excess_following_%s' %method,
                                ehd.mice,
                                phase,
                                res_dir,
@@ -365,7 +380,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms(time_together_exp[i],
-                               'time_together_in_pipe_expected_time_resampling',
+                               'time_together_in_pipe_expected_time_%s' % method,
                                ehd.mice,
                                phase,
                                res_dir,
@@ -373,7 +388,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms((time_together[i]-time_together_exp[i]),
-                               'time_together_in_pipe_relative_excess_time_together_resampling',
+                               'time_together_in_pipe_relative_excess_time_together_%s' % method,
                                ehd.mice,
                                phase,
                                res_dir,
@@ -385,7 +400,7 @@ def get_following(ehd, cf, res_dir=None, prefix=None,
                                   time_together_exp[i],
                                   mice,
                                   phase,
-                                  "fraction_time_following_resampling",
+                                  "fraction_time_following_%s" % method,
                                   res_dir,
                                   'time_together_in_pipe/histograms',
                                   prefix+add_info_mice,
