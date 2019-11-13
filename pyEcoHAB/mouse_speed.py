@@ -64,11 +64,13 @@ def insert_interval(candidate_t_start, interval,
 
 
 def generate_intervals(t_starts, t_stops, duration):
-    intervals = utils.shuffle_intervals(t_starts, t_stops)
+    intervals = utils.get_interval_durations_2_lists(t_starts,
+                                                     t_stops)
     new_t_starts, new_t_stops = [], []
     ints_len = len(intervals)
     i = 0
     while i < ints_len:
+
         interval = intervals[i]
         can_t_start = random.randrange(0, duration)
         out = insert_interval(can_t_start, interval,

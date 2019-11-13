@@ -700,14 +700,6 @@ class TestIntervalGetDurations2_lists(unittest.TestCase):
         b = [2, 7, 10]
         self.assertEqual(uf.get_interval_durations_2_lists(a, b), [1, 2, 2])
 
-class TestShuffleIntervals(unittest.TestCase):
-    def test_1(self):
-        starts = [1, 5, 10, 20]
-        ends = [2, 7, 13, 24]
-        random.seed(1)
-        result = uf.shuffle_intervals(starts, ends)
-        self.assertEqual(result, [4, 2, 3, 1])
-
 
 class TestCalculateTotalDuration(unittest.TestCase):
     def test_1(self):

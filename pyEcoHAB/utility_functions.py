@@ -1,10 +1,8 @@
 from __future__ import division, print_function, absolute_import
 import os
 import time
-import random
 import sys
 import numpy as np
-
 
 
 same_pipe = {1: [1, 2],
@@ -415,12 +413,6 @@ def get_interval_durations(ints):
 
 def get_interval_durations_2_lists(starts, ends):
     return [abs(ends[i] - start) for i, start in enumerate(starts)]
-
-
-def shuffle_intervals(starts, ends):
-    intervals = get_interval_durations_2_lists(starts, ends)
-    random.shuffle(intervals)
-    return intervals
 
 
 def calculate_total_duration(intervals):
