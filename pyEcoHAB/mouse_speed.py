@@ -277,9 +277,9 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
     time_together_exp = np.zeros((len(phases), len(mice),
                                        len(mice)))
     if return_median:
-        method = "median_%d" % N
+        method = "median_N_%d" % N
     else:
-        method = "mean_%d" % N
+        method = "mean_N_%d" % N
     fname = 'following_%s_%s' % (method, add_info_mice)
     fname_ = 'following_%s_%s%s' % (method, prefix,
                                          add_info_mice)
