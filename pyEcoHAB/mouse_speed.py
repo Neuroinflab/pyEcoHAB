@@ -1,5 +1,4 @@
 from __future__ import print_function, division, absolute_import
-import timeit
 import random
 import numpy as np
 
@@ -103,8 +102,6 @@ def bootstrap_single_phase(directions_dict, mice_list,
                                  t_start, t_stop)
         followings[:, :, i] = out[0]
         times_together[:, :, i] = out[1]
-    tstop = timeit.default_timer()
-    print("Took", tstop - tstart)
     return followings, times_together
 
 
@@ -310,13 +307,10 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
         vmax1t = 0.01
 
     for i, phase in enumerate(phases):
-        start = timeit.default_timer()
         out = get_matrices_single_phase(ehd,
                                         cf,
                                         phase,
                                         following_matrices)
-        stop = timeit.default_timer()
-        print("Elapsed time", stop - start)
         following[i], time_together[i], phase_intervals  = out
         start, end = cf.gettime(phase)
         duration = end - start
