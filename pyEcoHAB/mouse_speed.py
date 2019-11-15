@@ -94,7 +94,6 @@ def bootstrap_single_phase(directions_dict, mice_list,
     times_together = np.zeros((len(mice_list), len(mice_list), N))
     new_directions = {}
     for i in range(N):
-        print(i)
         for mouse in mice_list:
             new_directions[mouse] = generate_directions_dict(directions_dict[mouse],
                                                              t_stop - t_start)
