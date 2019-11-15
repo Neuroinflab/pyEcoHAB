@@ -90,7 +90,6 @@ def generate_directions_dict(directions_dict, duration):
 
 def bootstrap_single_phase(directions_dict, mice_list,
                            t_start, t_stop, N=1000):
-    tstart = timeit.default_timer()
     followings = np.zeros((len(mice_list), len(mice_list), N), dtype=int)
     times_together = np.zeros((len(mice_list), len(mice_list), N))
     new_directions = {}
