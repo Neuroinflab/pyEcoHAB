@@ -95,6 +95,7 @@ def bootstrap_single_phase(directions_dict, mice_list,
     times_together = np.zeros((len(mice_list), len(mice_list), N))
     new_directions = {}
     for i in range(N):
+        print(i)
         for mouse in mice_list:
             new_directions[mouse] = generate_directions_dict(directions_dict[mouse],
                                                              t_stop - t_start)
@@ -278,13 +279,13 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
     time_together_exp = np.zeros((len(phases), len(mice),
                                        len(mice)))
     if return_median:
-        method = "bootstrap_median_%d" % N
+        method = "median_%d" % N
     else:
-        method = "bootstrap_mean_%d" % N
-    fname = 'following_%s_in_pipe_%s' % (method, add_info_mice)
-    fname_ = 'following_%s_in_pipe_%s%s' % (method, prefix,
+        method = "mean_%d" % N
+    fname = 'following_%s_%s' % (method, add_info_mice)
+    fname_ = 'following_%s_%s%s' % (method, prefix,
                                          add_info_mice)
-    fname_beg = 'relative_following_%s_in_pipe_excess'
+    fname_beg = 'following_%s_excess'
     fname_exp = '%s_%s_%s%s.csv' % (fname_beg,
                                     method,
                                     prefix,
@@ -324,23 +325,23 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
         following_exp[i], time_together_exp[i] = out_expected
         add_intervals(interval_details, phase_intervals)
         save_single_histograms(following[i],
-                               'following_in_pipe',
+                               'following',
                                ehd.mice,
                                phase,
                                res_dir,
-                               'following_in_pipe/histograms',
+                               'following/histograms',
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms(following_exp[i],
-                               'following_in_pipe_expected_time_%s' % method,
+                               'following_expected_time_%s' % method,
                                ehd.mice,
                                phase,
                                res_dir,
-                               'following_in_pipe/histograms',
+                               'following/histograms',
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms((following[i]-following_exp[i]),
-                               'following_in_pipe_relative_excess_following_%s' %method,
+                               'following_excess_%s' %method,
                                ehd.mice,
                                phase,
                                res_dir,
@@ -353,7 +354,7 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                                   phase,
                                   fname,
                                   res_dir,
-                                  'following_in_pipe/histograms',
+                                  'following/histograms',
                                   prefix+add_info_mice,
                                   hist=False,
                                   vmin=0,
@@ -367,27 +368,27 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                                   labels=['following mouse', 'followed mouse'])
 
         save_single_histograms(time_together[i],
-                               'time_together_in_pipe',
+                               'time_following',
                                ehd.mice,
                                phase,
                                res_dir,
-                               'time_together_in_pipe/histograms',
+                               'other/time_following/histograms',
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms(time_together_exp[i],
-                               'time_together_in_pipe_expected_time_%s' % method,
+                               'time_following_expected_%s' % method,
                                ehd.mice,
                                phase,
                                res_dir,
-                               'time_together_in_pipe/histograms',
+                               'other/time_following/histograms',
                                prefix,
                                additional_info=add_info_mice)
         save_single_histograms((time_together[i]-time_together_exp[i]),
-                               'time_together_in_pipe_relative_excess_time_together_%s' % method,
+                               'time_following_excess_%s' % method,
                                ehd.mice,
                                phase,
                                res_dir,
-                               'time_together_in_pipe/histograms',
+                               'other/time_following/histograms',
                                prefix,
                                additional_info=add_info_mice)
 
@@ -395,9 +396,9 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                                   time_together_exp[i],
                                   mice,
                                   phase,
-                                  "fraction_time_following_%s" % method,
+                                  "time_following_%s" % method,
                                   res_dir,
-                                  'time_together_in_pipe/histograms',
+                                  'other/time_following/histograms',
                                   prefix+add_info_mice,
                                   hist=False,
                                   vmin=0,
@@ -414,32 +415,32 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                       phases,
                       following,
                       res_dir,
-                      'following_in_pipe/raster_plots',
-                      fname_)
+                      'following/raster_plots',
+                      fname_,
                       symmetric=False)
     write_csv_rasters(ehd.mice,
                       phases,
                       (following-following_exp),
                       res_dir,
-                      'following_in_pipe/raster_plots',
-                      fname_exp)
+                      'following/raster_plots',
+                      fname_exp,
                       symmetric=False)
 
     make_RasterPlot(res_dir,
-                    'following_in_pipe/raster_plots',
+                    'following/raster_plots',
                     following,
                     phases,
                     fname_,
                     mice,
-                    title='# followings')
+                    title='# followings',
                     symmetric=False)
     make_RasterPlot(res_dir,
-                    'following_in_pipe/raster_plots',
+                    'following/raster_plots',
                     (following-following_exp),
                     phases,
                     fname_exp,
                     mice,
-                    title='% excess following')
+                    title='% excess following',
                     symmetric=False)
 
     make_pooled_histograms(following,
@@ -447,7 +448,7 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                            phases,
                            'Following_histogram',
                            res_dir,
-                           'following_in_pipe/raster_plots',
+                           'following/raster_plots',
                            prefix,
                            additional_info=add_info_mice)
 
@@ -455,17 +456,18 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                                     "followings_intervals_histogram",
                                     ehd.mice,
                                     res_dir,
-                                    "following_in_pipe/histograms_of_following_intervals",
+                                    "other/histograms_of_following_intervals",
                                     prefix,
                                     additional_info=add_info_mice)
     make_pooled_histograms_for_every_mouse(interval_details,
                                            "followings_intervals_histogram",
                                            ehd.mice,
                                            res_dir,
-                                           "following_in_pipe/histograms_of_following_intervals",
+                                           "other/histograms_of_following_intervals",
                                            prefix,
                                            additional_info=add_info_mice)
-    write_interpair_intervals(interval_details, "following_in_pipe/histograms_of_following_intervals",
+    write_interpair_intervals(interval_details,
+                              "other/histograms_of_following_intervals",
                               res_dir, "following_intervals", prefix,
                               additional_info=add_info_mice)
     return following, following_exp, phases, mice
