@@ -345,7 +345,7 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                                ehd.mice,
                                phase,
                                res_dir,
-                               'following_in_pipe/histograms',
+                               'following/histograms',
                                prefix,
                                additional_info=add_info_mice)
         single_in_cohort_soc_plot(following[i],
