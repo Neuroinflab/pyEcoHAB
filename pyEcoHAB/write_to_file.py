@@ -30,7 +30,7 @@ def write_single_chamber(f, header, heads, address, mice, phases, time, data_sti
                 f.write(line+'\n')
 
 def save_data_cvs(data, fname, path, which, headers,
-                  target_dir="time_in_chambers"):
+                  target_dir="activity"):
     new_path = os.path.join(path, target_dir)
     if not os.path.exists(new_path):
         print(new_path)
@@ -195,10 +195,10 @@ def save_visit_duration(results, time, phase, mice,
     new_dir = utils.check_directory(new_dir, "data")
     for mouse in mice:
         new_name =  os.path.join(new_dir, '%s_%s_%s_%s_%s.csv'%(fname,
-                                                                      mouse,
-                                                                      phase,
-                                                                      prefix,
-                                                                      add_info))
+                                                                mouse,
+                                                                phase,
+                                                                prefix,
+                                                                add_info))
         print(new_name)
         f = open(new_name, "w")
         for address in results.keys():
