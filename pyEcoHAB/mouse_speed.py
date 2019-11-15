@@ -416,12 +416,14 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                       res_dir,
                       'following_in_pipe/raster_plots',
                       fname_)
+                      symmetric=False)
     write_csv_rasters(ehd.mice,
                       phases,
                       (following-following_exp),
                       res_dir,
                       'following_in_pipe/raster_plots',
                       fname_exp)
+                      symmetric=False)
 
     make_RasterPlot(res_dir,
                     'following_in_pipe/raster_plots',
@@ -430,6 +432,7 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                     fname_,
                     mice,
                     title='# followings')
+                    symmetric=False)
     make_RasterPlot(res_dir,
                     'following_in_pipe/raster_plots',
                     (following-following_exp),
@@ -437,6 +440,7 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                     fname_exp,
                     mice,
                     title='% excess following')
+                    symmetric=False)
 
     make_pooled_histograms(following,
                            following_exp,

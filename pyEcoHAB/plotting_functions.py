@@ -24,21 +24,29 @@ def make_RasterPlot(main_directory,
                     to_file=True,
                     vmin=None,
                     vmax=None,
-                    title=None):
+                    title=None,
+                    symmetric=True):
     
     mice = [mouse[-4:] for mouse in old_mice]
     subdirectory = os.path.join(subdirectory, 'raster_plots')
     new_path = utils.check_directory(main_directory, subdirectory)
-    fig = plt.figure(figsize=(12, 12))
-    ax = fig.add_subplot(111, aspect='equal')
     if title:
         plt.suptitle(title, fontsize=14, fontweight='bold')
     assert FAM.shape[0] == len(phases)
     assert FAM.shape[1] == len(mice)
     assert FAM.shape[2] == len(mice)
-    
-    output, pair_labels = utils.make_table_of_pairs(FAM, phases, mice)
-                
+
+    if symmetric:
+        output, pair_labels = utils.make_table_of_pairs(FAM,
+                                                        phases,
+                                                        mice)
+    else:
+        output, pair_labels = utils.make_table_of_all_pairs(FAM,
+                                                            phases,
+                                                            mice)
+    fig = plt.figure(figsize=(len(phases), 0.5*FAM.shape[0]))
+    ax = fig.add_subplot(111, aspect='equal')
+
     if not vmax and not vmin:
         vmax = FAM.max()
         vmin = FAM.min()
