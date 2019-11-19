@@ -224,7 +224,7 @@ def following_single_direction(intervals_m1, intervals_m2):
     return counter, time_together, intervals
 
 
-def extract_directions(times, antennas):
+def extract_directions(times, antennas, last_antenna):
     direction_dict = {key:[[], []] for key in keys}
     change_indices = utils.change_state(antennas)
     for c_idx in change_indices:
@@ -235,10 +235,10 @@ def extract_directions(times, antennas):
         if key is not None:
             try:
                 third_antenna = antennas[c_idx + 2]
-                if third_antenna == ant:
-                    continue
             except IndexError:
-                pass
+               third_antenna = last_antenna
+            if third_antenna == ant:
+                continue
             direction_dict[key][0].append(times[c_idx])
             direction_dict[key][1].append(times[c_idx + 1])
     return direction_dict
@@ -251,7 +251,17 @@ def prepare_data(ehd, st, en):
                                                   mouse1,
                                                   st,
                                                   en)
-        directions[mouse1] = extract_directions(*times_antennas)
+        last_times, last_antennas = utils.get_times_antennas(ehd,
+                                                             mouse1,
+                                                             en,
+                                                             en+(en-st))
+        try:
+            last_antenna = last_antennas[0]
+        except IndexError:
+            last_antenna = None
+        directions[mouse1] = extract_directions(times_antennas[0],
+                                                times_antennas[1],
+                                                last_antenna)
     return directions
 
 def get_matrices_single_phase(ehd, cf, phase, function):

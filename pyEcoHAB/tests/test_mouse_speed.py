@@ -18,8 +18,10 @@ class TestExtractDirections(unittest.TestCase):
         times1 = [15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34 ]
         antennas2 = [8, 1,   2,    1,  2,  3,  4,   5, 6,   7,   8]
         times2 =   [10, 16, 19, 19.5, 22, 25,  26, 27, 28, 31, 35]
-        cls.res1 = ms.extract_directions(times1, antennas1)
-        cls.res2 = ms.extract_directions(times2, antennas2)
+        cls.res1 = ms.extract_directions(times1, antennas1, 3)
+        cls.res1_1 = ms.extract_directions(times1, antennas1, 1)
+        cls.res2 = ms.extract_directions(times2, antennas2, 1)
+        cls.res2_1 = ms.extract_directions(times2, antennas2, 7)
 
     def test_1(self):
         direction_dict = {key:[[], []] for key in ms.keys}
@@ -49,6 +51,30 @@ class TestExtractDirections(unittest.TestCase):
         
         self.assertEqual(direction_dict, self.res2)
 
+    def test_1_1(self):
+        direction_dict = {key:[[], []] for key in ms.keys}
+        direction_dict["12"][0].append(15)
+        direction_dict["12"][1].append(16.5)
+        direction_dict["34"][0].append(19)
+        direction_dict["34"][1].append(20)
+        direction_dict["56"][0].append(21)
+        direction_dict["56"][1].append(22)
+        direction_dict["78"][0].append(24)
+        direction_dict["78"][1].append(25)
+
+        self.assertEqual(direction_dict, self.res1_1)
+
+    def test_2_1(self):
+        direction_dict = {key:[[], []] for key in ms.keys}
+        direction_dict["12"][0].append(19.5)
+        direction_dict["12"][1].append(22)
+        direction_dict["34"][0].append(25)
+        direction_dict["34"][1].append(26)
+        direction_dict["56"][0].append(27)
+        direction_dict["56"][1].append(28)
+
+        self.assertEqual(direction_dict, self.res2_1)
+
 
 class TestFollowing2ndMouseInPipe(unittest.TestCase):
     @classmethod
@@ -57,8 +83,8 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
         times1 = [15, 16.5]
         antennas2 = [8, 1, 2, 3, 4, 5]
         times2 = [10, 16, 19, 19.5, 22, 25]
-        dir1 = ms.extract_directions(times1, antennas1)
-        dir2 = ms.extract_directions(times2, antennas2)
+        dir1 = ms.extract_directions(times1, antennas1, 3)
+        dir2 = ms.extract_directions(times2, antennas2, 6)
         res = ms.following_single_pair(dir1, dir2)
         cls.out1, cls.time_together1, cls.intervals1= res
 
@@ -66,8 +92,8 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
         times1 = [15, 16.5, 19, 20, 21]
         antennas2 = [8, 1, 2, 3, 4, 5]
         times2 = [10, 16, 19, 19.5, 22, 25]
-        dir1 = ms.extract_directions(times1, antennas1)
-        dir2 = ms.extract_directions(times2, antennas2)
+        dir1 = ms.extract_directions(times1, antennas1, 6)
+        dir2 = ms.extract_directions(times2, antennas2, 6)
         res = ms.following_single_pair(dir2, dir1)
         cls.out2, cls.time_together2, cls.intervals2 = res
 
@@ -75,8 +101,8 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
         times1 = [15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34 ]
         antennas2 = [8, 1,   2,    3,  4,  5,  6,   7, 8,   1,   2]
         times2 =   [10, 16, 19, 19.5, 22, 25,  26, 27, 28, 31, 35]
-        dir1 = ms.extract_directions(times1, antennas1)
-        dir2 = ms.extract_directions(times2, antennas2)
+        dir1 = ms.extract_directions(times1, antennas1, 3)
+        dir2 = ms.extract_directions(times2, antennas2, 3)
         res = ms.following_single_pair(dir1, dir2)
         cls.out3, cls.time_together3, cls.intervals3 = res
 
@@ -120,8 +146,15 @@ class TestFollowingMatrices(unittest.TestCase):
         }
         mice_list = ["mouse1", "mouse2", "mouse3"]
         directions_dict = {}
+        last = {
+            "mouse1": 3,
+            "mouse2": 3,
+            "mouse3": 8
+        }
         for mouse in mice_list:
-            directions_dict[mouse] = ms.extract_directions(*ta[mouse])
+            directions_dict[mouse] = ms.extract_directions(ta[mouse][0],
+                                                           ta[mouse][1],
+                                                           last[mouse])
         out = ms.following_matrices(directions_dict,
                                     mice_list,
                                     0, 1000)
