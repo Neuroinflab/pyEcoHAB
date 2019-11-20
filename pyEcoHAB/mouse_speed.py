@@ -81,6 +81,7 @@ def generate_intervals(t_starts, t_stops, duration):
         if iterations > 2*ints_len:
             #start over
             i = 0
+            iterations = 0
             new_t_starts, new_t_stops = [], []
     return new_t_starts, new_t_stops
 
