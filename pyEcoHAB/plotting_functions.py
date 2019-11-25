@@ -13,6 +13,10 @@ from . import utility_functions as utils
 
 nbins = 10
 
+def make_labels(my_mice):
+    if len(set([mouse[-4:] for mouse in my_mice])) == len(my_mice):
+        return [mouse[-4:] for mouse in my_mice]
+    return [mouse[:-5] for mouse in my_mice]
     
 def make_RasterPlot(main_directory,
                     subdirectory,
@@ -27,7 +31,7 @@ def make_RasterPlot(main_directory,
                     title=None,
                     symmetric=True):
     
-    mice = [mouse[-4:] for mouse in old_mice]
+    mice = make_labels(old_mice)
     subdirectory = os.path.join(subdirectory, 'raster_plots')
     new_path = utils.check_directory(main_directory, subdirectory)
     if title:
@@ -161,7 +165,7 @@ def single_in_cohort_soc_plot(results,
     new_name = os.path.join(directory, 'figs')
     directory = utils.check_directory(main_directory, new_name)
     fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, phase))
-    label_mice = [mouse[-4:] for mouse in mice]
+    label_mice = make_labels(mice)
     fig = plt.figure(figsize=(10, 6))
     ax = []
     for i in range(1,5):
@@ -303,8 +307,8 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
         for j, mouse2 in enumerate(mice):
             if mouse1 == mouse2:
                 if i == 0:
-                    ax[i, j].set_ylabel(mouse1[-4:], fontsize = 14)
-                    ax[i, j].set_title(mouse2[-4:], fontsize = 14)
+                    ax[i, j].set_ylabel(mouse1, fontsize = 14)
+                    ax[i, j].set_title(mouse2, fontsize = 14)
                 ax[i, j].set_yticklabels([])
                 ax[i, j].set_xticklabels([])
                 continue
@@ -313,13 +317,13 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
                 ylabel = None
             else:
                 yticks = True
-                ylabel = mouse1[-4:]
+                ylabel = mouse1
             if i == len(mice) - 1:
                 xticks = True
             else:
                 xticks = False
             if i == 0:
-                new_title = mouse2[-4:]
+                new_title = mouse2
             else:
                 new_title = ""
 
@@ -463,7 +467,7 @@ def make_fig_histogram(results, path, title):
     xticks = True
     for i, mouse in enumerate(mice):
         yticks = not i
-        new_title = "%s %s" % (title, mouse[-4:])
+        new_title = "%s %s" % (title, mouse)
         intervals = results[mouse]
         minb, maxb, minc, maxc = make_single_histogram(ax[i],
                                                        intervals,
