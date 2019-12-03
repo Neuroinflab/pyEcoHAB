@@ -3,6 +3,7 @@
 from __future__ import print_function, division, absolute_import
 import pyEcoHAB.utility_functions as uf
 import unittest
+import random
 import numpy as np
 
 
@@ -496,11 +497,11 @@ class TestGetAnennas(unittest.TestCase):
 class TestGetKeyForFrequency(unittest.TestCase):
     def test_78(self):
         out = uf.get_key_for_frequencies(7, 8)
-        self.assertEqual(out, 15)
+        self.assertEqual(out, "78")
 
     def test_87(self):
         out = uf.get_key_for_frequencies(8, 7)
-        self.assertEqual(out, 15)
+        self.assertEqual(out, "87")
 
     def test_chamber_18(self):
         out = uf.get_key_for_frequencies(8, 1)
@@ -691,6 +692,14 @@ class TestIntervalGetDurations(unittest.TestCase):
     def test_1(self):
         a = [[1, 2],  [5, 7], [8, 10]]
         self.assertEqual(uf.get_interval_durations(a), [1, 2, 2])
+
+
+class TestIntervalGetDurations2_lists(unittest.TestCase):
+    def test_1(self):
+        a = [1, 5, 8]
+        b = [2, 7, 10]
+        self.assertEqual(uf.get_interval_durations_2_lists(a, b), [1, 2, 2])
+
 
 class TestCalculateTotalDuration(unittest.TestCase):
     def test_1(self):

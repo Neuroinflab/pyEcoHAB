@@ -86,9 +86,15 @@ class EcoHabDataBase(object):
 
     def get_mice(self):
         mouse_list = list(set(self.readings.data["Tag"]))
-        mouse_dict = {mouse[-4:]:mouse for mouse in mouse_list}
-        mouse_keys = sorted(mouse_dict.keys())
-        return [mouse_dict[mouse] for mouse in mouse_keys]
+        #new EcoHAB has a different tag nameing convention
+        #last five digits are the same whereas in previous version
+        #there was a prefix and first digits where the same
+        if len(set([mouse[-4:] for mouse in mouse_list])) == len(mouse_list):
+            mouse_dict = {mouse[-6:]:mouse for mouse in mouse_list}
+            mouse_keys = sorted(mouse_dict.keys())
+            return [mouse_dict[mouse] for mouse in mouse_keys]
+        return sorted(mouse_list)
+
 
     def get_home_cage_antenna(self):
         """

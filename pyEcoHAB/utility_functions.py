@@ -138,10 +138,25 @@ def make_table_of_pairs(FAM, phases, mice):
     new_shape = (len(mice)*(len(mice)-1)//2, len(phases))
     output = np.zeros(new_shape)
     pair_labels = list_of_pairs(mice)
+    for i in range(len(phases)):
+        l = 0
+        for j in range(len(mice)):
+            for k in range(j + 1, len(mice)):
+                output[l, i] = FAM[i, j, k]
+                l += 1
+
+    return output, pair_labels
+
+def make_table_of_all_pairs(FAM, phases, mice):
+    new_shape = (len(mice)*(len(mice)-1), len(phases))
+    output = np.zeros(new_shape)
+    pair_labels = all_pairs(mice)
     for i, phase in enumerate(phases):
         l = 0
-        for j, mouse in enumerate(mice):
-            for k in range(j + 1, len(mice)):
+        for j in range(len(mice)):
+            for k in range(len(mice)):
+                if j == k:
+                    continue
                 output[l, i] = FAM[i, j, k]
                 l += 1
 
@@ -385,9 +400,9 @@ def get_timestamp(t_start, t_end, dt):
 
 def get_key_for_frequencies(antenna, next_antenna):
     if antenna % 2 and next_antenna == antenna + 1:
-        return antenna + next_antenna
+        return "%d%d" % (antenna, next_antenna)
     elif next_antenna % 2 and antenna == next_antenna + 1:
-        return antenna + next_antenna
+        return "%d%d" % (antenna, next_antenna)
 
 
 def interval_overlap(int1, int2):
@@ -409,6 +424,10 @@ def get_duration(starts, ends):
 
 def get_interval_durations(ints):
     return [x[1] - x[0] for x in ints]
+
+
+def get_interval_durations_2_lists(starts, ends):
+    return [abs(ends[i] - start) for i, start in enumerate(starts)]
 
 
 def calculate_total_duration(intervals):
