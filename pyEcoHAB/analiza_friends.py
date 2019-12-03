@@ -228,6 +228,9 @@ def get_in_cohort_sociability(ehs, cf, res_dir=None,
     for idx_phase, phase in enumerate(phases):
         if get_data:
             data = utils.prepare_data(ehs, mice, cf.gettime(phase))
+        if phase not in ["DARK", "dark", "LIGHT", "light"]:
+            time = cf.gettime(phase)[1] - cf.gettime(phase)[0] 
+
         phase = phase.replace(' ', '_')
         full_results[idx_phase], full_results_exp[idx_phase] = single_phase_results(data, mice, time)
         save_single_histograms(full_results[idx_phase],
