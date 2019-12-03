@@ -57,9 +57,9 @@ def get_all_visits(ehs, cf, binsize, cages=None,
                  'Total time in box %d, seconds\n']
     
     phases = utils.filter_dark_light(cf.sections())
-    fname = '%scollective_results_all_chambers_binsize_%f_h.csv'%(prefix,
+    fname = '%sactivity_bin_%3.1f_h.csv'%(prefix,
                                                                   binsize//3600)
-    histogram_fname = 'histograms_binsize_%f_h' % (binsize//3600)
+    histogram_fname = 'activity_histograms_bin_%3.1f_h' % (binsize//3600)
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     if cages is None:
@@ -90,14 +90,14 @@ def get_all_visits(ehs, cf, binsize, cages=None,
                                            data['time'][phase],
                                            phase, mice,
                                            histogram_fname, res_dir,
-                                           "histograms_of_visits_binsize_%f"
+                                           "visit_histogram_binsize_%3.1f"
                                            % (binsize//3600),
                                            prefix, add_info_mice)
              save_visit_duration(visits_in_cages,
                                  data['time'][phase],
                                  phase, mice,
                                  histogram_fname, res_dir,
-                                 "histograms_of_visits_binsize_%f"
+                                 "visit_histograms_bin_%3.1f"
                                  % (binsize//3600),
                                  prefix, add_info_mice)
     save_data_cvs(data, fname, res_dir,

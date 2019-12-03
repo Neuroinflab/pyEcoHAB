@@ -30,7 +30,7 @@ def write_single_chamber(f, header, heads, address, mice, phases, time, data_sti
                 f.write(line+'\n')
 
 def save_data_cvs(data, fname, path, which, headers,
-                  target_dir="time_in_chambers"):
+                  target_dir="activity"):
     new_path = os.path.join(path, target_dir)
     if not os.path.exists(new_path):
         print(new_path)
@@ -49,14 +49,11 @@ def save_data_cvs(data, fname, path, which, headers,
         write_single_chamber(f,header, heads, which[stim], mice, phases, data['time'], data[stim])
 
 
-def save_single_histograms(result, fname, mice, phase, main_directory, directory, prefix, additional_info=None):
+def save_single_histograms(result, fname, mice, phase, main_directory,
+                           directory, prefix, additional_info=""):
     new_name = os.path.join(directory, 'data')
     directory = utils.check_directory(main_directory, new_name)
-    if isinstance(additional_info, str):
-        fname =  os.path.join(directory, '%s_%s_%s_%s.csv'% (fname, prefix, phase, additional_info))
-        
-    else:
-        fname =  os.path.join(directory, '%s_%s_%s.csv'% (fname, prefix, phase))
+    fname =  os.path.join(directory, '%s_%s_%s_%s.csv'% (fname, prefix, phase, additional_info))
     try:
         f = open(fname, 'w')
     except IOError:
@@ -72,7 +69,8 @@ def save_single_histograms(result, fname, mice, phase, main_directory, directory
         f.write('\n')
 
 
-def write_csv_rasters(mice, phases, output, directory, dirname, fname):
+def write_csv_rasters(mice, phases, output, directory,
+                      dirname, fname, symmetric=True):
     new_name = os.path.join(dirname, 'data')
     directory = utils.check_directory(directory, new_name)
     fname = os.path.join(directory, fname)
@@ -87,7 +85,10 @@ def write_csv_rasters(mice, phases, output, directory, dirname, fname):
         
     header += '\n'
     f.write(header)
-    new_output, pairs = utils.make_table_of_pairs(output, phases, mice)
+    if symmetric:
+        new_output, pairs = utils.make_table_of_pairs(output, phases, mice)
+    else:
+        new_output, pairs = utils.make_table_of_all_pairs(output, phases, mice)
     for i, pair in enumerate(pairs):
         f.write(pair)
         for j in range(len(phases)):
@@ -165,16 +166,12 @@ def write_csv_alone(alone, phases, mice, main_directory, prefix, labels=["1", "2
 
 def write_interpair_intervals(results, main_directory,
                               directory, fname, prefix,
-                              additional_info=None):
+                              additional_info=""):
     new_name = os.path.join(main_directory, 'data')
     directory = utils.check_directory(directory, new_name)
-    if isinstance(additional_info, str):
-        fname =  os.path.join(directory, '%s_%s_%s.csv'% (fname,
+    fname =  os.path.join(directory, '%s_%s_%s.csv'% (fname,
                                                           prefix,
                                                           additional_info))
-    else:
-        fname =  os.path.join(directory, '%s_%s.csv'% (fname,
-                                                       prefix))
     try:
         f = open(fname, 'w')
     except IOError:
@@ -193,21 +190,15 @@ def write_interpair_intervals(results, main_directory,
 def save_visit_duration(results, time, phase, mice,
                         fname, main_directory,
                         directory, prefix,
-                        add_info=None):
+                        add_info=""):
     new_dir = os.path.join(main_directory, directory)
     new_dir = utils.check_directory(new_dir, "data")
     for mouse in mice:
-        if isinstance(add_info, str):
-            new_name =  os.path.join(new_dir, '%s_%s_%s_%s_%s.csv'%(fname,
-                                                                      mouse,
-                                                                      phase,
-                                                                      prefix,
-                                                                      add_info))
-        else:
-            new_name =  os.path.join(new_dir, '%s_%s_%s_%s.csv'%(fname,
-                                                                   mouse,
-                                                                   phase,
-                                                                   prefix))
+        new_name =  os.path.join(new_dir, '%s_%s_%s_%s_%s.csv'%(fname,
+                                                                mouse,
+                                                                phase,
+                                                                prefix,
+                                                                add_info))
         print(new_name)
         f = open(new_name, "w")
         for address in results.keys():
@@ -219,3 +210,25 @@ def save_visit_duration(results, time, phase, mice,
                     f.write(",%2.2f" % single)
                 f.write("\n")
         f.close()
+
+def write_bootstrap_results(results, phase, mice_list,
+                            fname, main_directory,
+                            directory, prefix,
+                            add_info=""):
+    new_dir = os.path.join(main_directory, directory)
+    new_dir = utils.check_directory(new_dir, "data")
+    new_name =  os.path.join(new_dir, '%s_%s_%s_%s.csv'%(fname,
+                                                         phase.replace(' ', '_'),
+                                                         prefix,
+                                                         add_info))
+    new_name = os.path.join(new_dir, new_name)
+    f = open(new_name, "w")
+    for i, mouse1 in enumerate(mice_list):
+        for j, mouse2 in enumerate(mice_list):
+            if mouse1 != mouse2:
+                key = "%s|%s," % (mouse1, mouse2)
+                f.write(key)
+                for value in results[i, j]:
+                    f.write(str(value) + ",")
+                f.write("\n")
+    f.close()

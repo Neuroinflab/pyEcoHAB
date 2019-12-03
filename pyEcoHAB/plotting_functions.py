@@ -13,6 +13,10 @@ from . import utility_functions as utils
 
 nbins = 10
 
+def make_labels(my_mice):
+    if len(set([mouse[-4:] for mouse in my_mice])) == len(my_mice):
+        return [mouse[-4:] for mouse in my_mice]
+    return [mouse[:-5] for mouse in my_mice]
     
 def make_RasterPlot(main_directory,
                     subdirectory,
@@ -24,21 +28,29 @@ def make_RasterPlot(main_directory,
                     to_file=True,
                     vmin=None,
                     vmax=None,
-                    title=None):
+                    title=None,
+                    symmetric=True):
     
-    mice = [mouse[-4:] for mouse in old_mice]
+    mice = make_labels(old_mice)
     subdirectory = os.path.join(subdirectory, 'raster_plots')
     new_path = utils.check_directory(main_directory, subdirectory)
-    fig = plt.figure(figsize=(12, 12))
-    ax = fig.add_subplot(111, aspect='equal')
     if title:
         plt.suptitle(title, fontsize=14, fontweight='bold')
     assert FAM.shape[0] == len(phases)
     assert FAM.shape[1] == len(mice)
     assert FAM.shape[2] == len(mice)
-    
-    output, pair_labels = utils.make_table_of_pairs(FAM, phases, mice)
-                
+
+    if symmetric:
+        output, pair_labels = utils.make_table_of_pairs(FAM,
+                                                        phases,
+                                                        mice)
+    else:
+        output, pair_labels = utils.make_table_of_all_pairs(FAM,
+                                                            phases,
+                                                            mice)
+    fig = plt.figure(figsize=(len(phases), 0.5*FAM.shape[0]))
+    ax = fig.add_subplot(111, aspect='equal')
+
     if not vmax and not vmin:
         vmax = FAM.max()
         vmin = FAM.min()
@@ -153,7 +165,7 @@ def single_in_cohort_soc_plot(results,
     new_name = os.path.join(directory, 'figs')
     directory = utils.check_directory(main_directory, new_name)
     fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, phase))
-    label_mice = [mouse[-4:] for mouse in mice]
+    label_mice = make_labels(mice)
     fig = plt.figure(figsize=(10, 6))
     ax = []
     for i in range(1,5):
@@ -295,8 +307,8 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
         for j, mouse2 in enumerate(mice):
             if mouse1 == mouse2:
                 if i == 0:
-                    ax[i, j].set_ylabel(mouse1[-4:], fontsize = 14)
-                    ax[i, j].set_title(mouse2[-4:], fontsize = 14)
+                    ax[i, j].set_ylabel(mouse1, fontsize = 14)
+                    ax[i, j].set_title(mouse2, fontsize = 14)
                 ax[i, j].set_yticklabels([])
                 ax[i, j].set_xticklabels([])
                 continue
@@ -305,13 +317,13 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
                 ylabel = None
             else:
                 yticks = True
-                ylabel = mouse1[-4:]
+                ylabel = mouse1
             if i == len(mice) - 1:
                 xticks = True
             else:
                 xticks = False
             if i == 0:
-                new_title = mouse2[-4:]
+                new_title = mouse2
             else:
                 new_title = ""
 
@@ -376,9 +388,36 @@ def pool_results_followed(res_dict, mice):
             pooled_results[mouse1] += res_dict[key]
     return pooled_results
 
+def single_histogram_figures(single_results, fname, main_directory,
+                             path, title, nbins=False,
+                             xlabel=None, ylabel=None,
+                             fontsize=14,
+                             median_mean=False, add_text=""):
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    new_dir = os.path.join(path, 'figs')
+    dir_name =  utils.check_directory(main_directory, new_dir)
+    new_fname = os.path.join(dir_name, fname)
+    if nbins is False:
+        nbins = int(max(single_results))
+    if add_text:
+        title += add_text
+    make_single_histogram(ax, single_results, nbins, title=title,
+                          xticks=True,
+                          yticks=True, xlabel=xlabel, ylabel=ylabel,
+                          xlogscale=False, ylogscale=False,
+                          fontsize=fontsize,
+                          median_mean=median_mean)
+    fig.savefig(new_fname + ".png",
+                bbox_inches=None,
+                pad_inches=.5,
+                frameon=None, dpi=300)
+    plt.close(fig)
+
+
 def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
                           yticks=False, xlabel=None, ylabel=None,
-                          xlogscale=False, ylogscale=False, fontsize=14):
+                          xlogscale=False, ylogscale=False, fontsize=14,
+                          median_mean=False):
 
     if len(single_results) == 0:
         ax.set_yticklabels([])
@@ -409,7 +448,16 @@ def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
     else:
         ax.set_xticklabels([])
     ax.set_title(title, fontsize=fontsize)
+    if median_mean == True:
+        mean = single_results.mean()
+        median = np.median(single_results)
+        ax.axvline(mean, color='k', linestyle='dashed', linewidth=1)
+        ax.axvline(median, color='r', linestyle='dashed', linewidth=1)
+        ylims = ax.get_ylim()
+        ax.text(mean*0.9, (ylims[1]-ylims[0])*0.8, "mean = %4.1f"%mean)
+        ax.text(median*0.9, (ylims[1]-ylims[0])*0.9, "median = %4.1f"%median)
     return bins.min(), bins.max(), min(n), max(n)
+
 
 def make_fig_histogram(results, path, title):
     mice = results.keys()
@@ -419,7 +467,7 @@ def make_fig_histogram(results, path, title):
     xticks = True
     for i, mouse in enumerate(mice):
         yticks = not i
-        new_title = "%s %s" % (title, mouse[-4:])
+        new_title = "%s %s" % (title, mouse)
         intervals = results[mouse]
         minb, maxb, minc, maxc = make_single_histogram(ax[i],
                                                        intervals,
