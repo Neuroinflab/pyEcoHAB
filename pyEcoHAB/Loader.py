@@ -50,12 +50,18 @@ class EcoHabDataBase(object):
 
     def getantennas(self, mice):
         return self.readings.getproperty(mice,
-                                     'Antenna')
+                                         'Antenna')
 
     def gettimes(self, mice):
         return self.readings.getproperty(mice,
-                                     'Time',
-                                     'float')
+                                         'Time',
+                                         'float')
+    def getdurations(self, mice):
+        """Return duration of registration
+        by antenna"""
+        return self.readings.getproperty(mice,
+                                         'Duration',
+                                         'float')
     #add get_visits, get_readings
     def getaddresses(self, mice):
         return self.visits.getproperty(mice,
