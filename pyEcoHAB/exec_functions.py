@@ -1,4 +1,5 @@
 from __future__ import division, print_function, absolute_import
+import os
 import numpy as np
 from .write_to_file import save_single_histograms, write_csv_rasters
 from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot, single_heat_map
@@ -14,7 +15,7 @@ def evaluate_whole_experiment(ehd, cf, main_directory,
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     result = np.zeros((len(phases), len(mice), len(mice)))
     fname_ = '%s_%s%s.csv' % (fname, prefix, add_info_mice)
-    hist_dir = fname + '/histograms'
+    hist_dir = os.path.join("other_variables", fname, 'histograms')
     rast_dir = fname + '/raster_plots'
     for i, phase in enumerate(phases):
         if len(args):

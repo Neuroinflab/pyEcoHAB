@@ -90,14 +90,14 @@ def get_all_visits(ehs, cf, binsize, cages=None,
                                            data['time'][phase],
                                            phase, mice,
                                            histogram_fname, res_dir,
-                                           "visit_histograms_binsize_%3.1f"
+                                           "other_variables/visit_histograms_binsize_%3.1f"
                                            % (binsize//3600),
                                            prefix, add_info_mice)
              save_visit_duration(visits_in_cages,
                                  data['time'][phase],
                                  phase, mice,
                                  histogram_fname, res_dir,
-                                 "visit_histograms_binsize_%3.1f"
+                                 "other_variables/visit_histograms_binsize_%3.1f"
                                  % (binsize//3600),
                                  prefix, add_info_mice)
     save_data_cvs(data, fname, res_dir,
