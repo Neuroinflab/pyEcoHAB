@@ -121,11 +121,11 @@ def mice_together(data_mice, m1, m2, total_time):
 
 
 
-def get_mouse_alone(ehs, cf, main_directory=None, prefix=None):
+def get_mouse_alone(ehs, cf, res_dir=None, prefix=None):
     if prefix is None:
         prefix = ehs.prefix
-    if main_directory is None:
-        main_directory = ehs.res_dir
+    if res_dir is None:
+        res_dir = ehs.res_dir
     phases = utils.filter_dark(cf.sections())
     mice = ehs.mice
     output = np.zeros((4, len(mice), len(phases)+1))
@@ -138,7 +138,7 @@ def get_mouse_alone(ehs, cf, main_directory=None, prefix=None):
                 output[i-1, j, phase] = alone[mouse]
     phases.append('ALL DARK')
     output[:,:,-1] = output[:,:,:-1].sum(axis=2)  # last column -- sum of activity in all dark phases
-    write_csv_alone(output, phases, mice, main_directory, prefix)
+    write_csv_alone(output, phases, mice, res_dir, prefix)
 
 
 def single_phase_results(data, mice, total_time):
