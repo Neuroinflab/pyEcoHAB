@@ -145,13 +145,13 @@ def resample_single_phase(ehd, cf, phase, N,
                                                           key, N)
                     single_histogram_figures(followings[i, j],
                                              fname1, res_dir,
-                                             "following_hists",
+                                             "other_variables/following_hists",
                                              "Following count distribution",
                                              xlabel="followings", ylabel="count",
                                              median_mean=True)
                     single_histogram_figures(times_following[i, j], fname2,
                                              "Following times distribution",
-                                             "time_following_hists", add_text_2,
+                                             "other_variables/time_following_hists", add_text_2,
                                              xlabel="time_together",
                                              ylabel="count", nbins=10,
                                              median_mean=True)
@@ -160,10 +160,10 @@ def resample_single_phase(ehd, cf, phase, N,
         fname_times = "following_times_distribution_%d" % N
         write_bootstrap_results(followings, phase, mice,
                                 fname_following, res_dir,
-                                "following_hists", prefix)
+                                "other_variables/following_hists", prefix)
         write_bootstrap_results(times_following, phase, mice,
                                 fname_times, res_dir,
-                                "time_following_hists", prefix)
+                                "other_variables/time_following_hists", prefix)
 
     if return_median:
         return np.median(followings, axis=2), np.median(times_following, axis=2)
