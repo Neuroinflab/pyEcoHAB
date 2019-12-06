@@ -286,13 +286,12 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
     if prefix is None:
         prefix = ehd.prefix
     phases = utils.filter_dark_light(cf.sections())
-    mice = [mouse[-4:] for mouse in ehd.mice]
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    following = np.zeros((len(phases), len(mice), len(mice)))
-    following_exp = np.zeros((len(phases), len(mice), len(mice)))
-    time_together = np.zeros((len(phases), len(mice), len(mice)))
-    time_together_exp = np.zeros((len(phases), len(mice),
-                                       len(mice)))
+    following = np.zeros((len(phases), len(ehd.mice), len(ehd.mice)))
+    following_exp = np.zeros((len(phases), len(ehd.mice), len(ehd.mice)))
+    time_together = np.zeros((len(phases), len(ehd.mice), len(ehd.mice)))
+    time_together_exp = np.zeros((len(phases), len(ehd.mice),
+                                  len(ehd.mice)))
     if return_median:
         method = "median_N_%d" % N
     else:
@@ -365,7 +364,7 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                                additional_info=add_info_mice)
         single_in_cohort_soc_plot(following[i],
                                   following_exp[i],
-                                  mice,
+                                  ehd.mice,
                                   phase,
                                   fname,
                                   res_dir,
@@ -409,7 +408,7 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
 
         single_in_cohort_soc_plot(time_together[i],
                                   time_together_exp[i],
-                                  mice,
+                                  ehd.mice,
                                   phase,
                                   "time_following_%s" % method,
                                   res_dir,
@@ -446,7 +445,7 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                     following,
                     phases,
                     fname_,
-                    mice,
+                    ehd.mice,
                     title='# followings',
                     symmetric=False)
     make_RasterPlot(res_dir,
@@ -454,7 +453,7 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                     (following-following_exp),
                     phases,
                     fname_exp,
-                    mice,
+                    ehd.mice,
                     title='% excess following',
                     symmetric=False)
 
@@ -485,4 +484,4 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                               "other_variables/histograms_of_following_intervals",
                               res_dir, "following_intervals", prefix,
                               additional_info=add_info_mice)
-    return following, following_exp, phases, mice
+    return following, following_exp, phases, ehd.mice
