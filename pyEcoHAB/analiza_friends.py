@@ -132,7 +132,7 @@ def get_solitude(ehs, cf, res_dir=None, prefix=None):
     for phase, sec in enumerate(phases):
         times = cf.gettime(sec)
         data = utils.prepare_data(ehs, mice, times)
-        for i in range(1,5):
+        for i in range(1, 5):
             alone = mouse_alone(data, i)
             for j, mouse in enumerate(mice):
                 output[i-1, j, phase] = alone[mouse]

@@ -142,7 +142,7 @@ def write_csv_tables(results, phases, mice, main_directory, dirname, fname, pref
         f.write('\n')
     f.close()
 
-def write_csv_alone(alone, phases, mice, main_directory, prefix, labels=["1", "2", "3", "4"],  header='Mice alone in chamber %s\n', fname='mouse_alone_%s.csv', directory="mouse_alone"):
+def write_csv_alone(alone, phases, mice, main_directory, prefix, labels=["A", "B", "C", "D"],  header='Mice alone in chamber %s\n', fname='mouse_alone_%s.csv', directory="solitude"):
     directory = utils.check_directory(main_directory, directory)
     fname =  os.path.join(directory, fname % prefix)
     try:
