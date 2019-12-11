@@ -45,7 +45,7 @@ def calculate_visits_and_durations(data, mice, address, t_start, t_end, binsize)
     return visits, durations, all_visits
 
 
-def get_all_visits(ehs, cf, binsize, cages=None,
+def get_activity(ehs, cf, binsize, cages=None,
                    res_dir=None, prefix=None,
                    remove_mouse=None, headers=None):
     if prefix is None:

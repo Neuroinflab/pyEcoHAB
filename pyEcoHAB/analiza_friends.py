@@ -206,7 +206,7 @@ def prepare_fnames_and_totals(ehs, cf, prefix,
     return phases, total_time, data, fnames, get_data
 
 
-def get_in_cohort_sociability(ehs, cf, res_dir=None,
+def get_incohort_sociability(ehs, cf, res_dir=None,
                               prefix=None, which_phases=None,
                               remove_mouse=None):
     if prefix is None:
