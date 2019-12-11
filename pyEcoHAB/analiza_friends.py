@@ -121,7 +121,7 @@ def mice_together(data_mice, m1, m2, total_time):
 
 
 
-def get_mouse_alone(ehs, cf, res_dir=None, prefix=None):
+def get_solitude(ehs, cf, res_dir=None, prefix=None):
     if prefix is None:
         prefix = ehs.prefix
     if res_dir is None:
@@ -132,7 +132,7 @@ def get_mouse_alone(ehs, cf, res_dir=None, prefix=None):
     for phase, sec in enumerate(phases):
         times = cf.gettime(sec)
         data = utils.prepare_data(ehs, mice, times)
-        for i in range(1,5):
+        for i in range(1, 5):
             alone = mouse_alone(data, i)
             for j, mouse in enumerate(mice):
                 output[i-1, j, phase] = alone[mouse]
@@ -206,7 +206,7 @@ def prepare_fnames_and_totals(ehs, cf, prefix,
     return phases, total_time, data, fnames, get_data
 
 
-def get_in_cohort_sociability(ehs, cf, res_dir=None,
+def get_incohort_sociability(ehs, cf, res_dir=None,
                               prefix=None, which_phases=None,
                               remove_mouse=None):
     if prefix is None:
