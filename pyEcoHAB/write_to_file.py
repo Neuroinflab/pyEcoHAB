@@ -187,7 +187,7 @@ def write_interpair_intervals(results, main_directory,
             f.write("%f," % interval)
         f.write("\n")
 
-def save_visit_duration(results, time, phase, mice,
+def save_visit_duration(results, time, phase, mice, cages,
                         fname, main_directory,
                         directory, prefix,
                         add_info=""):
@@ -202,7 +202,7 @@ def save_visit_duration(results, time, phase, mice,
         print(new_name)
         f = open(new_name, "w")
         for address in results.keys():
-            f.write("Visit durations to chamber %s" % address)
+            f.write("Visit durations to chamber %s " % cages[address])
             f.write("time, durations\n")
             for j, out in enumerate(results[address][mouse]):
                 f.write("%2.2f" % time[j])
