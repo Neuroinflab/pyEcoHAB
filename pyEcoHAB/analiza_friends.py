@@ -121,7 +121,7 @@ def mice_together(data_mice, m1, m2, total_time):
 
 
 
-def get_mouse_alone(ehs, cf, res_dir=None, prefix=None):
+def get_solitude(ehs, cf, res_dir=None, prefix=None):
     if prefix is None:
         prefix = ehs.prefix
     if res_dir is None:
