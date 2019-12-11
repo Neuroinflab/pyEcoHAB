@@ -418,7 +418,6 @@ def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
                           yticks=False, xlabel=None, ylabel=None,
                           xlogscale=False, ylogscale=False, fontsize=14,
                           median_mean=False):
-
     if len(single_results) == 0:
         ax.set_yticklabels([])
         ax.set_xticklabels([])
@@ -519,7 +518,7 @@ def make_pooled_histograms_for_every_mouse(results, fname,
                        "followed")
 
 
-def make_visit_duration_histogram(results, time, phase, mice,
+def make_visit_duration_histogram(results, time, phase, mice, cages,
                                   fname, main_directory,
                                   directory, prefix, additional_info):
 
@@ -556,7 +555,7 @@ def make_visit_duration_histogram(results, time, phase, mice,
                     xlabel = None
                 minb, maxb, minc, maxc = make_single_histogram(ax[j, i], out,
                                                                10,
-                                                               title=key,
+                                                               title=cages[key],
                                                                xticks=xticks,
                                                                yticks=yticks,
                                                                xlabel=xlabel,

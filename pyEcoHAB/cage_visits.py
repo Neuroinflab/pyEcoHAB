@@ -53,8 +53,8 @@ def get_all_visits(ehs, cf, binsize, cages=None,
     if res_dir is None:
         res_dir = ehs.res_dir
     if headers is None:
-        basic = ['Number of visits to box %d\n',
-                 'Total time in box %d, seconds\n']
+        basic = ['Number of visits to box %s\n',
+                 'Total time in box %s, seconds\n']
     
     phases = utils.filter_dark_light(cf.sections())
     fname = '%sactivity_bin_%3.1f_h.csv'%(prefix,
@@ -63,8 +63,8 @@ def get_all_visits(ehs, cf, binsize, cages=None,
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     if cages is None:
-        cages = {'1': 1, '3': 3, '2': 2, '4': 4}
-    headers = {str(i):basic for i in cages.keys()}
+        cages = {'1': "A", '3': "C", '2': "B", '4': "D"}
+    headers = {i:basic for i in cages.keys()}
     data = {c:{0:{},1:{}} for c in cages.keys()}
     data['mice'] = mice
     data['phases'] = phases
@@ -88,14 +88,14 @@ def get_all_visits(ehs, cf, binsize, cages=None,
         if "dark" in phase or "DARK" in phase:
              make_visit_duration_histogram(visits_in_cages,
                                            data['time'][phase],
-                                           phase, mice,
+                                           phase, mice, cages,
                                            histogram_fname, res_dir,
                                            "other_variables/visit_histograms_binsize_%3.1f"
                                            % (binsize//3600),
                                            prefix, add_info_mice)
              save_visit_duration(visits_in_cages,
                                  data['time'][phase],
-                                 phase, mice,
+                                 phase, mice, cages,
                                  histogram_fname, res_dir,
                                  "other_variables/visit_histograms_binsize_%3.1f"
                                  % (binsize//3600),
