@@ -156,14 +156,14 @@ class Loader(EcoHabDataBase):
             f = open(path)
         except IOError:
             print("No file with a serial number, id set to 1")
-            self.serial_number = "1"
+            self.serial_number = self.path
             return
         try:
             self.serial_number = f.readline()
             
         except:
             print("File with the serial number corrupted, id set to 1")
-            self.serial_number = "1"
+            self.serial_number = self.path
 
     @staticmethod
     def _remove_antennas(data, antennas):
