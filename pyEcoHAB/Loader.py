@@ -146,8 +146,24 @@ class Loader(EcoHabDataBase):
         #As in antenna readings
 
         self.run_diagnostics(data)
+        self.read_in_serial()
         super(Loader, self).__init__(data, self.mask,
                                      self.threshold)
+        
+    def read_in_serial(self):
+        path = os.path.join(self.path, "serial_number")
+        try:
+            f = open(path)
+        except IOError:
+            print("No file with a serial number, id set to 1")
+            self.serial_number = "1"
+            return
+        try:
+            self.serial_number = f.readline()
+            
+        except:
+            print("File with the serial number corrupted, id set to 1")
+            self.serial_number = "1"
 
     @staticmethod
     def _remove_antennas(data, antennas):
