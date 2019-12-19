@@ -127,7 +127,7 @@ class Loader(EcoHabDataBase):
 
         self.mask = kwargs.pop('mask', None)
         self.threshold = kwargs.pop('antenna_threshold', 2.)
-        self.res_dir = kwargs.pop("results_path",
+        self.res_dir = kwargs.pop("res_dir",
                                   utils.results_path(self.path))
         self.prefix = utils.make_prefix(self.path)
         self.max_break = kwargs.pop("max_break", self.MAX_BREAK)
