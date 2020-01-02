@@ -44,8 +44,11 @@ address_not_adjacent = {1: 1,
 surrounding = {(1, 3): 1, (1, 7): 4, (2, 4): 1, (2, 8): 4,
                (3, 5): 2, (4, 6): 2, (5, 7): 3, (6, 8): 3}
 
-def check_directory(directory,subdirectory):
-    new_path = os.path.join(directory, subdirectory)
+def check_directory(directory, subdirectory=None):
+    if subdirectory:
+        new_path = os.path.join(directory, subdirectory)
+    else:
+        new_path = directory
     if not os.path.exists(new_path):
         os.makedirs(new_path)
     return new_path
