@@ -63,7 +63,7 @@ def get_activity(ehs, cf, binsize, cages=None,
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     if cages is None:
-        cages = {1: "A", 3: "C", 2: "B", 4: "D"}
+        cages = {4: "A", 1: "B", 2: "C", 3: "D"}
     headers = {i:basic for i in cages.keys()}
     data = {c:{0:{},1:{}} for c in cages.keys()}
     data['mice'] = mice
