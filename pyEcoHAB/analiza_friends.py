@@ -155,9 +155,9 @@ def single_phase_results(data, mice, total_time):
 
 
 def get_dark_light_data(phase, cf, ehs):
-    if phase == "dark" or phase == "DARK":
+    if phase == "dark" or phase == "DARK" or phase=="Dark":
         phases = utils.filter_dark(cf.sections())
-    elif phase == "light" or phase == "LIGHT":
+    elif phase == "light" or phase == "LIGHT" or phase="Light":
         phases = utils.filter_light(cf.sections())
     out_phases = [phase]
     data = {mouse:[] for mouse in ehs.mice}
