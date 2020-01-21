@@ -155,9 +155,11 @@ def single_phase_results(data, mice, total_time):
 
 
 def get_dark_light_data(phase, cf, ehs):
-    if phase == "dark" or phase == "DARK" or phase=="Dark":
+
+    if phase == "dark" or phase == "DARK" or phase == "Dark":
         phases = utils.filter_dark(cf.sections())
-    elif phase == "light" or phase == "LIGHT" or phase="Light":
+    elif phase == "light" or phase == "LIGHT" or phase == "Light":
+
         phases = utils.filter_light(cf.sections())
     out_phases = [phase]
     data = {mouse:[] for mouse in ehs.mice}
@@ -230,7 +232,14 @@ def get_incohort_sociability(ehs, cf, res_dir=None,
     full_results = np.zeros((len(phases), len(mice), len(mice)))
     full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
     for idx_phase, phase in enumerate(phases):
+<<<<<<< HEAD
         
+=======
+        if get_data:
+            data = utils.prepare_data(ehs, mice, cf.gettime(phase))
+        if phase not in ["DARK", "dark", "LIGHT", "light", "Dark", "Light"]:
+            time = cf.gettime(phase)[1] - cf.gettime(phase)[0] 
+>>>>>>> 8fb28d05cc281ef68cbb35d8295e9342a830c18d
 
         phase = phase.replace(' ', '_')
         full_results[idx_phase], full_results_exp[idx_phase] = single_phase_results(data[i], mice, time[i])
