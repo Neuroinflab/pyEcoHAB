@@ -170,45 +170,49 @@ def get_dark_light_data(phase, cf, ehs):
         total_time += (time[1] - time[0])
     return out_phases, total_time, data
 
-def prepare_fnames_and_totals(ehs, cf, prefix,
-                              which_phases, remove_mouse):
+def prepare_fnames_and_totals(ehs, cf, prefix, bins, remove_mouse):
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     prefix_1 = "incohort_sociability_"
     prefix_2 = "incohort_sociability_measured_time_"
     prefix_3 = "incohort_sociability_excess_time_"
     get_data = True
-    if which_phases is None:
+    
+    
+    if bins is None:
         phases = utils.filter_dark(cf.sections())
         data = None
         total_time = 43200.
         phase_name = ""
-    elif which_phases in ["ALL", "all", "All"]:
+        fname = '%s%s%s' % (prefix_1, add_info_mice, phase_name)
+        fname_measured = '%s%s_%s%s.csv' % (prefix_2,
+                                            prefix,
+                                            add_info_mice,
+                                            phase_name)
+        fname_expected = '%s%s_%s%s.csv' % (prefix_3,
+                                            prefix,
+                                            add_info_mice,
+                                            phase_name)
+    elif bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
         data = None
         time = cf.gettime("ALL")
         total_time = time[1] - time[0]
         phase_name = which_phases
-    else:
+    elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
         phases, total_time, data = get_dark_light_data(which_phases, cf, ehs)
         phase_name = "_ALL_%s" % which_phases
         get_data = False
-
-    fname = '%s%s%s' % (prefix_1, add_info_mice, phase_name)
-    fname_measured = '%s%s_%s%s.csv' % (prefix_2,
-                                        prefix,
-                                        add_info_mice,
-                                        phase_name)
-    fname_expected = '%s%s_%s%s.csv' % (prefix_3,
-                                        prefix,
-                                        add_info_mice,
-                                        phase_name)
+    elif isinstance(bins, int) or isintance(bins, float):
+        get_data = False
+        
+    
     fnames = [fname, fname_measured, fname_expected]
     return phases, total_time, data, fnames, get_data
 
 
 def get_incohort_sociability(ehs, cf, res_dir=None,
                               prefix=None, which_phases=None,
-                              remove_mouse=None):
+                              remove_mouse=None, bins=None):
     if prefix is None:
         prefix = ehs.prefix
     if res_dir is None:
@@ -226,13 +230,10 @@ def get_incohort_sociability(ehs, cf, res_dir=None,
     full_results = np.zeros((len(phases), len(mice), len(mice)))
     full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
     for idx_phase, phase in enumerate(phases):
-        if get_data:
-            data = utils.prepare_data(ehs, mice, cf.gettime(phase))
-        if phase not in ["DARK", "dark", "LIGHT", "light"]:
-            time = cf.gettime(phase)[1] - cf.gettime(phase)[0] 
+        
 
         phase = phase.replace(' ', '_')
-        full_results[idx_phase], full_results_exp[idx_phase] = single_phase_results(data, mice, time)
+        full_results[idx_phase], full_results_exp[idx_phase] = single_phase_results(data[i], mice, time[i])
         save_single_histograms(full_results[idx_phase],
                                'incohort_sociability_measured_time',
                                mice,
