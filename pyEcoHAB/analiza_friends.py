@@ -172,44 +172,41 @@ def get_dark_light_data(phase, cf, ehs, mice):
         total_time += (time[1] - time[0])
     return [out_phases], [total_time], [data]
 
-def prepare_fnames_and_totals(ehs, cf, prefix, bins, remove_mouse):
-    add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    prefix_1 = "incohort_sociability_"
-    prefix_2 = "incohort_sociability_measured_time_"
-    prefix_3 = "incohort_sociability_excess_time_"
-    get_data = True
-    
-    
-    if bins is None:
-        phases = utils.filter_dark(cf.sections())
-        data = None
-        total_time = 43200.
-        phase_name = ""
-        fname = '%s%s%s' % (prefix_1, add_info_mice, phase_name)
-        fname_measured = '%s%s_%s%s.csv' % (prefix_2,
-                                            prefix,
-                                            add_info_mice,
-                                            phase_name)
-        fname_expected = '%s%s_%s%s.csv' % (prefix_3,
-                                            prefix,
-                                            add_info_mice,
-                                            phase_name)
-    elif bins in ["ALL", "all", "All"]:
-        phases = ["ALL"]
-        data = None
+def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
+    if bins in ["ALL", "all", "All"]:
+        phases = [["ALL"]]
         time = cf.gettime("ALL")
-        total_time = time[1] - time[0]
-        phase_name = which_phases
+        total_time = [[time[1] - time[0]]]
+        phase_name = "ALL"
+        data = [[utils.prepare_data(ehs, mice, time)]]
+        shape = (1, 1, len(mice), len(mice))
+        bin_labels = [time[1] - time[0]]
     elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
         phases, total_time, data = get_dark_light_data(which_phases, cf, ehs)
-        phase_name = "_ALL_%s" % which_phases
-        get_data = False
+        phase_name = "_ALL_%s" % bins
+        shape = (1, 1, len(mice), len(mice))
+        bin_labels = total_time[0]
     elif isinstance(bins, int) or isintance(bins, float):
-        get_data = False
-        
-    
-    fnames = [fname, fname_measured, fname_expected]
-    return phases, total_time, data, fnames, get_data
+        phases = []
+        data = []
+        total_time = []
+        phase_name = "whole_bins_%4.2f_h" % bins
+        all_phases = utils.filter_dark(cf.sections())
+        bin_labels = utils.get_times(binsize)
+        for i, phase in enumerate(all_phases):
+            t_start, t_end = cf.gettime(phase)
+            phases.append("%s_%5.2fh" % (phase, bins))
+            total_time.append([])
+            data.append([])
+            while t_start < t_end:
+                time = [t_start, t_start + bins]
+                data[i].append(utils.prepare_data(ehs, mice, time))
+                total_time[i].append(time[1] - time[0])
+                t_start += bins
+        shape = (len(all_phases), len(bin_labels), len(mouse), len(mouse))
+
+   
+    return phases, total_time, data, shape, bin_labels
 
 
 def get_incohort_sociability(ehs, cf, res_dir=None,
