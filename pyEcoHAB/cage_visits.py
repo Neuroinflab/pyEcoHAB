@@ -63,14 +63,13 @@ def get_activity(ehs, cf, binsize, cages=None,
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     if cages is None:
-        cages = {4: "A", 1: "B", 2: "C", 3: "D"}
+        cages = OrderedDict([(4, "A"), (1, "B"), (2, "C"), (3, "D")])
+
     headers = {i:basic for i in cages.keys()}
     data = {c:{0:{},1:{}} for c in cages.keys()}
-    data['mice'] = mice
-    data['phases'] = phases
-    data['time'] = {}
+    
     ehs_data = utils.prepare_data(ehs, mice)
-
+    bin_labels = {}
     for idx_phase, phase in enumerate(phases):
         t_start, t_end = cf.gettime(phase)
         visits_in_cages = {}
@@ -83,23 +82,22 @@ def get_activity(ehs, cf, binsize, cages=None,
                                                         binsize)
             data[address][0][phase] = visit_data[0]
             data[address][1][phase] = visit_data[1]
-            data['time'][phase] = utils.get_times(binsize)
+            bin_labels[phase] = utils.get_times(binsize)
             visits_in_cages[address] = visit_data[2]
         if "dark" in phase or "DARK" in phase:
              make_visit_duration_histogram(visits_in_cages,
-                                           data['time'][phase],
+                                           bin_labels[phase],
                                            phase, mice, cages,
                                            histogram_fname, res_dir,
                                            "other_variables/visit_histograms_binsize_%3.1f"
                                            % (binsize//3600),
                                            prefix, add_info_mice)
              save_visit_duration(visits_in_cages,
-                                 data['time'][phase],
+                                 bin_labels[phase],
                                  phase, mice, cages,
                                  histogram_fname, res_dir,
                                  "other_variables/visit_histograms_binsize_%3.1f"
                                  % (binsize//3600),
                                  prefix, add_info_mice)
-    save_data_cvs(data, fname, res_dir,
-                  cages,
-                  headers)
+    save_data_cvs(data, mice, phases, bin_labels, fname, res_dir,
+                  cages, headers)
