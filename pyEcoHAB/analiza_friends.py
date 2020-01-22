@@ -154,7 +154,7 @@ def single_phase_results(data, mice, total_time):
     return res, res_exp
 
 
-def get_dark_light_data(phase, cf, ehs):
+def get_dark_light_data(phase, cf, ehs, mice):
 
     if phase == "dark" or phase == "DARK" or phase == "Dark":
         phases = utils.filter_dark(cf.sections())
@@ -162,15 +162,15 @@ def get_dark_light_data(phase, cf, ehs):
 
         phases = utils.filter_light(cf.sections())
     out_phases = [phase]
-    data = {mouse:[] for mouse in ehs.mice}
+    data = {mouse:[] for mouse in mice}
     total_time = 0
     for i, ph in enumerate(phases):
         time = cf.gettime(ph)
-        out = utils.prepare_data(ehs, ehs.mice, time)
-        for mouse in ehs.mice:
+        out = utils.prepare_data(ehs, mice, time)
+        for mouse in mice:
             data[mouse].extend(out[mouse])
         total_time += (time[1] - time[0])
-    return out_phases, total_time, data
+    return [out_phases], [total_time], [data]
 
 def prepare_fnames_and_totals(ehs, cf, prefix, bins, remove_mouse):
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
