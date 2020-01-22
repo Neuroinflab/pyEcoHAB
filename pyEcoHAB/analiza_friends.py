@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from . import utility_functions as utils
 from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot
-from .write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
+from .write_to_file import write_binned_data, write_csv_rasters, write_csv_alone
 
 def prepare_mice_intervals(data_mice, address):
     ints = {}
@@ -210,93 +210,98 @@ def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
 
 
 def get_incohort_sociability(ehs, cf, res_dir=None,
-                              prefix=None, which_phases=None,
-                              remove_mouse=None, bins=None):
+                             prefix=None, remove_mouse=None,
+                             bins=12*3600):
     if prefix is None:
         prefix = ehs.prefix
     if res_dir is None:
         res_dir = ehs.res_dir
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    phases, time, data, fnames, get_data = prepare_fnames_and_totals(ehs,
-                                                                     cf,
-                                                                     prefix,
-                                                                     which_phases,
-                                                                     remove_mouse)
-    fname, fname_measured, fname_expected = fnames
+
+   
+    fname_measured_prefix = "incohort_sociability_measured_time_%s_%s" % (prefix, add_info_mice)
+    fname_expected_prefix = "incohort_sociability_expected_time_%s_%s" % (prefix, add_info_mice)
+    fname_excess_prefix = "incohort_sociability_excess_time_%s_%s" % (prefix, add_info_mice)
+    phases, time, data, shape, bin_labels = prepare_fnames_and_totals(ehs,
+                                                                      cf,
+                                                                      prefix,
+                                                                      bins,
+                                                                      mice)
+
     if time == 0:
         return
-    full_results = np.zeros((len(phases), len(mice), len(mice)))
-    full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
+    full_results = np.zeros(shape)
+    full_results_exp = np.zeros(shape)
     for idx_phase, phase in enumerate(phases):
-<<<<<<< HEAD
-        
-=======
-        if get_data:
-            data = utils.prepare_data(ehs, mice, cf.gettime(phase))
-        if phase not in ["DARK", "dark", "LIGHT", "light", "Dark", "Light"]:
-            time = cf.gettime(phase)[1] - cf.gettime(phase)[0] 
->>>>>>> 8fb28d05cc281ef68cbb35d8295e9342a830c18d
-
         phase = phase.replace(' ', '_')
-        full_results[idx_phase], full_results_exp[idx_phase] = single_phase_results(data[i], mice, time[i])
-        save_single_histograms(full_results[idx_phase],
-                               'incohort_sociability_measured_time',
-                               mice,
-                               phase,
-                               res_dir,
-                               'incohort_sociability/histograms',
-                               prefix,
-                               additional_info=add_info_mice)
-        save_single_histograms(full_results_exp[idx_phase],
-                               'incohort_sociability_expected_time',
-                               mice,
-                               phase,
-                               res_dir,
-                               'incohort_sociability/histograms',
-                               prefix,
-                               additional_info=add_info_mice)
-        save_single_histograms(full_results[idx_phase]-full_results_exp[idx_phase],
-                               'incohort_sociability_excess_time',
-                               mice,
-                               phase,
-                               res_dir,
-                               'incohort_sociability/histograms',
-                               prefix,
-                               additional_info=add_info_mice)
+        for i in enumerate(bin_labels):
+            full_results[idx_phase, i], full_results_exp[idx_phase, i] = single_phase_results(data[idx][i], mice, time[idx][i])
+            
+        write_binned_data(full_results[idx_phase],
+                          'incohort_sociability_measured_time',
+                          mice, bin_labels, phase, res_dir, 
+                          'incohort_sociability/histograms',
+                          prefix, additional_info=add_info_mice)
+        write_binned_data(full_results_exp[idx_phase],
+                          'incohort_sociability_expected_time',
+                          mice, bin_labels, phase, res_dir, 
+                          'incohort_sociability/histograms',
+                          prefix, additional_info=add_info_mice)
+        write_binned_data(full_results[idx_phase]-full_results_exp[idx_phase],
+                          'incohort_sociability_excess_time',
+                          mice, bin_labels, phase, res_dir, 
+                          'incohort_sociability/histograms',
+                          prefix, additional_info=add_info_mice)
+        if int(bins) == 12*3600:
+            single_in_cohort_soc_plot(full_results[idx_phase, 0],
+                                      full_results_exp[idx_phase, 0],
+                                      mice,
+                                      phase,
+                                      fname,
+                                      res_dir,
+                                      'incohort_sociability/histograms',
+                                      prefix+add_info_mice)
         
-        single_in_cohort_soc_plot(full_results[idx_phase],
-                              full_results_exp[idx_phase],
-                              mice,
-                              phase,
-                              fname,
-                              res_dir,
-                                  'incohort_sociability/histograms',
-                                  prefix+add_info_mice)
-
-    write_csv_rasters(mice,
-                      phases,
-                      full_results,
-                      res_dir,
-                      'incohort_sociability/raster_plots',
-                      fname_measured)
-    write_csv_rasters(mice,
-                      phases,
-                      full_results-full_results_exp,
-                      res_dir,
-                      'incohort_sociability/raster_plots',
-                      fname_expected)
-    make_RasterPlot(res_dir,
-                    'incohort_sociability/raster_plots',
-                    full_results,
-                    phases,
-                    fname_measured,
-                    mice, vmin=0, vmax=1,
-                    title='% time together')
-    make_RasterPlot(res_dir,
-                    'incohort_sociability/raster_plots',
-                    full_results-full_results_exp,
-                    phases,
-                    fname_expected,
-                    mice,
-                    title='% time together')
+        fname_measured = "%s_%s.csv" % (fname_measured_prefix, phase)
+        fname_excess = "%s_%s.csv" % (fname_excess_prefix, phase)
+        fname_expected = "%s_%s.csv" % (fname_expected_prefix, phase)
+        write_csv_rasters(mice,
+                          bin_labels,
+                          full_results[idx_phase],
+                          res_dir,
+                          'incohort_sociability/raster_plots',
+                          fname_measured)
+        write_csv_rasters(mice,
+                          bin_labels,
+                          full_results_exp[idx_phase],
+                          res_dir,
+                          'incohort_sociability/raster_plots',
+                          fname_expected)
+        write_csv_rasters(mice,
+                          bin_labels,
+                          full_results[idx_phase]-full_results_exp[idx_phase],
+                          res_dir,
+                          'incohort_sociability/raster_plots',
+                          fname_excess)
+        make_RasterPlot(res_dir,
+                        'incohort_sociability/raster_plots',
+                        full_results[idx_phase],
+                        bin_labels,
+                        fname_measured,
+                        mice, vmin=0, vmax=1,
+                        title='% time together')
+        make_RasterPlot(res_dir,
+                        'incohort_sociability/raster_plots',
+                        full_results_exp[idx_phase],
+                        bin_labels,
+                        fname_expected,
+                        mice,
+                        title='% time together')
+        make_RasterPlot(res_dir,
+                        'incohort_sociability/raster_plots',
+                        full_results[idx_phase]-full_results_exp[idx_phase],
+                        bin_labels,
+                        fname_excess,
+                        mice,
+                        title='% time together')

@@ -4,49 +4,82 @@ import numpy as np
 from . import utility_functions as utils
 
 
-def write_single_chamber(f, header, heads, address, mice, phases, time, data_stim ):
+def write_single_chamber(f, header, mice, phases, time, data_stim):
     longest = 0
-    for j, h in enumerate(heads):
-        f.write(h%address)
-        f.write(header+'\n')
-        for i, mouse in enumerate(mice):
-            longest = 0
-            for phase in phases:
-                if len(data_stim[j][phase][mouse])> longest:
-                    longest = len(data_stim[j][phase][mouse])
-            lines = [mouse for i in range(longest)]
+    f.write(header+'\n')
+    for i, mouse in enumerate(mice):
+        longest = 0
+        for phase in phases:
+            if len(data_stim[phase][mouse])> longest:
+                longest = len(data_stim[phase][mouse])
+        lines = [mouse for i in range(longest)]
 
-            for phase in phases:
-                for k, t in enumerate(time[phase]):
-                    if phase == phases[0]:
-                        lines[k] += ';%3.2f'%(t/3600)
-                    try:
-                        lines[k] += ';'+str(data_stim[j][phase][mouse][k])
-                    except IndexError:
-                        print("Phase to short", phase)
-                        return
+        for phase in phases:
+            for k, t in enumerate(time[phase]):
+                if phase == phases[0]:
+                    lines[k] += ';%3.2f'%(t/3600)
+                try:
+                    lines[k] += ';'+str(data_stim[phase][mouse][k])
+                except IndexError:
+                    print("Phase too short", phase)
+                    return
 
-            for line in lines:
-                f.write(line+'\n')
+        for line in lines:
+            f.write(line + '\n')
 
-def save_data_cvs(data, fname, path, which, headers,
-                  target_dir="activity"):
+def save_data_cvs(data, phases, mice, bin_labels, fname,
+                  path, which, headers, target_dir):
+    
     new_path = os.path.join(path, target_dir)
     if not os.path.exists(new_path):
         print(new_path)
         os.makedirs(new_path)
 
     fname = os.path.join(new_path, fname)
-    f = open(fname,'w')
-    phases = data['phases']
-    mice = data['mice']
+    f = open(fname, "w")
     header = 'mouse;\"time [h]\"'
     for phase in phases:
         header += ';\"'+phase+"\""
-  
+    
     for stim in which.keys():
         heads = headers[stim]
-        write_single_chamber(f,header, heads, which[stim], mice, phases, data['time'], data[stim])
+        for j, h in enumerate(heads):
+            f.write(h % which[stim])
+            write_single_chamber(f, header, mice, phases,
+                                 bin_labels, data[stim][j])
+        
+
+
+def write_binned_data(data_stim, fname, mice, bin_labels, phase,
+                      path, target_dir, prefix, additional_info=add_info_mice):
+    new_path = os.path.join(path, target_dir)
+    fname =  os.path.join(directory, '%s_%s_%s_%s.csv'% (fname, prefix, phase, additional_info))
+    if not os.path.exists(new_path):
+        print(new_path)
+        os.makedirs(new_path)
+    
+    fname = os.path.join(new_path, fname)
+    f = open(fname, "w")
+    header = 'mouse;\"time [h]\"'
+    for mouse in mice:
+        header += ';\"' + mouse + "\""
+    
+    f.write(header+'\n')
+    # data_stim shape = (n_bins, mouse, mouse)
+    assert len(bin_labels) == data_stim.shape[0]
+    for i, mouse1 in enumerate(mice):
+        longest = 0
+        lines = [mouse1 for i in range(len(bin_labels))]
+
+        for j in range(len(mice)):
+            for k in range(len(bin_labels)):
+                if not j:
+                    lines[k] += ';%3.2f'%(t/3600)
+
+                lines[k] += ';'+str(data_stim[k, i, j])
+        for line in lines:
+            f.write(line + '\n')
+    f.close()
 
 
 def save_single_histograms(result, fname, mice, phase, main_directory,
