@@ -114,7 +114,7 @@ def write_csv_rasters(mice, phases, output, directory,
    
     header = 'mouse pair'
     for phase in phases:
-        header += ';' + phase
+        header += ';' + str(phase)+ " h"
         
     header += '\n'
     f.write(header)
