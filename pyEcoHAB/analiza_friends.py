@@ -170,11 +170,11 @@ def get_dark_light_data(phase, cf, ehs, mice):
         for mouse in mice:
             data[mouse].extend(out[mouse])
         total_time += (time[1] - time[0])
-    return [out_phases], [total_time], [data]
+    return out_phases, [[total_time]], [[data]]
 
 def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
     if bins in ["ALL", "all", "All"]:
-        phases = [["ALL"]]
+        phases = ["ALL"]
         time = cf.gettime("ALL")
         total_time = [[time[1] - time[0]]]
         phase_name = "ALL"
@@ -182,7 +182,7 @@ def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
         shape = (1, 1, len(mice), len(mice))
         bin_labels = [time[1] - time[0]]
     elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
-        phases, total_time, data = get_dark_light_data(which_phases, cf, ehs)
+        phases, total_time, data = get_dark_light_data(bins, cf, ehs, mice)
         phase_name = "_ALL_%s" % bins
         shape = (1, 1, len(mice), len(mice))
         bin_labels = total_time[0]
