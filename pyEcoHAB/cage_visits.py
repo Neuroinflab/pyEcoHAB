@@ -99,5 +99,5 @@ def get_activity(ehs, cf, binsize, cages=None,
                                  "other_variables/visit_histograms_binsize_%3.1f"
                                  % (binsize//3600),
                                  prefix, add_info_mice)
-    save_data_cvs(data, mice, phases, bin_labels, fname, res_dir,
+    save_data_cvs(data, phases, mice, bin_labels, fname, res_dir,
                   cages, headers)

@@ -45,7 +45,7 @@ def save_data_cvs(data, phases, mice, bin_labels, fname,
         heads = headers[stim]
         for j, h in enumerate(heads):
             f.write(h % which[stim])
-            write_single_chamber(f, header, mice, phases,
+            write_single_chamber(f, header, phases, mice,
                                  bin_labels, data[stim][j])
         
 
