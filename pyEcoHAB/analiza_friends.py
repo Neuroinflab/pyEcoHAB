@@ -203,7 +203,7 @@ def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
                 data[i].append(utils.prepare_data(ehs, mice, time))
                 total_time[i].append(time[1] - time[0])
                 t_start += bins
-        shape = (len(all_phases), len(bin_labels), len(mouse), len(mouse))
+        shape = (len(all_phases), len(bin_labels), len(mice), len(mice))
 
    
     return phases, total_time, data, shape, bin_labels
