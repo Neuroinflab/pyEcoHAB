@@ -4,8 +4,8 @@ import numpy as np
 from . import utility_functions as utils
 
 
-def write_single_chamber(f, header, mice, phases, time, data_stim):
-    longest = 0
+def write_single_chamber(f, header, phases, mice, time, data_stim):
+
     f.write(header+'\n')
     for i, mouse in enumerate(mice):
         longest = 0
