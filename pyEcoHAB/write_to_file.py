@@ -51,9 +51,9 @@ def save_data_cvs(data, phases, mice, bin_labels, fname,
 
 
 def write_binned_data(data_stim, fname, mice, bin_labels, phase,
-                      path, target_dir, prefix, additional_info=add_info_mice):
-    new_path = os.path.join(path, target_dir)
-    fname =  os.path.join(directory, '%s_%s_%s_%s.csv'% (fname, prefix, phase, additional_info))
+                      path, target_dir, prefix, additional_info=""):
+    new_path = os.path.join(path, target_dir, "data")
+    fname =  os.path.join(new_path, '%s_%s_%s_%s.csv'% (fname, prefix, phase, additional_info))
     if not os.path.exists(new_path):
         print(new_path)
         os.makedirs(new_path)
