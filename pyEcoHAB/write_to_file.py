@@ -68,14 +68,11 @@ def write_binned_data(data_stim, fname, mice, bin_labels, phase,
     # data_stim shape = (n_bins, mouse, mouse)
     assert len(bin_labels) == data_stim.shape[0]
     for i, mouse1 in enumerate(mice):
-        longest = 0
-        lines = [mouse1 for i in range(len(bin_labels))]
-
+        lines = [mouse1 for l in range(len(bin_labels))]
         for j in range(len(mice)):
-            for k in range(len(bin_labels)):
+            for k, t in enumerate(bin_labels):
                 if not j:
                     lines[k] += ';%3.2f'%(t/3600)
-
                 lines[k] += ';'+str(data_stim[k, i, j])
         for line in lines:
             f.write(line + '\n')
