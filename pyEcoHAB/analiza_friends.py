@@ -192,7 +192,7 @@ def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
         total_time = []
         phase_name = "whole_bins_%4.2f_h" % bins
         all_phases = utils.filter_dark(cf.sections())
-        bin_labels = utils.get_times(binsize)
+        bin_labels = utils.get_times(bins)
         for i, phase in enumerate(all_phases):
             t_start, t_end = cf.gettime(phase)
             phases.append("%s_%5.2fh" % (phase, bins))
