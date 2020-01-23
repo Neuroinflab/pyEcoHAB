@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from . import utility_functions as utils
 from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot
-from .write_to_file import save_single_histograms, write_csv_rasters, write_csv_tables, write_csv_alone
+from .write_to_file import write_binned_data, write_csv_rasters, write_csv_alone
 
 def prepare_mice_intervals(data_mice, address):
     ints = {}
@@ -154,142 +154,139 @@ def single_phase_results(data, mice, total_time):
     return res, res_exp
 
 
-def get_dark_light_data(phase, cf, ehs):
+def get_dark_light_data(phase, cf, ehs, mice):
+
     if phase == "dark" or phase == "DARK" or phase == "Dark":
         phases = utils.filter_dark(cf.sections())
     elif phase == "light" or phase == "LIGHT" or phase == "Light":
+
         phases = utils.filter_light(cf.sections())
     out_phases = [phase]
-    data = {mouse:[] for mouse in ehs.mice}
+    data = {mouse:[] for mouse in mice}
     total_time = 0
     for i, ph in enumerate(phases):
         time = cf.gettime(ph)
-        out = utils.prepare_data(ehs, ehs.mice, time)
-        for mouse in ehs.mice:
+        out = utils.prepare_data(ehs, mice, time)
+        for mouse in mice:
             data[mouse].extend(out[mouse])
         total_time += (time[1] - time[0])
-    return out_phases, total_time, data
+    return out_phases, [[total_time]], [[data]]
 
-def prepare_fnames_and_totals(ehs, cf, prefix,
-                              which_phases, remove_mouse):
-    add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    prefix_1 = "incohort_sociability_"
-    prefix_2 = "incohort_sociability_measured_time_"
-    prefix_3 = "incohort_sociability_excess_time_"
-    get_data = True
-    if which_phases is None:
-        phases = utils.filter_dark(cf.sections())
-        data = None
-        total_time = 43200.
-        phase_name = ""
-    elif which_phases in ["ALL", "all", "All"]:
+def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
+    if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
-        data = None
         time = cf.gettime("ALL")
-        total_time = time[1] - time[0]
-        phase_name = which_phases
-    else:
-        phases, total_time, data = get_dark_light_data(which_phases, cf, ehs)
-        phase_name = "_ALL_%s" % which_phases
-        get_data = False
+        total_time = [[time[1] - time[0]]]
+        phase_name = "ALL"
+        data = [[utils.prepare_data(ehs, mice, time)]]
+        shape = (1, 1, len(mice), len(mice))
+        bin_labels = [time[1] - time[0]]
+    elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
+        phases, total_time, data = get_dark_light_data(bins, cf, ehs, mice)
+        phase_name = "_ALL_%s" % bins
+        shape = (1, 1, len(mice), len(mice))
+        bin_labels = total_time[0]
+    elif isinstance(bins, int) or isintance(bins, float):
+        phases = []
+        data = []
+        total_time = []
+        phase_name = "whole_bins_%4.2f_h" % bins
+        all_phases = utils.filter_dark(cf.sections())
+        bin_labels = utils.get_times(bins)
+        for i, phase in enumerate(all_phases):
+            t_start, t_end = cf.gettime(phase)
+            phases.append("%s_%5.2fh" % (phase, bins))
+            total_time.append([])
+            data.append([])
+            while t_start < t_end:
+                time = [t_start, t_start + bins]
+                data[i].append(utils.prepare_data(ehs, mice, time))
+                total_time[i].append(time[1] - time[0])
+                t_start += bins
+        shape = (len(all_phases), len(bin_labels), len(mice), len(mice))
 
-    fname = '%s%s%s' % (prefix_1, add_info_mice, phase_name)
-    fname_measured = '%s%s_%s%s.csv' % (prefix_2,
-                                        prefix,
-                                        add_info_mice,
-                                        phase_name)
-    fname_expected = '%s%s_%s%s.csv' % (prefix_3,
-                                        prefix,
-                                        add_info_mice,
-                                        phase_name)
-    fnames = [fname, fname_measured, fname_expected]
-    return phases, total_time, data, fnames, get_data
+   
+    return phases, total_time, data, shape, bin_labels
 
 
 def get_incohort_sociability(ehs, cf, res_dir=None,
-                              prefix=None, which_phases=None,
-                              remove_mouse=None):
+                             prefix=None, remove_mouse=None,
+                             binsize=12*3600):
     if prefix is None:
         prefix = ehs.prefix
     if res_dir is None:
         res_dir = ehs.res_dir
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    phases, time, data, fnames, get_data = prepare_fnames_and_totals(ehs,
-                                                                     cf,
-                                                                     prefix,
-                                                                     which_phases,
-                                                                     remove_mouse)
-    fname, fname_measured, fname_expected = fnames
+
+   
+    fname_measured_prefix = "incohort_sociability_measured_time_%s_%s" % (prefix, add_info_mice)
+    fname_expected_prefix = "incohort_sociability_expected_time_%s_%s" % (prefix, add_info_mice)
+    fname_excess_prefix = "incohort_sociability_excess_time_%s_%s" % (prefix, add_info_mice)
+    phases, time, data, shape, bin_labels = prepare_fnames_and_totals(ehs,
+                                                                      cf,
+                                                                      prefix,
+                                                                      binsize,
+                                                                      mice)
     if time == 0:
         return
-    full_results = np.zeros((len(phases), len(mice), len(mice)))
-    full_results_exp = np.zeros((len(phases), len(mice), len(mice)))
+    full_results = np.zeros(shape)
+    full_results_exp = np.zeros(shape)
+    out_dict_hist = os.path.join("incohort_sociability", "histograms", "bins_" + str(binsize))
+    out_dict_rasters = os.path.join("incohort_sociability", "raster_plots", "bins_" + str(binsize))
     for idx_phase, phase in enumerate(phases):
-        if get_data:
-            data = utils.prepare_data(ehs, mice, cf.gettime(phase))
-        if phase not in ["DARK", "dark", "LIGHT", "light", "Dark", "Light"]:
-            time = cf.gettime(phase)[1] - cf.gettime(phase)[0] 
-
         phase = phase.replace(' ', '_')
-        full_results[idx_phase], full_results_exp[idx_phase] = single_phase_results(data, mice, time)
-        save_single_histograms(full_results[idx_phase],
-                               'incohort_sociability_measured_time',
-                               mice,
-                               phase,
-                               res_dir,
-                               'incohort_sociability/histograms',
-                               prefix,
-                               additional_info=add_info_mice)
-        save_single_histograms(full_results_exp[idx_phase],
-                               'incohort_sociability_expected_time',
-                               mice,
-                               phase,
-                               res_dir,
-                               'incohort_sociability/histograms',
-                               prefix,
-                               additional_info=add_info_mice)
-        save_single_histograms(full_results[idx_phase]-full_results_exp[idx_phase],
-                               'incohort_sociability_excess_time',
-                               mice,
-                               phase,
-                               res_dir,
-                               'incohort_sociability/histograms',
-                               prefix,
-                               additional_info=add_info_mice)
-        
-        single_in_cohort_soc_plot(full_results[idx_phase],
-                              full_results_exp[idx_phase],
-                              mice,
-                              phase,
-                              fname,
-                              res_dir,
-                                  'incohort_sociability/histograms',
-                                  prefix+add_info_mice)
 
-    write_csv_rasters(mice,
-                      phases,
-                      full_results,
-                      res_dir,
-                      'incohort_sociability/raster_plots',
-                      fname_measured)
-    write_csv_rasters(mice,
-                      phases,
-                      full_results-full_results_exp,
-                      res_dir,
-                      'incohort_sociability/raster_plots',
-                      fname_expected)
-    make_RasterPlot(res_dir,
-                    'incohort_sociability/raster_plots',
-                    full_results,
-                    phases,
-                    fname_measured,
-                    mice, vmin=0, vmax=1,
-                    title='% time together')
-    make_RasterPlot(res_dir,
-                    'incohort_sociability/raster_plots',
-                    full_results-full_results_exp,
-                    phases,
-                    fname_expected,
-                    mice,
-                    title='% time together')
+        for i, label in enumerate(bin_labels):
+            full_results[idx_phase, i], full_results_exp[idx_phase, i] = single_phase_results(data[idx_phase][i], mice, time[idx_phase][i])
+
+        write_binned_data(full_results[idx_phase],
+                          'incohort_sociability_measured_time',
+                          mice, bin_labels, phase, res_dir, 
+                          out_dict_hist,
+                          prefix, additional_info=add_info_mice)
+        write_binned_data(full_results_exp[idx_phase],
+                          'incohort_sociability_expected_time',
+                          mice, bin_labels, phase, res_dir, 
+                          out_dict_hist,
+                          prefix, additional_info=add_info_mice)
+        write_binned_data(full_results[idx_phase]-full_results_exp[idx_phase],
+                          'incohort_sociability_excess_time',
+                          mice, bin_labels, phase, res_dir, 
+                          out_dict_hist,
+                          prefix, additional_info=add_info_mice)
+        if isinstance(binsize, int) or isinstance(binsize, float):
+            if int(binsize) == 12*3600:
+                fname = "incohort_sociability_"
+                single_in_cohort_soc_plot(full_results[idx_phase, 0],
+                                          full_results_exp[idx_phase, 0],
+                                          mice,
+                                          phase,
+                                          fname,
+                                          res_dir,
+                                          out_dict_hist,
+                                          prefix+add_info_mice)
+        
+        fname_measured = "%s_%s.csv" % (fname_measured_prefix, phase)
+        fname_excess = "%s_%s.csv" % (fname_excess_prefix, phase)
+        fname_expected = "%s_%s.csv" % (fname_expected_prefix, phase)
+        raster_labels = [bin_label/3600 for bin_label in bin_labels]
+        write_csv_rasters(mice,
+                          raster_labels,
+                          full_results[idx_phase],
+                          res_dir,
+                          out_dict_rasters,
+                          fname_measured)
+        write_csv_rasters(mice,
+                          raster_labels,
+                          full_results_exp[idx_phase],
+                          res_dir,
+                          out_dict_rasters,
+                          fname_expected)
+        write_csv_rasters(mice,
+                          raster_labels,
+                          full_results[idx_phase]-full_results_exp[idx_phase],
+                          res_dir,
+                          out_dict_rasters,
+                          fname_excess)
+      
