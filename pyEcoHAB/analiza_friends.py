@@ -284,24 +284,4 @@ def get_incohort_sociability(ehs, cf, res_dir=None,
                           res_dir,
                           'incohort_sociability/raster_plots',
                           fname_excess)
-        make_RasterPlot(res_dir,
-                        'incohort_sociability/raster_plots',
-                        full_results[idx_phase],
-                        bin_labels,
-                        fname_measured,
-                        mice, vmin=0, vmax=1,
-                        title='% time together')
-        make_RasterPlot(res_dir,
-                        'incohort_sociability/raster_plots',
-                        full_results_exp[idx_phase],
-                        bin_labels,
-                        fname_expected,
-                        mice,
-                        title='% time together')
-        make_RasterPlot(res_dir,
-                        'incohort_sociability/raster_plots',
-                        full_results[idx_phase]-full_results_exp[idx_phase],
-                        bin_labels,
-                        fname_excess,
-                        mice,
-                        title='% time together')
+      
