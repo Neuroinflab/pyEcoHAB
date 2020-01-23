@@ -266,20 +266,21 @@ def get_incohort_sociability(ehs, cf, res_dir=None,
         fname_measured = "%s_%s.csv" % (fname_measured_prefix, phase)
         fname_excess = "%s_%s.csv" % (fname_excess_prefix, phase)
         fname_expected = "%s_%s.csv" % (fname_expected_prefix, phase)
+        raster_labels = [bin_label/3600 for bin_label in bin_labels]
         write_csv_rasters(mice,
-                          bin_labels,
+                          raster_labels,
                           full_results[idx_phase],
                           res_dir,
                           'incohort_sociability/raster_plots',
                           fname_measured)
         write_csv_rasters(mice,
-                          bin_labels,
+                          raster_labels,
                           full_results_exp[idx_phase],
                           res_dir,
                           'incohort_sociability/raster_plots',
                           fname_expected)
         write_csv_rasters(mice,
-                          bin_labels,
+                          raster_labels,
                           full_results[idx_phase]-full_results_exp[idx_phase],
                           res_dir,
                           'incohort_sociability/raster_plots',
