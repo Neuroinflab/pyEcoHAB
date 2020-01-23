@@ -28,7 +28,7 @@ def write_single_chamber(f, header, phases, mice, time, data_stim):
             f.write(line + '\n')
 
 def save_data_cvs(data, phases, mice, bin_labels, fname,
-                  path, which, headers, target_dir):
+                  path, which, headers, target_dir="activity"):
     
     new_path = os.path.join(path, target_dir)
     if not os.path.exists(new_path):
