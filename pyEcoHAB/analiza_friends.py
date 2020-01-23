@@ -235,8 +235,8 @@ def get_incohort_sociability(ehs, cf, res_dir=None,
     full_results_exp = np.zeros(shape)
     for idx_phase, phase in enumerate(phases):
         phase = phase.replace(' ', '_')
-        for i in enumerate(bin_labels):
-            full_results[idx_phase, i], full_results_exp[idx_phase, i] = single_phase_results(data[idx][i], mice, time[idx][i])
+        for i, label in enumerate(bin_labels):
+            full_results[idx_phase, i], full_results_exp[idx_phase, i] = single_phase_results(data[idx_phase][i], mice, time[idx_phase][i])
             
         write_binned_data(full_results[idx_phase],
                           'incohort_sociability_measured_time',
