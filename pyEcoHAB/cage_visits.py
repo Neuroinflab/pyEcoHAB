@@ -101,3 +101,5 @@ def get_activity(ehs, cf, binsize, cages=None,
                                  prefix, add_info_mice)
     save_data_cvs(data, phases, mice, bin_labels, fname, res_dir,
                   cages, headers)
+    save_data_cvs(data, phases, mice, bin_labels, fname, res_dir,
+                  cages, headers, target_dir="social_approach")
