@@ -412,8 +412,8 @@ def interval_overlap(int1, int2):
     ints = sorted([int1, int2], key=lambda x: x[0])
     if ints[1][0] > ints[0][1]:
         return 0
-    else:
-        return min(ints[0][1], ints[1][1]) - ints[1][0]
+
+    return min(ints[0][1], ints[1][1]) - ints[1][0]
 
 
 def get_duration(starts, ends):
@@ -477,8 +477,10 @@ def prepare_data(ehs, mice, times=None):
         ads, sts, ens = get_ehs_data(ehs, mouse, t_start, t_end)
         idxs = get_indices(t_start, t_end, sts, ens)
         for i in idxs:
-            data[mouse].append((ads[i], sts[i], ens[i]))
-    return data
+            data[mouse].append((ads[i],
+                                max(sts[i], t_start),
+                                min(ens[i], t_end)))
+        return data
 
 
 def get_states_for_ehs(times, antennas, mouse, threshold):
