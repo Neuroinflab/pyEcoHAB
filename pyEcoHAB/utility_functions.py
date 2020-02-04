@@ -480,7 +480,7 @@ def prepare_data(ehs, mice, times=None):
             data[mouse].append((ads[i],
                                 max(sts[i], t_start),
                                 min(ens[i], t_end)))
-        return data
+    return data
 
 
 def get_states_for_ehs(times, antennas, mouse, threshold):
