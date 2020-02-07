@@ -1931,6 +1931,61 @@ class TestPrepareData(unittest.TestCase):
     def test_get_all(self):
         self.assertEqual(len(self.out_all),
                          len(self.data.getaddresses("mouse_1")))
+
+
+class TestGetStates(unittest.TestCase):
+    def test_threshold(self):
+        out = uf.get_states_for_ehs([2, 3], [2, 2], "mouse_1", 2)
+        self.assertEqual(out, [])
+
+    def test_pipe_1(self):
+        out = uf.get_states_for_ehs([2, 3], [1, 2], "mouse_1", 1)
+        self.assertEqual(out, [])
+
+    def test_pipe_2(self):
+        out = uf.get_states_for_ehs([2, 3], [3, 4], "mouse_1", 1)
+        self.assertEqual(out, [])
+
+    def test_pipe_3(self):
+        out = uf.get_states_for_ehs([2, 3], [5, 6], "mouse_1", 1)
+        self.assertEqual(out, [])
+        
+    def test_pipe_4(self):
+        out = uf.get_states_for_ehs([2, 3], [7, 8], "mouse_1", 1)
+        self.assertEqual(out, [])
+
+    def test_chamber_A1(self):
+        out = uf.get_states_for_ehs([2, 6], [1, 8], "mouse_1", 2)
+        self.assertEqual([(4, "mouse_1", 2, 6, 4, True)], out)
+        
+    def test_chamber_A2(self):
+        out = uf.get_states_for_ehs([2, 6], [8, 1], "mouse_1", 2)
+        self.assertEqual([(4, "mouse_1", 2, 6, 4, True)], out)
+
+    def test_chamber_B1(self):
+        out = uf.get_states_for_ehs([2, 6], [2, 3], "mouse_1", 2)
+        self.assertEqual([(1, "mouse_1", 2, 6, 4, True)], out)
+        
+    def test_chamber_B2(self):
+        out = uf.get_states_for_ehs([2, 6], [3, 2], "mouse_1", 2)
+        self.assertEqual([(1, "mouse_1", 2, 6, 4, True)], out)
+
+    def test_chamber_C1(self):
+        out = uf.get_states_for_ehs([2, 6], [4, 5], "mouse_1", 2)
+        self.assertEqual([(2, "mouse_1", 2, 6, 4, True)], out)
+        
+    def test_chamber_C2(self):
+        out = uf.get_states_for_ehs([2, 6], [5, 4], "mouse_1", 2)
+        self.assertEqual([(2, "mouse_1", 2, 6, 4, True)], out)
+
+    def test_chamber_D1(self):
+        out = uf.get_states_for_ehs([2, 6], [6, 7], "mouse_1", 2)
+        self.assertEqual([(3, "mouse_1", 2, 6, 4, True)], out)
+        
+    def test_chamber_D2(self):
+        out = uf.get_states_for_ehs([2, 6], [7, 6], "mouse_1", 2)
+        self.assertEqual([(3, "mouse_1", 2, 6, 4, True)], out)
+
     
 if __name__ == '__main__':
     unittest.main()
