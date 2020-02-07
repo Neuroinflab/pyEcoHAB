@@ -1905,12 +1905,18 @@ class TestPrepareData(unittest.TestCase):
         cls.data = Loader(path)
         cls.t1 = 1286701470
         cls.t2 = 1286701580
-        data = uf.prepare_data(cls.data, "mouse_1",
+        data1 = uf.prepare_data(cls.data, "mouse_1",
                                [cls.t1, cls.t2])
-        cls.out = data["mouse_1"]
-        data = uf.prepare_data(cls.data, "mouse_1")
-        cls.out_all = data["mouse_1"]
-
+        cls.out = data1["mouse_1"]
+        
+        data2 = uf.prepare_data(cls.data, "mouse_1")
+        cls.out_all = data2["mouse_1"]
+        cls.t11 = 1286701761
+        cls.t12 = 1286704555
+        data3 = uf.prepare_data(cls.data, "mouse_1",
+                                [cls.t11, cls.t12])
+        cls.out_different = data3["mouse_1"]
+ 
     def test_get_ehs_address(self):
         self.assertEqual([2, 3, 2, 3, 2], [x[0] for x in self.out])
 
@@ -1932,6 +1938,12 @@ class TestPrepareData(unittest.TestCase):
         self.assertEqual(len(self.out_all),
                          len(self.data.getaddresses("mouse_1")))
 
+    def test_get2_starttimes(self):
+        print(self.out_different[0][1] , self.t11)
+        self.assertTrue(self.out_different[0][1] > self.t11)
+
+    def test_get2_endtimes(self):
+        self.assertTrue(self.out_different[-1][-1] < self.t12)
 
 class TestGetStates(unittest.TestCase):
     def test_threshold(self):
