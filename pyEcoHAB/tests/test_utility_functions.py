@@ -1879,7 +1879,7 @@ class TestProcessLine5(unittest.TestCase):
 class TestGetEHSData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(sample_data_path, "weird_1")
+        path = os.path.join(sample_data_path, "weird_short")
         cls.data = Loader(path)
         cls.t1 = 1286701470
         cls.t2 = 1286701580
@@ -1901,7 +1901,7 @@ class TestGetEHSData(unittest.TestCase):
 class TestPrepareData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(sample_data_path, "weird_1")
+        path = os.path.join(sample_data_path, "weird_short")
         cls.data = Loader(path)
         cls.t1 = 1286701470
         cls.t2 = 1286701580
@@ -1919,6 +1919,14 @@ class TestPrepareData(unittest.TestCase):
 
     def test_get_ehs_starttimes_2(self):
         self.assertTrue(self.out[0][1] == self.t1)
+
+    def test_get_ehs_starttimes_3(self):
+        all_starttimes = set([self.out[i][1] for i in range(len(self.out))])
+        self.assertTrue(len(all_starttimes) > 1)
+
+    def test_get_ehs_endtimes_3(self):
+        all_endtimes = set([self.out[i][2] for i in range(len(self.out))])
+        self.assertTrue(len(all_endtimes) > 1)
 
     def test_get_all(self):
         self.assertEqual(len(self.out_all),
