@@ -17,6 +17,8 @@ def get_visits(intervals, t_start, t_stop):
         i_start, i_stop = intervals[idx]
         if i_start >= t_stop:
             break
+        if t_stop < i_stop:
+            i_stop = t_stop
         visit_list.append(i_stop - i_start)
     return visit_list
 
