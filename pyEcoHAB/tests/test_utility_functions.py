@@ -1998,6 +1998,13 @@ class TestGetStates(unittest.TestCase):
         out = uf.get_states_for_ehs([2, 6], [7, 6], "mouse_1", 2)
         self.assertEqual([(3, "mouse_1", 2, 6, 4, True)], out)
 
+    def test_chamber_same_antennas_A1(self):
+        out = uf.get_states_for_ehs([2, 6], [1, 1], "mouse_1", 2)
+        self.assertEqual([(4, "mouse_1", 2, 6, 4, True)], out)
+        
+    def test_chamber_same_antennas_A2(self):
+        out = uf.get_states_for_ehs([2, 6], [8, 8], "mouse_1", 2)
+        self.assertEqual([(4, "mouse_1", 2, 6, 4, True)], out)
     
 if __name__ == '__main__':
     unittest.main()
