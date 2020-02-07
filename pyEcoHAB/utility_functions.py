@@ -452,11 +452,12 @@ def get_indices(t_start, t_end, starts, ends):
 
 
 def get_ehs_data(ehs, mouse, t_start, t_end):
+    margin = 12*3600
     if t_start == 0 and t_end == -1:
         return ehs.getaddresses(mouse),\
             ehs.getstarttimes(mouse),\
             ehs.getendtimes(mouse)
-    ehs.mask_data(t_start, t_end)
+    ehs.mask_data(t_start - margin, t_end)
     adresses = ehs.getaddresses(mouse)
     starts = ehs.getstarttimes(mouse)
     ends = ehs.getendtimes(mouse)
@@ -467,6 +468,8 @@ def get_ehs_data(ehs, mouse, t_start, t_end):
 def prepare_data(ehs, mice, times=None):
     """Prepare masked data."""
     data = {}
+    if not isinstance(mice, list):
+        mice = [mice]
     if times is None:
         ehs.unmask_data()
         times = (ehs.getstarttimes(mice)[0],
