@@ -27,7 +27,7 @@ class TestGetVisits(unittest.TestCase):
                      [18, 20], [40, 70],
                      [80, 90], [95, 130]]
         v = cv.get_visits(intervals, t_start, t_stop)
-        self.assertEqual(v, [3, 2, 30, 10, 5])
+        self.assertEqual(v, [3, 2, 30, 10, 35])
 
     def test_intervals(self):
         t_start = 10
@@ -36,7 +36,7 @@ class TestGetVisits(unittest.TestCase):
                      [18, 20], [40, 70],
                      [80, 90], [95, 130]]
         v = cv.get_visits(intervals, t_start, t_stop)
-        self.assertEqual(v, [3, 2, 30, 10, 5])
+        self.assertEqual(v, [3, 2, 30, 10, 35])
 
     def test_one_longer_interval(self):
         t_start = 10
