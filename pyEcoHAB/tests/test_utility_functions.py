@@ -1997,7 +1997,106 @@ class TestGetStates(unittest.TestCase):
     def test_chamber_D2(self):
         out = uf.get_states_for_ehs([2, 6], [7, 6], "mouse_1", 2)
         self.assertEqual([(3, "mouse_1", 2, 6, 4, True)], out)
+class TestDictToArray2D(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        dictio = {"A":{"C": 1, "D": 2}, "B":{"C":3, "D": 4}}
+        cls.out = np.array([[1, 2], [3, 4]])
+        cls.new_arr = uf.dict_to_array_2D(dictio, ["A", "B"], ["C", "D"])
 
-    
+    def test00(self):
+        self.assertEqual(self.out[0, 0], self.new_arr[0, 0])
+
+    def test01(self):
+        self.assertEqual(self.out[0, 1], self.new_arr[0, 1])
+
+    def test10(self):
+        self.assertEqual(self.out[1, 0], self.new_arr[1, 0])
+
+    def test11(self):
+        self.assertEqual(self.out[1, 1], self.new_arr[1, 1])
+
+
+class TestDictToArray3D(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        dictio1 = {"A":{"C": 1, "D": 2}, "B":{"C":3, "D": 4}}
+        dictio2 = {"A":{"C": 5, "D": 6}, "B":{"C":7, "D": 8}}
+        dictio = {"AA": dictio1, "BB":dictio2}
+        cls.out = np.array([[[1, 2],
+                             [3, 4]],
+                            [[5, 6],
+                             [7, 8]] ])
+        cls.new_arr = uf.dict_to_array_3D(dictio, ["AA", "BB"], ["A", "B"], ["C", "D"])
+
+    def test000(self):
+        self.assertEqual(self.out[0, 0, 0], self.new_arr[0, 0, 0])
+
+    def test001(self):
+        self.assertEqual(self.out[0, 0, 1], self.new_arr[0, 0, 1])
+
+    def test010(self):
+        self.assertEqual(self.out[0, 1, 0], self.new_arr[0, 1, 0])
+
+    def test100(self):
+        self.assertEqual(self.out[1, 0, 0], self.new_arr[1, 0, 0])
+
+    def test110(self):
+        self.assertEqual(self.out[1, 1, 0], self.new_arr[1, 1, 0])
+
+    def test101(self):
+        self.assertEqual(self.out[1, 0, 1], self.new_arr[1, 0, 1])
+
+    def test111(self):
+        self.assertEqual(self.out[1, 1, 1], self.new_arr[1, 1, 1])
+
+    def test011(self):
+        self.assertEqual(self.out[0, 1, 1], self.new_arr[0, 1, 1])
+
+
+class TestCalcExcess(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        dictio11 = {"A":{"C": 1, "D": 2}, "B":{"C":3, "D": 4}}
+        dictio12 = {"A":{"C": 5, "D": 4}, "B":{"C":2, "D": 1}}
+        dictio13 = {"A":{"C": 8, "D": 9}, "B":{"C":10, "D": 11}}
+        dictio1 = {"AA": dictio11, "BB":dictio12}
+        dictio2 = {"AA": dictio12, "BB":dictio13}
+        cls.out = uf.calc_excess(dictio1, dictio2)
+        cls.new_arr = {
+            "AA":{
+                "A": {"C": -4, "D": -2},
+                "B": {"C": 1, "D": 3}
+            },
+            "BB": {
+                "A": {"C": -3, "D": -5},
+                "B": {"C": -8, "D": -10}
+            }
+            }
+
+    def test000(self):
+        self.assertEqual(self.out["AA"]["A"]["C"], self.new_arr["AA"]["A"]["C"])
+
+    def test001(self):
+        self.assertEqual(self.out["AA"]["A"]["D"], self.new_arr["AA"]["A"]["D"])
+
+    def test010(self):
+        self.assertEqual(self.out["AA"]["B"]["C"], self.new_arr["AA"]["B"]["C"])
+
+    def test100(self):
+        self.assertEqual(self.out["AA"]["B"]["D"], self.new_arr["AA"]["B"]["D"])
+
+    def test110(self):
+        self.assertEqual(self.out["BB"]["A"]["C"], self.new_arr["BB"]["A"]["C"])
+
+    def test101(self):
+        self.assertEqual(self.out["BB"]["A"]["D"], self.new_arr["BB"]["A"]["D"])
+
+    def test111(self):
+        self.assertEqual(self.out["BB"]["B"]["C"], self.new_arr["BB"]["B"]["C"])
+
+    def test011(self):
+        self.assertEqual(self.out["BB"]["B"]["D"], self.new_arr["BB"]["B"]["D"])
+
 if __name__ == '__main__':
     unittest.main()

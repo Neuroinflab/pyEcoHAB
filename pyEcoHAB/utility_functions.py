@@ -596,3 +596,32 @@ def get_filenames(path):
             if split[-1].endswith(".txt") and split[1].endswith("0000"):
                 out.append(f_name)
     return out
+
+
+def dict_to_array_2D(dictionary, keys1, keys2):
+    shape = (len(keys1), len(keys2))
+    out = np.zeros(shape)
+    for i, key1 in enumerate(keys1):
+        for j, key2 in enumerate(keys2):
+            out[i, j] = dictionary[key1][key2]
+    return out
+
+def dict_to_array_3D(dictionary, keys1, keys2, keys3):
+    shape = (len(keys1), len(keys2), len(keys3))
+    out = np.zeros(shape)
+    for i, key1 in enumerate(keys1):
+        for j, key2 in enumerate(keys2):
+            for k, key3 in enumerate(keys3):
+                out[i, j, k] = dictionary[key1][key2][key3]
+    return out
+
+
+def calc_excess(res, exp_res):
+    excess = OrderedDict()
+    for key1 in res.keys():
+        excess[key1] = OrderedDict()
+        for key2 in res[key1].keys():
+            excess[key1][key2] = OrderedDict()
+            for key3 in res[key1][key2].keys():
+                excess[key1][key2][key3] = res[key1][key2][key3] - exp_res[key1][key2][key3]
+    return excess
