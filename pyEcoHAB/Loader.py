@@ -148,6 +148,10 @@ class Loader(EcoHabDataBase):
         self.run_diagnostics(data)
         super(Loader, self).__init__(data, self.mask,
                                      self.threshold)
+        self.cages = self.get_cages()
+
+    def get_cages(self):
+        return sorted(list(set(self.getaddresses(self.mice))))
 
     @staticmethod
     def _remove_antennas(data, antennas):
