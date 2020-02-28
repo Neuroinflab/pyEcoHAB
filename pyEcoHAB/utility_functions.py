@@ -2,6 +2,7 @@ from __future__ import division, print_function, absolute_import
 import os
 import time
 import sys
+from collections import OrderedDict
 import numpy as np
 
 
@@ -23,26 +24,35 @@ opposite_pipe = {1: [5, 6],
                  7: [3, 4],
                  8: [3, 4]}
 
-address = {1: 4,
-           2: 1,
-           3: 1,
-           4: 2,
-           5: 2,
-           6: 3,
-           7: 3,
-           8: 4}
+address = {1: "A", #4
+           2: "B", #1,
+           3: "B", #1,
+           4: "C", #2,
+           5: "C", #2,
+           6: "D", #3,
+           7: "D", #3,
+           8: "A", #4
+}
 
-address_not_adjacent = {1: 1,
-                        2: 4,
-                        3: 2,
-                        4: 1,
-                        5: 3,
-                        6: 2,
-                        7: 4,
-                        8: 3}
+address_not_adjacent = {1: "B", #1,
+                        2: "A", #4,
+                        3: "C", #2,
+                        4: "B", #1,
+                        5: "D", #3,
+                        6: "C", #2,
+                        7: "A", #4,
+                        8: "D", #3
+}
 # Surrounding: difference between antennas only 2 or 6 -- skipped one antenna
-surrounding = {(1, 3): 1, (1, 7): 4, (2, 4): 1, (2, 8): 4,
-               (3, 5): 2, (4, 6): 2, (5, 7): 3, (6, 8): 3}
+surrounding = {(1, 3): "B", #1,
+               (1, 7): "A", #4,
+               (2, 4): "B", #1,
+               (2, 8): "A", #4,
+               (3, 5): "C", #2,
+               (4, 6): "C", #2,
+               (5, 7): "D", #3,
+               (6, 8): "D", #3
+}
 
 def check_directory(directory, subdirectory=None):
     if subdirectory:
@@ -486,7 +496,7 @@ def prepare_data(ehs, mice, times=None):
     return data
 
 
-def get_states_for_ehs(times, antennas, mouse, threshold):
+def get_animal_position(times, antennas, mouse, threshold):
     out = []
     for t_start, t_end, an_start, an_end in zip(times[:-1], times[1:],
                                                 antennas[:-1],
