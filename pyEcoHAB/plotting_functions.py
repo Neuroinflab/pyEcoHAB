@@ -182,7 +182,6 @@ def single_in_cohort_soc_plot(results,
     ax[1].set_xticks([])
     ax[1].set_yticks([])
     ax[1].set_title(titles[1])
-
     deltas = results[results > 0] - results_exp[results > 0]
 
     plt.subplot(223)
@@ -193,7 +192,7 @@ def single_in_cohort_soc_plot(results,
         else:
             mini = vmin1
             maxi = vmax1
-        im = ax[2].imshow((results - results_exp),
+        im = ax[2].imshow(results - results_exp,
                           vmin=mini,
                           vmax=maxi,
                           interpolation='none',
@@ -518,13 +517,12 @@ def make_pooled_histograms_for_every_mouse(results, fname,
                        "followed")
 
 
-def make_visit_duration_histogram(results, time, phase, mice, cages,
+def make_visit_duration_histogram(results, time, phase, mice,
                                   fname, main_directory,
                                   directory, prefix, additional_info):
-
+    place = {"A": 0, "B": 1, "C": 2, "D": 3}
     dir_name =  os.path.join(main_directory, directory)
     dir_name =  utils.check_directory(dir_name, "figs")
-
     for mouse in mice:
         if prefix != "":
             new_name = '%s_%s_%s_%s'% (fname, mouse, prefix, phase)
@@ -539,7 +537,7 @@ def make_visit_duration_histogram(results, time, phase, mice, cages,
             ax = np.expand_dims(ax, 0)
         bins, counts = [], []
         for key in results:
-            i = int(key) - 1
+            i = place[key]
             for j, out in enumerate(results[key][mouse]):
                 if i:
                     yticks = False
@@ -553,9 +551,10 @@ def make_visit_duration_histogram(results, time, phase, mice, cages,
                 else:
                     xticks = False
                     xlabel = None
+
                 minb, maxb, minc, maxc = make_single_histogram(ax[j, i], out,
                                                                10,
-                                                               title=cages[key],
+                                                               title=key,
                                                                xticks=xticks,
                                                                yticks=yticks,
                                                                xlabel=xlabel,
@@ -577,6 +576,4 @@ def make_visit_duration_histogram(results, time, phase, mice, cages,
                     bbox_inches=None,
                     pad_inches=.5,
                     frameon=None)
-
-        print(new_name)
         plt.close(fig)

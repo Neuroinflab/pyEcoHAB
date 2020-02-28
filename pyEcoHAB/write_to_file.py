@@ -41,10 +41,10 @@ def save_data_cvs(data, phases, mice, bin_labels, fname,
     for phase in phases:
         header += ';\"'+phase+"\""
     
-    for stim in which.keys():
+    for stim in which:
         heads = headers[stim]
         for j, h in enumerate(heads):
-            f.write(h % which[stim])
+            f.write(h % stim)
             write_single_chamber(f, header, phases, mice,
                                  bin_labels, data[stim][j])
         
@@ -57,23 +57,24 @@ def write_binned_data(data_stim, fname, mice, bin_labels, phase,
     if not os.path.exists(new_path):
         print(new_path)
         os.makedirs(new_path)
-    
+
     fname = os.path.join(new_path, fname)
     f = open(fname, "w")
     header = 'mouse;\"time [h]\"'
     for mouse in mice:
         header += ';\"' + mouse + "\""
-    
+
     f.write(header+'\n')
     # data_stim shape = (n_bins, mouse, mouse)
-    assert len(bin_labels) == data_stim.shape[0]
-    for i, mouse1 in enumerate(mice):
+    assert len(bin_labels) == len(data_stim.keys())
+
+    for mouse1 in mice:
         lines = [mouse1 for l in range(len(bin_labels))]
-        for j in range(len(mice)):
+        for j, mouse2 in enumerate(mice):
             for k, t in enumerate(bin_labels):
                 if not j:
                     lines[k] += ';%3.2f'%(t/3600)
-                lines[k] += ';'+str(data_stim[k, i, j])
+                lines[k] += ';'+str(data_stim[t][mouse1][mouse2])
         for line in lines:
             f.write(line + '\n')
     f.close()
@@ -172,7 +173,7 @@ def write_csv_tables(results, phases, mice, main_directory, dirname, fname, pref
         f.write('\n')
     f.close()
 
-def write_csv_alone(alone, phases, mice, main_directory, prefix, labels=["A", "B", "C", "D"],  header='Mice alone in chamber %s\n', fname='mouse_alone_%s.csv', directory="solitude"):
+def write_csv_alone(alone, phases, main_directory, prefix, header='Mice alone in chamber %s\n', fname='mouse_alone_%s.csv', directory="solitude"):
     directory = utils.check_directory(main_directory, directory)
     fname =  os.path.join(directory, fname % prefix)
     try:
@@ -184,13 +185,13 @@ def write_csv_alone(alone, phases, mice, main_directory, prefix, labels=["A", "B
     for phase in phases:
         phases_header += phase + ';'
     phases_header += '\n'
-    for i in range(1, alone.shape[0]+1):
-        f.write(header % labels[i-1])
+    for address in alone.keys():
+        f.write(header % address)
         f.write(phases_header)
-        for j, mouse in enumerate(mice):
+        for mouse in alone[address].keys():
             f.write(mouse+';')
-            for k, phase in enumerate(phases):
-                f.write(str(alone[i-1, j, k])+';')
+            for phase in phases:
+                f.write(str(alone[address][mouse][phase])+';')
             f.write('\n')
     f.close()
 
@@ -217,7 +218,7 @@ def write_interpair_intervals(results, main_directory,
             f.write("%f," % interval)
         f.write("\n")
 
-def save_visit_duration(results, time, phase, mice, cages,
+def save_visit_duration(results, time, phase, mice,
                         fname, main_directory,
                         directory, prefix,
                         add_info=""):
@@ -232,7 +233,7 @@ def save_visit_duration(results, time, phase, mice, cages,
         print(new_name)
         f = open(new_name, "w")
         for address in results.keys():
-            f.write("Visit durations to chamber %s " % cages[address])
+            f.write("Visit durations to chamber %s " % address)
             f.write("time, durations\n")
             for j, out in enumerate(results[address][mouse]):
                 f.write("%2.2f" % time[j])
