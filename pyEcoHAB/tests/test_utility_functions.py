@@ -1883,22 +1883,27 @@ class TestGetEHSData(unittest.TestCase):
         cls.data = Loader(path)
         cls.t1 = 1286701470
         cls.t2 = 1286701580
-        cls.m_1_a, cls.s1, cls.e1 = uf.get_ehs_data(cls.data, "mouse_1",
-                                                    cls.t1, cls.t2)
+        print("test ehs data")
+        cls.m_1_a, cls.s1, cls.e1 = uf.get_ehs_data_with_margin(cls.data, "mouse_1",
+                                                                cls.t1, cls.t2, margin=100)
+        for a, s, e in zip(cls.m_1_a, cls.s1, cls.e1):
+            print(a, s, e)
 
     def test_get_ehs_address(self):
-        self.assertEqual(["C", "C", "D", "C", "D", "C"], self.m_1_a)
+        self.assertEqual(["C", "C", "D", "C", "D", "C", "B", "C", "D", "C", "D", "C", "D"], self.m_1_a)
        
     def test_get_ehs_starttimes(self):
         out = sorted(self.s1)
         starttimes = [1286701467.302, 1286701469.9, 1286701476.243, 1286701480.721,
-                      1286701549.62, 1286701568.349]
+                      1286701549.62, 1286701568.349, 1286701583.809, 1286701600.057, 1286701604.718,
+                      1286701617.259, 1286701625.762, 1286701638.969, 1286701658.91]
         self.assertEqual(out, starttimes)
 
     def test_get_ehs_endtimes(self):
         out = sorted(self.e1)
         endtimes = [ 1286701469.65, 1286701474.28, 1286701480.125, 1286701548.484,
-                     1286701567.615, 1286701581.731]
+                     1286701567.615, 1286701581.731, 1286701599.069, 1286701603.98, 1286701616.712,
+                     1286701625.01, 1286701638.22, 1286701658.004, 1286701760.687]
         self.assertEqual(out, endtimes)
 
 
@@ -1912,7 +1917,6 @@ class TestPrepareData(unittest.TestCase):
         data1 = uf.prepare_data(cls.data, "mouse_1",
                                [cls.t1, cls.t2])
         cls.out = data1["mouse_1"]
-        
         data2 = uf.prepare_data(cls.data, "mouse_1")
         cls.out_all = data2["mouse_1"]
         cls.t11 = 1286701761

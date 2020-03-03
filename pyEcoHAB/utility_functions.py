@@ -461,13 +461,14 @@ def get_indices(t_start, t_end, starts, ends):
     return sorted(list(set(idx_start +  idx_end)))
 
 
-def get_ehs_data(ehs, mouse, t_start, t_end):
-    margin = 12*3600
+def get_ehs_data_with_margin(ehs, mouse, t_start, t_end,
+                             margin=12*3600):
     if t_start == 0 and t_end == -1:
         return ehs.getaddresses(mouse),\
             ehs.getstarttimes(mouse),\
             ehs.getendtimes(mouse)
-    ehs.mask_data(t_start - margin, t_end)
+
+    ehs.mask_data(t_start - margin, t_end +  margin)
     adresses = ehs.getaddresses(mouse)
     starts = ehs.getstarttimes(mouse)
     ends = ehs.getendtimes(mouse)
@@ -487,7 +488,7 @@ def prepare_data(ehs, mice, times=None):
     t_start, t_end = times
     for mouse in mice:
         data[mouse] = []
-        ads, sts, ens = get_ehs_data(ehs, mouse, t_start, t_end)
+        ads, sts, ens = get_ehs_data_with_margin(ehs, mouse, t_start, t_end)
         idxs = get_indices(t_start, t_end, sts, ens)
         for i in idxs:
             data[mouse].append((ads[i],
