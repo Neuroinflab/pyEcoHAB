@@ -628,6 +628,15 @@ class TestPrepareFnamesAndTotals(unittest.TestCase):
                                                                                   cls.config, "",
                                                                                   100,
                                                                                   ["mouse_1"])
+        cls.phases_900s_bins, cls.total_time_900s_bins,\
+            cls.data_900s_bins, cls.keys_900s_bins = af.prepare_fnames_and_totals(cls.data,
+                                                                                  cls.config, "",
+                                                                                  900,
+                                                                                  ["mouse_1"])
+        for bini in cls.data_100s_bins["1 dark"]:
+            print(bini, cls.data_100s_bins["1 dark"][bini])
+        for bini in cls.data_900s_bins["1 dark"]:
+            print(bini, cls.data_900s_bins["1 dark"][bini])
 
     def test_all_phases(self):
         self.assertEqual(self.all_phases, ["ALL"])
@@ -674,12 +683,34 @@ class TestPrepareFnamesAndTotals(unittest.TestCase):
         keys = [["LIGHT"], ["0"]]
         self.assertTrue(keys, self.light_keys)
 
-    
-
     def test_bins_keys(self):
         keys = [["1 dark"], [i*100/3600. for i in range(18)]]
         self.assertTrue(keys, self.keys_100s_bins)
-    
-    
+
+    def test_bins_data_1st_bin(self):
+        self.assertEqual(self.data_100s_bins["1 dark"][0]["mouse_1"], [])
+
+    def test_bins_data_2nd_bin(self):
+        self.assertEqual(self.data_100s_bins["1 dark"][100.]["mouse_1"], [])
+
+    def test_bins_data_3rd_bin_len(self):
+        data = self.data_100s_bins["1 dark"][200.]["mouse_1"]
+        self.assertEqual(len(data), 4)
+
+    def test_bins_data_3rd_bin_last_value(self):
+        data = self.data_100s_bins["1 dark"][200.]["mouse_1"][3]
+        self.assertEqual(data[-1], 1286701500)
+
+    def test_bins_data_8th_bin_last_value(self):
+        data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
+        self.assertEqual(data[-1], 1286701700)
+
+    def test_bins_data_8th_bin_last_value(self):
+        data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
+        self.assertEqual(data[1], 1286701800)
+
+    def test_bins_data_8th_address(self):
+        data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
+        self.assertEqual(data[0], "B")
 if __name__ == '__main__':
     unittest.main()
