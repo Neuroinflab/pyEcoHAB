@@ -2,16 +2,11 @@
 startdate = 10.10.2010
 starttime = 11:00
 enddate = 10.10.2010
-endtime = 11:30
+endtime = 14:00
 
-[1 light]
-startdate = 10.10.2010
-starttime = 11:30
-enddate = 10.10.2010
-endtime = 12:00
 
 [ALL]
 startdate = 10.10.2010
 starttime = 11:00
 enddate = 10.10.2010
-endtime = 12:00
+endtime = 14:00
