@@ -712,5 +712,142 @@ class TestPrepareFnamesAndTotals(unittest.TestCase):
     def test_bins_data_8th_address(self):
         data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
         self.assertEqual(data[0], "B")
+
+class TestSinglePhaseResults(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.duration = 43200
+        path = os.path.join(sample_data_path, "weird_3_mice")
+        cls.config = ExperimentConfigFile(path)
+        data = Loader(path)
+        cls.phases, cls.total_time,\
+            cls.data, cls.keys = af.prepare_fnames_and_totals(data,
+                                                              cls.config, "",
+                                                              cls.duration,
+                                                              ["mouse_1",
+                                                               "mouse_2"])
+        DD = 984.282*671.526
+        AA = 326.757*254.848
+        D = 84.312
+        A = 154.154
+        cls.correct_res = {
+            "mouse_1": {
+                "mouse_1": 0,
+                "mouse_2": (A+D)/cls.duration,
+                },
+            "mouse_2": {
+                "mouse_1": 0,
+                "mouse_2": 0,
+            }
+        }
+        cls.correct_exp_res = {
+            "mouse_1": {
+                "mouse_1": 0,
+                "mouse_2": (AA+DD)/cls.duration**2,
+            },
+            "mouse_2": {
+                "mouse_1": 0,
+                "mouse_2": 0,
+            }
+        }
+
+        cls.out, cls.exp = af.single_phase_results(cls.data["1 dark"][0],
+                                                   ["mouse_1", "mouse_2"],
+                                                   ["A", "D"],
+                                                   cls.duration)
+        cls.out_A, cls.exp_A = af.single_phase_results(cls.data["1 dark"][0],
+                                                       ["mouse_1", "mouse_2"],
+                                                       ["A"],
+                                                       cls.duration)
+        cls.correct_res_A= {
+            "mouse_1": {
+                "mouse_1": 0,
+                "mouse_2": A/cls.duration,
+            },
+            "mouse_2":{
+                "mouse_1": 0,
+                "mouse_2": 0,
+            }
+        }
+        cls.correct_exp_res_A= {
+            "mouse_1": {
+                "mouse_1": 0,
+                "mouse_2": AA/cls.duration/cls.duration,
+            },
+            "mouse_2":{
+                "mouse_1": 0,
+                "mouse_2": 0,
+            }
+        }
+
+
+    def test_keys(self):
+        self.assertEqual(sorted(self.out.keys()), ["mouse_1", "mouse_2"])
+
+    def test_exp_A_1_1(self):
+        self.assertEqual(self.correct_exp_res_A["mouse_1"]["mouse_1"],
+                         self.exp_A["mouse_1"]["mouse_1"])
+
+    def test_exp_A_1_2(self):
+        self.assertTrue(np.isclose(self.correct_exp_res_A["mouse_1"]["mouse_2"],
+                                   self.exp_A["mouse_1"]["mouse_2"]))
+
+    def test_exp_A_2_1(self):
+        self.assertEqual(self.correct_exp_res_A["mouse_2"]["mouse_1"],
+        self.exp_A["mouse_2"]["mouse_1"])
+
+    def test_exp_A_2_2(self):
+        self.assertEqual(self.correct_exp_res_A["mouse_2"]["mouse_2"],
+        self.exp_A["mouse_2"]["mouse_2"])
+
+    def test_A_1_1(self):
+        self.assertEqual(self.correct_res_A["mouse_1"]["mouse_1"],
+                         self.out_A["mouse_1"]["mouse_1"])
+
+    def test_A_1_2(self):
+        self.assertTrue(np.isclose(self.correct_res_A["mouse_1"]["mouse_2"],
+                                   self.out_A["mouse_1"]["mouse_2"]))
+
+    def test_A_2_1(self):
+        self.assertEqual(self.correct_res_A["mouse_2"]["mouse_1"],
+        self.out_A["mouse_2"]["mouse_1"])
+
+    def test_A_2_2(self):
+        self.assertEqual(self.correct_res_A["mouse_2"]["mouse_2"],
+        self.out_A["mouse_2"]["mouse_2"])
+
+    def test_exp_1_1(self):
+        self.assertEqual(self.correct_exp_res["mouse_1"]["mouse_1"],
+                         self.exp["mouse_1"]["mouse_1"])
+
+    def test_exp_1_2(self):
+        self.assertTrue(np.isclose(self.correct_exp_res["mouse_1"]["mouse_2"],
+                                   self.exp["mouse_1"]["mouse_2"]))
+
+    def test_exp_2_1(self):
+        self.assertEqual(self.correct_exp_res["mouse_2"]["mouse_1"],
+        self.exp_A["mouse_2"]["mouse_1"])
+
+    def test_exp_A_2_2(self):
+        self.assertEqual(self.correct_exp_res_A["mouse_2"]["mouse_2"],
+        self.exp["mouse_2"]["mouse_2"])
+
+    def test_1_1(self):
+        self.assertEqual(self.correct_res["mouse_1"]["mouse_1"],
+                         self.out["mouse_1"]["mouse_1"])
+
+    def test_1_2(self):
+        self.assertTrue(np.isclose(self.correct_res["mouse_1"]["mouse_2"],
+                                   self.out["mouse_1"]["mouse_2"]))
+
+    def test_2_1(self):
+        self.assertEqual(self.correct_res["mouse_2"]["mouse_1"],
+        self.out["mouse_2"]["mouse_1"])
+
+    def test_2_2(self):
+        self.assertEqual(self.correct_res["mouse_2"]["mouse_2"],
+        self.out["mouse_2"]["mouse_2"])
+
+
 if __name__ == '__main__':
     unittest.main()
