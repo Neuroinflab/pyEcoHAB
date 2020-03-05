@@ -14,20 +14,20 @@ class EcoHabDataBase(object):
         self.session_start = sorted(self.gettimes(self.mice))[0]
         self.session_end = sorted(self.gettimes(self.mice))[-1]
 
-    def _calculate_states(self):
+    def _calculate_animal_positions(self):
         tempdata = []
         for mouse in self.mice:
             times, antennas = utils.get_times_antennas(self.readings,
                                                        mouse,
                                                        0, -1)
-            tempdata.extend(utils.get_states_for_ehs(times, antennas,
-                                                     mouse,
-                                                     self.threshold))
+            tempdata.extend(utils.get_animal_position(times, antennas,
+                                                      mouse,
+                                                      self.threshold))
         tempdata.sort(key=lambda x: x[2])
         return tempdata
 
     def _calculate_visits(self):
-        temp_data = self._calculate_states()
+        temp_data = self._calculate_animal_positions()
         data = {}
         data['Address'] = [x[0] for x in temp_data]
         data['Tag'] = [x[1] for x in temp_data]
@@ -148,6 +148,10 @@ class Loader(EcoHabDataBase):
         self.run_diagnostics(data)
         super(Loader, self).__init__(data, self.mask,
                                      self.threshold)
+        self.cages = self.get_cages()
+
+    def get_cages(self):
+        return sorted(list(set(self.getaddresses(self.mice))))
 
     @staticmethod
     def _remove_antennas(data, antennas):

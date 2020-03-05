@@ -2,6 +2,7 @@ from __future__ import division, print_function, absolute_import
 import os
 import time
 import sys
+from collections import OrderedDict
 import numpy as np
 
 
@@ -23,26 +24,35 @@ opposite_pipe = {1: [5, 6],
                  7: [3, 4],
                  8: [3, 4]}
 
-address = {1: 4,
-           2: 1,
-           3: 1,
-           4: 2,
-           5: 2,
-           6: 3,
-           7: 3,
-           8: 4}
+address = {1: "A", #4
+           2: "B", #1,
+           3: "B", #1,
+           4: "C", #2,
+           5: "C", #2,
+           6: "D", #3,
+           7: "D", #3,
+           8: "A", #4
+}
 
-address_not_adjacent = {1: 1,
-                        2: 4,
-                        3: 2,
-                        4: 1,
-                        5: 3,
-                        6: 2,
-                        7: 4,
-                        8: 3}
+address_not_adjacent = {1: "B", #1,
+                        2: "A", #4,
+                        3: "C", #2,
+                        4: "B", #1,
+                        5: "D", #3,
+                        6: "C", #2,
+                        7: "A", #4,
+                        8: "D", #3
+}
 # Surrounding: difference between antennas only 2 or 6 -- skipped one antenna
-surrounding = {(1, 3): 1, (1, 7): 4, (2, 4): 1, (2, 8): 4,
-               (3, 5): 2, (4, 6): 2, (5, 7): 3, (6, 8): 3}
+surrounding = {(1, 3): "B", #1,
+               (1, 7): "A", #4,
+               (2, 4): "B", #1,
+               (2, 8): "A", #4,
+               (3, 5): "C", #2,
+               (4, 6): "C", #2,
+               (5, 7): "D", #3,
+               (6, 8): "D", #3
+}
 
 def check_directory(directory, subdirectory=None):
     if subdirectory:
@@ -451,13 +461,14 @@ def get_indices(t_start, t_end, starts, ends):
     return sorted(list(set(idx_start +  idx_end)))
 
 
-def get_ehs_data(ehs, mouse, t_start, t_end):
-    margin = 12*3600
+def get_ehs_data_with_margin(ehs, mouse, t_start, t_end,
+                             margin=12*3600):
     if t_start == 0 and t_end == -1:
         return ehs.getaddresses(mouse),\
             ehs.getstarttimes(mouse),\
             ehs.getendtimes(mouse)
-    ehs.mask_data(t_start - margin, t_end)
+
+    ehs.mask_data(t_start - margin, t_end +  margin)
     adresses = ehs.getaddresses(mouse)
     starts = ehs.getstarttimes(mouse)
     ends = ehs.getendtimes(mouse)
@@ -477,7 +488,7 @@ def prepare_data(ehs, mice, times=None):
     t_start, t_end = times
     for mouse in mice:
         data[mouse] = []
-        ads, sts, ens = get_ehs_data(ehs, mouse, t_start, t_end)
+        ads, sts, ens = get_ehs_data_with_margin(ehs, mouse, t_start, t_end)
         idxs = get_indices(t_start, t_end, sts, ens)
         for i in idxs:
             data[mouse].append((ads[i],
@@ -486,7 +497,7 @@ def prepare_data(ehs, mice, times=None):
     return data
 
 
-def get_states_for_ehs(times, antennas, mouse, threshold):
+def get_animal_position(times, antennas, mouse, threshold):
     out = []
     for t_start, t_end, an_start, an_end in zip(times[:-1], times[1:],
                                                 antennas[:-1],
@@ -596,3 +607,32 @@ def get_filenames(path):
             if split[-1].endswith(".txt") and split[1].endswith("0000"):
                 out.append(f_name)
     return out
+
+
+def dict_to_array_2D(dictionary, keys1, keys2):
+    shape = (len(keys1), len(keys2))
+    out = np.zeros(shape)
+    for i, key1 in enumerate(keys1):
+        for j, key2 in enumerate(keys2):
+            out[i, j] = dictionary[key1][key2]
+    return out
+
+def dict_to_array_3D(dictionary, keys1, keys2, keys3):
+    shape = (len(keys1), len(keys2), len(keys3))
+    out = np.zeros(shape)
+    for i, key1 in enumerate(keys1):
+        for j, key2 in enumerate(keys2):
+            for k, key3 in enumerate(keys3):
+                out[i, j, k] = dictionary[key1][key2][key3]
+    return out
+
+
+def calc_excess(res, exp_res):
+    excess = OrderedDict()
+    for key1 in res.keys():
+        excess[key1] = OrderedDict()
+        for key2 in res[key1].keys():
+            excess[key1][key2] = OrderedDict()
+            for key3 in res[key1][key2].keys():
+                excess[key1][key2][key3] = res[key1][key2][key3] - exp_res[key1][key2][key3]
+    return excess

@@ -1,0 +1,12 @@
+[1 dark]
+startdate = 10.10.2010
+starttime = 11:00
+enddate = 10.10.2010
+endtime = 14:00
+
+
+[ALL]
+startdate = 10.10.2010
+starttime = 11:00
+enddate = 10.10.2010
+endtime = 14:00
