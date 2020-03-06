@@ -10,9 +10,25 @@ from .plotting_functions import make_visit_duration_histogram
 def get_visits(intervals, t_start, t_stop):
     interval_array = np.array(intervals)
     visit_list = []
+    added_interval = False
+
     if not len(interval_array):
-        return visit_list
+        return visit_list, added_interval
+
+    first = utils.get_idx_pre(t_start, interval_array[:, 0])
+    if first is not None:
+        if interval_array[first, 1] > t_start:
+            added_interval = True
+            if t_stop < interval_array[first, 1]:
+                int_stop = t_stop
+            else:
+                int_stop = interval_array[first, 1]
+            visit_list.append(int_stop - t_start)
+
     idx_between = utils.get_idx_between(t_start, t_stop, interval_array[:, 0])
+    if len(idx_between) == 0:
+        return visit_list, added_interval
+
     for idx in idx_between:
         i_start, i_stop = intervals[idx]
         if i_start >= t_stop:
@@ -20,30 +36,45 @@ def get_visits(intervals, t_start, t_stop):
         if t_stop < i_stop:
             i_stop = t_stop
         visit_list.append(i_stop - i_start)
-    return visit_list
+
+    return visit_list, added_interval
 
 
 def get_visits_in_bins(intervals, time_start,
                        time_end, binsize):
     length = utils.get_length(time_start, time_end, binsize)
     visits = []
+    added_visit = []
     for i in range(length):
         t_start = time_start + i*binsize
         t_end = time_start + (i+1)*binsize
-        visits.append(get_visits(intervals, t_start, t_end))
-    return visits
+        last_visits, outs = get_visits(intervals, t_start, t_end)
+        visits.append(last_visits)
+        added_visit.append(outs)
+    return visits, added_visit
+
+def calc_visit_per_mouse(intervals, t_start, t_end, binsize):
+    visits_in_bins, added_visit = get_visits_in_bins(intervals,
+                                                     t_start,
+                                                     t_end,
+                                                     binsize)
+    visits = []
+    for i, o in enumerate(visits_in_bins):
+        visits.append(len(o) - added_visit[i])
+    durations = [sum(o) for o in visits_in_bins]
+    return visits, durations, visits_in_bins
+
 
 def calculate_visits_and_durations(data, mice, address, t_start, t_end, binsize):
     visits = OrderedDict()
     durations = OrderedDict()
     all_visits = OrderedDict()
-    for mouse in mice:
-        intervals = utils.get_intervals(data[mouse], address)
-        out = get_visits_in_bins(intervals, t_start,
-                                        t_end, binsize)
-        visits[mouse] = [float(len(o)) for o in out]
-        durations[mouse] = [sum(o) for o in out]
-        all_visits[mouse] = out
+    for m in mice:
+        ints = utils.get_intervals(data[m], address)
+        visits[m], durations[m], all_visits[m] = calc_visit_per_mouse(ints,
+                                                                      t_start,
+                                                                      t_end,
+                                                                      binsize)
     return visits, durations, all_visits
 
 
