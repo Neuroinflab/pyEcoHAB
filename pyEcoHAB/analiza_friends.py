@@ -85,7 +85,7 @@ def mouse_alone(data_mice, address):
 
 def make_solitude_output(addresses, mice):
     output = OrderedDict()
-    for address in adressses:
+    for address in addresses:
         output[address] = OrderedDict()
         for mouse in mice:
             output[address][mouse] = OrderedDict()
@@ -100,11 +100,11 @@ def get_solitude(ehs, cf, res_dir=None, prefix=None):
     output = make_solitude_output(ehs.cages, ehs.mice)
 
     for phase in phases:
-        times = cf.gettime(sec)
+        times = cf.gettime(phase)
         data = utils.prepare_data(ehs, ehs.mice, times)
         for address in ehs.cages:
             alone = mouse_alone(data, address)
-            for mouse in mice:
+            for mouse in ehs.mice:
                 output[address][mouse][phase] = alone[mouse]
     write_csv_alone(output, phases, res_dir, prefix)
 
@@ -184,7 +184,7 @@ def get_dark_light_data(phase, cf, ehs, mice):
             data[mouse].extend(out[mouse])
         total_time += (time[1] - time[0])
     out_data = {phase: {0: data}}
-    return out_phases, {phase: {0: total_time}}, data
+    return out_phases, {phase: {0: total_time}}, {phase: {0: data}}
 
 def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
     if bins in ["ALL", "all", "All"]:
@@ -255,26 +255,26 @@ def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir=None,
     out_dict_hist = os.path.join("incohort_sociability", "histograms", "bins_" + str(binsize))
     out_dict_rasters = os.path.join("incohort_sociability", "raster_plots", "bins_" + str(binsize))
     all_phases, bin_labels = keys[0], keys[1]
-    for idx_phase, phase in enumerate(all_phases):
+    for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase].replace(' ', '_')
+        for lab in bin_labels:
+            full_results[ph][lab],\
+                full_results_exp[ph][lab] = single_phase_results(data[ph][lab],
+                                                                   mice, ehs.cages,
+                                                                   time[ph][lab])
 
-        for label in bin_labels:
-            full_results[phase][label], full_results_exp[phase][label] = single_phase_results(data[phase][label],
-                                                                                              mice, ehs.cages,
-                                                                                              time[phase][label])
-
-        write_binned_data(full_results[phase],
+        write_binned_data(full_results[ph],
                           'incohort_sociability_measured_time',
                           mice, bin_labels, new_phase, res_dir, 
                           out_dict_hist,
                           prefix, additional_info=add_info_mice)
-        write_binned_data(full_results_exp[phase],
+        write_binned_data(full_results_exp[ph],
                           'incohort_sociability_expected_time',
                           mice, bin_labels, new_phase, res_dir, 
                           out_dict_hist,
                           prefix, additional_info=add_info_mice)
-        excess_time = utils.calc_excess(full_results[phase],
-                                        full_results_exp[phase])
+        excess_time = utils.calc_excess(full_results[ph],
+                                        full_results_exp[ph])
 
         write_binned_data(excess_time,
                           'incohort_sociability_excess_time',
@@ -284,9 +284,9 @@ def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir=None,
         if isinstance(binsize, int) or isinstance(binsize, float):
             if int(binsize) == 12*3600:
                 fname = "incohort_sociability_"
-                res = utils.dict_to_array_2D(full_results[phase][0],
+                res = utils.dict_to_array_2D(full_results[ph][0],
                                              mice, mice)
-                exp_res = utils.dict_to_array_2D(full_results_exp[phase][0],
+                exp_res = utils.dict_to_array_2D(full_results_exp[ph][0],
                                                  mice, mice)
                 single_in_cohort_soc_plot(res,
                                           exp_res,
@@ -301,9 +301,11 @@ def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir=None,
         fname_excess = "%s_%s.csv" % (fname_excess_prefix, new_phase)
         fname_expected = "%s_%s.csv" % (fname_expected_prefix, new_phase)
         raster_labels = [bin_label/3600 for bin_label in bin_labels]
-        phase_full_results = utils.dict_to_array_3D(full_results[phase], bin_labels,
+        phase_full_results = utils.dict_to_array_3D(full_results[ph],
+                                                    bin_labels,
                                                     mice, mice)
-        phase_exp_full_results = utils.dict_to_array_3D(full_results_exp[phase], bin_labels,
+        phase_exp_full_results = utils.dict_to_array_3D(full_results_exp[ph],
+                                                        bin_labels,
                                                         mice, mice)
         write_csv_rasters(mice,
                           raster_labels,
