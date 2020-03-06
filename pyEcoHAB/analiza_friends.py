@@ -100,11 +100,11 @@ def get_solitude(ehs, cf, res_dir=None, prefix=None):
     output = make_solitude_output(ehs.cages, ehs.mice)
 
     for phase in phases:
-        times = cf.gettime(sec)
+        times = cf.gettime(phase)
         data = utils.prepare_data(ehs, ehs.mice, times)
         for address in ehs.cages:
             alone = mouse_alone(data, address)
-            for mouse in mice:
+            for mouse in ehs.mice:
                 output[address][mouse][phase] = alone[mouse]
     write_csv_alone(output, phases, res_dir, prefix)
 
