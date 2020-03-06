@@ -85,7 +85,7 @@ def mouse_alone(data_mice, address):
 
 def make_solitude_output(addresses, mice):
     output = OrderedDict()
-    for address in adressses:
+    for address in adresses:
         output[address] = OrderedDict()
         for mouse in mice:
             output[address][mouse] = OrderedDict()
