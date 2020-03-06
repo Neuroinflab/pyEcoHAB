@@ -184,7 +184,7 @@ def get_dark_light_data(phase, cf, ehs, mice):
             data[mouse].extend(out[mouse])
         total_time += (time[1] - time[0])
     out_data = {phase: {0: data}}
-    return out_phases, {phase: {0: total_time}}, data
+    return out_phases, {phase: {0: total_time}}, {phase: {0: data}}
 
 def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
     if bins in ["ALL", "all", "All"]:
