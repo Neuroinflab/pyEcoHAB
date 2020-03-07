@@ -223,13 +223,13 @@ class TestCalculateVisitsDurations(unittest.TestCase):
 
 
     def test_keys_1(self):
-        self.assertEqual(self.vis.keys(), self.mice)
+        self.assertEqual(sorted(self.vis.keys()), sorted(self.mice))
 
     def test_keys_2(self):
-        self.assertEqual(self.dur.keys(), self.mice)
+        self.assertEqual(sorted(self.dur.keys()), sorted(self.mice))
 
     def test_keys_3(self):
-        self.assertEqual(self.all_v.keys(), self.mice)
+        self.assertEqual(sorted(self.all_v.keys()), sorted(self.mice))
 
     def test_vis_mouse1(self):
         out = [1, 2, 0, 0, 1, 0, 0, 0, 1, 0]
