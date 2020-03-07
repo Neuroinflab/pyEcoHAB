@@ -633,10 +633,6 @@ class TestPrepareFnamesAndTotals(unittest.TestCase):
                                                                                   cls.config, "",
                                                                                   900,
                                                                                   ["mouse_1"])
-        for bini in cls.data_100s_bins["1 dark"]:
-            print(bini, cls.data_100s_bins["1 dark"][bini])
-        for bini in cls.data_900s_bins["1 dark"]:
-            print(bini, cls.data_900s_bins["1 dark"][bini])
 
     def test_all_phases(self):
         self.assertEqual(self.all_phases, ["ALL"])
