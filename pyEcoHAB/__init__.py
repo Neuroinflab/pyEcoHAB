@@ -8,4 +8,4 @@ from .analiza_friends import get_incohort_sociability
 from .analiza_friends import get_solitude
 from .cage_visits import get_activity
 from .tube_dominance import get_tube_dominance
-from .mouse_speed import get_following, resample_single_phase
+from .following import get_following, resample_single_phase

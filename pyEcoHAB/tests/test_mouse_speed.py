@@ -1,7 +1,7 @@
 from __future__ import print_function, division, absolute_import
 import random
 import unittest
-from pyEcoHAB import mouse_speed as ms
+from pyEcoHAB import following as fol
 from pyEcoHAB import utility_functions as uf
 
 
@@ -18,13 +18,13 @@ class TestExtractDirections(unittest.TestCase):
         times1 = [15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34 ]
         antennas2 = [8, 1,   2,    1,  2,  3,  4,   5, 6,   7,   8]
         times2 =   [10, 16, 19, 19.5, 22, 25,  26, 27, 28, 31, 35]
-        cls.res1 = ms.extract_directions(times1, antennas1, 3)
-        cls.res1_1 = ms.extract_directions(times1, antennas1, 1)
-        cls.res2 = ms.extract_directions(times2, antennas2, 1)
-        cls.res2_1 = ms.extract_directions(times2, antennas2, 7)
+        cls.res1 = fol.extract_directions(times1, antennas1, 3)
+        cls.res1_1 = fol.extract_directions(times1, antennas1, 1)
+        cls.res2 = fol.extract_directions(times2, antennas2, 1)
+        cls.res2_1 = fol.extract_directions(times2, antennas2, 7)
 
     def test_1(self):
-        direction_dict = {key:[[], []] for key in ms.keys}
+        direction_dict = {key:[[], []] for key in fol.keys}
         direction_dict["12"][0].append(15)
         direction_dict["12"][1].append(16.5)
         direction_dict["34"][0].append(19)
@@ -39,7 +39,7 @@ class TestExtractDirections(unittest.TestCase):
         self.assertEqual(direction_dict, self.res1)
 
     def test_2(self):
-        direction_dict = {key:[[], []] for key in ms.keys}
+        direction_dict = {key:[[], []] for key in fol.keys}
         direction_dict["12"][0].append(19.5)
         direction_dict["12"][1].append(22)
         direction_dict["34"][0].append(25)
@@ -52,7 +52,7 @@ class TestExtractDirections(unittest.TestCase):
         self.assertEqual(direction_dict, self.res2)
 
     def test_1_1(self):
-        direction_dict = {key:[[], []] for key in ms.keys}
+        direction_dict = {key:[[], []] for key in fol.keys}
         direction_dict["12"][0].append(15)
         direction_dict["12"][1].append(16.5)
         direction_dict["34"][0].append(19)
@@ -65,7 +65,7 @@ class TestExtractDirections(unittest.TestCase):
         self.assertEqual(direction_dict, self.res1_1)
 
     def test_2_1(self):
-        direction_dict = {key:[[], []] for key in ms.keys}
+        direction_dict = {key:[[], []] for key in fol.keys}
         direction_dict["12"][0].append(19.5)
         direction_dict["12"][1].append(22)
         direction_dict["34"][0].append(25)
@@ -83,27 +83,27 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
         times1 = [15, 16.5]
         antennas2 = [8, 1, 2, 3, 4, 5]
         times2 = [10, 16, 19, 19.5, 22, 25]
-        dir1 = ms.extract_directions(times1, antennas1, 3)
-        dir2 = ms.extract_directions(times2, antennas2, 6)
-        res = ms.following_single_pair(dir1, dir2)
+        dir1 = fol.extract_directions(times1, antennas1, 3)
+        dir2 = fol.extract_directions(times2, antennas2, 6)
+        res = fol.following_single_pair(dir1, dir2)
         cls.out1, cls.time_together1, cls.intervals1= res
 
         antennas1 = [1, 2, 3, 4, 5]
         times1 = [15, 16.5, 19, 20, 21]
         antennas2 = [8, 1, 2, 3, 4, 5]
         times2 = [10, 16, 19, 19.5, 22, 25]
-        dir1 = ms.extract_directions(times1, antennas1, 6)
-        dir2 = ms.extract_directions(times2, antennas2, 6)
-        res = ms.following_single_pair(dir2, dir1)
+        dir1 = fol.extract_directions(times1, antennas1, 6)
+        dir2 = fol.extract_directions(times2, antennas2, 6)
+        res = fol.following_single_pair(dir2, dir1)
         cls.out2, cls.time_together2, cls.intervals2 = res
 
         antennas1 = [1, 2,   3, 4,  5,  6,  7,   8,  1, 2]
         times1 = [15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34 ]
         antennas2 = [8, 1,   2,    3,  4,  5,  6,   7, 8,   1,   2]
         times2 =   [10, 16, 19, 19.5, 22, 25,  26, 27, 28, 31, 35]
-        dir1 = ms.extract_directions(times1, antennas1, 3)
-        dir2 = ms.extract_directions(times2, antennas2, 3)
-        res = ms.following_single_pair(dir1, dir2)
+        dir1 = fol.extract_directions(times1, antennas1, 3)
+        dir2 = fol.extract_directions(times2, antennas2, 3)
+        res = fol.following_single_pair(dir1, dir2)
         cls.out3, cls.time_together3, cls.intervals3 = res
 
     def test_following_11(self):
@@ -152,10 +152,10 @@ class TestFollowingMatrices(unittest.TestCase):
             "mouse3": 8
         }
         for mouse in mice_list:
-            directions_dict[mouse] = ms.extract_directions(ta[mouse][0],
+            directions_dict[mouse] = fol.extract_directions(ta[mouse][0],
                                                            ta[mouse][1],
                                                            last[mouse])
-        out = ms.following_matrices(directions_dict,
+        out = fol.following_matrices(directions_dict,
                                     mice_list,
                                     0, 1000)
         cls.following = out[0]
@@ -224,104 +224,104 @@ class TestInsertInterval(unittest.TestCase):
     def insert_first_1(self):
         t_starts = []
         t_ends = []
-        out = ms.insert_interval(0, 1, t_starts, t_ends, 10)
+        out = fol.insert_interval(0, 1, t_starts, t_ends, 10)
         self.assertEqual(out, 1)
 
     def insert_first_2(self):
         t_starts = []
         t_ends = []
-        out = ms.insert_interval(0, 1, t_starts, t_ends, 10)
+        out = fol.insert_interval(0, 1, t_starts, t_ends, 10)
         self.assertEqual(t_starts, [0])
 
     def insert_first_3(self):
         t_starts = []
         t_ends = []
-        out = ms.insert_interval(0, 1, t_starts, t_ends, 10)
+        out = fol.insert_interval(0, 1, t_starts, t_ends, 10)
         self.assertEqual(t_ends, [1])
 
     def no_insert_first(self):
         t_starts = []
         t_ends = []
-        out = ms.insert_interval(0, 1, t_starts, t_ends, .5)
+        out = fol.insert_interval(0, 1, t_starts, t_ends, .5)
         self.assertEqual(out, 0)
 
     def test_t_start_in_starts(self):
         t_starts = [1, 5, 10]
         t_ends = [2, 8, 11]
-        out = ms.insert_interval(1, 1, t_starts, t_ends, 20)
+        out = fol.insert_interval(1, 1, t_starts, t_ends, 20)
         self.assertEqual(out, 0)
 
     def test_t_ends_in_ends(self):
         t_starts = [1, 5, 10]
         t_ends = [2, 8, 11]
-        out = ms.insert_interval(0, 2, t_starts, t_ends, 20)
+        out = fol.insert_interval(0, 2, t_starts, t_ends, 20)
         self.assertEqual(out, 0)
 
     def test_insert_at_the_beginning_1(self):
         t_starts = [3, 5, 10]
         t_ends = [4, 8, 11]
-        out = ms.insert_interval(0, 2, t_starts, t_ends, 20)
+        out = fol.insert_interval(0, 2, t_starts, t_ends, 20)
         self.assertEqual(out, 1)
 
     def test_insert_at_the_beginning_2(self):
         t_starts = [3, 5, 10]
         t_ends = [4, 8, 11]
-        out = ms.insert_interval(0, 2, t_starts, t_ends, 20)
+        out = fol.insert_interval(0, 2, t_starts, t_ends, 20)
         self.assertEqual(t_starts, [0, 3, 5, 10])
 
     def test_insert_at_the_beginning_3(self):
         t_starts = [3, 5, 10]
         t_ends = [4, 8, 11]
-        out = ms.insert_interval(0, 2, t_starts, t_ends, 20)
+        out = fol.insert_interval(0, 2, t_starts, t_ends, 20)
         self.assertEqual(t_ends, [2, 4, 8, 11])
 
     def test_insert_at_the_end_1(self):
         t_starts = [3, 5, 10]
         t_ends = [4, 8, 11]
-        out = ms.insert_interval(12, 2, t_starts, t_ends, 20)
+        out = fol.insert_interval(12, 2, t_starts, t_ends, 20)
         self.assertEqual(out, 1)
 
     def test_insert_at_the_end_2(self):
         t_starts = [3, 5, 10]
         t_ends = [4, 8, 11]
-        out = ms.insert_interval(12, 2, t_starts, t_ends, 20)
+        out = fol.insert_interval(12, 2, t_starts, t_ends, 20)
         self.assertEqual(t_starts, [3, 5, 10, 12])
 
     def test_insert_at_the_end_3(self):
         t_starts = [3, 5, 10]
         t_ends = [4, 8, 11]
-        out = ms.insert_interval(12, 2, t_starts, t_ends, 20)
+        out = fol.insert_interval(12, 2, t_starts, t_ends, 20)
         self.assertEqual(t_ends, [4, 8, 11, 14])
 
 
     def test_does_not_fit_1(self):
         t_starts = [3, 5, 10]
         t_ends = [4, 8, 11]
-        out = ms.insert_interval(4.5, 2, t_starts, t_ends, 20)
+        out = fol.insert_interval(4.5, 2, t_starts, t_ends, 20)
         self.assertEqual(out, 0)
 
     def test_does_not_fit_2(self):
         t_starts = [3, 5, 10]
         t_ends = [4, 8, 11]
-        out = ms.insert_interval(8, 2, t_starts, t_ends, 20)
+        out = fol.insert_interval(8, 2, t_starts, t_ends, 20)
         self.assertEqual(out, 0)
 
     def test_in_the_middle_1(self):
         t_starts = [3, 5, 10]
         t_ends = [4, 8, 11]
-        out = ms.insert_interval(8.5, 1, t_starts, t_ends, 20)
+        out = fol.insert_interval(8.5, 1, t_starts, t_ends, 20)
         self.assertEqual(out, 1)
 
     def test_in_the_middle_2(self):
         t_starts = [3, 5, 10]
         t_ends = [4, 8, 11]
-        out = ms.insert_interval(8.5, 1, t_starts, t_ends, 20)
+        out = fol.insert_interval(8.5, 1, t_starts, t_ends, 20)
         self.assertEqual(t_starts, [3, 5, 8.5, 10])
 
     def test_in_the_middle_3(self):
         t_starts = [3, 5, 10]
         t_ends = [4, 8, 11]
-        out = ms.insert_interval(8.5, 1, t_starts, t_ends, 20)
+        out = fol.insert_interval(8.5, 1, t_starts, t_ends, 20)
         self.assertEqual(t_ends, [4, 8, 9.5, 11])
 
 
@@ -334,9 +334,9 @@ class TestIntervalGeneration(unittest.TestCase):
                                                               t_ends))
         duration = 40
         random.seed(1)
-        cls.out1 = ms.generate_intervals(t_starts, t_ends, duration)
+        cls.out1 = fol.generate_intervals(t_starts, t_ends, duration)
         random.seed(100)
-        cls.out2 = ms.generate_intervals(t_starts, t_ends, duration)
+        cls.out2 = fol.generate_intervals(t_starts, t_ends, duration)
 
     def test_length_1(self):
         self.assertEqual(len(self.out1[0]), 3)
