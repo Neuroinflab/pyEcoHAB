@@ -3,7 +3,7 @@ import os
 import unittest
 import numpy as np
 
-from pyEcoHAB import analiza_friends as af
+from pyEcoHAB import incohort_sociability as ics
 from pyEcoHAB import utility_functions as utils
 from pyEcoHAB import sample_data_path
 from pyEcoHAB import Loader
@@ -37,10 +37,10 @@ class TestPrepareMouseIntervals(unittest.TestCase):
             'mouse1': mouse1,
             'mouse2': mouse2,
             }
-        cls.out1 = af.prepare_mice_intervals(data, 1)
-        cls.out2 = af.prepare_mice_intervals(data, 2)
-        cls.out3 = af.prepare_mice_intervals(data, 3)
-        cls.out4 = af.prepare_mice_intervals(data, 4)
+        cls.out1 = ics.prepare_mice_intervals(data, 1)
+        cls.out2 = ics.prepare_mice_intervals(data, 2)
+        cls.out3 = ics.prepare_mice_intervals(data, 3)
+        cls.out4 = ics.prepare_mice_intervals(data, 4)
         
     def test_check_mouse1(self):
         out = {
@@ -135,63 +135,63 @@ class TestCheckInterval(unittest.TestCase):
             'mouse3': mouse3,
             'mouse4': mouse4,
             }
-        self.out1 = af.prepare_mice_intervals(data, 1)
-        self.out2 = af.prepare_mice_intervals(data, 2)
-        self.out3 = af.prepare_mice_intervals(data, 3)
-        self.out4 = af.prepare_mice_intervals(data, 4)
+        self.out1 = ics.prepare_mice_intervals(data, 1)
+        self.out2 = ics.prepare_mice_intervals(data, 2)
+        self.out3 = ics.prepare_mice_intervals(data, 3)
+        self.out4 = ics.prepare_mice_intervals(data, 4)
 
     def test_address_mouse1_mouse2_remove_True(self):
         im1 = self.out1['mouse1'][:]
         im2 = self.out1['mouse2'][:]
-        out = af.check_interval(im1, im2, 0, 0)
+        out = ics.check_interval(im1, im2, 0, 0)
         self.assertTrue(out)
 
     def test_address_mouse1_mouse2_im1(self):
         im1 = self.out1['mouse1'][:]
         im2 = self.out1['mouse2'][:]
-        out = af.check_interval(im1, im2, 0, 0)
+        out = ics.check_interval(im1, im2, 0, 0)
         self.assertEqual(im1, [[14], [20]])
 
     def test_address_mouse1_mouse2_im2(self):
         im2 = self.out1['mouse1'][:]
         im1 = self.out1['mouse2'][:]
-        out = af.check_interval(im1, im2, 0, 0)
+        out = ics.check_interval(im1, im2, 0, 0)
         self.assertEqual(im1, [[0, 13], [2, 18]])
 
     def test_address_mouse3_mouse2_remove_False(self):
         im1 = self.out1['mouse3'][:]
         im2 = self.out1['mouse2'][:]
-        out = af.check_interval(im1, im2, 0, 0)
+        out = ics.check_interval(im1, im2, 0, 0)
         self.assertFalse(out)
 
     def test_address_mouse3_mouse2_im1(self):
         im1 = self.out1['mouse3'][:]
         im2 = self.out1['mouse2'][:]
-        out = af.check_interval(im1, im2, 0, 0)
+        out = ics.check_interval(im1, im2, 0, 0)
         self.assertEqual(im1, [[3, 14], [3.1, 20]])
 
     def test_address_mouse3_mouse2_im2(self):
         im2 = self.out1['mouse3'][:]
         im1 = self.out1['mouse2'][:]
-        out = af.check_interval(im1, im2, 0, 0)
+        out = ics.check_interval(im1, im2, 0, 0)
         self.assertEqual(im1, [[0, 13], [2, 18]])
 
     def test_address_mouse4_mouse2_remove_False(self):
         im1 = self.out1['mouse4'][:]
         im2 = self.out1['mouse2'][:]
-        out = af.check_interval(im1, im2, 0, 0)
+        out = ics.check_interval(im1, im2, 0, 0)
         self.assertTrue(out)
 
     def test_address_mouse4_mouse2_im1(self):
         im1 = self.out1['mouse4'][:]
         im2 = self.out1['mouse2'][:]
-        out = af.check_interval(im1, im2, 0, 0)
+        out = ics.check_interval(im1, im2, 0, 0)
         self.assertEqual(im1, [[14], [20]])
 
     def test_address_mouse4_mouse2_im2(self):
         im2 = self.out1['mouse4'][:]
         im1 = self.out1['mouse2'][:]
-        out = af.check_interval(im1, im2, 0, 0)
+        out = ics.check_interval(im1, im2, 0, 0)
         self.assertEqual(im1, [[0, 2.5, 13], [2, 3, 18]])
 
 class TestRemoveOverlappingIntervals(unittest.TestCase):
@@ -237,69 +237,69 @@ class TestRemoveOverlappingIntervals(unittest.TestCase):
             'mouse3': mouse3,
             'mouse4': mouse4,
             }
-        self.out1 = af.prepare_mice_intervals(data, 1)
-        self.out2 = af.prepare_mice_intervals(data, 2)
-        self.out3 = af.prepare_mice_intervals(data, 3)
-        self.out4 = af.prepare_mice_intervals(data, 4)
+        self.out1 = ics.prepare_mice_intervals(data, 1)
+        self.out2 = ics.prepare_mice_intervals(data, 2)
+        self.out3 = ics.prepare_mice_intervals(data, 3)
+        self.out4 = ics.prepare_mice_intervals(data, 4)
 
     def test_mouse1_mouse2_im1(self):
         im1 = self.out1["mouse1"][:]
         im2 = self.out1["mouse2"][:]
-        af.remove_overlapping_intervals(im1, im2)
+        ics.remove_overlapping_intervals(im1, im2)
         self.assertEqual(im1, [[18], [20]])
 
     def test_mouse1_mouse2_im2(self):
         im2 = self.out1["mouse1"][:]
         im1 = self.out1["mouse2"][:]
-        af.remove_overlapping_intervals(im1, im2)
+        ics.remove_overlapping_intervals(im1, im2)
         self.assertEqual(im1, [[0, 13], [2, 14]])
 
     def test_mouse3_mouse1_im1(self):
         im1 = self.out1["mouse3"][:]
         im2 = self.out1["mouse1"][:]
-        af.remove_overlapping_intervals(im1, im2)
+        ics.remove_overlapping_intervals(im1, im2)
         self.assertEqual(im1, [[3], [3.1]])
 
     def test_mouse3_mouse1_im2(self):
         im2 = self.out1["mouse3"][:]
         im1 = self.out1["mouse1"][:]
-        af.remove_overlapping_intervals(im1, im2)
+        ics.remove_overlapping_intervals(im1, im2)
         self.assertEqual(im1, [[], []])
 
     def test_mouse2_mouse3_im1(self):
         im1 = self.out1["mouse2"][:]
         im2 = self.out1["mouse3"][:]
-        af.remove_overlapping_intervals(im1, im2)
+        ics.remove_overlapping_intervals(im1, im2)
         self.assertEqual(im1, [[0, 13], [2, 14]])
 
     def test_mouse2_mouse3_im2(self):
         im2 = self.out1["mouse2"][:]
         im1 = self.out1["mouse3"][:]
-        af.remove_overlapping_intervals(im1, im2)
+        ics.remove_overlapping_intervals(im1, im2)
         self.assertEqual(im1, [[3, 18], [3.1, 20]])
 
     def test_mouse2_mouse4_im1(self):
         im1 = self.out1["mouse2"][:]
         im2 = self.out1["mouse4"][:]
-        af.remove_overlapping_intervals(im1, im2)
+        ics.remove_overlapping_intervals(im1, im2)
         self.assertEqual(im1, [[0, 2.5, 13], [2, 3, 14]])
 
     def test_mouse2_mouse4_im2(self):
         im2 = self.out1["mouse2"][:]
         im1 = self.out1["mouse4"][:]
-        af.remove_overlapping_intervals(im1, im2)
+        ics.remove_overlapping_intervals(im1, im2)
         self.assertEqual(im1, [[18], [20]])
 
     def test_mouse1_mouse2_im1_cage_4(self):
         im1 = self.out4["mouse1"][:]
         im2 = self.out4["mouse2"][:]
-        af.remove_overlapping_intervals(im1, im2)
+        ics.remove_overlapping_intervals(im1, im2)
         self.assertEqual(im1, [[5], [6]])
 
     def test_mouse1_mouse2_im2_cage_4(self):
         im2 = self.out4["mouse1"][:]
         im1 = self.out4["mouse2"][:]
-        af.remove_overlapping_intervals(im1, im2)
+        ics.remove_overlapping_intervals(im1, im2)
         self.assertEqual(im1, [[10, 22, 45], [12, 40, 50]])
 
 
@@ -336,10 +336,10 @@ class TestMouseAlone(unittest.TestCase):
             'mouse2': mouse2,
             'mouse3': mouse3,
             }
-        cls.out1 = af.mouse_alone(data, 1)
-        cls.out2 = af.mouse_alone(data, 2)
-        cls.out3 = af.mouse_alone(data, 3)
-        cls.out4 = af.mouse_alone(data, 4)
+        cls.out1 = ics.mouse_alone(data, 1)
+        cls.out2 = ics.mouse_alone(data, 2)
+        cls.out3 = ics.mouse_alone(data, 3)
+        cls.out4 = ics.mouse_alone(data, 4)
 
     def test_address_1_mouse1(self):
         self.assertEqual(self.out1["mouse1"], 0)
@@ -405,53 +405,53 @@ class TestMiceOverlap(unittest.TestCase):
     def test_mouse1_mouse2_address_1_symmetry(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 1)
         ints2 = utils.get_intervals(self.data["mouse2"], 1)
-        out1 = af.mice_overlap(ints1, ints2)
-        out2 = af.mice_overlap(ints2, ints1)
+        out1 = ics.mice_overlap(ints1, ints2)
+        out2 = ics.mice_overlap(ints2, ints1)
         self.assertEqual(out1, out2)
 
     def test_mouse1_mouse2_address_1(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 1)
         ints2 = utils.get_intervals(self.data["mouse2"], 1)
-        out1 = af.mice_overlap(ints1, ints2)
+        out1 = ics.mice_overlap(ints1, ints2)
         self.assertEqual(out1, 1 + 18 - 14)
 
     def test_mouse1_mouse2_address_2_symmetry(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 2)
         ints2 = utils.get_intervals(self.data["mouse2"], 2)
-        out1 = af.mice_overlap(ints1, ints2)
-        out2 = af.mice_overlap(ints2, ints1)
+        out1 = ics.mice_overlap(ints1, ints2)
+        out2 = ics.mice_overlap(ints2, ints1)
         self.assertEqual(out1, out2)
 
     def test_mouse1_mouse2_address_2(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 2)
         ints2 = utils.get_intervals(self.data["mouse2"], 2)
-        out1 = af.mice_overlap(ints1, ints2)
+        out1 = ics.mice_overlap(ints1, ints2)
         self.assertEqual(out1, 0)
 
     def test_mouse1_mouse2_address_3_symmetry(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 3)
         ints2 = utils.get_intervals(self.data["mouse2"], 3)
-        out1 = af.mice_overlap(ints1, ints2)
-        out2 = af.mice_overlap(ints2, ints1)
+        out1 = ics.mice_overlap(ints1, ints2)
+        out2 = ics.mice_overlap(ints2, ints1)
         self.assertEqual(out1, out2)
 
     def test_mouse1_mouse2_address_3(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 3)
         ints2 = utils.get_intervals(self.data["mouse2"], 3)
-        out1 = af.mice_overlap(ints1, ints2)
+        out1 = ics.mice_overlap(ints1, ints2)
         self.assertEqual(out1, 1)
 
     def test_mouse1_mouse2_address_4_symmetry(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 4)
         ints2 = utils.get_intervals(self.data["mouse2"], 4)
-        out1 = af.mice_overlap(ints1, ints2)
-        out2 = af.mice_overlap(ints2, ints1)
+        out1 = ics.mice_overlap(ints1, ints2)
+        out2 = ics.mice_overlap(ints2, ints1)
         self.assertEqual(out1, out2)
 
     def test_mouse1_mouse2_address_4(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 4)
         ints2 = utils.get_intervals(self.data["mouse2"], 4)
-        out1 = af.mice_overlap(ints1, ints2)
+        out1 = ics.mice_overlap(ints1, ints2)
         self.assertEqual(out1, 5)
 
 
@@ -483,25 +483,25 @@ class TestTimeTogether(unittest.TestCase):
     def test_mouse1_mouse2_address_1(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 1)
         ints2 = utils.get_intervals(self.data["mouse2"], 1)
-        out1 = af.time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.time_fraction_together_one_cage(ints1, ints2, self. duration)
         self.assertEqual(out1, 5/self.duration)
 
     def test_mouse1_mouse2_address_2(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 2)
         ints2 = utils.get_intervals(self.data["mouse2"], 2)
-        out1 = af.time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.time_fraction_together_one_cage(ints1, ints2, self. duration)
         self.assertEqual(out1, 0)
 
     def test_mouse1_mouse2_address_3(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 3)
         ints2 = utils.get_intervals(self.data["mouse2"], 3)
-        out1 = af.time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.time_fraction_together_one_cage(ints1, ints2, self. duration)
         self.assertEqual(out1, 1/self.duration)
 
     def test_mouse1_mouse2_address_4(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 4)
         ints2 = utils.get_intervals(self.data["mouse2"], 4)
-        out1 = af.time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.time_fraction_together_one_cage(ints1, ints2, self. duration)
         self.assertEqual(out1, 5/self.duration)
 
 
@@ -535,28 +535,28 @@ class TestExpectedTimeTogether(unittest.TestCase):
     def test_mouse1_mouse2_address_1(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 1)
         ints2 = utils.get_intervals(self.data["mouse2"], 1)
-        out1 = af.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
         res = np.isclose(out1, 56/self.duration2)
         self.assertTrue(res)
 
     def test_mouse1_mouse2_address_2(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 2)
         ints2 = utils.get_intervals(self.data["mouse2"], 2)
-        out1 = af.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
         res = np.isclose(out1, 9/self.duration2)
         self.assertTrue(res)
 
     def test_mouse1_mouse2_address_3(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 3)
         ints2 = utils.get_intervals(self.data["mouse2"], 3)
-        out1 = af.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
         res = np.isclose(out1, 5/self.duration2)
         self.assertTrue(res)
 
     def test_mouse1_mouse2_address_4(self):
         ints1 = utils.get_intervals(self.data["mouse1"], 4)
         ints2 = utils.get_intervals(self.data["mouse2"], 4)
-        out1 = af.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
         res = np.isclose(out1, 6*30/self.duration2)
         self.assertTrue(res)
 
@@ -585,7 +585,7 @@ class TestExpectedTimeTogether(unittest.TestCase):
             'mouse2': mouse2,
             }
         cls.duration = 100
-        cls.out1, cls.out2 = af.mice_together(cls.data, "mouse1", "mouse2",
+        cls.out1, cls.out2 = ics.mice_together(cls.data, "mouse1", "mouse2",
                                               ["A", "B", "C", "D"], cls.duration)
 
 
@@ -608,28 +608,28 @@ class TestPrepareFnamesAndTotals(unittest.TestCase):
         cls.config = ExperimentConfigFile(path)
 
         cls.all_phases, cls.all_total_time,\
-            cls.all_data, cls.all_keys = af.prepare_fnames_and_totals(cls.data,
+            cls.all_data, cls.all_keys = ics.prepare_fnames_and_totals(cls.data,
                                                                       cls.config, "",
                                                                       "ALL",
                                                                       ["mouse_1"])
         cls.dark_phases, cls.dark_total_time,\
-            cls.dark_data, cls.dark_keys = af.prepare_fnames_and_totals(cls.data,
+            cls.dark_data, cls.dark_keys = ics.prepare_fnames_and_totals(cls.data,
                                                                       cls.config, "",
                                                                       "DARK",
                                                                       ["mouse_1"])
         cls.light_phases, cls.light_total_time,\
-            cls.light_data, cls.light_keys = af.prepare_fnames_and_totals(cls.data,
+            cls.light_data, cls.light_keys = ics.prepare_fnames_and_totals(cls.data,
                                                                       cls.config, "",
                                                                       "LIGHT",
                                                                       ["mouse_1"])
 
         cls.phases_100s_bins, cls.total_time_100s_bins,\
-            cls.data_100s_bins, cls.keys_100s_bins = af.prepare_fnames_and_totals(cls.data,
+            cls.data_100s_bins, cls.keys_100s_bins = ics.prepare_fnames_and_totals(cls.data,
                                                                                   cls.config, "",
                                                                                   100,
                                                                                   ["mouse_1"])
         cls.phases_900s_bins, cls.total_time_900s_bins,\
-            cls.data_900s_bins, cls.keys_900s_bins = af.prepare_fnames_and_totals(cls.data,
+            cls.data_900s_bins, cls.keys_900s_bins = ics.prepare_fnames_and_totals(cls.data,
                                                                                   cls.config, "",
                                                                                   900,
                                                                                   ["mouse_1"])
@@ -717,7 +717,7 @@ class TestSinglePhaseResults(unittest.TestCase):
         cls.config = ExperimentConfigFile(path)
         data = Loader(path)
         cls.phases, cls.total_time,\
-            cls.data, cls.keys = af.prepare_fnames_and_totals(data,
+            cls.data, cls.keys = ics.prepare_fnames_and_totals(data,
                                                               cls.config, "",
                                                               cls.duration,
                                                               ["mouse_1",
@@ -747,11 +747,11 @@ class TestSinglePhaseResults(unittest.TestCase):
             }
         }
 
-        cls.out, cls.exp = af.single_phase_results(cls.data["1 dark"][0],
+        cls.out, cls.exp = ics.single_phase_results(cls.data["1 dark"][0],
                                                    ["mouse_1", "mouse_2"],
                                                    ["A", "D"],
                                                    cls.duration)
-        cls.out_A, cls.exp_A = af.single_phase_results(cls.data["1 dark"][0],
+        cls.out_A, cls.exp_A = ics.single_phase_results(cls.data["1 dark"][0],
                                                        ["mouse_1", "mouse_2"],
                                                        ["A"],
                                                        cls.duration)
