@@ -132,13 +132,16 @@ def list_of_pairs(mice):
             pair_labels.append(mice[j]+'|'+mice[k])
     return pair_labels
 
-def all_pairs(mice):
+def all_pairs(mice, reverse_order=False):
     pair_labels = []
     for mouse1 in mice:
         for mouse2 in mice:
             if mouse1 == mouse2:
                 continue
-            pair_labels.append('%s|%s' % (mouse1, mouse2))
+            if reverse_order is True:
+                pair_labels.append('%s|%s' % (mouse2, mouse1))
+            else:
+                pair_labels.append('%s|%s' % (mouse1, mouse2))
     return pair_labels
 
 
@@ -155,19 +158,22 @@ def make_table_of_pairs(FAM, phases, mice):
 
     return output, pair_labels
 
-def make_table_of_all_pairs(FAM, phases, mice):
+def make_table_of_all_pairs(FAM, phases, mice, reverse_order=False):
     new_shape = (len(mice)*(len(mice)-1), len(phases))
     output = np.zeros(new_shape)
-    pair_labels = all_pairs(mice)
+    pair_labels = all_pairs(mice,
+                            reverse_order=reverse_order)
     for i, phase in enumerate(phases):
         l = 0
         for j in range(len(mice)):
             for k in range(len(mice)):
                 if j == k:
                     continue
-                output[l, i] = FAM[i, j, k]
+                if reverse_order is True:
+                    output[l, i] = FAM[i, k, j]
+                else:
+                    output[l, i] = FAM[i, j, k]
                 l += 1
-
     return output, pair_labels
 
 

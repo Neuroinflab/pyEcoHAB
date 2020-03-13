@@ -297,10 +297,15 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
     else:
         method = "mean_N_%d" % N
     fname = 'following_%s_%s' % (method, add_info_mice)
-    fname_ = 'following_%s_%s%s' % (method, prefix,
+    fname_ = 'following_%s_%s%s.csv' % (method, prefix,
                                          add_info_mice)
-    fname_beg = 'following_%s_excess'
+    fname_beg = 'following_excess'
+    fname_rev = 'leading_excess'
     fname_exp = '%s_%s_%s%s.csv' % (fname_beg,
+                                    method,
+                                    prefix,
+                                    add_info_mice)
+    fname_exp_rev = '%s_%s_%s%s.csv' % (fname_rev,
                                     method,
                                     prefix,
                                     add_info_mice)
@@ -437,17 +442,18 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                       (following-following_exp),
                       res_dir,
                       'following/raster_plots',
-                      fname_exp,
+                      fname_exp_rev,
                       symmetric=False)
+    write_csv_rasters(ehd.mice,
+                      phases,
+                      (following-following_exp),
+                      res_dir,
+                      'following/raster_plots',
+                      fname_exp,
+                      symmetric=False,
+                      reverse_order=True)
 
-    make_RasterPlot(res_dir,
-                    'following/raster_plots',
-                    following,
-                    phases,
-                    fname_,
-                    ehd.mice,
-                    title='# followings',
-                    symmetric=False)
+
     make_RasterPlot(res_dir,
                     'following/raster_plots',
                     (following-following_exp),
@@ -462,7 +468,7 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                            phases,
                            'Following_histogram',
                            res_dir,
-                           'following/raster_plots',
+                           'other_variables/following_excess_histograms',
                            prefix,
                            additional_info=add_info_mice)
 
