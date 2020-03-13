@@ -787,13 +787,24 @@ class TestListOfpairs(unittest.TestCase):
 
 
 class TestAllPairs(unittest.TestCase):
-    def test_list(self):
+    def test_list_actual(self):
+        lista = ["Zdzisio",
+                 "Zbysio",
+                 "Henio"]
+        out = uf.all_pairs(lista)
+        expected = ["Zdzisio|Zbysio", "Zdzisio|Henio", "Zbysio|Zdzisio",
+                    "Zbysio|Henio", "Henio|Zdzisio", "Henio|Zbysio"]
+        self.assertEqual(out, expected)
+
+    def test_list_reverse(self):
         lista = ["Zdzisio",
                  "Zbysio",
                  "Henio",
-                 "Gienio"]
-        out = uf.all_pairs(lista)
-        self.assertEqual(len(out), 12)
+                 ]
+        expected = ["Zbysio|Zdzisio", "Henio|Zdzisio", "Zdzisio|Zbysio",
+                    "Henio|Zbysio", "Zdzisio|Henio", "Zbysio|Henio"]
+        out = uf.all_pairs(lista, reverse_order="True")
+        self.assertEqual(out, expected)
 
 
 class TestMakeTableOfPairs(unittest.TestCase):
@@ -848,6 +859,52 @@ class TestMakeTableOfPairs(unittest.TestCase):
     def test_3rd_phase(self):
         out = [1, 2, 3, 4, 5, 6]
         first_column = self.out_data[:, 2].tolist()
+        self.assertEqual(out, first_column)
+
+
+class TestMakeTableOfAllPairs(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.lista = ["Zdzisio",
+                     "Zbysio",
+                     "Henio"]
+        cls.phases = ["0"]
+        cls.data = np.zeros((len(cls.phases),
+                             len(cls.lista),
+                             len(cls.lista)))
+        cls.data[0, 0, 1] = 1
+        cls.data[0, 0, 2] = 2
+        cls.data[0, 1, 2] = 4
+        cls.out_data, cls.out = uf.make_table_of_all_pairs(cls.data,
+                                                           cls.phases,
+                                                           cls.lista,
+                                                           reverse_order=False)
+        cls.out_data_rev, cls.out_rev = uf.make_table_of_all_pairs(cls.data,
+                                                                   cls.phases,
+                                                                   cls.lista,
+                                                                   reverse_order=True)
+    def test_shape(self):
+        out_lista = uf.all_pairs(self.lista)
+        self.assertEqual(self.out_data.shape,
+                         (len(out_lista), len(self.phases)))
+
+    def test_lista(self):
+        out_lista = uf.all_pairs(self.lista)
+        self.assertEqual(out_lista, self.out)
+
+    def test_lista_rev(self):
+        out_lista = uf.all_pairs(self.lista,
+                                 reverse_order=True)
+        self.assertEqual(out_lista, self.out_rev)
+
+    def test_1st_phase(self):
+        out = [1., 2., 0., 4., 0., 0.]
+        first_column = self.out_data[:, 0].tolist()
+        self.assertEqual(out, first_column)
+
+    def test_1st_phase_rev(self):
+        out = [0., 0., 1., 0., 2., 4.]
+        first_column = self.out_data_rev[:, 0].tolist()
         self.assertEqual(out, first_column)
 
 

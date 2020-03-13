@@ -248,20 +248,30 @@ def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir=None,
                                                          prefix,
                                                          binsize,
                                                          mice)
+    if isinstance(binsize, int) or isinstance(binsize, float):
+        if binsize == 43200:
+            csv_results_incohort = np.zeros((len(phases), len(mice),
+                                             len(mice)))
+            csv_results_incohort_exp = np.zeros((len(phases), len(mice),
+                                                 len(mice)))
+
     if time == 0:
         return
     full_results = make_all_results_dict(*keys)
     full_results_exp = make_all_results_dict(*keys)
-    out_dict_hist = os.path.join("incohort_sociability", "histograms", "bins_" + str(binsize))
-    out_dict_rasters = os.path.join("incohort_sociability", "raster_plots", "bins_" + str(binsize))
+    out_dict_hist = os.path.join("incohort_sociability", "histograms",
+                                 "bins_" + str(binsize))
+    out_dict_rasters = os.path.join("incohort_sociability", "raster_plots",
+                                    "bins_" + str(binsize))
     all_phases, bin_labels = keys[0], keys[1]
     for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase].replace(' ', '_')
         for lab in bin_labels:
             full_results[ph][lab],\
                 full_results_exp[ph][lab] = single_phase_results(data[ph][lab],
-                                                                   mice, ehs.cages,
-                                                                   time[ph][lab])
+                                                                 mice,
+                                                                 ehs.cages,
+                                                                 time[ph][lab])
 
         write_binned_data(full_results[ph],
                           'incohort_sociability_measured_time',
@@ -296,7 +306,9 @@ def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir=None,
                                           res_dir,
                                           out_dict_hist,
                                           prefix+add_info_mice)
-        
+                csv_results_incohort[idx_phase] = res
+                csv_results_incohort_exp[idx_phase] = exp_res
+
         fname_measured = "%s_%s.csv" % (fname_measured_prefix, new_phase)
         fname_excess = "%s_%s.csv" % (fname_excess_prefix, new_phase)
         fname_expected = "%s_%s.csv" % (fname_expected_prefix, new_phase)
@@ -326,3 +338,59 @@ def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir=None,
                           out_dict_rasters,
                           fname_excess)
       
+    if isinstance(binsize, int) or isinstance(binsize, float):
+        if binsize == 43200:
+            write_csv_rasters(mice,
+                              all_phases,
+                              csv_results_incohort,
+                              res_dir,
+                              out_dict_rasters,
+                              "incohort_sociability_measured_time_ALL_phases_binned.csv")
+            write_csv_rasters(mice,
+                              all_phases,
+                              csv_results_incohort_exp,
+                              res_dir,
+                              out_dict_rasters,
+                              "incohort_sociability_expected_time_ALL_phases_binned.csv")
+            write_csv_rasters(mice,
+                              all_phases,
+                              csv_results_incohort - csv_results_incohort_exp,
+                              res_dir,
+                              out_dict_rasters,
+                               "incohort_sociability_excess_time_ALL_phases_binned.csv")
+            make_RasterPlot(res_dir,
+                            out_dict_rasters,
+                            csv_results_incohort,
+                            all_phases,
+                            "incohort_sociability_measured_time_ALL_phases_binned",
+                            mice,
+                            prefix=prefix,
+                            to_file=True,
+                            vmin=-1,
+                            vmax=1,
+                            title="Measured in-cohort sociability",
+                            symmetric=True)
+            make_RasterPlot(res_dir,
+                            out_dict_rasters,
+                            csv_results_incohort_exp,
+                            all_phases,
+                            "incohort_sociability_expected_time_ALL_phases_binned",
+                            mice,
+                            prefix=prefix,
+                            to_file=True,
+                            vmin=-1,
+                            vmax=1,
+                            title="Expected in-cohort sociability",
+                            symmetric=True)
+            make_RasterPlot(res_dir,
+                            out_dict_rasters,
+                            csv_results_incohort-csv_results_incohort_exp,
+                            all_phases,
+                            "incohort_sociability_excess_time_ALL_phases_binned",
+                            mice,
+                            prefix=prefix,
+                            to_file=True,
+                            vmin=-1,
+                            vmax=1,
+                            title="Excess in-cohort sociability",
+                            symmetric=True)

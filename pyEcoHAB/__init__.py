@@ -4,8 +4,8 @@ sample_data_path = os.path.join(ecohab_loc, '..', 'data')
 
 from .Loader import Loader, Merger
 from .ExperimentConfigFile import ExperimentConfigFile
-from .analiza_friends import get_incohort_sociability
-from .analiza_friends import get_solitude
+from .incohort_sociability import get_incohort_sociability
+from .incohort_sociability import get_solitude
 from .cage_visits import get_activity
 from .tube_dominance import get_tube_dominance
-from .mouse_speed import get_following, resample_single_phase
+from .following import get_following, resample_single_phase
