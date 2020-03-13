@@ -345,19 +345,19 @@ def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir=None,
                               csv_results_incohort,
                               res_dir,
                               out_dict_rasters,
-                              "incohort_sociability_measured_time_ALL_phases_binned")
+                              "incohort_sociability_measured_time_ALL_phases_binned.csv")
             write_csv_rasters(mice,
                               all_phases,
                               csv_results_incohort_exp,
                               res_dir,
                               out_dict_rasters,
-                              "incohort_sociability_expected_time_ALL_phases_binned")
+                              "incohort_sociability_expected_time_ALL_phases_binned.csv")
             write_csv_rasters(mice,
                               all_phases,
                               csv_results_incohort - csv_results_incohort_exp,
                               res_dir,
                               out_dict_rasters,
-                               "incohort_sociability_excess_time_ALL_phases_binned")
+                               "incohort_sociability_excess_time_ALL_phases_binned.csv")
             make_RasterPlot(res_dir,
                             out_dict_rasters,
                             csv_results_incohort,
