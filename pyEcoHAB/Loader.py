@@ -118,12 +118,12 @@ class Loader(EcoHabDataBase):
     def __init__(self, path, **kwargs):
         #Read in parameters
         self.path = path
-        _ant_pos = kwargs.pop('antenna_positions', None)
+        antenna_pos = kwargs.pop('antenna_positions', None)
 
-        if _ant_pos is None:
-            self._ant_pos = self.STANDARD_ANTENNAS
+        if antenna_pos is None:
+            self.antenna_pos = self.STANDARD_ANTENNAS
         else:
-            self._ant_pos = _ant_pos
+            self.antenna_pos = antenna_pos
 
         self.mask = kwargs.pop('mask', None)
         self.threshold = kwargs.pop('antenna_threshold', 2.)
@@ -141,7 +141,7 @@ class Loader(EcoHabDataBase):
                                         how_many_appearances,
                                         tags)
         data = self._from_raw_data(rawdata,
-                                 self._ant_pos,
+                                 self.antenna_pos,
                                  remove_antennas)
         #As in antenna readings
 
