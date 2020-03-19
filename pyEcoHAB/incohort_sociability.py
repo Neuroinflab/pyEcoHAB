@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+1# -*- coding: utf-8 -*-
 from __future__ import print_function, division, absolute_import
 import os
 from collections import OrderedDict
@@ -234,14 +234,9 @@ def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir="",
                              prefix="", remove_mouse=None, delimiter=";"):
 
     """
-    Calculate activity of each mouse in time bins across the phases
-    of the experiment.
+    Calculate in-cohort sociability for each pair of mice in time bins across
+    the phases of the experiment.
 
-
-    This function both counts visits of every mouse to each Eco-HAB compartment
-    and calculates time spent in each compartment. It is based on visits
-    calculated using antenna readings, while reading in the experiment data.
-    These values are saved as csv files in res_dir/activity
 
     Args:
         ehs : Loader or Loader_like
