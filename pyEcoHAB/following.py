@@ -288,13 +288,13 @@ def add_intervals(all_intervals, phase_intervals):
         all_intervals[mouse].extend(phase_intervals[mouse])
 
 
-def get_following(ehd, cf, N, res_dir=None, prefix=None,
+def get_following(ehd, cf, N, res_dir="", prefix="",
                   remove_mouse=None, save_distributions=True,
                   save_figures=False, return_median=False,
                   save_times_following=False):
-    if res_dir is None:
+    if res_dir is "":
         res_dir = ehd.res_dir
-    if prefix is None:
+    if prefix is "":
         prefix = ehd.prefix
     phases = utils.filter_dark_light(cf.sections())
     add_info_mice = utils.add_info_mice_filename(remove_mouse)

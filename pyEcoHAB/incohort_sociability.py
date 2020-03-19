@@ -91,10 +91,10 @@ def make_solitude_output(addresses, mice):
             output[address][mouse] = OrderedDict()
     return output
 
-def get_solitude(ehs, cf, res_dir=None, prefix=None):
-    if prefix is None:
+def get_solitude(ehs, cf, res_dir="", prefix=""):
+    if prefix is "":
         prefix = ehs.prefix
-    if res_dir is None:
+    if res_dir is "":
         res_dir = ehs.res_dir
     phases = utils.filter_dark(cf.sections())
     output = make_solitude_output(ehs.cages, ehs.mice)
@@ -236,11 +236,11 @@ def make_all_results_dict(phases, bins):
     return result
 
 
-def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir=None,
-                             prefix=None, remove_mouse=None, filter_dark=True):
-    if prefix is None:
+def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir="",
+                             prefix="", remove_mouse=None):
+    if prefix is "":
         prefix = ehs.prefix
-    if res_dir is None:
+    if res_dir is "":
         res_dir = ehs.res_dir
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
