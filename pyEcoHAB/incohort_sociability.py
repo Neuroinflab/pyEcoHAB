@@ -91,7 +91,7 @@ def make_solitude_output(addresses, mice):
             output[address][mouse] = OrderedDict()
     return output
 
-def get_solitude(ehs, cf, res_dir="", prefix="", delimiter=";"):
+def get_solitude(ehs, cf, res_dir="", prefix=""):
     if prefix is "":
         prefix = ehs.prefix
     if res_dir is "":
