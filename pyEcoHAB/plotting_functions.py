@@ -521,6 +521,7 @@ def make_visit_duration_histogram(results, time, phase, mice,
     place = {"A": 0, "B": 1, "C": 2, "D": 3}
     dir_name =  os.path.join(main_directory, directory)
     dir_name =  utils.check_directory(dir_name, "figs")
+
     for mouse in mice:
         if prefix != "":
             new_name = '%s_%s_%s_%s'% (fname, mouse, prefix, phase)
