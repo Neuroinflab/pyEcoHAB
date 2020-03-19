@@ -81,7 +81,10 @@ def calculate_visits_and_durations(data, mice, address, t_start, t_end, binsize)
 
 
 def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
-                 headers="", save_histogram=False, delimiter=";"):
+                 save_histogram=False, delimiter=";",
+                 headers=['Number of visits to box',
+                          'Total time (sec) in box']):
+
     if prefix == "":
         prefix = ehs.prefix
     if res_dir == "":
