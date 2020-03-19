@@ -84,6 +84,42 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
                  save_histogram=False, delimiter=";",
                  headers=['Number of visits to box',
                           'Total time (sec) in box']):
+    """
+    Calculate activity of each mouse in time bins across the phases
+    of the experiment.
+
+
+    This function both counts visits of every mouse to each Eco-HAB compartment
+    and calculates time spent in each compartment. It is based on visits
+    calculated while reading in the experiment data based on antenna readings.
+    Activity values are saved as comma separated values in a file with 
+    activity_bin_{binsize}_h.csv in res_dir/activity directory.  This function
+    also automatically saves activity to res_dir/approach_to_social to aid
+    further analysis.
+
+    Args:
+        ehs : Loader or Loader_like
+           Eco-HAB dataset.
+        cf : ExperimentConfigFile
+           timeline of the experiment.
+        binsize : number 
+           time bins for calculating activity.
+           A number value specifies number of seconds in each bin, e.g. binsize
+           equal 3600 results in 1 h bins.
+        res_dir : string
+           destination directory
+           default value is the destination directory established for ehs.
+        prefix : string
+           string added to every name of the results file
+        remove_mouse : string or list
+           name of mouse or mice to be removed from the results file
+        delimiter : str, optional
+           String or character separating columns.
+        headers : list of strings
+           strings that will be written above activity parameters for each
+           compartment.
+           
+    """
 
     if prefix == "":
         prefix = ehs.prefix
