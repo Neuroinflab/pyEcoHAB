@@ -149,14 +149,15 @@ def tube_dominance_single_phase(ehd, cf, phase, normalization):
                                                         normalization)
     return dominance
 
-def get_tube_dominance(ehd, cf, prefix=None, res_dir=None, normalization=None):
+def get_tube_dominance(ehd, cf, prefix="", res_dir="", normalization=None,
+                       delimiter=";"):
     if normalization is None:
         fname = 'tube_dominance_no_normalization'
     else:
         fname = 'tube_dominance_%s' % normalization
-    if prefix is None:
+    if prefix is "":
         prefix = ehd.prefix
-    if res_dir is None:
+    if res_dir is "":
         res_dir = ehd.res_dir
 
     if ehd.how_many_antennas == 2:
@@ -168,4 +169,5 @@ def get_tube_dominance(ehd, cf, prefix=None, res_dir=None, normalization=None):
                                        fname, 'dominating mouse',
                                        'pushed out mouse',
                                        '# dominances',
-                                       args=[normalization], vmin=0, vmax=25)
+                                       args=[normalization], vmin=0, vmax=25,
+                                       delimiter=delimiter)
