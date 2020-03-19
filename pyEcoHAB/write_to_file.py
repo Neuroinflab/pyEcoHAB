@@ -68,8 +68,8 @@ def write_binned_data(data_stim, fname, mice, bin_labels, phase,
     if not os.path.exists(new_path):
         print(new_path)
         os.makedirs(new_path)
+
     print(new_path)
-    print(fname)
     f = open(fname, "w")
     header = make_header_for_activity(mice, delimiter)
 
@@ -275,6 +275,7 @@ def write_bootstrap_results(results, phase, mice_list,
                                                                        '_'),
                                                          prefix,
                                                          add_info))
+
     f = open(new_name, "w")
     for i, mouse1 in enumerate(mice_list):
         for j, mouse2 in enumerate(mice_list):
