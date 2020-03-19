@@ -299,8 +299,7 @@ def how_many_visits(states, t_start, t_end, T_0, dt):
     return len(where)
 
 
-def get_visits_to_stimulus_cage(ehd, cf, res_dir="", prefix="", dt=dt,
-                                delimiter=";"):
+def get_visits_to_stimulus_cage(ehd, cf, res_dir="", prefix="", dt=dt):
     if res_dir is "":
         res_dir = ehd.res_dir
     if prefix is "":
