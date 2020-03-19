@@ -78,13 +78,13 @@ def calculate_visits_and_durations(data, mice, address, t_start, t_end, binsize)
     return visits, durations, all_visits
 
 
-def get_activity(ehs, cf, binsize, res_dir=None, prefix=None,
-                   remove_mouse=None, headers=None):
-    if prefix is None:
+def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
+                 headers=""):
+    if prefix is "":
         prefix = ehs.prefix
-    if res_dir is None:
+    if res_dir is "":
         res_dir = ehs.res_dir
-    if headers is None:
+    if headers is "":
         basic = ['Number of visits to box %s\n',
                  'Total time in box %s, seconds\n']
     
