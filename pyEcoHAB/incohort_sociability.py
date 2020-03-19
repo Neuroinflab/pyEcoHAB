@@ -195,7 +195,7 @@ def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
         keys = [["ALL"], [0]]
     elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
         phases, total_time, data = get_dark_light_data(bins, cf, ehs, mice)
-        keys = [data.keys(), [0]]
+        keys = [list(data.keys()), [0]]
     elif isinstance(bins, int) or isintance(bins, float):
         phases = []
         data = OrderedDict()
