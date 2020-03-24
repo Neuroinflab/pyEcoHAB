@@ -236,8 +236,6 @@ def single_in_cohort_soc_plot(results,
     fig.subplots_adjust(bottom=0.1)
     fig.subplots_adjust(wspace=0.25)
     fig.subplots_adjust(hspace=0.3)
-    fig.savefig(fname+'.pdf', dpi=300,  bbox_inches=None,
-                pad_inches=0.5, frameon=None)
     fig.savefig(fname+'.png', dpi=300,  bbox_inches=None,
                 pad_inches=0.5, frameon=None)
     print(fname+'.png')
