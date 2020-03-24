@@ -87,20 +87,27 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
     of the experiment.
 
 
-    This function both counts visits of every mouse to each Eco-HAB compartment
+    This function counts both visits of every mouse to each Eco-HAB compartment
     and calculates time spent in each compartment. It is based on visits
-    calculated while reading in the experiment data based on antenna readings.
-    Activity values are saved as comma separated values in a file with 
-    activity_bin_{binsize}_h.csv in res_dir/activity directory.  This function
-    also automatically saves activity to res_dir/approach_to_social to aid
-    further analysis.
+    calculated while reading in the experiment data, which is based on antenna
+    readings. Activity values are saved as comma separated values in a
+    file with activity_bin_{binsize}_h.csv in res_dir/activity directory.
+    This function also automatically saves activity to
+    res_dir/approach_to_social to facilitate further analysis.
+
+    csv files with animal activity have following structure:
+    header specifying parameter (visit count or total duration) and Eco-Hab
+    compartment ("A", "B", "C" or "D").
+    column header: mouse tag, beginning of the bin in hours, phase name
+    Values of the second column start with 0., e.g.  0, 1., 2. etc.
+    for 1 h bins. Visit count is an integer. Visit duration is a float.
 
     Args:
         ehs : Loader or Loader_like
            Eco-HAB dataset.
         cf : ExperimentConfigFile
            timeline of the experiment.
-        binsize : number 
+        binsize : number (seconds)
            time bins for calculating activity.
            A number value specifies number of seconds in each bin, e.g. binsize
            equal 3600 results in 1 h bins.
