@@ -113,6 +113,9 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
            string added to every name of the results file
         remove_mouse : string or list
            name of mouse or mice to be removed from the results file
+        save_histogram :
+           if True save visit durations to every bin and generate histograms
+           of vist durations
         delimiter : str, optional
            String or character separating columns.
         headers : list of strings
