@@ -88,7 +88,6 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
     Calculate activity of each mouse in time bins across the phases
     of the experiment.
 
-
     This function counts both visits of every mouse to each Eco-HAB compartment
     and calculates time spent in each compartment. It is based on visits
     calculated while reading in the experiment data, which is based on antenna
@@ -117,9 +116,12 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
            destination directory
            default value is the destination directory established for ehs.
         prefix : string
-           string added to every name of the results file
+           string added to the name of every generated results file
+           default value is the prefix established for ehs
         remove_mouse : string or list
            name of mouse or mice to be removed from the results file
+           As a default activity will be established for every mouse registered
+           in ehs.
         save_histogram :
            if True save visit durations to every bin and generate histograms
            of vist durations
@@ -128,7 +130,6 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
         headers : list of strings
            strings that will be written above activity parameters for each
            compartment.
-           
     """
     if prefix == "":
         prefix = ehs.prefix
