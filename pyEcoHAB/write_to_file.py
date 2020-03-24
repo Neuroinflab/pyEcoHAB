@@ -12,7 +12,7 @@ def make_header_for_activity(phases, delimiter):
 
 
 def write_single_chamber(f, header, phases, mice, time, data_stim,
-                         delimiter):
+                         delimiter, ints=False):
 
     f.write(header+'\n')
     for i, mouse in enumerate(mice):
@@ -27,7 +27,11 @@ def write_single_chamber(f, header, phases, mice, time, data_stim,
                 if phase == phases[0]:
                     lines[k] += '%s%3.2f'%(delimiter, t/3600)
                 try:
-                    lines[k] += delimiter + str(data_stim[phase][mouse][k])
+                    if ints:
+                        lines[k] += delimiter + str(data_stim[phase][mouse][k])
+                    else:
+                        lines[k] += "%s%7.3f" % (delimiter,
+                                              data_stim[phase][mouse][k])
                 except IndexError:
                     print("Phase too short", phase)
                     return
