@@ -230,12 +230,26 @@ def make_all_results_dict(phases, bins):
     return result
 
 
-def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir="",
-                             prefix="", remove_mouse=None, delimiter=";"):
+def get_incohort_sociability(ehs, cf, binsize, res_dir="",
+                             prefix="", remove_mouse="", delimiter=";"):
 
     """
     Calculate in-cohort sociability for each pair of mice in time bins across
     the phases of the experiment.
+
+    In-cohort sociability is a measure of sociability unique to the Eco-HAB
+    system. It evaluates time spent together by each pair of mice in each
+    of Eco-HAB compartments, taking into account expected time spent
+    together by that pair of mice based on mice preference of Eco-HAB
+    compartments.
+
+    in-cohort sociability results for each dark phase of the experiment
+    are saved in two formats: as csv files with in-cohort sociability values
+    for each mouse pair, where the mouse pair is specified by row and column
+    in results/incohort_sociability/bins_{bin_length}_h/histograms/data,
+    and csv files where the pair of mice is specified by row and column
+    and raster files with in-cohort sociability calculated for all mouse pairs
+    in results/incohort_
 
 
     Args:
@@ -254,8 +268,14 @@ def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir="",
            destination directory
            default value is the destination directory established for ehs.
         prefix : string
-           string added to every file with 
-           
+           string added to the name of every generated results file
+           default value is the prefix established for ehs
+        remove_mouse : string or list
+           name of mouse or mice to be removed from the results file
+           As a default activity will be established for every mouse registered
+           in ehs.
+        delimiter : str, optional
+           String or character separating columns.
     """
     if prefix == "":
         prefix = ehs.prefix
