@@ -277,20 +277,22 @@ def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir="",
                                                          binsize,
                                                          mice)
     if isinstance(binsize, int) or isinstance(binsize, float):
+        binsize_name = "%3.2f_h" % (binsize/3600)
         if binsize == 43200:
             csv_results_incohort = np.zeros((len(phases), len(mice),
                                              len(mice)))
             csv_results_incohort_exp = np.zeros((len(phases), len(mice),
                                                  len(mice)))
-
+    else:
+        binsize_name = binsize
     if time == 0:
         return
     full_results = make_all_results_dict(*keys)
     full_results_exp = make_all_results_dict(*keys)
     out_dict_hist = os.path.join("incohort_sociability", "histograms",
-                                 "bins_" + str(binsize))
+                                 "bins_%s" % binsize_name)
     out_dict_rasters = os.path.join("incohort_sociability", "raster_plots",
-                                    "bins_" + str(binsize))
+                                    "bins_%s" % binsize_name)
     all_phases, bin_labels = keys[0], keys[1]
     for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase].replace(' ', '_')
