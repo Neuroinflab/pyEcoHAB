@@ -276,10 +276,6 @@ def write_bootstrap_results(results, phase, mice_list,
                                                                        '_'),
                                                          prefix,
                                                          add_info))
-<<<<<<< HEAD
-=======
-
->>>>>>> doubled path
     f = open(new_name, "w")
     for i, mouse1 in enumerate(mice_list):
         for j, mouse2 in enumerate(mice_list):
