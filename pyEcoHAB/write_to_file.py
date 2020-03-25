@@ -58,7 +58,6 @@ def write_binned_data(data_stim, fname, mice, bin_labels, phase,
         print(new_path)
         os.makedirs(new_path)
 
-    fname = os.path.join(new_path, fname)
     f = open(fname, "w")
     header = 'mouse;\"time [h]\"'
     for mouse in mice:
@@ -253,7 +252,6 @@ def write_bootstrap_results(results, phase, mice_list,
                                                          phase.replace(' ', '_'),
                                                          prefix,
                                                          add_info))
-    new_name = os.path.join(new_dir, new_name)
     f = open(new_name, "w")
     for i, mouse1 in enumerate(mice_list):
         for j, mouse2 in enumerate(mice_list):
