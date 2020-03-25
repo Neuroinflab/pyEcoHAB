@@ -92,7 +92,10 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
     and calculates time spent in each compartment. It is based on visits
     calculated while reading in the experiment data, which is based on antenna
     readings. Activity values are saved as comma separated values in a
-    file with activity_bin_{binsize}_h.csv in res_dir/activity directory.
+    file with activity_bin_{bin_length}_h.csv in res_dir/activity directory.
+    For all filenames bin_length is the length of the bin in
+    hours (binsize/3600), e.g. for binsize=3600 activity will be saved in
+     res_dir/activity/activity_1.00_h.csv .
     This function also automatically saves activity to
     res_dir/approach_to_social to facilitate further analysis.
 
@@ -137,7 +140,7 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
         res_dir = ehs.res_dir
     
     phases = utils.filter_dark_light(cf.sections())
-    fname = '%sactivity_bin_%3.1f_h.csv'%(prefix,
+    fname = '%sactivity_bin_%3.2f_h.csv'%(prefix,
                                           binsize/3600)
     histogram_fname = 'activity_histograms_bin_%3.1f_h' % (binsize/3600)
     mice = utils.get_mice(ehs.mice, remove_mouse)
