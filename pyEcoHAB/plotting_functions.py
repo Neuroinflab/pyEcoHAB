@@ -87,7 +87,7 @@ def make_RasterPlot(main_directory,
                 transparent=False,
                 bbox_inches=None,
                 pad_inches=.5,
-                frameon=None, dpi=300)
+                frameon=None, dpi=100)
     plt.close(fig)
 
 
@@ -139,7 +139,7 @@ def single_heat_map(result,
     fig.subplots_adjust(left=0.25)
     fig.subplots_adjust(bottom=0.25)
     fig.savefig(new_name + ".png", transparent=False, bbox_inches=None,
-                pad_inches=0.5, frameon=None, dpi=300)
+                pad_inches=0.5, frameon=None, dpi=100)
     plt.close(fig)
 
 
@@ -236,9 +236,7 @@ def single_in_cohort_soc_plot(results,
     fig.subplots_adjust(bottom=0.1)
     fig.subplots_adjust(wspace=0.25)
     fig.subplots_adjust(hspace=0.3)
-    fig.savefig(fname+'.pdf', dpi=300,  bbox_inches=None,
-                pad_inches=0.5, frameon=None)
-    fig.savefig(fname+'.png', dpi=300,  bbox_inches=None,
+    fig.savefig(fname+'.png', dpi=100,  bbox_inches=None,
                 pad_inches=0.5, frameon=None)
     print(fname+'.png')
 
@@ -287,7 +285,7 @@ def make_pooled_histograms(res,
     fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, new_phase))
     if len(phases) > 1:
         fig.subplots_adjust(wspace=0.15)
-    fig.savefig(fname + '.png', dpi=300, bbox_inches=None,
+    fig.savefig(fname + '.png', dpi=100, bbox_inches=None,
                 pad_inches=0.5, frameon=None)
     plt.close(fig)
 
@@ -362,7 +360,7 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
     fig.savefig(fname + ".png",
                 bbox_inches=None,
                 pad_inches=.5,
-                frameon=None, dpi=300)
+                frameon=None, dpi=100)
     plt.close(fig)
 
 
@@ -409,7 +407,7 @@ def single_histogram_figures(single_results, fname, main_directory,
     fig.savefig(new_fname + ".png",
                 bbox_inches=None,
                 pad_inches=.5,
-                frameon=None, dpi=300)
+                frameon=None, dpi=100)
     plt.close(fig)
 
 
@@ -482,7 +480,7 @@ def make_fig_histogram(results, path, title):
         if min_bin == max_bin == max_count == min_count:
             continue
     fig.subplots_adjust(wspace=0.15)
-    fig.savefig(path + ".png", dpi=300,
+    fig.savefig(path + ".png", dpi=100,
                 bbox_inches=None,
                 pad_inches=.5,
                 frameon=None)
@@ -572,7 +570,7 @@ def make_visit_duration_histogram(results, time, phase, mice,
         fig.suptitle("%s visit durations in %s" % (mouse, phase),
                      fontsize=fontsize+2)
         fig.subplots_adjust(wspace=0.15)
-        fig.savefig(new_name + ".png", dpi=300,
+        fig.savefig(new_name + ".png", dpi=100,
                     bbox_inches=None,
                     pad_inches=.5,
                     frameon=None)
