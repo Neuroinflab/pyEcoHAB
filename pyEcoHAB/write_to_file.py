@@ -12,7 +12,7 @@ def make_header_for_activity(phases, delimiter):
 
 
 def write_single_chamber(f, header, phases, mice, time, data_stim,
-                         delimiter, ints=False):
+                         delimiter, floats=False):
 
     f.write(header+'\n')
     for i, mouse in enumerate(mice):
@@ -21,17 +21,16 @@ def write_single_chamber(f, header, phases, mice, time, data_stim,
             if len(data_stim[phase][mouse])> longest:
                 longest = len(data_stim[phase][mouse])
         lines = [mouse for i in range(longest)]
-
         for phase in phases:
             for k, t in enumerate(time[phase]):
                 if phase == phases[0]:
                     lines[k] += '%s%3.2f'%(delimiter, t/3600)
                 try:
-                    if ints:
-                        lines[k] += delimiter + str(data_stim[phase][mouse][k])
-                    else:
+                    if floats:
                         lines[k] += "%s%7.3f" % (delimiter,
-                                              data_stim[phase][mouse][k])
+                                                 data_stim[phase][mouse][k])
+                    else:
+                        lines[k] += delimiter + str(data_stim[phase][mouse][k])
                 except IndexError:
                     print("Phase too short", phase)
                     pass
@@ -45,17 +44,16 @@ def save_data_cvs(data, phases, mice, bin_labels, fname,
     
     new_path = os.path.join(path, target_dir)
     if not os.path.exists(new_path):
-        print(new_path)
         os.makedirs(new_path)
-
     fname = os.path.join(new_path, fname)
+    print(fname)
     f = open(fname, "w")
     head = make_header_for_activity(phases, delimiter)
     for stim in which:
         for j, h in enumerate(headers):
             f.write("%s %s\n" %(h, stim))
             write_single_chamber(f, head, phases, mice, bin_labels,
-                                 data[stim][j], delimiter)
+                                 data[stim][j], delimiter, floats=j)
         
 
 
