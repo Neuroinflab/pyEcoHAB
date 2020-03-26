@@ -209,7 +209,10 @@ def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
             total_time[phase] = OrderedDict()
             j = 0
             while t_start < t_end:
-                time = [t_start, t_start + bins]
+                t_e = t_start + bins
+                if t_e > t_end:
+                    t_e = t_end
+                time = [t_start, t_e]
                 data[phase][bin_labels[j]] = utils.prepare_data(ehs, mice, time)
                 total_time[phase][bin_labels[j]] = time[1] - time[0]
                 t_start += bins
