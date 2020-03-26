@@ -456,7 +456,7 @@ def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
 
 
 def make_fig_histogram(results, path, title):
-    mice = results.keys()
+    mice = list(results.keys())
     fig, ax = plt.subplots(1, len(mice), figsize=(len(mice)//2*5, 5))
     bins = []
     counts = []
@@ -528,7 +528,7 @@ def make_visit_duration_histogram(results, time, phase, mice,
             new_name =  '%s_%s_%s'% (fname, mouse, phase)
         new_name = os.path.join(dir_name, new_name)
         ncols = len(results.keys())
-        nrows = len(results[results.keys()[0]][mouse])
+        nrows = len(results[list(results.keys())[0]][mouse])
         fig, ax = plt.subplots(nrows, ncols, figsize = (ncols*4, nrows*2.5))
         fontsize = 14 + nrows
         if nrows == 1:
