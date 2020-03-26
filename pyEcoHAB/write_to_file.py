@@ -22,7 +22,7 @@ def write_single_chamber(f, header, phases, mice, time, data_stim):
                     lines[k] += ';'+str(data_stim[phase][mouse][k])
                 except IndexError:
                     print("Phase too short", phase)
-                    return
+                    pass
 
         for line in lines:
             f.write(line + '\n')
