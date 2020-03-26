@@ -41,13 +41,15 @@ def get_visits(intervals, t_start, t_stop):
 
 
 def get_visits_in_bins(intervals, time_start,
-                       time_end, binsize):
-    length = utils.get_length(time_start, time_end, binsize)
+                       time_stop, binsize):
+    length = utils.get_length(time_start, time_stop, binsize)
     visits = []
     added_visit = []
     for i in range(length):
         t_start = time_start + i*binsize
         t_end = time_start + (i+1)*binsize
+        if t_end > time_stop:
+            t_end = time_stop
         last_visits, outs = get_visits(intervals, t_start, t_end)
         visits.append(last_visits)
         added_visit.append(outs)
