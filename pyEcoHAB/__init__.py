@@ -1,6 +1,6 @@
 import os
 ecohab_loc = os.path.dirname(os.path.abspath(__file__))
-sample_data_path = os.path.join(ecohab_loc, '..', 'data')
+data_path = os.path.join(ecohab_loc, '..', 'data')
 
 from .Loader import Loader, Merger
 from .ExperimentConfigFile import ExperimentConfigFile
