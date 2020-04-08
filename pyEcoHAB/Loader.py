@@ -1,5 +1,6 @@
 from __future__ import print_function, division, absolute_import
 import os
+from collections import OrderedDict
 import numpy as np
 from . import BaseFunctions
 from . import utility_functions as utils
@@ -301,17 +302,20 @@ class Loader(EcoHabDataBase):
                 if abs(a - antennas[i+1]) not in [0,1,7]:
                     weird_transit[0].append(times[i])
                     if a < antennas[i+1]:
-                        weird_transit[1].append(str(a)+' '+str(antennas[i+1]))
+                        weird_transit[1].append("\t    %d,\t\t\t %d" % (a,
+                                                                antennas[i+1]))
                     else:
-                        weird_transit[1].append(str(antennas[i+1])+' '+str(a))
+                        weird_transit[1].append("\t    %d,\t\t\t %d" % (antennas[i+1],
+                                                                    a))
         pairs = list(set(weird_transit[1]))
 
-        mismatches = {}
+        mismatches = OrderedDict()
+        print("Mismatched antenna readings\n")
+        print("First reading, consecutive reading,  count, percentage\n")
         for pair in pairs:
             mismatches[pair] = weird_transit[1].count(pair)
-            print(pair, mismatches[pair],
-                  np.round(100*mismatches[pair]/len(raw_data['Antenna'])),
-                  'per 100')
+            print("%s,\t%d, %3.2f per 100"% (pair, mismatches[pair],
+                  np.round(100*mismatches[pair]/len(raw_data['Antenna']))))
         return weird_transit
 
                         
