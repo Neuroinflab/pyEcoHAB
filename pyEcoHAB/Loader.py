@@ -256,7 +256,7 @@ class Loader(EcoHabDataBase):
     def run_diagnostics(self, raw_data):
         antenna_breaks = self.check_antenna_presence(raw_data)
         if antenna_breaks:
-            print('Antenna not working')
+            print('No registrations on antennas:')
             for antenna in antenna_breaks:
                 print(antenna, ':')
                 for breaks in antenna_breaks[antenna]:
