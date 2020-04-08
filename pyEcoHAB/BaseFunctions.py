@@ -70,13 +70,13 @@ class Data(DataBase):
             return (idcs[0], idcs[0] + 1)
         return (0, 0)
 
-    def getantennas(self, mice):
+    def get_antennas(self, mice):
         return self.getproperty(mice, 'Antenna')
 
-    def gettimes(self, mice):
+    def get_times(self, mice):
         return self.getproperty(mice, 'Time', 'float')
 
-    def getdurations(self, mice):
+    def get_durations(self, mice):
         return self.getproperty(mice, 'Duration')
 
 
@@ -93,7 +93,7 @@ class Visits(DataBase):
             start = args[0]
             end = args[1]
         except IndexError:
-            start = min(self.getstarttimes(self._ehd.mice))
+            start = min(self.get_starttimes(self._ehd.mice))
             end = args[0]
         self.mask = (start, end)
         arr = np.array(self.data['AbsStartTimecode'])
@@ -105,14 +105,14 @@ class Visits(DataBase):
         else:
             self._mask_slice = (0, 0)
 
-    def getstarttimes(self, mice):
+    def get_starttimes(self, mice):
         return self.getproperty(mice, 'AbsStartTimecode', 'float')
 
-    def getendtimes(self, mice):
+    def get_endtimes(self, mice):
         return self.getproperty(mice, 'AbsEndTimecode', 'float')
 
-    def getdurations(self, mice):
+    def get_durations(self, mice):
         return self.getproperty(mice, 'VisitDuration', 'float')
 
-    def getaddresses(self, mice):
+    def get_visit_addresses(self, mice):
         return self.getproperty(mice, 'Address')

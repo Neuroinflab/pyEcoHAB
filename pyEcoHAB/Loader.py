@@ -12,8 +12,8 @@ class EcoHabDataBase(object):
         self.threshold = threshold
         self.mice = self.get_mice()
         self.visits = self._calculate_visits()
-        self.session_start = sorted(self.gettimes(self.mice))[0]
-        self.session_end = sorted(self.gettimes(self.mice))[-1]
+        self.session_start = sorted(self.get_times(self.mice))[0]
+        self.session_end = sorted(self.get_times(self.mice))[-1]
 
     def _calculate_animal_positions(self):
         tempdata = []
@@ -49,40 +49,40 @@ class EcoHabDataBase(object):
         self.readings.unmask_data()
         self.visits.unmask_data()
 
-    def getantennas(self, mice):
+    def get_antennas(self, mice):
         return self.readings.getproperty(mice,
                                          'Antenna')
 
-    def gettimes(self, mice):
+    def get_times(self, mice):
         return self.readings.getproperty(mice,
                                          'Time',
                                          'float')
-    def getdurations(self, mice):
+    def get_durations(self, mice):
         """Return duration of registration
         by antenna"""
         return self.readings.getproperty(mice,
                                          'Duration',
                                          'float')
     #add get_visits, get_readings
-    def getaddresses(self, mice):
+    def get_visit_addresses(self, mice):
         return self.visits.getproperty(mice,
                                        'Address')
-    def getstarttimes(self, mice):
+    def get_starttimes(self, mice):
         return self.visits.getproperty(mice,
                                        'AbsStartTimecode',
                                        'float')
 
-    def getendtimes(self, mice):
+    def get_endtimes(self, mice):
         return self.visits.getproperty(mice,
                                        'AbsEndTimecode',
                                        'float')
 
-    def getvisitdurations(self, mice):
+    def get_visit_durations(self, mice):
         return self.visits.getproperty(mice,
                                        'VisitDuration',
                                        'float')
     def how_many_antennas(self):
-        all_antennas = set(self.getantennas(self.mice))
+        all_antennas = set(self.get_antennas(self.mice))
         return len(all_antennas)
 
     def get_mice(self):
@@ -104,7 +104,7 @@ class EcoHabDataBase(object):
         """
         antennas = []
         for mouse in self.mice:
-            antennas.append(self.getantennas(mouse)[0])
+            antennas.append(self.get_antennas(mouse)[0])
         return max(set(antennas), key=antennas.count)
 
 
@@ -152,7 +152,7 @@ class Loader(EcoHabDataBase):
         self.cages = self.get_cages()
 
     def get_cages(self):
-        return sorted(list(set(self.getaddresses(self.mice))))
+        return sorted(list(set(self.get_visit_addresses(self.mice))))
 
     @staticmethod
     def _remove_antennas(data, antennas):
@@ -326,8 +326,8 @@ class Loader(EcoHabDataBase):
         return mystring
 
     def check_single_mouse_data(self, mouse):
-        antennas = self.data.getantennas(mouse)
-        times  = self.data.gettimes(mouse)
+        antennas = self.data.get_antennas(mouse)
+        times  = self.data.get_times(mouse)
         error_crossing_times = []
         for i, next_antenna in enumerate(antennas[1:]):
             if abs(next_antenna - antennas[i]) not in [0, 1]:
@@ -355,8 +355,8 @@ class Merger(EcoHabDataBase):
                 print("ERROR processing {}".format(data_source))
                 raise
         self.mice = self.get_mice()
-        self.session_start = sorted(self.gettimes(self.mice))[0]
-        self.session_end = sorted(self.gettimes(self.mice))[-1]
+        self.session_start = sorted(self.get_times(self.mice))[0]
+        self.session_end = sorted(self.get_times(self.mice))[-1]
         self.res_dir = kwargs.pop("results_path",
                                   data_sources[0].res_dir  + "_merged")
         self.prefix = kwargs.pop("results_path",
