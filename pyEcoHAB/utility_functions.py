@@ -349,9 +349,9 @@ def mouse_going_counterclockwise(antennas):
 
 def get_times_antennas(ehd, mouse, t_1, t_2):
     if t_1 == 0 and t_2 == -1:
-        return ehd.gettimes(mouse), ehd.getantennas(mouse)
+        return ehd.get_times(mouse), ehd.get_antennas(mouse)
     ehd.mask_data(t_1, t_2)
-    antennas, times = ehd.getantennas(mouse), ehd.gettimes(mouse)
+    antennas, times = ehd.get_antennas(mouse), ehd.get_times(mouse)
     ehd.unmask_data()
     return times, antennas
 
@@ -470,14 +470,14 @@ def get_indices(t_start, t_end, starts, ends):
 def get_ehs_data_with_margin(ehs, mouse, t_start, t_end,
                              margin=12*3600):
     if t_start == 0 and t_end == -1:
-        return ehs.getaddresses(mouse),\
-            ehs.getstarttimes(mouse),\
-            ehs.getendtimes(mouse)
+        return ehs.get_visit_addresses(mouse),\
+            ehs.get_starttimes(mouse),\
+            ehs.get_endtimes(mouse)
 
     ehs.mask_data(t_start - margin, t_end +  margin)
-    adresses = ehs.getaddresses(mouse)
-    starts = ehs.getstarttimes(mouse)
-    ends = ehs.getendtimes(mouse)
+    adresses = ehs.get_visit_addresses(mouse)
+    starts = ehs.get_starttimes(mouse)
+    ends = ehs.get_endtimes(mouse)
     ehs.unmask_data()
     return adresses, starts, ends
 
@@ -489,8 +489,8 @@ def prepare_data(ehs, mice, times=None):
         mice = [mice]
     if times is None:
         ehs.unmask_data()
-        times = (ehs.getstarttimes(mice)[0],
-                 ehs.getendtimes(mice)[-1])
+        times = (ehs.get_starttimes(mice)[0],
+                 ehs.get_endtimes(mice)[-1])
     t_start, t_end = times
     for mouse in mice:
         data[mouse] = []
