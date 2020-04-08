@@ -2016,7 +2016,7 @@ class TestPrepareData(unittest.TestCase):
 
     def test_get_all(self):
         self.assertEqual(len(self.out_all),
-                         len(self.data.getaddresses("mouse_1")))
+                         len(self.data.get_visit_addresses("mouse_1")))
 
     def test_get2_starttimes(self):
         self.assertTrue(self.out_different[0][1] > self.t11)
