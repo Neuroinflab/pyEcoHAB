@@ -1,0 +1,42 @@
+[EMPTY 1 dark]
+startdate = 16.06.2014
+starttime = 12:00
+enddate = 17.06.2014
+endtime = 00:00
+
+[EMPTY 1 light]
+startdate = 17.06.2014
+starttime = 00:00
+enddate = 17.06.2014
+endtime = 12:00
+
+[EMPTY 2 dark]
+startdate = 17.06.2014
+starttime = 12:00
+enddate = 18.06.2014
+endtime = 00:00
+
+[EMPTY 2 light]
+startdate = 18.06.2014
+starttime = 00:00
+enddate = 18.06.2014
+endtime = 12:00
+
+[SNIFF 1 dark]
+startdate = 18.06.2014
+starttime = 12:00
+enddate = 19.06.2014
+endtime = 00:00
+
+[SNIFF 1 light]
+startdate = 19.06.2014
+starttime = 00:00
+enddate = 19.06.2014
+endtime = 12:00
+
+[ALL]
+startdate = 16.06.2014
+starttime = 12:00
+enddate = 19.06.2014
+endtime = 12:00
+
