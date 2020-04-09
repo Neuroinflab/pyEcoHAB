@@ -603,7 +603,10 @@ def process_line_5_elements(elements, date):
 
 
 def get_filenames(path):
-    f_list = os.listdir(path)
+    try:
+        f_list = os.listdir(path)
+    except FileNotFoundError:
+        return []
     out = []
     for f_name in f_list:
         if f_name.endswith("0000.txt"):

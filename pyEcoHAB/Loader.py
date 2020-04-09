@@ -1,7 +1,10 @@
 from __future__ import print_function, division, absolute_import
 import os
+import sys
 from collections import OrderedDict
+
 import numpy as np
+
 from . import BaseFunctions
 from . import utility_functions as utils
 
@@ -172,7 +175,7 @@ class Loader(EcoHabDataBase):
         return data
 
     def _read_single_file(self, fname):
-        """Reads in single data file"""
+        """Reads in a single data file"""
         hour, date, datenext = utils.parse_fname(fname)
         raw_data = []
         f = open(os.path.join(self.path, fname),'r')
@@ -231,6 +234,8 @@ class Loader(EcoHabDataBase):
         raw_data = []
         days = set()
         self._fnames = utils.get_filenames(self.path)
+        if not len(self._fnames ):
+            sys.exit("%s is empty"% self.path)
         for f_name in self._fnames:
             raw_data += self._read_single_file(f_name)
             days.add(f_name.split('_')[0])
