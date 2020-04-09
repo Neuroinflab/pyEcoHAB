@@ -16,6 +16,9 @@ class EcoHabDataBase(object):
         self.session_end = sorted(self.get_times(self.mice))[-1]
 
     def _calculate_animal_positions(self):
+        """
+        Calculate timings of animal visits to Eco-HAB compartments.
+        """
         tempdata = []
         for mouse in self.mice:
             times, antennas = utils.get_times_antennas(self.readings,
@@ -109,7 +112,54 @@ class EcoHabDataBase(object):
 
 
 class Loader(EcoHabDataBase):
-    """Reads in EcoHAB data"""
+    """Reads in Eco-HAB data files that are located in path.
+
+    This class reads in data collected by the Eco-HAB system, parses them
+    and removes in-correct registrations. Loader calculates visits
+    to Eco-HAB compartments (A, B, C, D).
+
+    Args:
+        path: string
+           directory containing Eco-HAB data
+
+    Keyword Args:
+        antenna_positions: dictionary
+           dictionary specifing conversion of registered antenna ids to integers
+           No conversion is the default
+        mask: list or tuple
+           mask specifing, which part of data will be read in. As a default the
+           whole data is saved in a Loader object
+        visit_threshold: float
+           visits shorter than visit_threshold will be rejected
+           Default value is 2 (parameter based on mouse behavior)
+        res_dir: string
+           path to directory where results will be saved. As a default
+           results will be saved in path/Results
+        prefix: string
+           a prefix (string) added to all generated result files.
+           As a default an info.txt file in path is parsed and added to
+           all result filenames. If no prefix is provided and the data
+           directory does not contain an info.txt file, no prefix is added.
+        max_break: float
+           breaks in antenna registrations longer than max_break
+           will be reported, while loading Eco-HAB data.
+        how_many_appearances: int
+           Animal tags that are registered less than how_many_appearances
+           times will be removed from loaded data. As a default
+           an animal tag must be registered at least 200 times not to be
+           removed from loaded data
+        min_appearance_factor: float of value less than 1
+           Animal tags that are registered in min_appearance_factor fraction
+           days of the experiment duration will be removed from loaded data.
+           As a default an animal tag must be registered in at least half
+           of the experiment duration
+        remove_antennas: list
+           Antenna ids to be removed from loaded data. As a default
+           no antennas are removed.
+        remove_mice: list
+           Animal tags to be remooved from loaded data. As a default
+           no antennas are removed.
+    """
     STANDARD_ANTENNAS = {'1': 1, '2': 2,
                          '3': 3, '4': 4,
                          '5': 5, '6': 6,
@@ -119,22 +169,23 @@ class Loader(EcoHabDataBase):
     def __init__(self, path, **kwargs):
         #Read in parameters
         self.path = path
-        antenna_pos = kwargs.pop('antenna_positions', None)
+        antenna_positions = kwargs.pop('antenna_positions', None)
 
-        if antenna_pos is None:
-            self.antenna_pos = self.STANDARD_ANTENNAS
+        if antenna_positions is None:
+            self.antenna_positions = self.STANDARD_ANTENNAS
         else:
-            self.antenna_pos = antenna_pos
+            self.antenna_positions = antenna_positions
 
         self.mask = kwargs.pop('mask', None)
-        self.threshold = kwargs.pop('antenna_threshold', 2.)
+        self.visit_threshold = kwargs.pop('visit_threshold', 2.)
         self.res_dir = kwargs.pop("res_dir",
                                   utils.results_path(self.path))
         self.prefix = utils.make_prefix(self.path)
         self.max_break = kwargs.pop("max_break", self.MAX_BREAK)
         how_many_appearances = kwargs.pop('how_many_appearances', 50)
+        min_appearance_factor = kwargs.pop('min_appearance_factor', 0.5)
         remove_antennas = kwargs.pop('remove_antennas', [])
-        factor = kwargs.pop('factor',2)
+        factor = 1/min_appearance_factor
         tags = kwargs.pop('remove_mice',[])
 
         #Read in data
@@ -142,13 +193,13 @@ class Loader(EcoHabDataBase):
                                         how_many_appearances,
                                         tags)
         data = self._from_raw_data(rawdata,
-                                 self.antenna_pos,
+                                 self.antenna_positions,
                                  remove_antennas)
         #As in antenna readings
 
         self.run_diagnostics(data)
         super(Loader, self).__init__(data, self.mask,
-                                     self.threshold)
+                                     self.visit_threshold)
         self.cages = self.get_cages()
 
     def get_cages(self):
@@ -242,12 +293,12 @@ class Loader(EcoHabDataBase):
         data.sort(key=lambda x: utils.time_to_sec(x[1]))
         return data
 
-    def _from_raw_data(self, raw_data, antenna_pos,
+    def _from_raw_data(self, raw_data, antenna_positions,
                        remove_antennas=[]):
         data = {}
         data['Id'] = [d[0] for d in raw_data]
         data['Time'] = [utils.time_to_sec(d[1]) for d in raw_data]
-        data['Antenna'] = [antenna_pos[d[2]] for d in raw_data]
+        data['Antenna'] = [antenna_positions[d[2]] for d in raw_data]
         data['Duration'] = [d[3] for d in raw_data]
         data['Tag'] = [d[4] for d in raw_data]
 
@@ -373,7 +424,7 @@ class Merger(EcoHabDataBase):
     def _append_data_source(self, new_data):
         if self.session_start is None and self.session_end is None:
             super(Merger, self).__init__(new_data.readings.data, None,
-                                         new_data.threshold)
+                                         new_data.visit_threshold)
 
         if new_data.session_start != None:
             if self.session_start != None and self.session_end != None:
