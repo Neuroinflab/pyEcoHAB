@@ -118,8 +118,12 @@ class Loader(EcoHabDataBase):
     """Reads in Eco-HAB data files that are located in path.
 
     This class reads in data collected by the Eco-HAB system, parses them
-    and removes in-correct registrations. Loader calculates visits
-    to Eco-HAB compartments (A, B, C, D).
+    and removes in-correct registrations. After loading the data Loader triggers
+    calculation of timings of animal visits to Eco-HAB compartments. Currently
+    Loader assumes that there are 4 Eco-HAB compartments denoted by A, B, C, D).
+
+    Loader converts date and time of registration to float using
+    time.localtime()
 
     Args:
         path: string
@@ -127,41 +131,43 @@ class Loader(EcoHabDataBase):
 
     Keyword Args:
         antenna_positions: dictionary
-           dictionary specifing conversion of registered antenna ids to integers
-           No conversion is the default
-        mask: list or tuple
-           mask specifing, which part of data will be read in. As a default the
-           whole data is saved in a Loader object
+           a dictionary specifing conversion of registered antenna ids
+           to integers
+           int(antenna_id) is the default conversion
+        mask: list or tuple of floats
+           Loader will read in data registed between mask[0] and mask[1].
+           mask[0] and mask[1] need to be expressed seconds from the epoch,
+           since Loader converts animal tag registration times to seconds
+           since the epoch. By default the whole data is saved by Loader.
         visit_threshold: float
            visits shorter than visit_threshold will be rejected
-           Default value is 2 (parameter based on mouse behavior)
+           Default value is 2 s (parameter based on mouse behavior)
         res_dir: string
-           path to directory where results will be saved. As a default
-           results will be saved in path/Results
+           results path directory.
+           By default results will be saved in path/Results
         prefix: string
            a prefix (string) added to all generated result files.
-           As a default an info.txt file in path is parsed and added to
-           all result filenames. If no prefix is provided and the data
+           By default an info.txt file in path directory is parsed and added to
+           all filenames of results files. If no prefix is provided and path
            directory does not contain an info.txt file, no prefix is added.
         max_break: float
            breaks in antenna registrations longer than max_break
            will be reported, while loading Eco-HAB data.
         how_many_appearances: int
-           Animal tags that are registered less than how_many_appearances
-           times will be removed from loaded data. As a default
-           an animal tag must be registered at least 200 times not to be
-           removed from loaded data
+           Animal tags that are registered less times than how_many_appearances
+           will be removed from loaded data. By default an animal tag must be
+           registered at least 200 times not to be removed from loaded data
         min_appearance_factor: float of value less than 1
-           Animal tags that are registered in min_appearance_factor fraction
-           days of the experiment duration will be removed from loaded data.
-           As a default an animal tag must be registered in at least half
-           of the experiment duration
+           Animal tags that are registered in fraction of the experiment
+           duration lower than min_appearance_factor will be removed
+           from loaded data. By default an animal tag must be registered
+           during at least half of the experiment duration.
         remove_antennas: list
-           Antenna ids to be removed from loaded data. As a default
-           no antennas are removed.
+           Registrations by antenna ids in remove_antennas will be removed from
+           loaded data. By default Loader keeps all the registrations.
         remove_mice: list
-           Animal tags to be remooved from loaded data. As a default
-           no antennas are removed.
+           Animal tag registrations to be removed from loaded data. By default
+           no registrations are removed.
     """
     STANDARD_ANTENNAS = {'1': 1, '2': 2,
                          '3': 3, '4': 4,
