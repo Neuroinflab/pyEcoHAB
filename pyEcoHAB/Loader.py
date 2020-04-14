@@ -43,8 +43,8 @@ class EcoHabDataBase(object):
 
     def mask_data(self, starttime, endtime):
         self.mask = (starttime, endtime)
-        self.readings.mask_data(*self.mask)
-        self.visits.mask_data(*self.mask)
+        self.readings.mask_data(self.mask)
+        self.visits.mask_data(self.mask)
 
     def unmask_data(self):
         """Remove the mask - future queries will not be clipped"""
