@@ -88,3 +88,21 @@ class TestProcessLine5(unittest.TestCase):
         out = ["6406", "20180727 16:00:29.329",
                "7", "0065-0161980646"]
         self.assertEqual(uf.process_line_5_elements(line, date), out)
+
+
+class TestReadInSingleFile(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short")
+        cls.out = uf.read_single_file(path, "20101010_110000.txt")
+
+    def test_1(self):
+        self.assertEqual(101, len(self.out))
+
+    def test_2(self):
+        lines_len = set([len(line) for line in self.out])
+        self.assertEqual(lines_len, set([5]))
+
+    def test_all_mice(self):
+        mice = set([line[-1] for line in self.out])
+        self.assertEqual(mice, set(["mouse_1"]))
