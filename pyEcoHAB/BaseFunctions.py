@@ -11,6 +11,24 @@ class DataBase(object):
         if mask:
             self._cut_out_data(mask)
 
+    def _find_mask_indices(self, *mask):
+        if len(mask) >= 2:
+            starttime = mask[0]
+            endtime = mask[-1]
+        elif len(args) == 1:
+            starttime = min(self.data['Time'])
+            endtime = mask[0]
+        else:
+            return (0, len(np.array(self.data['Time'])) - 1)
+        arr = np.array(self.data['Time'])
+
+        idcs = np.where((arr >= starttime) & (arr < endtime))[0]
+
+        if len(idcs) >= 2:
+            return (idcs[0], idcs[-1] + 1)
+        if len(idcs) == 1:
+            return (idcs[0], idcs[0] + 1)
+        return (0, 0)
     def _cut_out_data(self, new_mask):
         mask = self._find_mask_indices(new_mask)
         for key in self.data.keys():
