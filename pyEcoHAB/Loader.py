@@ -224,7 +224,7 @@ class Loader(EcoHabDataBase):
         if not len(self._fnames ):
             sys.exit("%s is empty"% self.path)
         for f_name in self._fnames:
-            raw_data += ufl._read_single_file(self.path, f_name)
+            raw_data += ufl.read_single_file(self.path, f_name)
             days.add(f_name.split('_')[0])
         how_many_days = len(days)/factor
         data = ufl.remove_ghost_tags(raw_data,

@@ -131,7 +131,7 @@ def get_filenames(path):
     return out
 
 
-def _read_single_file(dir_path, fname):
+def read_single_file(dir_path, fname):
     """Reads in a single data file"""
     hour, date, datenext = parse_fname(fname)
     raw_data = []
@@ -169,7 +169,7 @@ def remove_antennas(data, antennas):
 
 
 def remove_ghost_tags(raw_data, how_many_appearances,
-                       how_many_days, tags=[]):
+                      how_many_days, tags=[]):
     """
     Remove animal tag registrations that are untrustworthy.
 
