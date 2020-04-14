@@ -196,10 +196,27 @@ class Loader(EcoHabDataBase):
         return raw_data
 
     @staticmethod
-    def _remove_ghost_tags(raw_data,
-                           how_many_appearances,
-                           how_many_days,
-                           tags=[]):
+    def _remove_ghost_tags(raw_data, how_many_appearances,
+                           how_many_days, tags=[]):
+        """
+        Remove animal tag registrations that are untrustworthy.
+
+        This method removes all animal tag registration, when the Eco-HAB
+        system registered the animal tag, if:
+        1. less times than how_many days,
+        2. during less than how_many_days of the experiment,
+        3. the tag was provided in tags.
+
+        Args:
+        raw_data: a list of list or an 2D array
+           raw data read by Loader._read_in_raw_data 
+        how_many_appearances: int
+           minimum number of tag registration
+        how_many_days: float
+           minimum number of days, on which the animal tag was registred
+        tags: list
+           animal tags to be removed from raw_data
+        """
         new_data = []
         ghost_mice = []
         counters = {}
