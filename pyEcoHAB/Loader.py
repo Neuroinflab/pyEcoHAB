@@ -3,6 +3,11 @@ import os
 import sys
 from collections import OrderedDict
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
 import numpy as np
 
 from . import BaseFunctions
@@ -103,7 +108,6 @@ class EcoHabDataBase(object):
             return [mouse_dict[mouse] for mouse in mouse_keys]
         return sorted(mouse_list)
 
-
     def get_home_cage_antenna(self):
         """
         Finds home antenna. This is a function used to calculate one
@@ -113,6 +117,40 @@ class EcoHabDataBase(object):
         for mouse in self.mice:
             antennas.append(self.get_antennas(mouse)[0])
         return max(set(antennas), key=antennas.count)
+
+    def get_visits(self, mice=None, t_start=None, t_end=None):
+        """
+        Return a list of visits to Eco-HAB compartments. Each visit is 
+        a named dictionary with following fields: t_start, t_end, tag
+        """
+        if isinstance(mice, str):
+            if mice in self.mice:
+                mice = [mice]
+            else:
+                print("Could not find animal %s" % mice)
+                return []
+        if mice is None:
+            mice = self.get_mice()
+        if t_start is None:
+            t_start = self.session_start
+        if t_end is None:
+            t_end = self.session_end
+
+        self.visits.mask_data([t_start, t_end])
+        out = []
+        for mouse in mice:
+            addresses = self.get_visit_addresses(mouse)
+            start_times = self.get_starttimes(mouse)
+            end_times = self.get_endtimes(mouse)
+            durations = self.get_durations(mouse)
+            for i, a in enumerate(addresses):
+                visit = ufl.NamedDict("Visit_%s_%d" % (mouse, i),
+                                      tag=mouse, address=a,
+                                      t_start=start_times[i],
+                                      t_end=end_times[i],
+                                      duration=durations[i])
+                out.append(visit)
+        return sorted(out, key = lambda o: o["t_start"])
 
 
 class Loader(EcoHabDataBase):
