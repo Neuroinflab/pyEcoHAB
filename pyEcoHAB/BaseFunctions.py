@@ -29,22 +29,11 @@ class DataBase(object):
         if len(idcs) == 1:
             return (idcs[0], idcs[0] + 1)
         return (0, 0)
+
     def _cut_out_data(self, new_mask):
         mask = self._find_mask_indices(new_mask)
         for key in self.data.keys():
-            self.data[key] = self.data[key][mask[0]:mask[1]]
-
-    def mask_data(self, starttime, endtime):
-        """mask_data(starttime, endtime)
-        All future queries will be clipped to the visits starting between
-        starttime and endtime."""
-        self.mask = (starttime, endtime)
-        self._mask_slice = self._find_mask_indices(self.mask)
-
-    def unmask_data(self):
-        """Remove the mask - future queries will not be clipped"""
-        self.mask = None
-        self._mask_slice = None
+            self.data[key] = self.data[key][mask[0]: mask[1]]
 
     def getproperty(self, mice, propname, astype=None):
         if sys.version_info < (3, 0):
