@@ -8,7 +8,7 @@ class DataBase(object):
         self.mask = None
         self._mask_slice = None
         self.data = data
-        if self.mask:
+        if mask:
             self._cut_out_data(mask)
 
     def _cut_out_data(self, new_mask):
