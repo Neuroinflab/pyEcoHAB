@@ -7,6 +7,7 @@ import numpy as np
 
 from . import BaseFunctions
 from . import utility_functions as utils
+from .utils import for_loading as ufl
 
 class EcoHabDataBase(object):
 
@@ -188,8 +189,8 @@ class Loader(EcoHabDataBase):
         self.mask = kwargs.pop('mask', None)
         self.visit_threshold = kwargs.pop('visit_threshold', 2.)
         self.res_dir = kwargs.pop("res_dir",
-                                  utils.results_path(self.path))
-        self.prefix = utils.make_prefix(self.path)
+                                  ufl.results_path(self.path))
+        self.prefix = ufl.make_prefix(self.path)
         self.max_break = kwargs.pop("max_break", self.MAX_BREAK)
         how_many_appearances = kwargs.pop('how_many_appearances', 50)
         min_appearance_factor = kwargs.pop('min_appearance_factor', 0.5)
@@ -199,11 +200,11 @@ class Loader(EcoHabDataBase):
 
         #Read in data
         rawdata = self._read_in_raw_data(factor,
-                                        how_many_appearances,
-                                        tags)
+                                         how_many_appearances,
+                                         tags)
         data = self._from_raw_data(rawdata,
-                                 self.antenna_positions,
-                                 remove_antennas)
+                                   self.antenna_positions,
+                                   remove_antennas)
         #As in antenna readings
 
         self.run_diagnostics(data)
@@ -231,27 +232,7 @@ class Loader(EcoHabDataBase):
             return new_data
         return data
 
-    def _read_single_file(self, fname):
-        """Reads in a single data file"""
-        hour, date, datenext = utils.parse_fname(fname)
-        raw_data = []
-        f = open(os.path.join(self.path, fname),'r')
-        for line in f:
-            elements = line.split()
-            if len(elements) == 5:
-                if hour == '23' and elements[1][:2] == '00':
-                    line = utils.process_line_5_elements(elements,
-                                                         datenext)
-                else:
-                    line = utils.process_line_5_elements(elements,
-                                                         date)
-            elif len(elements) > 5:
-                line = utils.process_line_more_elements(elements)
-            else:
-                raise(IOError('Unknown data format in file %s' %f))
-            raw_data += [line]
-        return raw_data
-
+ 
     @staticmethod
     def _remove_ghost_tags(raw_data, how_many_appearances,
                            how_many_days, tags=[]):
@@ -301,31 +282,30 @@ class Loader(EcoHabDataBase):
 
         return new_data[:]
 
-    def _read_in_raw_data(self, factor,
-                          how_many_appearances, tags):
+    def _read_in_raw_data(self, factor, how_many_appearances, tags):
         """Reads in data from files in self.path.
         Removes ghost tags from data"""
         raw_data = []
         days = set()
-        self._fnames = utils.get_filenames(self.path)
+        self._fnames = ufl.get_filenames(self.path)
         if not len(self._fnames ):
             sys.exit("%s is empty"% self.path)
         for f_name in self._fnames:
-            raw_data += self._read_single_file(f_name)
+            raw_data += ufl._read_single_file(self.path, f_name)
             days.add(f_name.split('_')[0])
         how_many_days = len(days)/factor
         data = self._remove_ghost_tags(raw_data,
                                        how_many_appearances,
                                        how_many_days,
                                        tags=tags)
-        data.sort(key=lambda x: utils.time_to_sec(x[1]))
+        data.sort(key=lambda x: ufl.time_to_sec(x[1]))
         return data
 
     def _from_raw_data(self, raw_data, antenna_positions,
                        remove_antennas=[]):
         data = {}
         data['Id'] = [d[0] for d in raw_data]
-        data['Time'] = [utils.time_to_sec(d[1]) for d in raw_data]
+        data['Time'] = [ufl.time_to_sec(d[1]) for d in raw_data]
         data['Antenna'] = [antenna_positions[d[2]] for d in raw_data]
         data['Duration'] = [d[3] for d in raw_data]
         data['Tag'] = [d[4] for d in raw_data]
@@ -340,8 +320,8 @@ class Loader(EcoHabDataBase):
             for antenna in antenna_breaks:
                 print(antenna, ':')
                 for breaks in antenna_breaks[antenna]:
-                    print(utils.print_human_time(breaks[0]),
-                          utils.print_human_time(breaks[1]))
+                    print(ufl.print_human_time(breaks[0]),
+                          ufl.print_human_time(breaks[1]))
                     print((breaks[1] - breaks[0])/3600, 'h')
         self.antenna_mismatch(raw_data)
 
