@@ -207,80 +207,13 @@ class Loader(EcoHabDataBase):
                                    remove_antennas)
         #As in antenna readings
 
-        self.run_diagnostics(data)
+        ufl.run_diagnostics(data, self.max_break)
         super(Loader, self).__init__(data, self.mask,
                                      self.visit_threshold)
         self.cages = self.get_cages()
 
     def get_cages(self):
         return sorted(list(set(self.get_visit_addresses(self.mice))))
-
-    @staticmethod
-    def _remove_antennas(data, antennas):
-        if isinstance(antennas, int):
-            antennas = [antennas]
-        if isinstance(antennas, list):
-            keys = data.keys()
-            new_data = {key:[] for key in keys}
-            for i, antenna in enumerate(data['Antenna']):
-                if antenna not in antennas:
-                    for key in keys:
-                        new_data[key].append(data[key][i])
-                else:
-                    print("Removing record",
-                          [data[key][i] for key in keys])
-            return new_data
-        return data
-
- 
-    @staticmethod
-    def _remove_ghost_tags(raw_data, how_many_appearances,
-                           how_many_days, tags=[]):
-        """
-        Remove animal tag registrations that are untrustworthy.
-
-        This method removes all animal tag registration, when the Eco-HAB
-        system registered the animal tag, if:
-        1. less times than how_many days,
-        2. during less than how_many_days of the experiment,
-        3. the tag was provided in tags.
-
-        Args:
-        raw_data: a list of list or an 2D array
-           raw data read by Loader._read_in_raw_data 
-        how_many_appearances: int
-           minimum number of tag registration
-        how_many_days: float
-           minimum number of days, on which the animal tag was registred
-        tags: list
-           animal tags to be removed from raw_data
-        """
-        new_data = []
-        ghost_mice = []
-        counters = {}
-        dates = {}
-        if len(tags):
-            for tag in tags:
-                ghost_mice.append(tag)
-        for d in raw_data:
-            mouse = d[4]
-            if mouse not in counters:
-                counters[mouse] = 0
-            if mouse not in dates:
-                dates[mouse] = set()
-            counters[mouse] += 1
-            dates[mouse].add(d[1].split()[0])
-
-        for mouse in counters:
-            if counters[mouse] < how_many_appearances or len(dates[mouse]) <= how_many_days:
-                if mouse not in ghost_mice:
-                    ghost_mice.append(mouse)
-        for d in raw_data:
-            mouse = d[4]
-            if mouse not in ghost_mice:
-                new_data.append(d)
-
-        return new_data[:]
 
     def _read_in_raw_data(self, factor, how_many_appearances, tags):
         """Reads in data from files in self.path.
@@ -294,15 +227,15 @@ class Loader(EcoHabDataBase):
             raw_data += ufl._read_single_file(self.path, f_name)
             days.add(f_name.split('_')[0])
         how_many_days = len(days)/factor
-        data = self._remove_ghost_tags(raw_data,
+        data = ufl.remove_ghost_tags(raw_data,
                                        how_many_appearances,
                                        how_many_days,
                                        tags=tags)
         data.sort(key=lambda x: ufl.time_to_sec(x[1]))
         return data
 
-    def _from_raw_data(self, raw_data, antenna_positions,
-                       remove_antennas=[]):
+    @staticmethod
+    def _from_raw_data(raw_data, antenna_positions, remove_antennas=[]):
         data = {}
         data['Id'] = [d[0] for d in raw_data]
         data['Time'] = [ufl.time_to_sec(d[1]) for d in raw_data]
@@ -310,74 +243,9 @@ class Loader(EcoHabDataBase):
         data['Duration'] = [d[3] for d in raw_data]
         data['Tag'] = [d[4] for d in raw_data]
 
+        return ufl.remove_antennas(data, remove_antennas)
 
-        return self._remove_antennas(data, remove_antennas)
-
-    def run_diagnostics(self, raw_data):
-        antenna_breaks = self.check_antenna_presence(raw_data)
-        if antenna_breaks:
-            print('No registrations on antennas:')
-            for antenna in antenna_breaks:
-                print(antenna, ':')
-                for breaks in antenna_breaks[antenna]:
-                    print(ufl.print_human_time(breaks[0]),
-                          ufl.print_human_time(breaks[1]))
-                    print((breaks[1] - breaks[0])/3600, 'h')
-        self.antenna_mismatch(raw_data)
-
-    def check_antenna_presence(self, raw_data):
-        t_start = raw_data['Time'][0]
-        all_times = np.array(raw_data['Time'])
-        breaks = {}
-        
-        for antenna in range(1, 9):
-            antenna_idx = np.where(np.array(raw_data['Antenna']) == antenna)[0]
-            times = all_times[antenna_idx] 
-            breaks[antenna] = []
-            if len(times):
-                if times[0] - t_start > self.max_break:
-                    breaks[antenna].append([0, np.round(times[0])])
-                intervals = times[1:] - times[0:-1]
-                where_breaks = np.where(intervals > self.max_break)[0]
-                if len(where_breaks):
-                    for i in where_breaks:
-                        breaks[antenna].append([np.round(times[i]), np.round(times[i+1])])
-            else:
-                breaks[antenna].append([np.round(t_start),
-                                        raw_data['Time'][-1]])
-        return breaks
-    
-    def antenna_mismatch(self, raw_data):
-        
-        t_start = raw_data['Time'][0]
-        all_times = np.array(raw_data['Time'])
-        weird_transit = [[], []]
-        mice = set(raw_data['Tag'])
-        for mouse in mice:
-            mouse_idx = np.where(np.array(raw_data['Tag']) == mouse)[0]
-            times = all_times[mouse_idx]
-            antennas = np.array(raw_data['Antenna'])[mouse_idx]
-            for i, a in enumerate(antennas[:-1]):
-                if abs(a - antennas[i+1]) not in [0,1,7]:
-                    weird_transit[0].append(times[i])
-                    if a < antennas[i+1]:
-                        weird_transit[1].append("\t    %d,\t\t\t %d" % (a,
-                                                                antennas[i+1]))
-                    else:
-                        weird_transit[1].append("\t    %d,\t\t\t %d" % (antennas[i+1],
-                                                                    a))
-        pairs = list(set(weird_transit[1]))
-
-        mismatches = OrderedDict()
-        print("Mismatched antenna readings\n")
-        print("First reading, consecutive reading,  count, percentage\n")
-        for pair in pairs:
-            mismatches[pair] = weird_transit[1].count(pair)
-            print("%s,\t%d, %3.2f per 100"% (pair, mismatches[pair],
-                  np.round(100*mismatches[pair]/len(raw_data['Antenna']))))
-        return weird_transit
-
-                        
+                         
     def __repr__ (self):
         """Nice string representation for prtinting this class."""
         mystring = 'Eco-HAB data loaded from:\n%s\nin the folder%s\n' %(
