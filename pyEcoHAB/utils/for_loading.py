@@ -283,15 +283,15 @@ def run_diagnostics(raw_data, max_break):
     antenna_mismatch(raw_data)
 
 
-def _from_raw_data(raw_data, antenna_positions, remove_antennas=[]):
+def from_raw_data(raw_data, antenna_positions):
     data = {}
     data['Id'] = [d[0] for d in raw_data]
-    data['Time'] = [ufl.time_to_sec(d[1]) for d in raw_data]
+    data['Time'] = [time_to_sec(d[1]) for d in raw_data]
     data['Antenna'] = [antenna_positions[d[2]] for d in raw_data]
     data['Duration'] = [d[3] for d in raw_data]
     data['Tag'] = [d[4] for d in raw_data]
 
-    return remove_antennas(data, remove_antennas)
+    return data
 
 
 class NamedDict(dict):

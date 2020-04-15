@@ -240,11 +240,11 @@ class Loader(EcoHabDataBase):
         rawdata = self._read_in_raw_data(factor,
                                          how_many_appearances,
                                          tags)
-        data = self._from_raw_data(rawdata,
-                                   self.antenna_positions,
-                                   remove_antennas)
+        data = ufl.from_raw_data(rawdata,
+                                 self.antenna_positions)
+        data = ufl.remove_antennas(data, remove_antennas)
         #As in antenna readings
-
+        
         ufl.run_diagnostics(data, self.max_break)
         super(Loader, self).__init__(data, self.mask,
                                      self.visit_threshold)
@@ -271,18 +271,6 @@ class Loader(EcoHabDataBase):
                                        tags=tags)
         data.sort(key=lambda x: ufl.time_to_sec(x[1]))
         return data
-
-    @staticmethod
-    def _from_raw_data(raw_data, antenna_positions, remove_antennas=[]):
-        data = {}
-        data['Id'] = [d[0] for d in raw_data]
-        data['Time'] = [ufl.time_to_sec(d[1]) for d in raw_data]
-        data['Antenna'] = [antenna_positions[d[2]] for d in raw_data]
-        data['Duration'] = [d[3] for d in raw_data]
-        data['Tag'] = [d[4] for d in raw_data]
-
-        return ufl.remove_antennas(data, remove_antennas)
-
                          
     def __repr__ (self):
         """Nice string representation for prtinting this class."""
