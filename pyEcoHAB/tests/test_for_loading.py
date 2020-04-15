@@ -220,5 +220,85 @@ class TestRemoveAntennas(unittest.TestCase):
         self.assertEqual(self.data_without_A["Tag"].index("mouse_3"),
                          self.data["Tag"].index("mouse_3"))
 
+class TestRemoveGhostTags(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_2_mice")
+        cls.data = uf.read_single_file(path, "20101010_110000.txt")
+
+    def test_1(self):
+        out = uf.remove_ghost_tags(self.data, 0, 0)
+        self.assertEqual(self.data, out)
+
+    def test_1_app(self):
+        out = uf.remove_ghost_tags(self.data, 2, 0)
+        tags = [o[4] for o in out]
+        self.assertTrue("mouse_3" not in tags)
+
+    def test_1_app_2(self):
+        out = uf.remove_ghost_tags(self.data, 2, 0)
+        line = ["15151", "20101010 11:11:06.748", "3", "204", "mouse_1"]
+        self.assertTrue(line, out[32])
+
+    def test_1_app_3(self):
+        out = uf.remove_ghost_tags(self.data, 2, 0)
+        self.assertEqual(len(out), len(self.data) - 1)
+
+    def test_1_app_4(self):
+        out = uf.remove_ghost_tags(self.data, 2, 0)
+        tags = [o[4] for o in out]
+        self.assertEqual(set(tags), set(["mouse_1", "mouse_2"]))
+
+    def test_2_app(self):
+        out = uf.remove_ghost_tags(self.data, 3, 0)
+        tags = [o[4] for o in out]
+        self.assertEqual(set(tags), set(["mouse_1"]))
+
+    def test_2_app_2(self):
+        out = uf.remove_ghost_tags(self.data, 2, 0)
+        line = ["15151", "20101010 11:11:06.748", "3", "204", "mouse_1"]
+        self.assertTrue(line, out[29])
+
+    def test_2_app_3(self):
+        out = uf.remove_ghost_tags(self.data, 2, 0)
+        line = ["15045", "20101010 1:06:23.809", "3",	"1383",	"mouse_1"]
+        self.assertTrue(line, out[10])
+
+    def test_none_app(self):
+        out = uf.remove_ghost_tags(self.data, 200, 0)
+        self.assertEqual(out, [])
+
+    def test_removing_tags(self):
+         out = uf.remove_ghost_tags(self.data, 0, 0, "mouse_1")
+         lines = [
+             ["15040", "20101010 11:06:08.349", "5", "307", "mouse_2"],
+             ["15043", "20101010 11:06:21.731", "4", "259", "mouse_2"],
+             ["15123", "20101010 11:09:39.065", "2", "256", "mouse_3"],
+         ]
+         self.assertEqual(out, lines)
+
+    def test_removing_tags_2(self):
+         out = uf.remove_ghost_tags(self.data, 0, 0, ["mouse_1"])
+         lines = [
+             ["15040", "20101010 11:06:08.349", "5", "307", "mouse_2"],
+             ["15043", "20101010 11:06:21.731", "4", "259", "mouse_2"],
+             ["15123", "20101010 11:09:39.065", "2", "256", "mouse_3"],
+         ]
+         self.assertEqual(out, lines)
+
+    def test_days_1(self):
+        out = uf.remove_ghost_tags(self.data, 0, 1, ["mouse_1"])
+        self.assertEqual(out, [])
+
+    def test_days_2(self):
+        out = uf.remove_ghost_tags(self.data, 0, 1)
+        self.assertEqual(len(out), len(self.data) - 3)
+
+    def test_days_3(self):
+        out = uf.remove_ghost_tags(self.data, 0, 1)
+        line = ["15894", "20101011 11:59:56.218", "4", "307", "mouse_1"]
+        self.assertEqual(out[-1], line)
+
+
 if __name__ == '__main__':
     unittest.main()
