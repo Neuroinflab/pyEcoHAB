@@ -8,7 +8,6 @@ import numpy as np
 
 import pyEcoHAB.utils.for_loading as uf
 from pyEcoHAB import data_path
-from pyEcoHAB import Loader
 
 class TestParseFilename(unittest.TestCase):
     def test_normal(self):
