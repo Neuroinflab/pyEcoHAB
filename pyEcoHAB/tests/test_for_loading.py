@@ -106,6 +106,12 @@ class TestReadInSingleFile(unittest.TestCase):
     def test_all_mice(self):
         mice = set([line[-1] for line in self.out])
         self.assertEqual(mice, set(["mouse_1"]))
+
+    def test_last_line(self):
+        last_line= ["15894", "20101010 11:59:56.218", "4", "307", "mouse_1"]
+        self.assertEqual(last_line, self.out[-1])
+
+
 class TestRemoveAntennas(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
