@@ -106,3 +106,114 @@ class TestReadInSingleFile(unittest.TestCase):
     def test_all_mice(self):
         mice = set([line[-1] for line in self.out])
         self.assertEqual(mice, set(["mouse_1"]))
+class TestRemoveAntennas(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_2_mice")
+        out = uf.read_single_file(path, "20101010_110000.txt")
+        cls.data = {}
+        cls.data["Antenna"] = [int(o[2]) for o in out]
+        cls.data["Tag"] = [o[-1] for o in out]
+        cls.data_without_1 = uf.remove_antennas(cls.data, 1)
+        cls.data_without_9 = uf.remove_antennas(cls.data, 9)
+        cls.data_without_1_9 = uf.remove_antennas(cls.data, [1, 9])
+        cls.data_without_A = uf.remove_antennas(cls.data, "A")
+
+    def test_remove_1_1(self):
+        self.assertEqual(len(self.data["Antenna"]) - 3,
+                         len(self.data_without_1["Antenna"]))
+
+    def test_remove_1_2(self):
+        self.assertEqual(len(self.data_without_1["Antenna"]),
+                         len(self.data_without_1["Tag"]))
+
+    def test_remove_1_mouse2(self):
+        self.assertEqual(self.data_without_1["Tag"].count("mouse_2"),
+                         self.data["Tag"].count("mouse_2"))
+
+    def test_remove_1_mouse2_2(self):
+        self.assertEqual(self.data_without_1["Tag"].index("mouse_2"),
+                         self.data["Tag"].index("mouse_2"))
+
+    def test_remove_1_mouse_3(self):
+        self.assertEqual(self.data_without_1["Tag"].count("mouse_3"),
+                         self.data["Tag"].count("mouse_3"))
+
+    def test_remove_1_mouse_3_2(self):
+        self.assertEqual(self.data_without_1["Tag"].index("mouse_3"),
+                         self.data["Tag"].index("mouse_3") - 2)
+
+    def test_remove_9_1(self):
+        self.assertEqual(len(self.data["Antenna"]),
+                         len(self.data_without_9["Antenna"]))
+
+    def test_remove_9_2(self):
+        self.assertEqual(len(self.data_without_9["Antenna"]),
+                         len(self.data_without_9["Tag"]))
+
+    def test_remove_9_mouse2(self):
+        self.assertEqual(self.data_without_9["Tag"].count("mouse_2"),
+                         self.data["Tag"].count("mouse_2"))
+
+    def test_remove_9_mouse2_2(self):
+        self.assertEqual(self.data_without_9["Tag"].index("mouse_2"),
+                         self.data["Tag"].index("mouse_2"))
+
+    def test_remove_9_mouse_3(self):
+        self.assertEqual(self.data_without_9["Tag"].count("mouse_3"),
+                         self.data["Tag"].count("mouse_3"))
+
+    def test_remove_9_mouse_3_2(self):
+        self.assertEqual(self.data_without_9["Tag"].index("mouse_3"),
+                         self.data["Tag"].index("mouse_3"))
+
+    def test_remove_1_9_1(self):
+        self.assertEqual(len(self.data["Antenna"]) - 3,
+                         len(self.data_without_1_9["Antenna"]))
+
+    def test_remove_1_9_2(self):
+        self.assertEqual(len(self.data_without_1_9["Antenna"]),
+                         len(self.data_without_1_9["Tag"]))
+
+    def test_remove_1_9_mouse2(self):
+        self.assertEqual(self.data_without_1_9["Tag"].count("mouse_2"),
+                         self.data["Tag"].count("mouse_2"))
+
+    def test_remove_1_9_mouse2_2(self):
+        self.assertEqual(self.data_without_1_9["Tag"].index("mouse_2"),
+                         self.data["Tag"].index("mouse_2"))
+
+    def test_remove_1_9_mouse_3(self):
+        self.assertEqual(self.data_without_1_9["Tag"].count("mouse_3"),
+                         self.data["Tag"].count("mouse_3"))
+
+    def test_remove_1_9_mouse_3_2(self):
+        self.assertEqual(self.data_without_1_9["Tag"].index("mouse_3"),
+                         self.data["Tag"].index("mouse_3") - 2)
+
+    def test_remove_A_1(self):
+        self.assertEqual(len(self.data["Antenna"]),
+                         len(self.data_without_A["Antenna"]))
+
+    def test_remove_A_2(self):
+        self.assertEqual(len(self.data_without_A["Antenna"]),
+                         len(self.data_without_A["Tag"]))
+
+    def test_remove_A_mouse2(self):
+        self.assertEqual(self.data_without_A["Tag"].count("mouse_2"),
+                         self.data["Tag"].count("mouse_2"))
+
+    def test_remove_A_mouse2_2(self):
+        self.assertEqual(self.data_without_A["Tag"].index("mouse_2"),
+                         self.data["Tag"].index("mouse_2"))
+
+    def test_remove_A_mouse_3(self):
+        self.assertEqual(self.data_without_A["Tag"].count("mouse_3"),
+                         self.data["Tag"].count("mouse_3"))
+
+    def test_remove_A_mouse_3_2(self):
+        self.assertEqual(self.data_without_A["Tag"].index("mouse_3"),
+                         self.data["Tag"].index("mouse_3"))
+
+if __name__ == '__main__':
+    unittest.main()
