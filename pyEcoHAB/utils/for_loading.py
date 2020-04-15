@@ -5,6 +5,11 @@ import sys
 from collections import OrderedDict
 import numpy as np
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
 def results_path(path):
     return os.path.join(path, 'Results')
 
@@ -193,9 +198,10 @@ def remove_ghost_tags(raw_data, how_many_appearances,
     ghost_mice = []
     counters = {}
     dates = {}
-    if len(tags):
-        for tag in tags:
-            ghost_mice.append(tag)
+    if isinstance(tags, basestring):
+        tags = [tags]
+    for tag in tags:
+        ghost_mice.append(tag)
     for d in raw_data:
         mouse = d[4]
         if mouse not in counters:
