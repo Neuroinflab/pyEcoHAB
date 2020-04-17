@@ -186,7 +186,7 @@ def get_dark_light_data(phase, cf, ehs, mice):
     out_data = {phase: {0: data}}
     return out_phases, {phase: {0: total_time}}, {phase: {0: data}}
 
-def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
+def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice, filter_dark=True):
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
         time = cf.gettime("ALL")
@@ -200,7 +200,10 @@ def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
         phases = []
         data = OrderedDict()
         total_time = OrderedDict()
-        all_phases = utils.filter_dark(cf.sections())
+        if filter_dark:
+            all_phases = utils.filter_dark(cf.sections())
+        else:
+            all_phases = utils.filter_dark_light(cf.sections())
         bin_labels = utils.get_times(bins)
         for phase in all_phases:
             t_start, t_end = cf.gettime(phase)
@@ -234,7 +237,7 @@ def make_all_results_dict(phases, bins):
 
 
 def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir=None,
-                             prefix=None, remove_mouse=None):
+                             prefix=None, remove_mouse=None, filter_dark=True):
     if prefix is None:
         prefix = ehs.prefix
     if res_dir is None:
@@ -250,7 +253,8 @@ def get_incohort_sociability(ehs, cf, binsize=12*3600, res_dir=None,
                                                          cf,
                                                          prefix,
                                                          binsize,
-                                                         mice)
+                                                         mice,
+                                                         filter_dark)
     if isinstance(binsize, int) or isinstance(binsize, float):
         if binsize == 43200:
             csv_results_incohort = np.zeros((len(phases), len(mice),
