@@ -185,8 +185,8 @@ def remove_ghost_tags(raw_data, how_many_appearances,
     3. the tag was provided in tags.
 
     Args:
-    raw_data: a list of list or an 2D array
-        raw data read by Loader._read_in_raw_data
+    raw_data: a list of lists or an 2D array
+        raw_data read by Loader._read_in_raw_data
     how_many_appearances: int
         minimum number of tag registration
     how_many_days: float
