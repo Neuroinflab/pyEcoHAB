@@ -9,6 +9,11 @@ import numpy as np
 import pyEcoHAB.utils.for_loading as uf
 from pyEcoHAB import data_path
 
+STANDARD_ANTENNAS = {'1': 1, '2': 2,
+                         '3': 3, '4': 4,
+                         '5': 5, '6': 6,
+                         '7': 7, '8': 8}
+
 class TestParseFilename(unittest.TestCase):
     def test_normal(self):
         fname = "20190403_120000.txt"
@@ -298,6 +303,59 @@ class TestRemoveGhostTags(unittest.TestCase):
         out = uf.remove_ghost_tags(self.data, 0, 1)
         line = ["15894", "20101011 11:59:56.218", "4", "307", "mouse_1"]
         self.assertEqual(out[-1], line)
+
+class TestRemoveAntennas(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_2_mice")
+        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        cls.data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
+
+    def test_no_antennas(self):
+        data = uf.remove_antennas(self.data, None)
+        self.assertEqual(data, self.data)
+
+    def test_single_antenna_1(self):
+        data = uf.remove_antennas(self.data, 1)
+        lens = set([len(data[key]) for key in data])
+        self.assertEqual(len(lens), 1)
+
+    def test_single_antenna_1_2(self):
+        data = uf.remove_antennas(self.data, 1)
+        self.assertEqual(len(data["Tag"]), len(self.data["Tag"])-3)
+
+    def test_single_antenna_2(self):
+        data = uf.remove_antennas(self.data, 1)
+        mice = set(data["Tag"])
+        all_mice = set(self.data["Tag"])
+        self.assertEqual(mice, all_mice)
+
+    def test_nonexistent_antenna(self):
+        data = uf.remove_antennas(self.data, 9)
+        self.assertEqual(data, self.data)
+
+    def test_remove_antenna_list(self):
+        data = uf.remove_antennas(self.data, [1, 9])
+        lens = set([len(data[key]) for key in data])
+        self.assertEqual(len(lens), 1)
+
+    def test_remove_antenna_list_1(self):
+        data = uf.remove_antennas(self.data, [1, 9])
+        self.assertEqual(len(data["Tag"]), len(self.data["Tag"])-3)
+
+    def test_remove_antenna_list_2_1(self):
+        data = uf.remove_antennas(self.data, [1, 2])
+        lens = set([len(data[key]) for key in data])
+        self.assertEqual(len(lens), 1)
+
+    def test_remove_antenna_list_2_2(self):
+        data = uf.remove_antennas(self.data, [1, 2])
+        self.assertEqual(len(data["Tag"]), len(self.data["Tag"])-6)
+
+    def test_remove_antenna_list_3(self):
+        data = uf.remove_antennas(self.data, [1, 2])
+        mice = set(data["Tag"])
+        self.assertEqual(mice, set(["mouse_1", "mouse_2"]))
 
 
 if __name__ == '__main__':

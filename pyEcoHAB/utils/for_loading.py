@@ -157,6 +157,19 @@ def read_single_file(dir_path, fname):
 
 
 def remove_antennas(data, antennas):
+    """
+    Remove all antenna registrations from data.
+
+    Args:
+    data: a list of lista or an 2D array
+        data dictionary (raw_data transformed by from_raw_data)
+    antennas: int or list
+        either a single antenna or a list of antennas to remove
+
+
+    Returns:
+       data dictionary (same as data)
+    """
     if isinstance(antennas, int):
         antennas = [antennas]
     if isinstance(antennas, list):
