@@ -304,6 +304,40 @@ class TestRemoveGhostTags(unittest.TestCase):
         line = ["15894", "20101011 11:59:56.218", "4", "307", "mouse_1"]
         self.assertEqual(out[-1], line)
 
+class TestRemoveAntenna(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_2_mice")
+        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        cls.data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
+
+    def test_no_antenna(self):
+        data = uf.remove_one_antenna(self.data, None)
+        self.assertTrue((data==self.data).all())
+
+    def test_single_antenna_1(self):
+        data = uf.remove_one_antenna(self.data, 1)
+        self.assertEqual(data.shape[0], self.data.shape[0]-3)
+
+    def test_single_antenna_2(self):
+        data = uf.remove_one_antenna(self.data, 1)
+        self.assertFalse(1 in self.data["Antennas"])
+
+    def test_single_antenna_2(self):
+        data = uf.remove_one_antenna(self.data, 1)
+        mice = set(data["Tag"])
+        all_mice = set(self.data["Tag"])
+        self.assertEqual(mice, all_mice)
+
+    def test_nonexistent_antenna(self):
+        data = uf.remove_one_antenna(self.data, 9)
+        self.assertTrue((data==self.data).all())
+
+    def test_not_antenna(self):
+        data = uf.remove_one_antenna(self.data, "gugu")
+        self.assertTrue((data==self.data).all())
+
+
 class TestRemoveAntennas(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -311,52 +345,63 @@ class TestRemoveAntennas(unittest.TestCase):
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         cls.data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
 
-    def test_no_antennas(self):
-        data = uf.remove_antennas(self.data, None)
-        self.assertEqual(data, self.data)
-
     def test_single_antenna_1(self):
         data = uf.remove_antennas(self.data, 1)
-        lens = set([len(data[key]) for key in data])
-        self.assertEqual(len(lens), 1)
-
-    def test_single_antenna_1_2(self):
-        data = uf.remove_antennas(self.data, 1)
-        self.assertEqual(len(data["Tag"]), len(self.data["Tag"])-3)
-
-    def test_single_antenna_2(self):
-        data = uf.remove_antennas(self.data, 1)
-        mice = set(data["Tag"])
-        all_mice = set(self.data["Tag"])
-        self.assertEqual(mice, all_mice)
-
-    def test_nonexistent_antenna(self):
-        data = uf.remove_antennas(self.data, 9)
-        self.assertEqual(data, self.data)
-
-    def test_remove_antenna_list(self):
-        data = uf.remove_antennas(self.data, [1, 9])
-        lens = set([len(data[key]) for key in data])
-        self.assertEqual(len(lens), 1)
 
     def test_remove_antenna_list_1(self):
         data = uf.remove_antennas(self.data, [1, 9])
-        self.assertEqual(len(data["Tag"]), len(self.data["Tag"])-3)
+        self.assertEqual(data.shape[0], self.data.shape[0]-3)
+
+    def test_remove_antenna_list_1(self):
+        data = uf.remove_antennas(self.data, [1, None])
+        self.assertEqual(data.shape[0], self.data.shape[0]-3)
 
     def test_remove_antenna_list_2_1(self):
         data = uf.remove_antennas(self.data, [1, 2])
-        lens = set([len(data[key]) for key in data])
-        self.assertEqual(len(lens), 1)
-
-    def test_remove_antenna_list_2_2(self):
-        data = uf.remove_antennas(self.data, [1, 2])
-        self.assertEqual(len(data["Tag"]), len(self.data["Tag"])-6)
+        self.assertEqual(self.data.shape[0] - 6, data.shape[0])
 
     def test_remove_antenna_list_3(self):
         data = uf.remove_antennas(self.data, [1, 2])
         mice = set(data["Tag"])
-        self.assertEqual(mice, set(["mouse_1", "mouse_2"]))
+        self.assertEqual(mice,
+                         set(["mouse_1", "mouse_2"]))
+
+
+class TestTransformRaw(unittest.TestCase):
+    def test_date_1(self):
+        row = [1, "gugu", "2", 222, "AAA"]
+        self.assertRaises(ValueError, uf.transform_raw, row,
+                          STANDARD_ANTENNAS)
+
+    def test_correct(self):
+        row = [1, "20101010 11:00:49.020", '5', '102', 'mouse_3']
+        time = uf.time_to_sec(row[1])
+        out = uf.transform_raw(row, STANDARD_ANTENNAS)
+        out2 = (1, time, 5, 102, "mouse_3")
+        self.assertEqual(out, out2)
+
+
+class TestTransformAllData(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_2_mice")
+        cls.raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        cls.data = uf.from_raw_data(cls.raw_data, STANDARD_ANTENNAS)
+
+    def test_len(self):
+        self.assertEqual(len(self.raw_data), self.data.shape[0])
+
+    def test_width(self):
+        width = set([len(data) for data in self.raw_data])
+        print(self.data)
+        self.assertEqual(width, set([len(self.data.dtype)]))
+
+    def test_first_line(self):
+        line = uf.transform_raw(self.raw_data[0], STANDARD_ANTENNAS)
+        self.assertEqual(line, self.data[0].tolist())
+
 
 
 if __name__ == '__main__':
     unittest.main()
+

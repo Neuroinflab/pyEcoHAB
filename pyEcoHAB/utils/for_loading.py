@@ -156,6 +156,20 @@ def read_single_file(dir_path, fname):
     return raw_data
 
 
+def remove_one_antenna(data, antenna):
+    """
+    Remove animal tags registered by a specified antenna from 2D data array
+    """
+    if not isinstance(antenna, int):
+        return data
+    if antenna > 8 or antenna < 1:
+        return data
+    where = np.where(data["Antenna"] == antenna)[0]
+    if len(where) == 0:
+        return data
+    return np.delete(data, where, axis=0)
+
+
 def remove_antennas(data, antennas):
     """
     Remove all animal tag registrations by specified antennas from data.
@@ -172,19 +186,11 @@ def remove_antennas(data, antennas):
     """
     if isinstance(antennas, int):
         antennas = [antennas]
+    new_data = data.copy()
     if isinstance(antennas, list):
-        keys = data.keys()
-        new_data = {key:[] for key in keys}
-        for i, antenna in enumerate(data['Antenna']):
-            if antenna not in antennas:
-                for key in keys:
-                    new_data[key].append(data[key][i])
-            else:
-                print("Removing record",
-                      [data[key][i] for key in keys])
-        return new_data
-    return data
-
+        for antenna in antennas:
+            new_data = remove_one_antenna(new_data, antenna)
+    return new_data
 
 def remove_ghost_tags(raw_data, how_many_appearances,
                       how_many_days, tags=[]):
@@ -206,6 +212,9 @@ def remove_ghost_tags(raw_data, how_many_appearances,
         minimum number of days, on which the animal tag was registred
     tags: list
         animal tags to be removed from raw_data
+
+    Returns:
+       a list of lists or an 2D array (the same type as raw_data)
     """
     new_data = []
     ghost_mice = []
@@ -301,15 +310,22 @@ def run_diagnostics(raw_data, max_break):
                 print((breaks[1] - breaks[0])/3600, 'h')
     antenna_mismatch(raw_data)
 
+def transform_raw(row, a_pos):
+    return (int(row[0]), time_to_sec(row[1]),
+            a_pos[row[2]], int(row[3]), row[4])
+
 
 def from_raw_data(raw_data, antenna_positions):
-    data = {}
-    data['Id'] = [d[0] for d in raw_data]
-    data['Time'] = [time_to_sec(d[1]) for d in raw_data]
-    data['Antenna'] = [antenna_positions[d[2]] for d in raw_data]
-    data['Duration'] = [d[3] for d in raw_data]
-    data['Tag'] = [d[4] for d in raw_data]
-
+    """
+    Transform raw data, which is in the form of a double list
+    to a 2D structured array with registrations of animal tags.
+    """
+    new_data = []
+    for row in raw_data:
+        new_data.append(transform_raw(row, antenna_positions))
+    data_type = [("Id", int), ("Time", float), ("Antenna", int),
+                 ("Duration", int), ("Tag", "U15")]
+    data = np.array(new_data, dtype=data_type)
     return data
 
 
