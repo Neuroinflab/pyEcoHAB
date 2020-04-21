@@ -158,7 +158,7 @@ def read_single_file(dir_path, fname):
 
 def remove_antennas(data, antennas):
     """
-    Remove all antenna registrations from data.
+    Remove all animal tag registrations by specified antennas from data.
 
     Args:
     data: a list of lista or an 2D array
