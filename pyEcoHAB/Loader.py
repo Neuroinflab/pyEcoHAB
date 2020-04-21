@@ -266,9 +266,9 @@ class Loader(EcoHabDataBase):
             days.add(f_name.split('_')[0])
         how_many_days = len(days)/factor
         data = ufl.remove_ghost_tags(raw_data,
-                                       how_many_appearances,
-                                       how_many_days,
-                                       tags=tags)
+                                     how_many_appearances,
+                                     how_many_days,
+                                     tags=tags)
         data.sort(key=lambda x: ufl.time_to_sec(x[1]))
         return data
                          
