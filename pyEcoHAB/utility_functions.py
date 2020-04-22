@@ -66,13 +66,11 @@ def check_directory(directory, subdirectory=None):
     return new_path
 
 
-
 def make_figure(title):
     fig = plt.figure(figsize=(12,12))
     ax = fig.add_subplot(111, aspect='equal')
     fig.suptitle('%s'%(title), fontsize=14, fontweight='bold')
     return fig, ax
-
 
 
 def list_of_pairs(mice):
