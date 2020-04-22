@@ -393,7 +393,6 @@ class TestTransformAllData(unittest.TestCase):
 
     def test_width(self):
         width = set([len(data) for data in self.raw_data])
-        print(self.data)
         self.assertEqual(width, set([len(self.data.dtype)]))
 
     def test_first_line(self):
