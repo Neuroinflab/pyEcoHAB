@@ -41,13 +41,7 @@ class EcoHabDataBase(object):
 
     def _calculate_visits(self):
         temp_data = self._calculate_animal_positions()
-        data = {}
-        data['Address'] = [x[0] for x in temp_data]
-        data['Tag'] = [x[1] for x in temp_data]
-        data['AbsStartTimecode'] = [x[2] for x in temp_data]
-        data['AbsEndTimecode'] = [x[3] for x in temp_data]
-        data['VisitDuration'] = [x[4] for x in temp_data]
-        data['ValidVisitSolution'] = [x[5] for x in temp_data]
+        data = ufl.transform_visits(temp_data)
         return BaseFunctions.Visits(data, None)
 
     def mask_data(self, starttime, endtime):
