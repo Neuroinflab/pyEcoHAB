@@ -8,6 +8,7 @@ import random
 import numpy as np
 
 import pyEcoHAB.utils.for_loading as uf
+import pyEcoHAB.utility_functions as utils
 from pyEcoHAB import data_path
 
 STANDARD_ANTENNAS = {'1': 1, '2': 2,
@@ -555,6 +556,28 @@ class TestRunDiagnostics(unittest.TestCase):
                                              uf.print_human_time(breaks[1]),
                                              (breaks[1] - breaks[0])/3600)
         self.assertEqual(out, self.str12)
+
+
+class TestTransformVisits(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short")
+        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
+        cls.data =  utils.get_animal_position(data["Time"],
+                                              data["Antenna"],
+                                              "mouse_1", 2)
+        cls.visits = uf.transform_visits(cls.data)
+
+    def test1(self):
+        self.assertEqual(len(self.data), len(self.visits))
+
+    def test2(self):
+        self.assertEqual(len(self.visits.dtype), len(self.data[0]))
+
+    def test_mice(self):
+        out = set([row[1] for row in self.data])
+        self.assertEqual(set(self.visits["Tag"]), out)
 
 
 if __name__ == '__main__':

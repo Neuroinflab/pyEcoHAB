@@ -195,6 +195,7 @@ def remove_antennas(data, antennas):
             new_data = remove_one_antenna(new_data, antenna)
     return new_data
 
+
 def remove_ghost_tags(raw_data, how_many_appearances,
                       how_many_days, tags=[]):
     """
@@ -246,7 +247,6 @@ def remove_ghost_tags(raw_data, how_many_appearances,
             new_data.append(d)
 
     return new_data[:]
-
 
 
 def check_antenna_presence(raw_data, max_break):
@@ -339,6 +339,7 @@ def run_diagnostics(raw_data, max_break, res_dir):
              
     return out_f1, out_f2
 
+
 def transform_raw(row, a_pos):
     return (int(row[0]), time_to_sec(row[1]),
             a_pos[row[2]], int(row[3]), row[4])
@@ -354,8 +355,14 @@ def from_raw_data(raw_data, antenna_positions):
         new_data.append(transform_raw(row, antenna_positions))
     data_type = [("Id", int), ("Time", float), ("Antenna", int),
                  ("Duration", int), ("Tag", "U15")]
-    data = np.array(new_data, dtype=data_type)
-    return data
+    return np.array(new_data, dtype=data_type)
+
+
+def transform_visits(data):
+    data_type = [("Address", "U5"), ("Tag", "U15"), ("AbsStartTimecode", float),
+                 ("AbsEndTimecode", float), ("VisitDuration", float),
+                 ("ValidVisitSolution", bool)]
+    return np.array(data, dtype=data_type)
 
 
 class NamedDict(dict):
