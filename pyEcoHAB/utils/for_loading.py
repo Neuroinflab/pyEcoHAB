@@ -4,11 +4,14 @@ import time
 import sys
 from collections import OrderedDict
 import numpy as np
-
+from pyEcoHAB.utility_functions import check_directory
 try:
     basestring
 except NameError:
     basestring = str
+
+PAIRS = ["1 3", "1 4", "1 5", "1 6", "1 7", "2 4", "2 5", "2 6", "2 7", "2 8",
+         "3 5", "3 6", "3 7", "3 8", "4 6", "4 7", "4 8", "5 7", "5 8", "6 8"]
 
 def results_path(path):
     return os.path.join(path, 'Results')
@@ -248,67 +251,93 @@ def remove_ghost_tags(raw_data, how_many_appearances,
 
 def check_antenna_presence(raw_data, max_break):
     t_start = raw_data['Time'][0]
-    all_times = np.array(raw_data['Time'])
+    all_times = raw_data['Time']
     breaks = {}
-
+    t_end = raw_data['Time'][-1]
+    
     for antenna in range(1, 9):
-        antenna_idx = np.where(np.array(raw_data['Antenna']) == antenna)[0]
+        antenna_idx = np.where(raw_data['Antenna'] == antenna)[0]
         times = all_times[antenna_idx]
         breaks[antenna] = []
         if len(times):
             if times[0] - t_start > max_break:
-                breaks[antenna].append([0, np.round(times[0])])
+                breaks[antenna].append([t_start, np.round(times[0])])
             intervals = times[1:] - times[0:-1]
             where_breaks = np.where(intervals > max_break)[0]
             if len(where_breaks):
                 for i in where_breaks:
                     breaks[antenna].append([np.round(times[i]), np.round(times[i+1])])
+            if t_end - times[-1] > max_break:
+                breaks[antenna].append([np.round(times[-1]), t_end])
         else:
             breaks[antenna].append([np.round(t_start),
                                     raw_data['Time'][-1]])
     return breaks
 
+
 def antenna_mismatch(raw_data):
     t_start = raw_data['Time'][0]
-    all_times = np.array(raw_data['Time'])
-    weird_transit = [[], []]
+    all_times = raw_data['Time']
     mice = set(raw_data['Tag'])
+    mismatches = OrderedDict()
+    for pair in PAIRS:
+        mismatches[pair] = 0
+
     for mouse in mice:
         mouse_idx = np.where(np.array(raw_data['Tag']) == mouse)[0]
         times = all_times[mouse_idx]
-        antennas = np.array(raw_data['Antenna'])[mouse_idx]
-        for i, a in enumerate(antennas[:-1]):
-            if abs(a - antennas[i+1]) not in [0,1,7]:
-                weird_transit[0].append(times[i])
-                if a < antennas[i+1]:
-                    weird_transit[1].append("\t    %d,\t\t\t %d" % (a,
-                                                                    antennas[i+1]))
+        ant = raw_data['Antenna'][mouse_idx]
+        for i, a in enumerate(ant[:-1]):
+            if abs(a - ant[i+1]) not in [0, 1, 7]:
+                if a < ant[i+1]:
+                    key = "%d %d" % (a, ant[i+1])
                 else:
-                    weird_transit[1].append("\t    %d,\t\t\t %d" % (antennas[i+1],
-                                                                    a))
-    pairs = list(set(weird_transit[1]))
+                    key = "%d %d" % (ant[i+1], a)
+                mismatches[key] += 1
+    return mismatches
 
-    mismatches = OrderedDict()
-    print("Mismatched antenna readings\n")
-    print("First reading, consecutive reading,  count, percentage\n")
-    for pair in pairs:
-        mismatches[pair] = weird_transit[1].count(pair)
-        print("%s,\t%d, %3.2f per 100"% (pair, mismatches[pair],
-                                         np.round(100*mismatches[pair]/len(raw_data['Antenna']))))
-    return weird_transit
-
-
-def run_diagnostics(raw_data, max_break):
+def run_diagnostics(raw_data, max_break, res_dir):
+    mismatches = antenna_mismatch(raw_data)
+    out_f1 = "First reading, consecutive reading,  count, percentage\n"
+    print("Mismatched antenna readings")
+    print("First reading, consecutive reading,  count, percentage")
+   
+    for pair in mismatches.keys():
+        exact_mis = np.round(100*mismatches[pair]/len(raw_data['Antenna']))
+        print("%s,\t%d, %3.2f per 100"% (pair, mismatches[pair], exact_mis))
+        out_f1 += "%s,\t%d, %3.2f per 100\n"% (pair, mismatches[pair],
+                                               exact_mis)
+    
     antenna_breaks = check_antenna_presence(raw_data, max_break)
-    if antenna_breaks:
-        print('No registrations on antennas:')
-        for antenna in antenna_breaks:
-            print(antenna, ':')
-            for breaks in antenna_breaks[antenna]:
-                print(print_human_time(breaks[0]),
-                      print_human_time(breaks[1]))
-                print((breaks[1] - breaks[0])/3600, 'h')
-    antenna_mismatch(raw_data)
+    
+    print('Breaks in registrations on antennas:')
+    out_f2 = 'Breaks in registrations on antennas:\n'
+    for antenna in antenna_breaks:
+        print(antenna, ':')
+        out_f2 += "%d:\n" % antenna
+        for breaks in antenna_breaks[antenna]:
+            print("%s %s, %4.2f h" % (print_human_time(breaks[0]),
+                                      print_human_time(breaks[1]),
+                                      (breaks[1] - breaks[0])/3600))
+            out_f2 += "%s %s, %4.2f h\n" % (print_human_time(breaks[0]),
+                                           print_human_time(breaks[1]),
+                                           (breaks[1] - breaks[0])/3600)
+
+    new_path = check_directory(res_dir, "diagnostics")
+
+    fpath1 = os.path.join(new_path, "antenna_mismatches.csv")
+    f1 = open(fpath1, "w")
+
+    fpath2 = os.path.join(new_path, "breaks_in_registrations.csv")
+    f2 = open(fpath2, "w")
+
+    f1.write(out_f1)
+
+    f2.write(out_f2)
+    f1.close()
+    f2.close()
+             
+    return out_f1, out_f2
 
 def transform_raw(row, a_pos):
     return (int(row[0]), time_to_sec(row[1]),

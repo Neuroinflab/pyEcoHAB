@@ -2,6 +2,7 @@
 # encoding: utf-8
 from __future__ import print_function, division, absolute_import
 import os
+import glob
 import unittest
 import random
 import numpy as np
@@ -399,6 +400,161 @@ class TestTransformAllData(unittest.TestCase):
         line = uf.transform_raw(self.raw_data[0], STANDARD_ANTENNAS)
         self.assertEqual(line, self.data[0].tolist())
 
+class TestAntennaMismatch(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_2_mice")
+        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
+        cls.mismatch1 = uf.antenna_mismatch(data)
+
+    def test_1(self):
+        self.assertEqual(2, self.mismatch1["3 6"])
+
+    def test_2(self):
+        self.assertEqual(1, self.mismatch1["1 3"])
+
+    def test_3(self):
+        self.assertEqual(1, self.mismatch1["4 6"])
+
+    def test_all_others(self):
+        out = sum(list(self.mismatch1.values()))
+        self.assertEqual(4, out)
+
+class TestCheckAntennaPresence(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_2_mice")
+        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
+        cls.presences = uf.check_antenna_presence(data, 24*3600)
+        cls.end = data["Time"][-1]
+        cls.begs = []
+        for key in cls.presences.keys():
+            if len(cls.presences[key]):
+                cls.begs.append(cls.presences[key][0][0])
+        cls.begs_data = []
+        for antenna in range(1, 9):
+            if antenna == 4:
+                continue
+            idx = np.where(data["Antenna"]==antenna)[0][-1]
+            cls.begs_data.append(np.round(data["Time"][idx]))
+
+    def test_1(self):
+        self.assertEqual(len(self.presences[4]), 0)
+
+    def test_end(self):
+        ends = []
+        for key in self.presences.keys():
+            if len(self.presences[key]):
+                ends.append(self.presences[key][0][-1])
+        self.assertEqual(set(ends), set([self.end]))
+
+    def test_beg_1(self):
+        self.assertEqual(set(self.begs), set(self.begs_data))
+
+    def test_beg_2(self):
+        self.assertEqual(len(set(self.begs)), len(self.begs))
+
+class TestRunDiagnostics(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_2_mice")
+        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
+        cls.mismatch1 = uf.antenna_mismatch(data)
+        cls.presences1 = uf.check_antenna_presence(data, 24*3600)
+        res_path = os.path.join(path, "Results")
+        files = glob.glob(os.path.join(res_path + "/diagnostics/*.csv"))
+        for f in files:
+            print("rm ", f)
+        cls.length = len(data["Antenna"])
+        cls.str11, cls.str12 = uf.run_diagnostics(data, 24*3600, res_path)
+        
+        path = os.path.join(data_path, "weird_short")
+        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
+        cls.mismatch2 = uf.antenna_mismatch(data)
+        cls.presences2 = uf.check_antenna_presence(data, 24*3600)
+        res_path = os.path.join(path, "Results")
+        files = glob.glob(os.path.join(res_path + "/diagnostics/*.csv"))
+
+        for f in files:
+            os.remove(f)
+
+        cls.str21, cls.str22 = uf.run_diagnostics(data, 24*3600, res_path)
+
+
+    def test_no_registration_breaks(self):
+        all_antennas_registered = "Breaks in registrations on antennas:\n"
+        for antenna in range(1, 9):
+            all_antennas_registered += "%d:\n" % antenna
+        self.assertEqual(all_antennas_registered, self.str22)
+
+    def test_no_registration_breaks_file(self):
+        path = os.path.join(data_path, "weird_short")
+        res_path = os.path.join(path, "Results")
+        f_path = os.path.join(res_path +
+                              "/diagnostics/breaks_in_registrations.csv")
+        f = open(f_path)
+        read = f.read()
+        self.assertEqual(read, self.str22)
+
+    def test_no_mismatch_antennas_file(self):
+        path = os.path.join(data_path, "weird_short")
+        res_path = os.path.join(path, "Results")
+        f_path = os.path.join(res_path +
+                              "/diagnostics/antenna_mismatches.csv")
+        f = open(f_path)
+        read = f.read()
+        self.assertEqual(read, self.str21)
+
+    def test_registration_breaks_file(self):
+        path = os.path.join(data_path, "weird_short_2_mice")
+        res_path = os.path.join(path, "Results")
+        f_path = os.path.join(res_path +
+                              "/diagnostics/breaks_in_registrations.csv")
+        f = open(f_path)
+        read = f.read()
+        self.assertEqual(read, self.str12)
+
+    def test_mismatch_antennas_file(self):
+        path = os.path.join(data_path, "weird_short_2_mice")
+        res_path = os.path.join(path, "Results")
+        f_path = os.path.join(res_path +
+                              "/diagnostics/antenna_mismatches.csv")
+        f = open(f_path)
+        read = f.read()
+        self.assertEqual(read, self.str11)
+
+    def test_no_mismatch_string(self):
+        out = "First reading, consecutive reading,  count, percentage\n"
+        for pair in uf.PAIRS:
+            out+= "%s,\t%d, %3.2f per 100\n"% (pair, 0, 0.00)
+        self.assertEqual(self.str21, out)
+
+    def test_mismatch_string(self):
+        out = "First reading, consecutive reading,  count, percentage\n"
+        for pair in uf.PAIRS:
+            if pair in ["3 6", "1 3", "4 6"]:
+                exact_mis = np.round(100*self.mismatch1[pair]/self.length)
+                out+= "%s,\t%d, %3.2f per 100\n" % (pair, self.mismatch1[pair],
+                                                    exact_mis)
+            else:
+                out+= "%s,\t%d, %3.2f per 100\n" % (pair, 0, 0.00)
+        print(out)
+        print(self.str11)
+        self.assertEqual(out, self.str11)
+
+    def test_presence_string(self):
+        out = 'Breaks in registrations on antennas:\n'
+        for antenna in range(1, 9):
+            out += "%d:\n" % antenna
+            for breaks in self.presences1[antenna]:
+                out += "%s %s, %4.2f h\n" % (uf.print_human_time(breaks[0]),
+                                             uf.print_human_time(breaks[1]),
+                                             (breaks[1] - breaks[0])/3600)
+        self.assertEqual(out, self.str12)
 
 
 if __name__ == '__main__':

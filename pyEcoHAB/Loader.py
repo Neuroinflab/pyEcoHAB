@@ -245,7 +245,7 @@ class Loader(EcoHabDataBase):
         data = ufl.remove_antennas(data, remove_antennas)
         #As in antenna readings
         
-        ufl.run_diagnostics(data, self.max_break)
+        ufl.run_diagnostics(data, self.max_break, self.res_dir)
         super(Loader, self).__init__(data, self.mask,
                                      self.visit_threshold)
         self.cages = self.get_cages()
