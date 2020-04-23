@@ -1,0 +1,46 @@
+EcoHab.py - analysing data from Eco-HAB
+
+*Data analysis method*
+
+The raw data saved by the Eco-HAB are a series of events where an RFID tag is detected by an antenna. Every such event is characterized by: a sequential event number, date and time (given with the precision of 1 millisecond), antenna number, and RFID tag number. The events are written to text files, with each file containing the data collected during one hour. 
+
+The key step of the analysis is to convert a series of antenna registrations of a single mouse to a series of visits (here termed sessions) of that mouse to the four cages. The basic idea is that we consider two consecutive antenna registrations and based on the location of these antennas we determine in which of the cages the mouse spent that period. This simple idea is complicated by the fact that in rare cases a mouse can pass through an antenna without trigerring an event. Specifically, we use the following procedure:
+
+1. for each mouse we make a list of all events e1, e2, ... eN, 
+2. we consider two consecutive events at a time, that is (e1, e2) in the first step, then (e2, e3), and so on until (eN-1, eN),
+3. for each pair of events we check the following conditions:
+3a. if the time between the two events is less than a given threshold (we used two seconds), the pair is skipped,
+3b. if both events were recorded at the same antenna, we determine that the mouse spent that time in the nearest cage,
+3c. if both events were recorded in the same corridor, the pair is skipped,
+3d. if the two events were recorded in two corridors adjacent to a cage, we determine that the mouse spent that time in the cage,
+3e. if the two events were recorded in the opposite (parallel) coridors, the pair is skipped. This is a very rare event, as it can only happen if a mouse passes at least two antennas unnoticed.
+
+The result of this procedure is a list of sessions, with each session characterized by start and end times, cage number and RFID tag number. Additionally, for each session we store a flag indicating whether the two antenna registrations which were converted to this session were in the consecutive antennas. 
+
+*Implementation*
+
+The method described above has been implemented in Python 2.7 programming language. We provide a Python script EcoHab.py which exposes two classes: EcoHabData and EcoHabSessions. The EcoHabData object is used to load and merge raw text files containing antenna events. The syntax is:
+
+ehd = EcoHabData(path_to_data)
+
+The list of tag numbers is stored in ehd.mice. The data can be accesed through methods ehd.getantennas(mice), ehd.gettimes(mice), which return antenna numbers and event times, respectively, for tags listed as an argument 'mice' (can be a single tag or a list).
+
+The EcoHabSessions object is then created based on ehd:
+ehs = EcoHabSessions(ehd)
+This generates the list of sessions. The data can be acceses through methods ehs.getaddresses(mice), ehs.getstarttimes(mice), ehs.getendtimes(mice), and ehs.getdurations(mice), which return cage numbers, start times, end times, and durations of sessions, respectively. Data can be masked using ehs.mask_data(t1, t2). In that case, only sessions starting after t1 and before t2 will be considered. 
+
+All times are internally represented as UNIX epochs (ie., time in seconds since a fixed date in history). To facilitate masking the data to relevant periods within the experiment, the experimental phases are defined in a text file config.txt in the following format:
+
+[EMPTY 1 dark]
+startdate = 16.02.2015
+starttime = 12:00
+enddate = 17.02.2015
+endtime = 00:00
+
+Such a configuration file is read using a helper class ExperimentConfigFile (defined in ExperimentConfigFile.py):
+cf = ExperimentConfigFile(path_to_data),
+and masking can be now achieved using eg.:
+ehs.mask_data(*cf.gettime('EMPTY 1 dark'))
+From now on all responses will be limited to sessions starting during the 'EMPTY 1 dark' phase. 
+
+The scripts for data analysis together with an example data set (one cohort of BALB VPA mice) are provided as supplementary online material.
