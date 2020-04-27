@@ -453,17 +453,17 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                       symmetric=False)
     write_csv_rasters(ehd.mice,
                       phases,
-                      following_exp,
+                      (following-following_exp),
                       res_dir,
                       'following/raster_plots',
-                      fname_exp_rev,
+                      fname_exp,
                       symmetric=False)
     write_csv_rasters(ehd.mice,
                       phases,
                       (following-following_exp),
                       res_dir,
                       'following/raster_plots',
-                      fname_exp,
+                      fname_exp_rev,
                       symmetric=False,
                       reverse_order=True)
 
