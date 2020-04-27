@@ -308,8 +308,8 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
     else:
         method = "mean_N_%d" % N
     fname = 'following_%s_%s' % (method, add_info_mice)
-    fname_ = 'following_%s_%s%s.csv' % (method, prefix,
-                                         add_info_mice)
+    fname_ = 'following_%s%s.csv' % (prefix, add_info_mice)
+    fname_rev_ = 'leading_%s%s.csv' % (prefix, add_info_mice)
     fname_beg = 'following_excess'
     fname_rev = 'leading_excess'
     fname_exp = '%s_%s_%s%s.csv' % (fname_beg,
@@ -453,17 +453,25 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                       symmetric=False)
     write_csv_rasters(ehd.mice,
                       phases,
-                      following_exp,
+                      following,
                       res_dir,
                       'following/raster_plots',
-                      fname_exp_rev,
-                      symmetric=False)
+                      fname_rev_,
+                      symmetric=False,
+                      reverse_order=True)
     write_csv_rasters(ehd.mice,
                       phases,
                       (following-following_exp),
                       res_dir,
                       'following/raster_plots',
                       fname_exp,
+                      symmetric=False)
+    write_csv_rasters(ehd.mice,
+                      phases,
+                      (following-following_exp),
+                      res_dir,
+                      'following/raster_plots',
+                      fname_exp_rev,
                       symmetric=False,
                       reverse_order=True)
 
