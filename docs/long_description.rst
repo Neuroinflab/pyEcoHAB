@@ -37,10 +37,10 @@ Load the experiment:
 
 >>> data = pyEcoHAB.Loader(pyEcoHAB.sample_data)
 
-Eco-HAB data is stored as text files containing hourly registrations of animals by antennas. Each event is a separate line, in which id, date, time of registration, antenna id, duration of registration (in ms) and animal tag. :class:`pyEcoHAB.Loader` locates these hourly files in provided location (in this case it is pyEcoHAB.sample_data), reads them in and parses the events. :class:`pyEcoHAB.Loader` also performs data diagnostics:
+Eco-HAB data is stored in text files containing hourly registrations of animal tags by nearby antennas. In the files each event is a separate line containing registration id, date, time of registration, antenna id, duration of registration (in ms) and animal tag. :class:`pyEcoHAB.Loader` locates these hourly files in provided location (in this case it is pyEcoHAB.sample_data), reads them in and parses the events. :class:`pyEcoHAB.Loader` also performs data diagnostics:
 1. Eliminates events that are not trustworthy ('ghost-tags').
 2. Lists out which antennas had no registrations for a specified amount of time. Typically antennas that were silent for more that 1 h are listed together with date and time they were silent.
-3. Counts how many antenna registrations have been omitted. The design of the Eco-HAB restricts for each animal consecutive antenna recordings. Consecutive antenna id can differ either by 1 or by 7 (in case of antennas 1 and 8). :class:`pyEcoHAB.Loader` counts all the cases when antenna id difference is incorrect and lists the statistics on in-correct registrations.
+3. Counts how many antenna registrations have been omitted. The design of the Eco-HAB restricts, which antennas recorded an animal tag in a sequence. For a specified animal tag for consecutive recordings antenna id can differ either by 1 or by 7 (in case of antennas 1 and 8). :class:`pyEcoHAB.Loader` counts all the cases when antenna id difference is incorrect and lists the statistics as in-correct registrations.
 
 
 Timeline of the experiment 
