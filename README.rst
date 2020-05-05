@@ -17,7 +17,7 @@ Authors
 * Szymon Łęski
 
 
-Acknowledgement
+Acknowledgements
 ---------------
 
 Prerequisites
