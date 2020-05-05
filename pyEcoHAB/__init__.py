@@ -1,6 +1,8 @@
 import os
 ecohab_loc = os.path.dirname(os.path.abspath(__file__))
-sample_data_path = os.path.join(ecohab_loc, '..', 'data')
+data_path = os.path.join(ecohab_loc, '..', 'data')
+sample_data = os.path.join(data_path, "BALB_VPA_data_cohort_1")
+
 
 from .Loader import Loader, Merger
 from .ExperimentConfigFile import ExperimentConfigFile

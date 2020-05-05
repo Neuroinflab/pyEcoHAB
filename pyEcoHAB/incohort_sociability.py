@@ -186,7 +186,7 @@ def get_dark_light_data(phase, cf, ehs, mice):
     out_data = {phase: {0: data}}
     return out_phases, {phase: {0: total_time}}, {phase: {0: data}}
 
-def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
+def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice, filter_dark=True):
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
         time = cf.gettime("ALL")
@@ -195,12 +195,15 @@ def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
         keys = [["ALL"], [0]]
     elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
         phases, total_time, data = get_dark_light_data(bins, cf, ehs, mice)
-        keys = [list(data.keys()), [0]]
-    elif isinstance(bins, int) or isintance(bins, float):
+        keys = [data.keys(), [0]]
+    elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
         data = OrderedDict()
         total_time = OrderedDict()
-        all_phases = utils.filter_dark(cf.sections())
+        if filter_dark:
+            all_phases = utils.filter_dark(cf.sections())
+        else:
+            all_phases = utils.filter_dark_light(cf.sections())
         bin_labels = utils.get_times(bins)
         for phase in all_phases:
             t_start, t_end = cf.gettime(phase)
@@ -209,7 +212,10 @@ def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
             total_time[phase] = OrderedDict()
             j = 0
             while t_start < t_end:
-                time = [t_start, t_start + bins]
+                t_e = t_start + bins
+                if t_e > t_end:
+                    t_e = t_end
+                time = [t_start, t_e]
                 data[phase][bin_labels[j]] = utils.prepare_data(ehs, mice, time)
                 total_time[phase][bin_labels[j]] = time[1] - time[0]
                 t_start += bins
@@ -295,7 +301,8 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                                                          cf,
                                                          prefix,
                                                          binsize,
-                                                         mice)
+                                                         mice,
+                                                         filter_dark)
     if isinstance(binsize, int) or isinstance(binsize, float):
         binsize_name = "%3.2f_h" % (binsize/3600)
         if binsize == 43200:

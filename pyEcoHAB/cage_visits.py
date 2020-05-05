@@ -41,13 +41,15 @@ def get_visits(intervals, t_start, t_stop):
 
 
 def get_visits_in_bins(intervals, time_start,
-                       time_end, binsize):
-    length = utils.get_length(time_start, time_end, binsize)
+                       time_stop, binsize):
+    length = utils.get_length(time_start, time_stop, binsize)
     visits = []
     added_visit = []
     for i in range(length):
         t_start = time_start + i*binsize
         t_end = time_start + (i+1)*binsize
+        if t_end > time_stop:
+            t_end = time_stop
         last_visits, outs = get_visits(intervals, t_start, t_end)
         visits.append(last_visits)
         added_visit.append(outs)
@@ -162,15 +164,15 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
             data[address][1][phase] = visit_data[1]
             bin_labels[phase] = utils.get_times(binsize)
             visits_in_cages[address] = visit_data[2]
-            
-        if save_histogram:
-            make_visit_duration_histogram(visits_in_cages,
-                                          bin_labels[phase],
-                                          phase, mice,
-                                          histogram_fname, res_dir,
-                                          "other_variables/visit_histograms_binsize_%3.1f"
-                                          % (binsize/3600),
-                                          prefix, add_info_mice)
+        if "dark" in phase or "DARK" in phase:
+            if  save_histogram:
+                make_visit_duration_histogram(visits_in_cages,
+                                              bin_labels[phase],
+                                              phase, mice,
+                                              histogram_fname, res_dir,
+                                              "other_variables/visit_histograms_binsize_%3.1f"
+                                              % (binsize//3600),
+                                              prefix, add_info_mice)
             save_visit_duration(visits_in_cages,
                                 bin_labels[phase],
                                 phase, mice,
