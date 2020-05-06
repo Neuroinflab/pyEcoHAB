@@ -171,7 +171,7 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
                                               phase, mice,
                                               histogram_fname, res_dir,
                                               "other_variables/visit_histograms_binsize_%3.1f"
-                                              % (binsize//3600),
+                                              % (binsize/3600),
                                               prefix, add_info_mice)
             save_visit_duration(visits_in_cages,
                                 bin_labels[phase],
