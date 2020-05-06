@@ -133,7 +133,7 @@ class Loader(EcoHabDataBase):
         self.max_break = kwargs.pop("max_break", self.MAX_BREAK)
         how_many_appearances = kwargs.pop('how_many_appearances', 50)
         remove_antennas = kwargs.pop('remove_antennas', [])
-        factor = kwargs.pop('factor',2)
+        factor = kwargs.pop('factor', 2)
         tags = kwargs.pop('remove_mice',[])
 
         #Read in data
