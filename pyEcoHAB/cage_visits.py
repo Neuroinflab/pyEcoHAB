@@ -92,9 +92,8 @@ def get_activity(ehs, cf, binsize, res_dir=None, prefix=None,
                  'Total time in box %s, seconds\n']
     
     phases = utils.filter_dark_light(cf.sections())
-    fname = '%sactivity_bin_%3.1f_h.csv'%(prefix,
-                                                                  binsize//3600)
-    histogram_fname = 'activity_histograms_bin_%3.1f_h' % (binsize//3600)
+    fname = '%sactivity_bin_%3.1f_h.csv'%(prefix, binsize/3600)
+    histogram_fname = 'activity_histograms_bin_%3.1f_h' % (binsize/3600)
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     
@@ -124,7 +123,7 @@ def get_activity(ehs, cf, binsize, res_dir=None, prefix=None,
                                               phase, mice,
                                               histogram_fname, res_dir,
                                               "other_variables/visit_histograms_binsize_%3.1f"
-                                              % (binsize//3600),
+                                              % (binsize/3600),
                                               prefix, add_info_mice)
             save_visit_duration(visits_in_cages,
                                 bin_labels[phase],
