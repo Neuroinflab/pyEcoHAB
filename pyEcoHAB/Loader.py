@@ -1,6 +1,10 @@
 from __future__ import print_function, division, absolute_import
 import os
+import sys
+from collections import OrderedDict
+
 import numpy as np
+
 from . import BaseFunctions
 from . import utility_functions as utils
 
@@ -11,8 +15,8 @@ class EcoHabDataBase(object):
         self.threshold = threshold
         self.mice = self.get_mice()
         self.visits = self._calculate_visits()
-        self.session_start = sorted(self.gettimes(self.mice))[0]
-        self.session_end = sorted(self.gettimes(self.mice))[-1]
+        self.session_start = sorted(self.get_times(self.mice))[0]
+        self.session_end = sorted(self.get_times(self.mice))[-1]
 
     def _calculate_animal_positions(self):
         tempdata = []
@@ -39,8 +43,8 @@ class EcoHabDataBase(object):
 
     def mask_data(self, starttime, endtime):
         self.mask = (starttime, endtime)
-        self.readings.mask_data(*self.mask)
-        self.visits.mask_data(*self.mask)
+        self.readings.mask_data(self.mask)
+        self.visits.mask_data(self.mask)
 
     def unmask_data(self):
         """Remove the mask - future queries will not be clipped"""
@@ -48,40 +52,40 @@ class EcoHabDataBase(object):
         self.readings.unmask_data()
         self.visits.unmask_data()
 
-    def getantennas(self, mice):
+    def get_antennas(self, mice):
         return self.readings.getproperty(mice,
                                          'Antenna')
 
-    def gettimes(self, mice):
+    def get_times(self, mice):
         return self.readings.getproperty(mice,
                                          'Time',
                                          'float')
-    def getdurations(self, mice):
+    def get_durations(self, mice):
         """Return duration of registration
         by antenna"""
         return self.readings.getproperty(mice,
                                          'Duration',
                                          'float')
     #add get_visits, get_readings
-    def getaddresses(self, mice):
+    def get_visit_addresses(self, mice):
         return self.visits.getproperty(mice,
                                        'Address')
-    def getstarttimes(self, mice):
+    def get_starttimes(self, mice):
         return self.visits.getproperty(mice,
                                        'AbsStartTimecode',
                                        'float')
 
-    def getendtimes(self, mice):
+    def get_endtimes(self, mice):
         return self.visits.getproperty(mice,
                                        'AbsEndTimecode',
                                        'float')
 
-    def getvisitdurations(self, mice):
+    def get_visit_durations(self, mice):
         return self.visits.getproperty(mice,
                                        'VisitDuration',
                                        'float')
     def how_many_antennas(self):
-        all_antennas = set(self.getantennas(self.mice))
+        all_antennas = set(self.get_antennas(self.mice))
         return len(all_antennas)
 
     def get_mice(self):
@@ -103,7 +107,7 @@ class EcoHabDataBase(object):
         """
         antennas = []
         for mouse in self.mice:
-            antennas.append(self.getantennas(mouse)[0])
+            antennas.append(self.get_antennas(mouse)[0])
         return max(set(antennas), key=antennas.count)
 
 
@@ -118,12 +122,12 @@ class Loader(EcoHabDataBase):
     def __init__(self, path, **kwargs):
         #Read in parameters
         self.path = path
-        _ant_pos = kwargs.pop('antenna_positions', None)
+        antenna_pos = kwargs.pop('antenna_positions', None)
 
-        if _ant_pos is None:
-            self._ant_pos = self.STANDARD_ANTENNAS
+        if antenna_pos is None:
+            self.antenna_pos = self.STANDARD_ANTENNAS
         else:
-            self._ant_pos = _ant_pos
+            self.antenna_pos = antenna_pos
 
         self.mask = kwargs.pop('mask', None)
         self.threshold = kwargs.pop('antenna_threshold', 2.)
@@ -141,7 +145,7 @@ class Loader(EcoHabDataBase):
                                         how_many_appearances,
                                         tags)
         data = self._from_raw_data(rawdata,
-                                 self._ant_pos,
+                                 self.antenna_pos,
                                  remove_antennas)
         #As in antenna readings
 
@@ -151,7 +155,7 @@ class Loader(EcoHabDataBase):
         self.cages = self.get_cages()
 
     def get_cages(self):
-        return sorted(list(set(self.getaddresses(self.mice))))
+        return sorted(list(set(self.get_visit_addresses(self.mice))))
 
     @staticmethod
     def _remove_antennas(data, antennas):
@@ -171,7 +175,7 @@ class Loader(EcoHabDataBase):
         return data
 
     def _read_single_file(self, fname):
-        """Reads in single data file"""
+        """Reads in a single data file"""
         hour, date, datenext = utils.parse_fname(fname)
         raw_data = []
         f = open(os.path.join(self.path, fname),'r')
@@ -192,10 +196,27 @@ class Loader(EcoHabDataBase):
         return raw_data
 
     @staticmethod
-    def _remove_ghost_tags(raw_data,
-                           how_many_appearances,
-                           how_many_days,
-                           tags=[]):
+    def _remove_ghost_tags(raw_data, how_many_appearances,
+                           how_many_days, tags=[]):
+        """
+        Remove animal tag registrations that are untrustworthy.
+
+        This method removes all animal tag registration, when the Eco-HAB
+        system registered the animal tag, if:
+        1. less times than how_many days,
+        2. during less than how_many_days of the experiment,
+        3. the tag was provided in tags.
+
+        Args:
+        raw_data: a list of list or an 2D array
+           raw data read by Loader._read_in_raw_data 
+        how_many_appearances: int
+           minimum number of tag registration
+        how_many_days: float
+           minimum number of days, on which the animal tag was registred
+        tags: list
+           animal tags to be removed from raw_data
+        """
         new_data = []
         ghost_mice = []
         counters = {}
@@ -230,6 +251,8 @@ class Loader(EcoHabDataBase):
         raw_data = []
         days = set()
         self._fnames = utils.get_filenames(self.path)
+        if not len(self._fnames ):
+            sys.exit("%s is empty"% self.path)
         for f_name in self._fnames:
             raw_data += self._read_single_file(f_name)
             days.add(f_name.split('_')[0])
@@ -256,7 +279,7 @@ class Loader(EcoHabDataBase):
     def run_diagnostics(self, raw_data):
         antenna_breaks = self.check_antenna_presence(raw_data)
         if antenna_breaks:
-            print('Antenna not working')
+            print('No registrations on antennas:')
             for antenna in antenna_breaks:
                 print(antenna, ':')
                 for breaks in antenna_breaks[antenna]:
@@ -301,17 +324,20 @@ class Loader(EcoHabDataBase):
                 if abs(a - antennas[i+1]) not in [0,1,7]:
                     weird_transit[0].append(times[i])
                     if a < antennas[i+1]:
-                        weird_transit[1].append(str(a)+' '+str(antennas[i+1]))
+                        weird_transit[1].append("\t    %d,\t\t\t %d" % (a,
+                                                                antennas[i+1]))
                     else:
-                        weird_transit[1].append(str(antennas[i+1])+' '+str(a))
+                        weird_transit[1].append("\t    %d,\t\t\t %d" % (antennas[i+1],
+                                                                    a))
         pairs = list(set(weird_transit[1]))
 
-        mismatches = {}
+        mismatches = OrderedDict()
+        print("Mismatched antenna readings\n")
+        print("First reading, consecutive reading,  count, percentage\n")
         for pair in pairs:
             mismatches[pair] = weird_transit[1].count(pair)
-            print(pair, mismatches[pair],
-                  np.round(100*mismatches[pair]/len(raw_data['Antenna'])),
-                  'per 100')
+            print("%s,\t%d, %3.2f per 100"% (pair, mismatches[pair],
+                  np.round(100*mismatches[pair]/len(raw_data['Antenna']))))
         return weird_transit
 
                         
@@ -322,8 +348,8 @@ class Loader(EcoHabDataBase):
         return mystring
 
     def check_single_mouse_data(self, mouse):
-        antennas = self.data.getantennas(mouse)
-        times  = self.data.gettimes(mouse)
+        antennas = self.data.get_antennas(mouse)
+        times  = self.data.get_times(mouse)
         error_crossing_times = []
         for i, next_antenna in enumerate(antennas[1:]):
             if abs(next_antenna - antennas[i]) not in [0, 1]:
@@ -351,8 +377,8 @@ class Merger(EcoHabDataBase):
                 print("ERROR processing {}".format(data_source))
                 raise
         self.mice = self.get_mice()
-        self.session_start = sorted(self.gettimes(self.mice))[0]
-        self.session_end = sorted(self.gettimes(self.mice))[-1]
+        self.session_start = sorted(self.get_times(self.mice))[0]
+        self.session_end = sorted(self.get_times(self.mice))[-1]
         self.res_dir = kwargs.pop("results_path",
                                   data_sources[0].res_dir  + "_merged")
         self.prefix = kwargs.pop("results_path",

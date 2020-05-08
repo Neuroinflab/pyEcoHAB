@@ -250,7 +250,8 @@ def check_mouse1_defending(antennas1, times1, antennas2, times2, home_cage_anten
     return dominance_counter
 
 
-def get_tube_dominance_2_cages(ehd, cf, res_dir=None, prefix=None, dt=dt):
+def get_tube_dominance_2_cages(ehd, cf, res_dir=None, prefix=None, dt=dt,
+                               delimiter=";"):
     states, home_cage_antenna = get_states_and_home_cage_antenna(ehd,
                                                                  cf,
                                                                  dt)
@@ -264,10 +265,13 @@ def get_tube_dominance_2_cages(ehd, cf, res_dir=None, prefix=None, dt=dt):
                                        'dominating mouse',
                                        'pushed out mouse',
                                        '# pushes',
-                                       args=[home_cage_antenna], vmin=0, vmax=200)
+                                       args=[home_cage_antenna],
+                                       vmin=0, vmax=200,
+                                       delimiter=delimiter)
 
 
-def get_subversion_evaluation(ehd, cf, res_dir=None, prefix=None, dt=dt):
+def get_subversion_evaluation(ehd, cf, res_dir=None, prefix=None, dt=dt,
+                              delimiter=";"):
     if res_dir is None:
         res_dir = ehd.res_dir
     if prefix is None:
@@ -281,7 +285,9 @@ def get_subversion_evaluation(ehd, cf, res_dir=None, prefix=None, dt=dt):
                                        'dominating mouse',
                                        'subversive mouse',
                                        '# times in small cage',
-                                       args=[states, home_cage_antenna, dt], vmin=0, vmax=200)
+                                       args=[states, home_cage_antenna,
+                                             dt], vmin=0, vmax=200,
+                                       delimiter=delimiter)
 
 
 def how_many_visits(states, t_start, t_end, T_0, dt):
@@ -293,10 +299,10 @@ def how_many_visits(states, t_start, t_end, T_0, dt):
     return len(where)
 
 
-def get_visits_to_stimulus_cage(ehd, cf, res_dir=None, prefix=None, dt=dt):
-    if res_dir is None:
+def get_visits_to_stimulus_cage(ehd, cf, res_dir="", prefix="", dt=dt):
+    if res_dir is "":
         res_dir = ehd.res_dir
-    if prefix is None:
+    if prefix is "":
         prefix = ehd.prefix
     states, home_cage_antenna = get_states_and_home_cage_antenna(ehd,
                                                                  cf,
@@ -316,4 +322,5 @@ def get_visits_to_stimulus_cage(ehd, cf, res_dir=None, prefix=None, dt=dt):
                     res_dir, prefix, labels=["conditioning compartment"],
                     header='Number of visits %s\n',
                     fname='visits_to_conditioning_compartment_%s.csv',
-                    directory="mice_in_conditioning_compartment")
+                    directory="mice_in_conditioning_compartment",
+                    delimiter=delimiter)
