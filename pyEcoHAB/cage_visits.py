@@ -164,15 +164,15 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
             data[address][1][phase] = visit_data[1]
             bin_labels[phase] = utils.get_times(binsize)
             visits_in_cages[address] = visit_data[2]
-        if "dark" in phase or "DARK" in phase:
-            if  save_histogram:
-                make_visit_duration_histogram(visits_in_cages,
-                                              bin_labels[phase],
-                                              phase, mice,
-                                              histogram_fname, res_dir,
-                                              "other_variables/visit_histograms_binsize_%3.1f"
-                                              % (binsize/3600),
-                                              prefix, add_info_mice)
+            
+        if save_histogram:
+            make_visit_duration_histogram(visits_in_cages,
+                                          bin_labels[phase],
+                                          phase, mice,
+                                          histogram_fname, res_dir,
+                                          "other_variables/visit_histograms_binsize_%3.1f"
+                                          % (binsize/3600),
+                                          prefix, add_info_mice)
             save_visit_duration(visits_in_cages,
                                 bin_labels[phase],
                                 phase, mice,

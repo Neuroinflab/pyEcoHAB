@@ -496,7 +496,38 @@ def get_times(binsize, time_start=None, time_end=None):
     out = np.linspace(time_start, time_end - binsize, length)
     return out.tolist()
 
+def reformat_date_time(date, time):
+    return "%s %s" %(date.replace('.',''), time)
 
+
+def process_line_more_elements(elements):
+    """remove dot from 2nd column of new data files"""
+    date_time = reformat_date_time(elements[1], elements[2])
+    return [elements[0], date_time] + elements[3:]
+
+
+def process_line_5_elements(elements, date):
+    """Add date to data (old data files)"""
+    elements[1] = ' '.join([date, elements[1]])
+    return elements
+
+
+def get_filenames(path):
+    try:
+        f_list = os.listdir(path)
+    except FileNotFoundError:
+        return []
+    out = []
+    for f_name in f_list:
+        if f_name.endswith("0000.txt"):
+            out.append(f_name)
+        else:
+            split = f_name.split("_")
+            if len(split) < 3:
+                continue
+            if split[-1].endswith(".txt") and split[1].endswith("0000"):
+                out.append(f_name)
+    return out
 
 
 def dict_to_array_2D(dictionary, keys1, keys2):
@@ -528,4 +559,61 @@ def calc_excess(res, exp_res):
     return excess
 
 
+<<<<<<< HEAD
 
+=======
+class NamedDict(dict):
+    """Creates a python dict with a name and attribute access of keys.
+
+    Usage: mydict = NamedDict(name,**kwargs)
+    where **kwargs are used to create dictionary key/value pairs.
+    e.g.: params = NamedDict('modelParams',x=15,y=0)
+
+    dict keys can be accessed and written as keys or attributes:
+        myNamedDict['k'] is equivalent to myNamedDict.k, and
+        myNamedDict['k'] = newvalue is equivalent to myNamedDict.k=newvalue.
+
+    New entries/attributes can be created:
+        myNamedDict.newkey = newvalue OR myNamedDict['newkey']= newvalue.
+
+    Note: Dict ignores attributes beginning with underscore, so
+    myNamedDict.__name__ returns the NamedDict name, but there is no dict key
+    == "__name__"
+
+    Note: all dict keys must be valid attribute names: that is, strings with
+    first character in a-z/A-Z. This could be changed to allow all valid python
+    dict keys as keys, but these keys would not have attribute access.
+
+    """
+
+    def __init__(self, name, **kwargs):
+        super(NamedDict, self).__init__(**kwargs)
+        self.__dict__ = dict(**kwargs)
+        self.__name__ = name
+
+    def __repr__(self):
+        items = ('{}={}'.format(k,v) for (k,v) in self.items())
+        l = len(self.__name__) + 1
+        sep = ',\n' + ' '*l
+        return '{}({})'.format(self.__name__, sep.join(items))
+
+    def __setitem__(self, k, v):
+        super(NamedDict, self).__setitem__(k,v)
+        setattr(self,k,v)
+
+    def __getattribute__(self, k):
+        # attributes have higher priority
+        try:
+            return super(NamedDict, self).__getattribute__(k)
+        except AttributeError:
+            return super(NamedDict, self).__getitem__(k)
+
+    def __setattr__(self, k, v):
+        super(NamedDict, self).__setattr__(k,v)
+        if not k.startswith('_'):
+            super(NamedDict, self).__setitem__(k,v)
+
+    def __dir__(self):
+        dirlist = super(NamedDict, self).__dir__()
+        return dirlist
+>>>>>>> 46fc089e3ed9df08a0f8d8fcc4f26db238b5f3a5

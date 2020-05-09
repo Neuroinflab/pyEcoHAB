@@ -28,10 +28,12 @@ Authors
 
 
 Acknowledgements
----------------
+----------------
+The development of this software was supported by the Polish National Science Centre grant 2017/27/B/NZ4/02025.
+
 
 Prerequisites
-_____________
+-------------
 numpy and matplotlib
 
 

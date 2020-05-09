@@ -3,11 +3,6 @@ import os
 import sys
 from collections import OrderedDict
 
-try:
-    basestring
-except NameError:
-    basestring = str
-
 import numpy as np
 
 from . import BaseFunctions
@@ -264,7 +259,6 @@ class Loader(EcoHabDataBase):
                                      tags=tags)
         data.sort(key=lambda x: ufl.time_to_sec(x[1]))
         return data
-                         
     def __repr__ (self):
         """Nice string representation for prtinting this class."""
         mystring = 'Eco-HAB data loaded from:\n%s\nin the folder%s\n' %(
