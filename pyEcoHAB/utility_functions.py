@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 import os
 import time
 import sys
 from collections import OrderedDict
 import numpy as np
-
+#NamedDict class was originally written by Zbyszek Jędrzejewski-Szmek and Avrama Blackwell for
+#moose_nerp https://github.com/neurord/moose_nerp
 
 same_pipe = {1: [1, 2],
              2: [1, 2],
@@ -64,66 +66,12 @@ def check_directory(directory, subdirectory=None):
     return new_path
 
 
-def results_path(path):
-    return os.path.join(path, 'Results')
-
-
 def make_figure(title):
     fig = plt.figure(figsize=(12,12))
     ax = fig.add_subplot(111, aspect='equal')
     fig.suptitle('%s'%(title), fontsize=14, fontweight='bold')
     return fig, ax
 
-
-def make_prefix(path):
-    """
-    Read-in info.txt and make a prefix for all files for results.
-    Parameters
-    ----------
-    path: str
-    """
-    key_list = [
-        'genotype',
-        "Strain",
-        'sex',
-        'gender', 
-        'Experimentator',
-        'type of experiment',
-        "Type of Experiment",
-        'date of experiment',
-        "Start date and hour",
-        'social odor',
-        'no social odor',
-    ]
-
-    fname = os.path.join(path, 'info.txt')
-    try:
-        f = open(fname)
-    except IOError:
-        return ''
-
-    info_dict = {}
-    for line in f:
-        try:
-            key, info = line.split(':')
-        except ValueError:
-            continue
-        info = info.strip()
-        info = info.replace(' ', '_')
-        info_dict[key] = info
-    prefix = ''
-    for key in key_list:
-        if key not in info_dict:
-            continue
-        if key == 'social odor' or key == 'non-social odor':
-            if info_dict[key] == 'none' or info_dict[key] == 'None':
-                key = key.replace(' ', '_')
-                prefix += '_no_' + key.replace(' ', '_') + '_'
-            else:
-                prefix += key.replace(' ', '_') + '_' + info_dict[key] + '_'
-        else:
-            prefix += info_dict[key] + '_'
-    return prefix
 
 def list_of_pairs(mice):
     pair_labels = []
@@ -349,9 +297,10 @@ def mouse_going_counterclockwise(antennas):
 
 def get_times_antennas(ehd, mouse, t_1, t_2):
     if t_1 == 0 and t_2 == -1:
-        return ehd.gettimes(mouse), ehd.getantennas(mouse)
+        ehd.unmask_data()
+        return ehd.get_times(mouse), ehd.get_antennas(mouse)
     ehd.mask_data(t_1, t_2)
-    antennas, times = ehd.getantennas(mouse), ehd.gettimes(mouse)
+    antennas, times = ehd.get_antennas(mouse), ehd.get_times(mouse)
     ehd.unmask_data()
     return times, antennas
 
@@ -470,14 +419,14 @@ def get_indices(t_start, t_end, starts, ends):
 def get_ehs_data_with_margin(ehs, mouse, t_start, t_end,
                              margin=12*3600):
     if t_start == 0 and t_end == -1:
-        return ehs.getaddresses(mouse),\
-            ehs.getstarttimes(mouse),\
-            ehs.getendtimes(mouse)
+        return ehs.get_visit_addresses(mouse),\
+            ehs.get_starttimes(mouse),\
+            ehs.get_endtimes(mouse)
 
     ehs.mask_data(t_start - margin, t_end +  margin)
-    adresses = ehs.getaddresses(mouse)
-    starts = ehs.getstarttimes(mouse)
-    ends = ehs.getendtimes(mouse)
+    adresses = ehs.get_visit_addresses(mouse)
+    starts = ehs.get_starttimes(mouse)
+    ends = ehs.get_endtimes(mouse)
     ehs.unmask_data()
     return adresses, starts, ends
 
@@ -489,8 +438,8 @@ def prepare_data(ehs, mice, times=None):
         mice = [mice]
     if times is None:
         ehs.unmask_data()
-        times = (ehs.getstarttimes(mice)[0],
-                 ehs.getendtimes(mice)[-1])
+        times = (ehs.get_starttimes(mice)[0],
+                 ehs.get_endtimes(mice)[-1])
     t_start, t_end = times
     for mouse in mice:
         data[mouse] = []
@@ -547,72 +496,7 @@ def get_times(binsize, time_start=None, time_end=None):
     out = np.linspace(time_start, time_end - binsize, length)
     return out.tolist()
 
-def parse_fname(fname):
-    """"Extracts time and date from data filename"""
-    try:
-        date, hour = fname.split("_")
-    except ValueError:
-        parts = fname.split("_")
-        if len(parts) == 3:
-            date, hour = parts[:2]
-        else:
-            print("Unnkown filename format %s.")
-            raise
-    hour = hour.split(".")[0]
-    date_in_sec = time.mktime(time.strptime(date, '%Y%m%d'))
-    datenext = time.strftime('%Y%m%d', time.localtime(
-        date_in_sec + 24*3600.))
 
-    return hour, date, datenext
-
-def print_human_time(tt):
-    """convert seconds to date and time since epoch """
-    st = time.localtime(tt)
-    return time.asctime(st)
-
-
-def time_to_sec(tt):
-    """Convert date and time to seconds since epoch"""
-    try:
-        more_than_sec, less_than_sec = tt.split('.')
-    except ValueError:
-        return time.mktime(time.strptime(tt,
-                                             '%Y%m%d %H:%M:%S'))
-
-    seconds = time.mktime(time.strptime(more_than_sec,
-                                        '%Y%m%d %H:%M:%S'))
-    return seconds + float(less_than_sec)/1000.
-
-
-def reformat_date_time(date, time):
-    return "%s %s" %(date.replace('.',''), time)
-
-
-def process_line_more_elements(elements):
-    """remove dot from 2nd column of new data files"""
-    date_time = reformat_date_time(elements[1], elements[2])
-    return [elements[0], date_time] + elements[3:]
-
-
-def process_line_5_elements(elements, date):
-    """Add date to data (old data files)"""
-    elements[1] = ' '.join([date, elements[1]])
-    return elements
-
-
-def get_filenames(path):
-    f_list = os.listdir(path)
-    out = []
-    for f_name in f_list:
-        if f_name.endswith("0000.txt"):
-            out.append(f_name)
-        else:
-            split = f_name.split("_")
-            if len(split) < 3:
-                continue
-            if split[-1].endswith(".txt") and split[1].endswith("0000"):
-                out.append(f_name)
-    return out
 
 
 def dict_to_array_2D(dictionary, keys1, keys2):
@@ -642,3 +526,6 @@ def calc_excess(res, exp_res):
             for key3 in res[key1][key2].keys():
                 excess[key1][key2][key3] = res[key1][key2][key3] - exp_res[key1][key2][key3]
     return excess
+
+
+

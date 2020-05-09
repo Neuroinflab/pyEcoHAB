@@ -7,7 +7,7 @@ import random
 import numpy as np
 
 import pyEcoHAB.utility_functions as uf
-from pyEcoHAB import sample_data_path
+from pyEcoHAB import data_path
 from pyEcoHAB import Loader
 
 
@@ -922,84 +922,6 @@ class TestGetLength(unittest.TestCase):
         self.assertEqual(out, 3)
 
 
-class TestParseFilename(unittest.TestCase):
-    def test_normal(self):
-        fname = "20190403_120000.txt"
-        hour, date, datenext = uf.parse_fname(fname)
-        self.assertEqual(hour, "120000")
-        self.assertEqual(date, "20190403")
-        self.assertEqual(datenext, "20190404")
-
-    def test_weird(self):
-        fname = "20190403_120000_0001.txt"
-        hour, date, datenext = uf.parse_fname(fname)
-        self.assertEqual(hour, "120000")
-        self.assertEqual(date, "20190403")
-        self.assertEqual(datenext, "20190404")
-
-    def test_throw_exception(self):
-        fname = "20190403_120000_0001_kk.txt"
-        self.assertRaises(ValueError, uf.parse_fname, fname=fname)
-
-
-class TestPrintHumanTime(unittest.TestCase):
-    def test_date(self):
-        tt = 1554247067
-        self.assertEqual('Wed Apr  3 01:17:47 2019', uf.print_human_time(tt))
-
-
-class TestTimeToSec(unittest.TestCase):
-    def test_sec(self):
-        string = "20190709 20:05:13.333"
-        self.assertEqual(1562695513.333, uf.time_to_sec(string))
-
-    def test_sec_2(self):
-        string = "20190709 20:05:13"
-        self.assertEqual(1562695513., uf.time_to_sec(string))
-
-    def test_sec_raise_1(self):
-        string = "2019070920:05:13"
-        self.assertRaises(ValueError, uf.time_to_sec, tt=string)
-
-    def test_sec_raise_2(self):
-        string = "20190709.20:05:13"
-        self.assertRaises(ValueError, uf.time_to_sec, tt=string)
-
-
-class TestReformatDateTime(unittest.TestCase):
-    def test_1(self):
-        date = "2018.07.27"
-        time = "16:00:36.926"
-        out = "20180727 16:00:36.926"
-        self.assertEqual(uf.reformat_date_time(date, time), out)
-
-
-class TestProcessProcessLineMore(unittest.TestCase):
-    def test_1(self):
-        line = ["6406",	"2018.07.27", "16:00:29.329",
-                "7", "797", "0065-0161980646"]
-        out = ["6406", "20180727 16:00:29.329",
-               "7", "797", "0065-0161980646"]
-        self.assertEqual(uf.process_line_more_elements(line),
-                                                       out)
-
-    def test_2(self):
-        line = ["6406",	"2018.07.27", "16:00:29.329",
-                "7", "0065-0161980646"]
-        out = ["6406", "20180727 16:00:29.329",
-               "7", "0065-0161980646"]
-        self.assertEqual(uf.process_line_more_elements(line),
-                                                       out)
-
-
-class TestProcessLine5(unittest.TestCase):
-    def test1(self):
-        line = ["6406",	"16:00:29.329",
-                "7", "0065-0161980646"]
-        date = "20180727"
-        out = ["6406", "20180727 16:00:29.329",
-               "7", "0065-0161980646"]
-        self.assertEqual(uf.process_line_5_elements(line, date), out)
 
 class TestGETEHSData(unittest.TestCase):
     @classmethod
@@ -1854,89 +1776,11 @@ class TestGetLength(unittest.TestCase):
         self.assertEqual(out, 3)
 
 
-class TestParseFilename(unittest.TestCase):
-    def test_normal(self):
-        fname = "20190403_120000.txt"
-        hour, date, datenext = uf.parse_fname(fname)
-        self.assertEqual(hour, "120000")
-        self.assertEqual(date, "20190403")
-        self.assertEqual(datenext, "20190404")
-
-    def test_weird(self):
-        fname = "20190403_120000_0001.txt"
-        hour, date, datenext = uf.parse_fname(fname)
-        self.assertEqual(hour, "120000")
-        self.assertEqual(date, "20190403")
-        self.assertEqual(datenext, "20190404")
-
-    def test_throw_exception(self):
-        fname = "20190403_120000_0001_kk.txt"
-        self.assertRaises(ValueError, uf.parse_fname, fname=fname)
-
-
-class TestPrintHumanTime(unittest.TestCase):
-    def test_date(self):
-        tt = 1554247067
-        self.assertEqual('Wed Apr  3 01:17:47 2019', uf.print_human_time(tt))
-
-
-class TestTimeToSec(unittest.TestCase):
-    def test_sec(self):
-        string = "20190709 20:05:13.333"
-        self.assertEqual(1562695513.333, uf.time_to_sec(string))
-
-    def test_sec_2(self):
-        string = "20190709 20:05:13"
-        self.assertEqual(1562695513., uf.time_to_sec(string))
-
-    def test_sec_raise_1(self):
-        string = "2019070920:05:13"
-        self.assertRaises(ValueError, uf.time_to_sec, tt=string)
-
-    def test_sec_raise_2(self):
-        string = "20190709.20:05:13"
-        self.assertRaises(ValueError, uf.time_to_sec, tt=string)
-
-
-class TestReformatDateTime(unittest.TestCase):
-    def test_1(self):
-        date = "2018.07.27"
-        time = "16:00:36.926"
-        out = "20180727 16:00:36.926"
-        self.assertEqual(uf.reformat_date_time(date, time), out)
-
-
-class TestProcessProcessLineMore(unittest.TestCase):
-    def test_1(self):
-        line = ["6406",	"2018.07.27", "16:00:29.329",
-                "7", "797", "0065-0161980646"]
-        out = ["6406", "20180727 16:00:29.329",
-               "7", "797", "0065-0161980646"]
-        self.assertEqual(uf.process_line_more_elements(line),
-                                                       out)
-
-    def test_2(self):
-        line = ["6406",	"2018.07.27", "16:00:29.329",
-                "7", "0065-0161980646"]
-        out = ["6406", "20180727 16:00:29.329",
-               "7", "0065-0161980646"]
-        self.assertEqual(uf.process_line_more_elements(line),
-                                                       out)
-
-
-class TestProcessLine5(unittest.TestCase):
-    def test1(self):
-        line = ["6406",	"16:00:29.329",
-                "7", "0065-0161980646"]
-        date = "20180727"
-        out = ["6406", "20180727 16:00:29.329",
-               "7", "0065-0161980646"]
-        self.assertEqual(uf.process_line_5_elements(line, date), out)
 
 class TestGetEHSData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(sample_data_path, "weird_short")
+        path = os.path.join(data_path, "weird_short")
         cls.data = Loader(path)
         cls.t1 = 1286701470
         cls.t2 = 1286701580
@@ -1967,7 +1811,7 @@ class TestGetEHSData(unittest.TestCase):
 class TestPrepareData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(sample_data_path, "weird_short")
+        path = os.path.join(data_path, "weird_short")
         cls.data = Loader(path)
         cls.t1 = 1286701470
         cls.t2 = 1286701580
@@ -1985,7 +1829,7 @@ class TestPrepareData(unittest.TestCase):
         cls.no_mouse = uf.prepare_data(cls.data, "mouse_2",
                                [cls.t1, cls.t2])["mouse_2"]
 
-        path2 = os.path.join(sample_data_path, "weird_3_mice")
+        path2 = os.path.join(data_path, "weird_3_mice")
         data_longer = Loader(path2)
         
         cls.data_longer = uf.prepare_data(data_longer, ["mouse_1",
@@ -2016,7 +1860,7 @@ class TestPrepareData(unittest.TestCase):
 
     def test_get_all(self):
         self.assertEqual(len(self.out_all),
-                         len(self.data.getaddresses("mouse_1")))
+                         len(self.data.get_visit_addresses("mouse_1")))
 
     def test_get2_starttimes(self):
         self.assertTrue(self.out_different[0][1] > self.t11)

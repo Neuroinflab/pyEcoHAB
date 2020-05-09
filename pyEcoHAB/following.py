@@ -288,13 +288,13 @@ def add_intervals(all_intervals, phase_intervals):
         all_intervals[mouse].extend(phase_intervals[mouse])
 
 
-def get_following(ehd, cf, N, res_dir=None, prefix=None,
+def get_following(ehd, cf, N, res_dir="", prefix="",
                   remove_mouse=None, save_distributions=True,
-                  save_figures=False, return_median=False,
-                  save_times_following=False):
-    if res_dir is None:
+                  save_figures=False, return_median=False, delimiter=";",
+                 save_times_following=False):
+    if res_dir == "":
         res_dir = ehd.res_dir
-    if prefix is None:
+    if prefix == "":
         prefix = ehd.prefix
     phases = utils.filter_dark_light(cf.sections())
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
@@ -363,7 +363,8 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                                res_dir,
                                'following/histograms',
                                prefix,
-                               additional_info=add_info_mice)
+                               additional_info=add_info_mice,
+                               delimiter=delimiter)
         save_single_histograms(following_exp[i],
                                'following_expected_time_%s' % method,
                                ehd.mice,
@@ -371,7 +372,8 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                                res_dir,
                                'following/histograms',
                                prefix,
-                               additional_info=add_info_mice)
+                               additional_info=add_info_mice,
+                               delimiter=delimiter)
         save_single_histograms((following[i]-following_exp[i]),
                                'following_excess_%s' %method,
                                ehd.mice,
@@ -379,7 +381,8 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                                res_dir,
                                'following/histograms',
                                prefix,
-                               additional_info=add_info_mice)
+                               additional_info=add_info_mice,
+                               delimiter=delimiter)
         single_in_cohort_soc_plot(following[i],
                                   following_exp[i],
                                   ehd.mice,
@@ -406,7 +409,8 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                                    res_dir,
                                    'other_variables/time_following/histograms',
                                    prefix,
-                                   additional_info=add_info_mice)
+                                   additional_info=add_info_mice,
+                                   delimiter=delimiter)
             save_single_histograms(time_together_exp[i],
                                    'time_following_expected_%s' % method,
                                    ehd.mice,
@@ -414,7 +418,8 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                                    res_dir,
                                    'other_variables/time_following/histograms',
                                    prefix,
-                                   additional_info=add_info_mice)
+                                   additional_info=add_info_mice,
+                                   delimiter=delimiter)
             save_single_histograms((time_together[i]-time_together_exp[i]),
                                    'time_following_excess_%s' % method,
                                    ehd.mice,
@@ -422,7 +427,8 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                                    res_dir,
                                    'other_variables/time_following/histograms',
                                    prefix,
-                                   additional_info=add_info_mice)
+                                   additional_info=add_info_mice,
+                                   delimiter=delimiter)
 
             single_in_cohort_soc_plot(time_together[i],
                                       time_together_exp[i],
@@ -450,7 +456,8 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                       res_dir,
                       'following/raster_plots',
                       fname_,
-                      symmetric=False)
+                      symmetric=False,
+                      delimiter=delimiter)
     write_csv_rasters(ehd.mice,
                       phases,
                       following,
@@ -473,7 +480,8 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                       'following/raster_plots',
                       fname_exp_rev,
                       symmetric=False,
-                      reverse_order=True)
+                      reverse_order=True,
+                      delimiter=delimiter)
 
 
     make_RasterPlot(res_dir,
@@ -493,6 +501,7 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
                            'other_variables/following_excess_histograms',
                            prefix,
                            additional_info=add_info_mice)
+
     if save_times_following:
         make_histograms_for_every_mouse(interval_details,
                                         "followings_intervals_histogram",
@@ -511,5 +520,6 @@ def get_following(ehd, cf, N, res_dir=None, prefix=None,
         write_interpair_intervals(interval_details,
                                   "other_variables/histograms_of_following_intervals",
                                   res_dir, "following_intervals", prefix,
-                                  additional_info=add_info_mice)
+                                  additional_info=add_info_mice,
+                                  delimiter=delimiter)
     return following, following_exp, phases, ehd.mice
