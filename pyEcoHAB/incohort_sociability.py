@@ -96,7 +96,7 @@ def get_solitude(ehs, cf, res_dir="", prefix="", delimiter=";"):
         prefix = ehs.prefix
     if res_dir is "":
         res_dir = ehs.res_dir
-    phases = utils.filter_dark(cf.sections())
+    phases = utils.filter_dark_light(cf.sections())
     output = make_solitude_output(ehs.cages, ehs.mice)
 
     for phase in phases:
@@ -186,7 +186,7 @@ def get_dark_light_data(phase, cf, ehs, mice):
     out_data = {phase: {0: data}}
     return out_phases, {phase: {0: total_time}}, {phase: {0: data}}
 
-def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice, filter_dark=True):
+def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice):
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
         time = cf.gettime("ALL")
@@ -200,10 +200,7 @@ def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice, filter_dark=True):
         phases = []
         data = OrderedDict()
         total_time = OrderedDict()
-        if filter_dark:
-            all_phases = utils.filter_dark(cf.sections())
-        else:
-            all_phases = utils.filter_dark_light(cf.sections())
+        all_phases = utils.filter_dark_light(cf.sections())
         bin_labels = utils.get_times(bins)
         for phase in all_phases:
             t_start, t_end = cf.gettime(phase)
@@ -301,8 +298,7 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                                                          cf,
                                                          prefix,
                                                          binsize,
-                                                         mice,
-                                                         filter_dark)
+                                                         mice)
     if isinstance(binsize, int) or isinstance(binsize, float):
         binsize_name = "%3.2f_h" % (binsize/3600)
         if binsize == 43200:
