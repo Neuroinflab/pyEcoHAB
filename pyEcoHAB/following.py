@@ -492,7 +492,7 @@ def get_following(ehd, cf, N, res_dir="", prefix="",
                     ehd.mice,
                     title='% excess following',
                     symmetric=False)
-    print(phases)
+
     make_pooled_histograms(following,
                            following_exp,
                            phases,

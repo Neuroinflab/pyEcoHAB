@@ -543,8 +543,6 @@ class TestRunDiagnostics(unittest.TestCase):
                                                     exact_mis)
             else:
                 out+= "%s,\t%d, %3.2f per 100\n" % (pair, 0, 0.00)
-        print(out)
-        print(self.str11)
         self.assertEqual(out, self.str11)
 
     def test_presence_string(self):
