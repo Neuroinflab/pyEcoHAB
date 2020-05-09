@@ -80,73 +80,25 @@ def calculate_visits_and_durations(data, mice, address, t_start, t_end, binsize)
     return visits, durations, all_visits
 
 
-def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
-                 save_histogram=False, delimiter=";",
-                 headers=['Number of visits to box',
-                          'Total time (sec) in box']):
-    """
-    Calculate activity of each mouse in time bins across the phases
-    of the experiment.
-
-    This function counts both visits of every mouse to each Eco-HAB compartment
-    and calculates time spent in each compartment. It is based on visits
-    calculated while reading in the experiment data, which is based on antenna
-    readings. Activity values are saved as comma separated values in a
-    file with activity_bin_{bin_length}_h.csv in res_dir/activity directory.
-    For all filenames bin_length is the length of the bin in
-    hours (binsize/3600), e.g. for binsize=3600 activity will be saved in
-     res_dir/activity/activity_1.00_h.csv .
-    This function also automatically saves activity to
-    res_dir/approach_to_social to facilitate further analysis.
-
-    csv files with animal activity have following structure:
-    header specifying parameter (visit count or total duration) and Eco-Hab
-    compartment ("A", "B", "C" or "D").
-    column header: mouse tag, beginning of the bin in hours, phase name
-    Values of the second column start with 0., e.g.  0, 1., 2. etc.
-    for 1 h bins. Visit count is an integer. Visit duration is a float.
-
-    Args:
-        ehs : Loader or Loader_like
-           Eco-HAB dataset.
-        cf : ExperimentConfigFile
-           timeline of the experiment.
-        binsize : number (seconds)
-           time bins for calculating activity.
-           A number value specifies number of seconds in each bin, e.g. binsize
-           equal 3600 results in 1 h bins.
-        res_dir : string
-           destination directory
-           default value is the destination directory established for ehs.
-        prefix : string
-           string added to the name of every generated results file
-           default value is the prefix established for ehs
-        remove_mouse : string or list
-           name of mouse or mice to be removed from the results file
-           As a default activity will be established for every mouse registered
-           in ehs.
-        save_histogram :
-           if True save visit durations to every bin and generate histograms
-           of vist durations
-        delimiter : str, optional
-           String or character separating columns.
-        headers : list of strings
-           strings that will be written above activity parameters for each
-           compartment.
-    """
-    if prefix == "":
+def get_activity(ehs, cf, binsize, res_dir=None, prefix=None,
+                 remove_mouse=None, headers=None,
+                 save_histogram=False):
+    if prefix is None:
         prefix = ehs.prefix
-    if res_dir == "":
+    if res_dir is None:
         res_dir = ehs.res_dir
+    if headers is None:
+        basic = ['Number of visits to box %s\n',
+                 'Total time in box %s, seconds\n']
     
     phases = utils.filter_dark_light(cf.sections())
-    fname = '%sactivity_bin_%3.2f_h.csv'%(prefix,
-                                          binsize/3600)
+    fname = '%sactivity_bin_%3.1f_h.csv'%(prefix, binsize/3600)
     histogram_fname = 'activity_histograms_bin_%3.1f_h' % (binsize/3600)
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     
 
+    headers = {i:basic for i in ehs.cages}
     data = {c:{0:{},1:{}} for c in ehs.cages}
     ehs_data = utils.prepare_data(ehs, mice)
     bin_labels = {}
@@ -164,23 +116,23 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
             data[address][1][phase] = visit_data[1]
             bin_labels[phase] = utils.get_times(binsize)
             visits_in_cages[address] = visit_data[2]
-            
-        if save_histogram:
-            make_visit_duration_histogram(visits_in_cages,
-                                          bin_labels[phase],
-                                          phase, mice,
-                                          histogram_fname, res_dir,
-                                          "other_variables/visit_histograms_binsize_%3.1f"
-                                          % (binsize/3600),
-                                          prefix, add_info_mice)
+        if "dark" in phase or "DARK" in phase:
+            if  save_histogram:
+                make_visit_duration_histogram(visits_in_cages,
+                                              bin_labels[phase],
+                                              phase, mice,
+                                              histogram_fname, res_dir,
+                                              "other_variables/visit_histograms_binsize_%3.1f"
+                                              % (binsize/3600),
+                                              prefix, add_info_mice)
             save_visit_duration(visits_in_cages,
                                 bin_labels[phase],
                                 phase, mice,
                                 histogram_fname, res_dir,
                                 "other_variables/visit_histograms_binsize_%3.1f"
-                                % (binsize/3600),
+                                % (binsize//3600),
                                 prefix, add_info_mice)
     save_data_cvs(data, phases, mice, bin_labels, fname, res_dir, ehs.cages,
                   headers)
     save_data_cvs(data, phases, mice, bin_labels, fname, res_dir, ehs.cages,
-                  headers, target_dir="social_approach")
+                   headers, target_dir="social_approach")

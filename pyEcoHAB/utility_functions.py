@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 import os
 import time
 import sys
 from collections import OrderedDict
 import numpy as np
-#NamedDict class was originally written by Zbyszek Jędrzejewski-Szmek and Avrama Blackwell for
-#moose_nerp https://github.com/neurord/moose_nerp
+
 
 same_pipe = {1: [1, 2],
              2: [1, 2],
@@ -351,10 +349,9 @@ def mouse_going_counterclockwise(antennas):
 
 def get_times_antennas(ehd, mouse, t_1, t_2):
     if t_1 == 0 and t_2 == -1:
-        ehd.unmask_data()
-        return ehd.get_times(mouse), ehd.get_antennas(mouse)
+        return ehd.gettimes(mouse), ehd.getantennas(mouse)
     ehd.mask_data(t_1, t_2)
-    antennas, times = ehd.get_antennas(mouse), ehd.get_times(mouse)
+    antennas, times = ehd.getantennas(mouse), ehd.gettimes(mouse)
     ehd.unmask_data()
     return times, antennas
 
@@ -473,14 +470,14 @@ def get_indices(t_start, t_end, starts, ends):
 def get_ehs_data_with_margin(ehs, mouse, t_start, t_end,
                              margin=12*3600):
     if t_start == 0 and t_end == -1:
-        return ehs.get_visit_addresses(mouse),\
-            ehs.get_starttimes(mouse),\
-            ehs.get_endtimes(mouse)
+        return ehs.getaddresses(mouse),\
+            ehs.getstarttimes(mouse),\
+            ehs.getendtimes(mouse)
 
     ehs.mask_data(t_start - margin, t_end +  margin)
-    adresses = ehs.get_visit_addresses(mouse)
-    starts = ehs.get_starttimes(mouse)
-    ends = ehs.get_endtimes(mouse)
+    adresses = ehs.getaddresses(mouse)
+    starts = ehs.getstarttimes(mouse)
+    ends = ehs.getendtimes(mouse)
     ehs.unmask_data()
     return adresses, starts, ends
 
@@ -492,8 +489,8 @@ def prepare_data(ehs, mice, times=None):
         mice = [mice]
     if times is None:
         ehs.unmask_data()
-        times = (ehs.get_starttimes(mice)[0],
-                 ehs.get_endtimes(mice)[-1])
+        times = (ehs.getstarttimes(mice)[0],
+                 ehs.getendtimes(mice)[-1])
     t_start, t_end = times
     for mouse in mice:
         data[mouse] = []
@@ -604,10 +601,7 @@ def process_line_5_elements(elements, date):
 
 
 def get_filenames(path):
-    try:
-        f_list = os.listdir(path)
-    except FileNotFoundError:
-        return []
+    f_list = os.listdir(path)
     out = []
     for f_name in f_list:
         if f_name.endswith("0000.txt"):
@@ -648,59 +642,3 @@ def calc_excess(res, exp_res):
             for key3 in res[key1][key2].keys():
                 excess[key1][key2][key3] = res[key1][key2][key3] - exp_res[key1][key2][key3]
     return excess
-
-
-class NamedDict(dict):
-    """Creates a python dict with a name and attribute access of keys.
-
-    Usage: mydict = NamedDict(name,**kwargs)
-    where **kwargs are used to create dictionary key/value pairs.
-    e.g.: params = NamedDict('modelParams',x=15,y=0)
-
-    dict keys can be accessed and written as keys or attributes:
-        myNamedDict['k'] is equivalent to myNamedDict.k, and
-        myNamedDict['k'] = newvalue is equivalent to myNamedDict.k=newvalue.
-
-    New entries/attributes can be created:
-        myNamedDict.newkey = newvalue OR myNamedDict['newkey']= newvalue.
-
-    Note: Dict ignores attributes beginning with underscore, so
-    myNamedDict.__name__ returns the NamedDict name, but there is no dict key
-    == "__name__"
-
-    Note: all dict keys must be valid attribute names: that is, strings with
-    first character in a-z/A-Z. This could be changed to allow all valid python
-    dict keys as keys, but these keys would not have attribute access.
-
-    """
-
-    def __init__(self, name, **kwargs):
-        super(NamedDict, self).__init__(**kwargs)
-        self.__dict__ = dict(**kwargs)
-        self.__name__ = name
-
-    def __repr__(self):
-        items = ('{}={}'.format(k,v) for (k,v) in self.items())
-        l = len(self.__name__) + 1
-        sep = ',\n' + ' '*l
-        return '{}({})'.format(self.__name__, sep.join(items))
-
-    def __setitem__(self, k, v):
-        super(NamedDict, self).__setitem__(k,v)
-        setattr(self,k,v)
-
-    def __getattribute__(self, k):
-        # attributes have higher priority
-        try:
-            return super(NamedDict, self).__getattribute__(k)
-        except AttributeError:
-            return super(NamedDict, self).__getitem__(k)
-
-    def __setattr__(self, k, v):
-        super(NamedDict, self).__setattr__(k,v)
-        if not k.startswith('_'):
-            super(NamedDict, self).__setitem__(k,v)
-
-    def __dir__(self):
-        dirlist = super(NamedDict, self).__dir__()
-        return dirlist
