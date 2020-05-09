@@ -34,9 +34,11 @@ The standart data analysis script used by the Laboratory of Neurobiology with py
 ...     pyEcoHAB.get_incohort_sociability(ehd, config, binsize)
 ... 
 >>> pyEcoHAB.get_following(ehd, config, 1000)
-					  
 
-The library is available under `GPL3 license
+Results of the data analysis can be found in pyEcoHAB/data/BALB_VPA_data_cohort_1/results/
+
+
+This library is available under `GPL3 license
 <http://www.gnu.org/licenses/gpl-3.0>`_.
 
 Authors
