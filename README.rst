@@ -14,7 +14,7 @@ To read-in and analyze a sample data-set type:
 >>> pyEcoHAB.get_activity(data, config, 3600)
 >>> pyEcoHAB.get_incohort_sociability(data, config, 3600)
 >>> pyEcoHAB.get_solitude(data, config)
->>> pyEcoHAB.get_following(data, config, 1000)
+>>> pyEcoHAB.get_dynamic_interactions(data, config, 1000)
 
 The standart data analysis script used by the Laboratory of Neurobiology with pyEcoHAB.sample_data as an example of the Eco-HAB dataset:
 
@@ -33,7 +33,7 @@ The standart data analysis script used by the Laboratory of Neurobiology with py
 ...     pyEcoHAB.get_activity(ehd, config, binsize)
 ...     pyEcoHAB.get_incohort_sociability(ehd, config, binsize)
 ... 
->>> pyEcoHAB.get_following(ehd, config, 1000)
+>>> pyEcoHAB.get_dynamic_interactions(ehd, config, 1000)
 
 Results of the data analysis can be found in pyEcoHAB/data/BALB_VPA_data_cohort_1/results/
 

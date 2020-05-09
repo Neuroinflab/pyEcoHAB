@@ -1,4 +1,4 @@
-from __future__ import print_function, division, absolute_import
+from __future__ import division, absolute_import
 import random
 import numpy as np
 
@@ -133,45 +133,45 @@ def resample_single_phase(ehd, cf, phase, N,
                                                          t_start, t_stop,
                                                          N=N)
     if save_figures:
-        fname_following = "following_count_distribution_%d" % N
-        fname_times = "following_times_distribution_%d" % N
+        fname_following = "dynamic_interactions_count_distribution_%d" % N
+        fname_times = "dynamic_interaction_durations_distribution_%d" % N
         for i, mouse1 in enumerate(mice):
             for j, mouse2 in enumerate(mice):
                 if mouse1 != mouse2:
                     key = "%s|%s" % (mouse1, mouse2)
-                    fname1 = "%s_histogram_%s_%s_N_%d" % ("following",
+                    fname1 = "%s_histogram_%s_%s_N_%d" % ("dynamic_interactions",
                                                           phase.replace(' ',
                                                                         '_'),
                                                           key, N)
-                    fname2 = "%s_histogram_%s_%s_N_%d" % ("time_together",
+                    fname2 = "%s_histogram_%s_%s_N_%d" % ("durations_dynamic_interactions",
                                                           phase.replace(' ',
                                                                         '_'),
                                                           key, N)
                     single_histogram_figures(followings[i, j],
                                              fname1, res_dir,
-                                             "other_variables/following_hists",
-                                             "Following count distribution",
-                                             xlabel="followings",
+                                             "other_variables/dynamic_interactions_hists",
+                                             "Dynamic interation count distribution",
+                                             xlabel="dynamic interactions",
                                              ylabel="count",
                                              median_mean=True)
                     if stf:
                         single_histogram_figures(times_following[i, j], fname2,
-                                                 "Following times distribution",
-                                                 "other_variables/time_following_hists",
-                                                 add_text_2,
-                                                 xlabel="time_together",
+                                                 "Dynamic interaction durations distribution",
+                                                 "other_variables/durations_dynamic_interaction_hists",
+                                                 prefix,
+                                                 xlabel="duration",
                                                  ylabel="count", nbins=10,
                                                  median_mean=True)
     if save_distributions:
-        fname_following = "following_count_distribution_%d" % N
-        fname_times = "following_times_distribution_%d" % N
+        fname_following = "dynamic_interaction_count_distribution_%d" % N
+        fname_times = "dynamic_interaction_durations_distribution_%d" % N
         write_bootstrap_results(followings, phase, mice,
                                 fname_following, res_dir,
-                                "other_variables/following_hists", prefix)
+                                "other_variables/dynamic_interactions_hists", prefix)
         if stf:
             write_bootstrap_results(times_following, phase, mice,
                                     fname_times, res_dir,
-                                    "other_variables/time_following_hists",
+                                    "other_variables/durations_dynamic_interaction_hists",
                                     prefix)
 
     if return_median:
@@ -288,10 +288,11 @@ def add_intervals(all_intervals, phase_intervals):
         all_intervals[mouse].extend(phase_intervals[mouse])
 
 
-def get_following(ehd, cf, N, res_dir="", prefix="",
-                  remove_mouse=None, save_distributions=True,
-                  save_figures=False, return_median=False, delimiter=";",
-                 save_times_following=False):
+def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
+                             remove_mouse=None, save_distributions=True,
+                             save_figures=False, return_median=False,
+                             delimiter=";",
+                             save_times_following=False):
     if res_dir == "":
         res_dir = ehd.res_dir
     if prefix == "":
@@ -307,7 +308,7 @@ def get_following(ehd, cf, N, res_dir="", prefix="",
         method = "median_N_%d" % N
     else:
         method = "mean_N_%d" % N
-    fname = 'following_%s_%s' % (method, add_info_mice)
+    fname = 'dynamics_interactions_%s_%s' % (method, add_info_mice)
     fname_ = 'following_%s%s.csv' % (prefix, add_info_mice)
     fname_rev_ = 'leading_%s%s.csv' % (prefix, add_info_mice)
     fname_beg = 'following_excess'
@@ -357,29 +358,29 @@ def get_following(ehd, cf, N, res_dir="", prefix="",
         following_exp[i], time_together_exp[i] = out_expected
         add_intervals(interval_details, phase_intervals)
         save_single_histograms(following[i],
-                               'following',
+                               'dynamic_interactions',
                                ehd.mice,
                                phase,
                                res_dir,
-                               'following/histograms',
+                               'dynamic_interactions/histograms',
                                prefix,
                                additional_info=add_info_mice,
                                delimiter=delimiter)
         save_single_histograms(following_exp[i],
-                               'following_expected_time_%s' % method,
+                               'dynamic_interactions_expected_%s' % method,
                                ehd.mice,
                                phase,
                                res_dir,
-                               'following/histograms',
+                               'dynamic_interactions/histograms',
                                prefix,
                                additional_info=add_info_mice,
                                delimiter=delimiter)
         save_single_histograms((following[i]-following_exp[i]),
-                               'following_excess_%s' %method,
+                               'dynamic_interactions_excess_%s' %method,
                                ehd.mice,
                                phase,
                                res_dir,
-                               'following/histograms',
+                               'dynamic_interactions/histograms',
                                prefix,
                                additional_info=add_info_mice,
                                delimiter=delimiter)
@@ -389,43 +390,43 @@ def get_following(ehd, cf, N, res_dir="", prefix="",
                                   phase,
                                   fname,
                                   res_dir,
-                                  'following/histograms',
+                                  'dynamic_interactions/histograms',
                                   prefix+add_info_mice,
                                   hist=False,
                                   vmin=0,
                                   vmax=vmax,
                                   vmin1=vmin1,
                                   vmax1=vmax1,
-                                  titles=['# followings',
-                                          '# expected followings',
-                                          '# excess followings',
-                                          'histogram of # excess followings',],
+                                  titles=['# dynamic interactions',
+                                          '# expected dynamic interactions',
+                                          '# excess dynamic interactions',
+                                          'histogram of # excess dynamic interactions',],
                                   labels=['following mouse', 'followed mouse'])
         if save_times_following:
             save_single_histograms(time_together[i],
-                                   'time_following',
+                                   'duration_dynamic_interaction',
                                    ehd.mice,
                                    phase,
                                    res_dir,
-                                   'other_variables/time_following/histograms',
+                                   'other_variables/durations_dynamic_interaction/histograms',
                                    prefix,
                                    additional_info=add_info_mice,
                                    delimiter=delimiter)
             save_single_histograms(time_together_exp[i],
-                                   'time_following_expected_%s' % method,
+                                   'expected_durations_dynamic_interaction_%s' % method,
                                    ehd.mice,
                                    phase,
                                    res_dir,
-                                   'other_variables/time_following/histograms',
+                                   'other_variables/durations_dynamic_interaction/histograms',
                                    prefix,
                                    additional_info=add_info_mice,
                                    delimiter=delimiter)
             save_single_histograms((time_together[i]-time_together_exp[i]),
-                                   'time_following_excess_%s' % method,
+                                   'excess_durations_dynamic_interaction_%s' % method,
                                    ehd.mice,
                                    phase,
                                    res_dir,
-                                   'other_variables/time_following/histograms',
+                                   'other_variables/durations_dynamic_interaction/histograms',
                                    prefix,
                                    additional_info=add_info_mice,
                                    delimiter=delimiter)
@@ -434,19 +435,19 @@ def get_following(ehd, cf, N, res_dir="", prefix="",
                                       time_together_exp[i],
                                       ehd.mice,
                                       phase,
-                                      "time_following_%s" % method,
+                                      "durations_dynamic_interaction_%s" % method,
                                       res_dir,
-                                      'other_variables/time_following/histograms',
+                                      'other_variables/durations_dynamic_interaction/histograms',
                                       prefix+add_info_mice,
                                       hist=False,
                                       vmin=0,
                                       vmax=vmaxt,
                                       vmin1=vmin1t,
                                       vmax1=vmax1t,
-                                      titles=['Fraction of time following',
-                                              '# expected time',
-                                              '# excess time',
-                                              'histogram of # excess time following',],
+                                      titles=['Fraction of duration dynamics interation',
+                                              '# expected duration',
+                                              '# excess duration',
+                                              'histogram of # excess duration dynamic interactions',],
                                       labels=['following mouse',
                                               'followed mouse'])
 
@@ -454,7 +455,7 @@ def get_following(ehd, cf, N, res_dir="", prefix="",
                       phases,
                       following,
                       res_dir,
-                      'following/raster_plots',
+                      'dynamic_interactions/raster_plots',
                       fname_,
                       symmetric=False,
                       delimiter=delimiter)
@@ -462,7 +463,7 @@ def get_following(ehd, cf, N, res_dir="", prefix="",
                       phases,
                       following,
                       res_dir,
-                      'following/raster_plots',
+                      'dynamic_interactions/raster_plots',
                       fname_rev_,
                       symmetric=False,
                       reverse_order=True)
@@ -470,14 +471,14 @@ def get_following(ehd, cf, N, res_dir="", prefix="",
                       phases,
                       (following-following_exp),
                       res_dir,
-                      'following/raster_plots',
+                      'dynamic_interactions/raster_plots',
                       fname_exp,
                       symmetric=False)
     write_csv_rasters(ehd.mice,
                       phases,
                       (following-following_exp),
                       res_dir,
-                      'following/raster_plots',
+                      'dynamic_interactions/raster_plots',
                       fname_exp_rev,
                       symmetric=False,
                       reverse_order=True,
@@ -485,7 +486,7 @@ def get_following(ehd, cf, N, res_dir="", prefix="",
 
 
     make_RasterPlot(res_dir,
-                    'following/raster_plots',
+                    'dynamic_interactions/raster_plots',
                     (following-following_exp),
                     phases,
                     fname_exp,
@@ -496,30 +497,30 @@ def get_following(ehd, cf, N, res_dir="", prefix="",
     make_pooled_histograms(following,
                            following_exp,
                            phases,
-                           'Following_histogram',
+                           'Dynamic_interactions_histogram',
                            res_dir,
-                           'other_variables/following_excess_histograms',
+                           'other_variables/dynamic_interactions_excess_histograms',
                            prefix,
                            additional_info=add_info_mice)
 
     if save_times_following:
         make_histograms_for_every_mouse(interval_details,
-                                        "followings_intervals_histogram",
+                                        "dynamic_interactions_intervals_histogram",
                                         ehd.mice,
                                         res_dir,
-                                        "other_variables/histograms_of_following_intervals",
+                                        "other_variables/histograms_of_dynamic_interactions_intervals",
                                         prefix,
                                         additional_info=add_info_mice)
         make_pooled_histograms_for_every_mouse(interval_details,
-                                               "followings_intervals_histogram",
+                                               "dynamic_interactions_intervals_histogram",
                                                ehd.mice,
                                                res_dir,
-                                               "other_variables/histograms_of_following_intervals",
+                                               "other_variables/histograms_of_dynamic_interactions_intervals",
                                                prefix,
                                                additional_info=add_info_mice)
         write_interpair_intervals(interval_details,
-                                  "other_variables/histograms_of_following_intervals",
-                                  res_dir, "following_intervals", prefix,
+                                  "other_variables/histograms_of_dynamic_interactions_intervals",
+                                  res_dir, "dynamic_interactions_intervals", prefix,
                                   additional_info=add_info_mice,
                                   delimiter=delimiter)
     return following, following_exp, phases, ehd.mice
