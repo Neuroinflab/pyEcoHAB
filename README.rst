@@ -16,6 +16,25 @@ To read-in and analyze a sample data-set type:
 >>> pyEcoHAB.get_solitude(data, config)
 >>> pyEcoHAB.get_following(data, config, 1000)
 
+The standart data analysis script used by the Laboratory of Neurobiology with pyEcoHAB.sample_data as an example of the Eco-HAB dataset:
+
+>>> import os
+>>> import pyEcoHAB
+>>> binsizes = [1800, 3600, 1.5*3600, 7200, 14400, 43200]
+>>> path = pyEcoHAB.sample_data
+>>> res_dir = os.path.join(path, "results")
+>>> ehd = pyEcoHAB.Loader(path, res_dir=res_dir)
+>>> config = pyEcoHAB.ExperimentConfigFile(path)
+>>> pyEcoHAB.get_solitude(ehd, config)
+>>> pyEcoHAB.get_incohort_sociability(ehd, config, binsize="ALL")
+>>> pyEcoHAB.get_incohort_sociability(ehd, config, binsize="dark")
+>>> pyEcoHAB.get_incohort_sociability(ehd, config, binsize="light")
+>>> for binsize in binsizes:
+...     pyEcoHAB.get_activity(ehd, config, binsize)
+...     pyEcoHAB.get_incohort_sociability(ehd, config, binsize)
+... 
+>>> pyEcoHAB.get_following(ehd, config, 1000)
+					  
 
 The library is available under `GPL3 license
 <http://www.gnu.org/licenses/gpl-3.0>`_.
