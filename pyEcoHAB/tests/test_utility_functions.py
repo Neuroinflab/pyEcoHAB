@@ -7,7 +7,7 @@ import random
 import numpy as np
 
 import pyEcoHAB.utility_functions as uf
-from pyEcoHAB import data_path
+from pyEcoHAB import sample_data_path
 from pyEcoHAB import Loader
 
 
@@ -1936,7 +1936,7 @@ class TestProcessLine5(unittest.TestCase):
 class TestGetEHSData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(data_path, "weird_short")
+        path = os.path.join(sample_data_path, "weird_short")
         cls.data = Loader(path)
         cls.t1 = 1286701470
         cls.t2 = 1286701580
@@ -1967,7 +1967,7 @@ class TestGetEHSData(unittest.TestCase):
 class TestPrepareData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(data_path, "weird_short")
+        path = os.path.join(sample_data_path, "weird_short")
         cls.data = Loader(path)
         cls.t1 = 1286701470
         cls.t2 = 1286701580
@@ -1985,7 +1985,7 @@ class TestPrepareData(unittest.TestCase):
         cls.no_mouse = uf.prepare_data(cls.data, "mouse_2",
                                [cls.t1, cls.t2])["mouse_2"]
 
-        path2 = os.path.join(data_path, "weird_3_mice")
+        path2 = os.path.join(sample_data_path, "weird_3_mice")
         data_longer = Loader(path2)
         
         cls.data_longer = uf.prepare_data(data_longer, ["mouse_1",
@@ -2016,7 +2016,7 @@ class TestPrepareData(unittest.TestCase):
 
     def test_get_all(self):
         self.assertEqual(len(self.out_all),
-                         len(self.data.get_visit_addresses("mouse_1")))
+                         len(self.data.getaddresses("mouse_1")))
 
     def test_get2_starttimes(self):
         self.assertTrue(self.out_different[0][1] > self.t11)

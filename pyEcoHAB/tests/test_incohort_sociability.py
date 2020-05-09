@@ -5,7 +5,7 @@ import numpy as np
 
 from pyEcoHAB import incohort_sociability as ics
 from pyEcoHAB import utility_functions as utils
-from pyEcoHAB import data_path
+from pyEcoHAB import sample_data_path
 from pyEcoHAB import Loader
 from pyEcoHAB import ExperimentConfigFile
 
@@ -603,7 +603,7 @@ class TestExpectedTimeTogether(unittest.TestCase):
 class TestPrepareFnamesAndTotals(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(data_path, "weird_short")
+        path = os.path.join(sample_data_path, "weird_short")
         cls.data = Loader(path)
         cls.config = ExperimentConfigFile(path)
 
@@ -713,7 +713,7 @@ class TestSinglePhaseResults(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.duration = 43200
-        path = os.path.join(data_path, "weird_3_mice")
+        path = os.path.join(sample_data_path, "weird_3_mice")
         cls.config = ExperimentConfigFile(path)
         data = Loader(path)
         cls.phases, cls.total_time,\

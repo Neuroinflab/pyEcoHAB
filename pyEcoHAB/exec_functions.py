@@ -8,9 +8,7 @@ from . import utility_functions as utils
 def evaluate_whole_experiment(ehd, cf, main_directory,
                               prefix, func, fname,
                               xlabel, ylabel, title,
-                              args=[], remove_mouse=None,
-                              vmin=None, vmax=None,
-                              delimiter=";"):
+                              args=[], remove_mouse=None, vmin=None, vmax=None):
     phases = cf.sections()
     phases = utils.filter_dark(phases)
     mice = [mouse[-4:] for mouse in ehd.mice]
@@ -31,8 +29,7 @@ def evaluate_whole_experiment(ehd, cf, main_directory,
                                main_directory,
                                hist_dir,
                                prefix,
-                               additional_info=add_info_mice,
-                               delimiter=delimiter)
+                               additional_info=add_info_mice)
         single_heat_map(result[i],
                         fname,
                         main_directory,
@@ -51,13 +48,11 @@ def evaluate_whole_experiment(ehd, cf, main_directory,
                       result,
                       main_directory,
                       rast_dir,
-                      fname_,
-                      delimiter=delimiter)
+                      fname_)
     make_RasterPlot(main_directory,
                     rast_dir,
                     result,
                     phases,
                     fname_,
                     mice,
-                    title=title,
-                    delimiter=delimiter)
+                    title=title)
