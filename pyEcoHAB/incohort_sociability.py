@@ -258,11 +258,10 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                                  "bins_%s" % binsize_name)
     out_dict_rasters = os.path.join("incohort_sociability", "raster_plots",
                                     "bins_%s" % binsize_name)
-    out_dict_hist_add = os.path.join("incohort_sociability", "additionals",
-                                     "histograms", "bins_%s" % binsize_name)
-    out_dict_rasters_add = os.path.join("incohort_sociability", "additionals",
-                                        "raster_plots",
-                                        "bins_%s" % binsize_name)
+    out_dict_hist_add = os.path.join("incohort_sociability", "additionals", "histograms",
+                                 "bins_%s" % binsize_name)
+    out_dict_rasters_add = os.path.join("incohort_sociability", "additionals", "raster_plots",
+                                    "bins_%s" % binsize_name)
     all_phases, bin_labels = keys[0], keys[1]
     for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase].replace(' ', '_')
@@ -311,9 +310,9 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                 csv_results_incohort[idx_phase] = res
                 csv_results_incohort_exp[idx_phase] = exp_res
 
-        fname_measured = "%s_%s.csv" % (f_mes_pref, new_phase)
-        fname_excess = "%s_%s.csv" % (f_exc_pref, new_phase)
-        fname_expected = "%s_%s.csv" % (f_exp_pref, new_phase)
+        fname_measured = "%s_%s.csv" % (fname_measured_prefix, new_phase)
+        fname_excess = "%s_%s.csv" % (fname_excess_prefix, new_phase)
+        fname_expected = "%s_%s.csv" % (fname_expected_prefix, new_phase)
         raster_labels = [bin_label/3600 for bin_label in bin_labels]
         phase_full_results = utils.dict_to_array_3D(full_results[ph],
                                                     bin_labels,
@@ -363,7 +362,7 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                               csv_results_incohort - csv_results_incohort_exp,
                               res_dir,
                               out_dict_rasters,
-                              "incohort_sociability_excess_time_ALL_phases_binned.csv",
+                               "incohort_sociability_excess_time_ALL_phases_binned.csv",
                               delimiter=delimiter)
             make_RasterPlot(res_dir,
                             out_dict_rasters_add,
