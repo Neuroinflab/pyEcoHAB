@@ -110,7 +110,7 @@ def bootstrap_single_phase(directions_dict, mice_list,
         times_together[:, :, i] = out[1]
     return followings, times_together
 
-def resample_single_phase(ehd, cf, phase, N,
+def resample_single_phase(directions_dict, t_start, t_stop, N,
                           return_median=False,
                           save_figures=False,
                           save_distributions=True,
@@ -120,14 +120,12 @@ def resample_single_phase(ehd, cf, phase, N,
     of the resampled following distribution
 
     stf: save times following"""
-    t_start, t_stop = cf.gettime(phase)
     mice = ehd.mice
-    assert  t_stop - t_start > 0
     if res_dir is None:
         res_dir = ehd.res_dir
     if prefix is None:
         prefix = ehd.prefix
-    directions_dict = prepare_data(ehd, t_start, t_stop)
+
     followings, times_following = bootstrap_single_phase(directions_dict,
                                                          mice,
                                                          t_start, t_stop,
@@ -275,13 +273,6 @@ def prepare_data(ehd, st, en):
                                                 last_antenna)
     return directions
 
-def get_matrices_single_phase(ehd, cf, phase, function):
-    t_start, t_stop = cf.gettime(phase)
-    assert  t_stop - t_start > 0
-    directions_dict = prepare_data(ehd, t_start, t_stop)
-    return function(directions_dict, ehd.mice,
-                    t_start, t_stop)
-
 
 def add_intervals(all_intervals, phase_intervals):
     for mouse in phase_intervals.keys():
@@ -337,19 +328,19 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
         vmaxt = 0.01
         vmin1t = -0.01
         vmax1t = 0.01
-
+    raster_dir = "dynamic_interactions/raster_plots"
+    raster_dir_add = 'dynamic_interactions/additionals/raster_plots'
     for i, phase in enumerate(phases):
-        out = get_matrices_single_phase(ehd,
-                                        cf,
-                                        phase,
-                                        following_matrices)
+        t_start, t_stop = cf.gettime(phase)
+        assert  t_stop - t_start > 0
+        directions_dict = prepare_data(ehd, t_start, t_stop)
+        out = following_matrices(directions_dict, ehd.mice, t_start, t_stop)
         following[i], time_together[i], phase_intervals  = out
         start, end = cf.gettime(phase)
         duration = end - start
-        assert duration > 0
-        out_expected = resample_single_phase(ehd,
-                                             cf,
-                                             phase,
+        out_expected = resample_single_phase(directions_dict,
+                                             t_start,
+                                             t_stop,
                                              N,
                                              res_dir=res_dir,
                                              prefix=prefix,
@@ -455,7 +446,7 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
                       phases,
                       following,
                       res_dir,
-                      'dynamic_interactions/additionals/raster_plots',
+                      raster_dir_add,
                       fname_,
                       symmetric=False,
                       delimiter=delimiter)
@@ -463,7 +454,7 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
                       phases,
                       following,
                       res_dir,
-                      'dynamic_interactions/additionals/raster_plots',
+                      raster_dir_add,
                       fname_rev_,
                       symmetric=False,
                       reverse_order=True)
@@ -471,14 +462,14 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
                       phases,
                       (following-following_exp),
                       res_dir,
-                      'dynamic_interactions/raster_plots',
+                      raster_dir,
                       fname_exp,
                       symmetric=False)
     write_csv_rasters(ehd.mice,
                       phases,
                       (following-following_exp),
                       res_dir,
-                      'dynamic_interactions/raster_plots',
+                      raster_dir,
                       fname_exp_rev,
                       symmetric=False,
                       reverse_order=True,
@@ -486,7 +477,7 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
 
 
     make_RasterPlot(res_dir,
-                    'dynamic_interactions/raster_plots',
+                    raster_dir,
                     (following-following_exp),
                     phases,
                     fname_exp,
