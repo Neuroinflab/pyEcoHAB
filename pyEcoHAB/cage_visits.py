@@ -146,12 +146,24 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     
-
+    if binsize > 12*3600:
+        t_start = cf.gettime(phases[0])[0]
+        t_end = cf.gettime(phases[-1])[-1]
+        phases = []
+        times = []
+        i = 1
+        while t_start < t_end:
+            times.append((t_start, t_start + binsize))
+            phases.append("%d_x" % i)
+            i += 1
+            t_start += binsize
+    else:
+        times = [cf.gettime(phase) for phase in phases]
     data = {c:{0:{},1:{}} for c in ehs.cages}
     ehs_data = utils.prepare_data(ehs, mice)
     bin_labels = {}
     for idx_phase, phase in enumerate(phases):
-        t_start, t_end = cf.gettime(phase)
+        t_start, t_end = times[idx_phase]
         visits_in_cages = {}
         for address in ehs.cages:
             visit_data = calculate_visits_and_durations(ehs_data,
