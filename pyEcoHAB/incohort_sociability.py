@@ -233,18 +233,17 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
 
    
-    f_mes_pref = "incohort_sociability_measured_time_%s_%s" % (prefix,
-                                                               add_info_mice)
-    f_exp_pref = "incohort_sociability_expected_time_%s_%s" % (prefix,
-                                                               add_info_mice)
-    f_exc_pref = "incohort_sociability_excess_time_%s_%s" % (prefix,
-                                                             add_info_mice)
-    phases, time, data, keys = utils.prepare_binned_data(ehs, cf, prefix,
-                                                         binsize, mice)
+    fname_measured_prefix = "incohort_sociability_measured_time_%s_%s" % (prefix,
+                                                                     add_info_mice)
+    fname_expected_prefix = "incohort_sociability_expected_time_%s_%s" % (prefix,
+                                                                          add_info_mice)
+    fname_excess_prefix = "incohort_sociability_excess_time_%s_%s" % (prefix,
+                                                                      add_info_mice)
+    phases, time, data, keys = utils.prepare_binned_data(ehs, cf, prefix, binsize, mice)
 
     if isinstance(binsize, int) or isinstance(binsize, float):
         binsize_name = "%3.2f_h" % (binsize/3600)
-        if binsize == 43200:
+        if int(binsize) == 43200 or int(binsize) == 24*3600:
             csv_results_incohort = np.zeros((len(phases), len(mice),
                                              len(mice)))
             csv_results_incohort_exp = np.zeros((len(phases), len(mice),
@@ -295,7 +294,7 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                           out_dict_hist, prefix, additional_info=add_info_mice,
                           delimiter=delimiter)
         if isinstance(binsize, int) or isinstance(binsize, float):
-            if int(binsize) == 12*3600:
+            if int(binsize) == 12*3600 or int(binsize) == 24*3600:
                 fname = "incohort_sociability_"
                 res = utils.dict_to_array_2D(full_results[ph][0],
                                              mice, mice)
