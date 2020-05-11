@@ -4,12 +4,13 @@ from __future__ import print_function, division, absolute_import
 import os
 import unittest
 import random
+from collections import OrderedDict
 import numpy as np
 
 import pyEcoHAB.utility_functions as uf
 from pyEcoHAB import data_path
 from pyEcoHAB import Loader
-
+from pyEcoHAB import ExperimentConfigFile
 
 class TestFilter(unittest.TestCase):
     @classmethod
@@ -2041,6 +2042,128 @@ class TestCalcExcess(unittest.TestCase):
 
     def test011(self):
         self.assertEqual(self.out["BB"]["B"]["D"], self.new_arr["BB"]["B"]["D"])
+
+class TestPrepareBinnedData(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short")
+        cls.data = Loader(path)
+        cls.config = ExperimentConfigFile(path)
+
+        cls.all_phases, cls.all_total_time,\
+            cls.all_data, cls.all_keys = uf.prepare_binned_data(cls.data,
+                                                                      cls.config, "", "ALL", ["mouse_1"])
+        cls.dark_phases, cls.dark_total_time,\
+            cls.dark_data, cls.dark_keys = uf.prepare_binned_data(cls.data,
+                                                                      cls.config, "", "DARK", ["mouse_1"])
+        cls.light_phases, cls.light_total_time,\
+            cls.light_data, cls.light_keys = uf.prepare_binned_data(cls.data,
+                                                                      cls.config, "", "LIGHT", ["mouse_1"])
+
+        cls.phases_100s_bins, cls.total_time_100s_bins,\
+            cls.data_100s_bins, cls.keys_100s_bins = uf.prepare_binned_data(cls.data, cls.config, "", 100, ["mouse_1"])
+        cls.phases_900s_bins, cls.total_time_900s_bins,\
+            cls.data_900s_bins, cls.keys_900s_bins = uf.prepare_binned_data(cls.data, cls.config, "", 900, ["mouse_1"])
+
+        path = os.path.join(data_path, "weird_short_2_mice")
+        cls.data2 = Loader(path)
+        cls.config2 = ExperimentConfigFile(path)
+        cls.phases_24h_bins, cls.total_time_24h_bins,\
+        cls.data_24h_bins, cls.keys_24h_bins = uf.prepare_binned_data(cls.data2, cls.config2, "", 24*3600, ["mouse_1"])
+
+    def test_all_phases(self):
+        self.assertEqual(self.all_phases, ["ALL"])
+
+    def test_all_time(self):
+        time_dict = {"ALL": {0: 3600}}
+        self.assertEqual(self.all_total_time, time_dict)
+
+    def test_all_data(self):
+        data = {"mouse_1": uf.prepare_data(self.data, ["mouse_1"])}
+        all_data = {"ALL": {0: data}}
+
+    def test_all_keys(self):
+        keys = [["ALL"], ["0"]]
+        self.assertTrue(keys, self.all_keys)
+    
+    def test_dark_phases(self):
+        self.assertEqual(self.dark_phases, ["DARK"])
+
+    def test_dark_time(self):
+        time_dict = {"DARK": {0: 1800.0}}
+        self.assertEqual(self.dark_total_time, time_dict)
+
+    def test_dark_data(self):
+        data = {"mouse_1": uf.prepare_data(self.data, ["mouse_1"])}
+        dark_data = {"DARK": {0: data}}
+
+    def test_dark_keys(self):
+        keys = [["DARK"], ["0"]]
+        self.assertTrue(keys, self.dark_keys)
+
+    def test_light_phases(self):
+        self.assertEqual(self.light_phases, ["LIGHT"])
+
+    def test_light_time(self):
+        time_dict = {"LIGHT": {0: 1800.0}}
+        self.assertEqual(self.light_total_time, time_dict)
+
+    def test_light_data(self):
+        data = {"mouse_1": uf.prepare_data(self.data, ["mouse_1"])}
+        light_data = {"LIGHT": {0: data}}
+
+    def test_light_keys(self):
+        keys = [["LIGHT"], ["0"]]
+        self.assertTrue(keys, self.light_keys)
+
+    def test_bins_keys(self):
+        keys = [["1 dark"], [i*100/3600. for i in range(18)]]
+        self.assertTrue(keys, self.keys_100s_bins)
+
+    def test_bins_data_1st_bin(self):
+        self.assertEqual(self.data_100s_bins["1 dark"][0]["mouse_1"], [])
+
+    def test_bins_data_2nd_bin(self):
+        self.assertEqual(self.data_100s_bins["1 dark"][100.]["mouse_1"], [])
+
+    def test_bins_data_3rd_bin_len(self):
+        data = self.data_100s_bins["1 dark"][200.]["mouse_1"]
+        self.assertEqual(len(data), 4)
+
+    def test_bins_data_3rd_bin_last_value(self):
+        data = self.data_100s_bins["1 dark"][200.]["mouse_1"][3]
+        self.assertEqual(data[-1], 1286701500)
+
+    def test_bins_data_8th_bin_last_value(self):
+        data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
+        self.assertEqual(data[-1], 1286701700)
+
+    def test_bins_data_8th_bin_last_value(self):
+        data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
+        self.assertEqual(data[1], 1286701800)
+
+    def test_bins_data_8th_address(self):
+        data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
+        self.assertEqual(data[0], "B")
+
+    def test_bins_24_h_phases(self):
+        self.assertEqual(self.phases_24h_bins, ['1_x_24.00h', '2_x_24.00h'])
+
+    def test_total_time_24_h_phases(self):
+        self.assertEqual(OrderedDict([('1_x', OrderedDict([(0.0, 86400.0)])),
+                                      ('2_x', OrderedDict([(0.0, 86400.0)]))]),
+                         self.total_time_24h_bins)
+
+    def test_keys_24_h(self):
+        self.assertEqual(self.keys_24h_bins, [['1_x', '2_x'], [0.0]])
+
+    def test_data_1_bin(self):
+        self.assertEqual(self.data_24h_bins["1_x"][0.0]["mouse_1"][-1],
+                         ('B', 1286704790.827, 1286704795.578))
+
+    def test_data_2_bin(self):
+        self.assertEqual(self.data_24h_bins["2_x"][0.0]["mouse_1"],
+                         [('C', 1286790836.218, 1286791196.218)])
 
 if __name__ == '__main__':
     unittest.main()

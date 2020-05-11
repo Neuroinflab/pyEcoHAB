@@ -600,114 +600,6 @@ class TestExpectedTimeTogether(unittest.TestCase):
 
 
 
-class TestPrepareFnamesAndTotals(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        path = os.path.join(data_path, "weird_short")
-        cls.data = Loader(path)
-        cls.config = ExperimentConfigFile(path)
-
-        cls.all_phases, cls.all_total_time,\
-            cls.all_data, cls.all_keys = ics.prepare_fnames_and_totals(cls.data,
-                                                                      cls.config, "",
-                                                                      "ALL",
-                                                                      ["mouse_1"])
-        cls.dark_phases, cls.dark_total_time,\
-            cls.dark_data, cls.dark_keys = ics.prepare_fnames_and_totals(cls.data,
-                                                                      cls.config, "",
-                                                                      "DARK",
-                                                                      ["mouse_1"])
-        cls.light_phases, cls.light_total_time,\
-            cls.light_data, cls.light_keys = ics.prepare_fnames_and_totals(cls.data,
-                                                                      cls.config, "",
-                                                                      "LIGHT",
-                                                                      ["mouse_1"])
-
-        cls.phases_100s_bins, cls.total_time_100s_bins,\
-            cls.data_100s_bins, cls.keys_100s_bins = ics.prepare_fnames_and_totals(cls.data,
-                                                                                  cls.config, "",
-                                                                                  100,
-                                                                                  ["mouse_1"])
-        cls.phases_900s_bins, cls.total_time_900s_bins,\
-            cls.data_900s_bins, cls.keys_900s_bins = ics.prepare_fnames_and_totals(cls.data,
-                                                                                  cls.config, "",
-                                                                                  900,
-                                                                                  ["mouse_1"])
-
-    def test_all_phases(self):
-        self.assertEqual(self.all_phases, ["ALL"])
-
-    def test_all_time(self):
-        time_dict = {"ALL": {0: 3600}}
-        self.assertEqual(self.all_total_time, time_dict)
-
-    def test_all_data(self):
-        data = {"mouse_1": utils.prepare_data(self.data, ["mouse_1"])}
-        all_data = {"ALL": {0: data}}
-
-    def test_all_keys(self):
-        keys = [["ALL"], ["0"]]
-        self.assertTrue(keys, self.all_keys)
-    
-    def test_dark_phases(self):
-        self.assertEqual(self.dark_phases, ["DARK"])
-
-    def test_dark_time(self):
-        time_dict = {"DARK": {0: 1800.0}}
-        self.assertEqual(self.dark_total_time, time_dict)
-
-    def test_dark_data(self):
-        data = {"mouse_1": utils.prepare_data(self.data, ["mouse_1"])}
-        dark_data = {"DARK": {0: data}}
-
-    def test_dark_keys(self):
-        keys = [["DARK"], ["0"]]
-        self.assertTrue(keys, self.dark_keys)
-
-    def test_light_phases(self):
-        self.assertEqual(self.light_phases, ["LIGHT"])
-
-    def test_light_time(self):
-        time_dict = {"LIGHT": {0: 1800.0}}
-        self.assertEqual(self.light_total_time, time_dict)
-
-    def test_light_data(self):
-        data = {"mouse_1": utils.prepare_data(self.data, ["mouse_1"])}
-        light_data = {"LIGHT": {0: data}}
-
-    def test_light_keys(self):
-        keys = [["LIGHT"], ["0"]]
-        self.assertTrue(keys, self.light_keys)
-
-    def test_bins_keys(self):
-        keys = [["1 dark"], [i*100/3600. for i in range(18)]]
-        self.assertTrue(keys, self.keys_100s_bins)
-
-    def test_bins_data_1st_bin(self):
-        self.assertEqual(self.data_100s_bins["1 dark"][0]["mouse_1"], [])
-
-    def test_bins_data_2nd_bin(self):
-        self.assertEqual(self.data_100s_bins["1 dark"][100.]["mouse_1"], [])
-
-    def test_bins_data_3rd_bin_len(self):
-        data = self.data_100s_bins["1 dark"][200.]["mouse_1"]
-        self.assertEqual(len(data), 4)
-
-    def test_bins_data_3rd_bin_last_value(self):
-        data = self.data_100s_bins["1 dark"][200.]["mouse_1"][3]
-        self.assertEqual(data[-1], 1286701500)
-
-    def test_bins_data_8th_bin_last_value(self):
-        data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
-        self.assertEqual(data[-1], 1286701700)
-
-    def test_bins_data_8th_bin_last_value(self):
-        data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
-        self.assertEqual(data[1], 1286701800)
-
-    def test_bins_data_8th_address(self):
-        data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
-        self.assertEqual(data[0], "B")
 
 class TestSinglePhaseResults(unittest.TestCase):
     @classmethod
@@ -717,11 +609,11 @@ class TestSinglePhaseResults(unittest.TestCase):
         cls.config = ExperimentConfigFile(path)
         data = Loader(path)
         cls.phases, cls.total_time,\
-            cls.data, cls.keys = ics.prepare_fnames_and_totals(data,
-                                                              cls.config, "",
-                                                              cls.duration,
-                                                              ["mouse_1",
-                                                               "mouse_2"])
+            cls.data, cls.keys = utils.prepare_binned_data(data,
+                                                           cls.config, "",
+                                                           cls.duration,
+                                                           ["mouse_1",
+                                                            "mouse_2"])
         DD = 984.282*671.526
         AA = 326.757*254.848
         D = 84.312

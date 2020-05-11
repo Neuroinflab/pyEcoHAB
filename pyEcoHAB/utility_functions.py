@@ -497,8 +497,6 @@ def get_times(binsize, time_start=None, time_end=None):
     return out.tolist()
 
 
-
-
 def dict_to_array_2D(dictionary, keys1, keys2):
     shape = (len(keys1), len(keys2))
     out = np.zeros(shape)
@@ -528,4 +526,72 @@ def calc_excess(res, exp_res):
     return excess
 
 
+def get_dark_light_data(phase, cf, ehs, mice):
 
+    if phase == "dark" or phase == "DARK" or phase == "Dark":
+        phases = filter_dark(cf.sections())
+    elif phase == "light" or phase == "LIGHT" or phase == "Light":
+        phases = filter_light(cf.sections())
+    out_phases = [phase]
+    data = {mouse:[] for mouse in mice}
+    total_time = 0
+    for i, ph in enumerate(phases):
+        time = cf.gettime(ph)
+        out = prepare_data(ehs, mice, time)
+        for mouse in mice:
+            data[mouse].extend(out[mouse])
+        total_time += (time[1] - time[0])
+    out_data = {phase: {0: data}}
+    return out_phases, {phase: {0: total_time}}, {phase: {0: data}}
+
+
+def prepare_binned_data(ehs, cf, prefix, bins, mice):
+    if bins in ["ALL", "all", "All"]:
+        phases = ["ALL"]
+        time = cf.gettime("ALL")
+        total_time = {"ALL": {0: (time[1] - time[0])}}
+        data = {"ALL": {0: prepare_data(ehs, mice, time)}}
+        keys = [["ALL"], [0]]
+    elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
+        phases, total_time, data = get_dark_light_data(bins, cf, ehs, mice)
+        keys = [list(data.keys()), [0]]
+    elif isinstance(bins, int) or isinstance(bins, float):
+        phases = []
+        data = OrderedDict()
+        total_time = OrderedDict()
+        all_phases = filter_dark_light(cf.sections())
+        # you can not iterate by phases, if bins are longer than phases
+        if bins > 12*3600:
+            t_start = cf.gettime(all_phases[0])[0]
+            t_end = cf.gettime(all_phases[-1])[-1]
+            bin_labels = [0.0]
+            all_phases = []
+            times = []
+            i = 1
+            while t_start < t_end:
+                times.append((t_start, t_start + bins))
+                all_phases.append("%d_x" % i)
+                i += 1
+                t_start += bins
+        else:
+            all_phases = filter_dark_light(cf.sections())
+            bin_labels = get_times(bins)
+            times = [cf.gettime(phase) for phase in all_phases]
+        for i, phase in enumerate(all_phases):
+            t_start, t_end = times[i]
+            phases.append("%s_%4.2fh" % (phase.replace(" ", "_"), bins/3600))
+            data[phase] = OrderedDict()
+            total_time[phase] = OrderedDict()
+            j = 0
+            while t_start < t_end:
+                t_e = t_start + bins
+                if t_e > t_end:
+                    t_e = t_end
+                time = [t_start, t_e]
+                data[phase][bin_labels[j]] = prepare_data(ehs, mice, time)
+                total_time[phase][bin_labels[j]] = time[1] - time[0]
+                t_start += bins
+                j += 1
+        keys = [all_phases, bin_labels]
+
+    return phases, total_time, data, keys
