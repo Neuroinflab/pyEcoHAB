@@ -279,7 +279,7 @@ def add_intervals(all_intervals, phase_intervals):
         all_intervals[mouse].extend(phase_intervals[mouse])
 
 
-def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
+def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                              remove_mouse=None, save_distributions=True,
                              save_figures=False, return_median=False,
                              delimiter=";",
@@ -288,13 +288,18 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
         res_dir = ehd.res_dir
     if prefix == "":
         prefix = ehd.prefix
-    phases = utils.filter_dark_light(cf.sections())
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    following = np.zeros((len(phases), len(ehd.mice), len(ehd.mice)))
-    following_exp = np.zeros((len(phases), len(ehd.mice), len(ehd.mice)))
-    time_together = np.zeros((len(phases), len(ehd.mice), len(ehd.mice)))
-    time_together_exp = np.zeros((len(phases), len(ehd.mice),
-                                  len(ehd.mice)))
+    mice = utils.get_mice(ehs.mice, remove_mouse)
+    phases = utils.filter_dark_light(cf.sections())
+
+
+    
+    
+    following = np.zeros((len(phases), len(mice), len(mice)))
+    following_exp = np.zeros((len(phases), len(mice), len(mice)))
+    time_together = np.zeros((len(phases), len(mice), len(mice)))
+    time_together_exp = np.zeros((len(phases), len(mice),
+                                  len(mice)))
     if return_median:
         method = "median_N_%d" % N
     else:
@@ -312,7 +317,7 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
                                     method,
                                     prefix,
                                     add_info_mice)
-    keys = utils.all_pairs(ehd.mice)
+    keys = utils.all_pairs(mice)
     interval_details = {key:[] for key in keys}
     if ehd.how_many_antennas() > 2:
         vmax = 20
@@ -330,11 +335,16 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
         vmax1t = 0.01
     raster_dir = "dynamic_interactions/raster_plots"
     raster_dir_add = 'dynamic_interactions/additionals/raster_plots'
+    hist_dir = 'dynamic_interactions/histograms'
+    hist_fir_add = 'dynamic_interactions/additionals/histograms'
+    other_dir =  'other_variables/durations_dynamic_interaction/histograms'
+    other_hist = "other_variables/histograms_of_dynamic_interactions_intervals"
+    other_excess_hist = 'other_variables/dynamic_interactions_excess_histograms'
     for i, phase in enumerate(phases):
         t_start, t_stop = cf.gettime(phase)
         assert  t_stop - t_start > 0
         directions_dict = prepare_data(ehd, t_start, t_stop)
-        out = following_matrices(directions_dict, ehd.mice, t_start, t_stop)
+        out = following_matrices(directions_dict, mice, t_start, t_stop)
         following[i], time_together[i], phase_intervals  = out
         start, end = cf.gettime(phase)
         duration = end - start
@@ -350,38 +360,38 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
         add_intervals(interval_details, phase_intervals)
         save_single_histograms(following[i],
                                'dynamic_interactions',
-                               ehd.mice,
+                               mice,
                                phase,
                                res_dir,
-                               'dynamic_interactions/additionals/histograms',
+                               hist_dir_add,
                                prefix,
                                additional_info=add_info_mice,
                                delimiter=delimiter)
         save_single_histograms(following_exp[i],
                                'dynamic_interactions_expected_%s' % method,
-                               ehd.mice,
+                               mice,
                                phase,
                                res_dir,
-                               'dynamic_interactions/histograms',
+                               hist_dir,
                                prefix,
                                additional_info=add_info_mice,
                                delimiter=delimiter)
         save_single_histograms((following[i]-following_exp[i]),
                                'dynamic_interactions_excess_%s' %method,
-                               ehd.mice,
+                               mice,
                                phase,
                                res_dir,
-                               'dynamic_interactions/additionals/histograms',
+                               hist_dir_add,
                                prefix,
                                additional_info=add_info_mice,
                                delimiter=delimiter)
         single_in_cohort_soc_plot(following[i],
                                   following_exp[i],
-                                  ehd.mice,
+                                  mice,
                                   phase,
                                   fname,
                                   res_dir,
-                                  'dynamic_interactions/histograms',
+                                  hist_dir,
                                   prefix+add_info_mice,
                                   hist=False,
                                   vmin=0,
@@ -396,39 +406,39 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
         if save_times_following:
             save_single_histograms(time_together[i],
                                    'duration_dynamic_interaction',
-                                   ehd.mice,
+                                   mice,
                                    phase,
                                    res_dir,
-                                   'other_variables/durations_dynamic_interaction/histograms',
+                                  other_dir,
                                    prefix,
                                    additional_info=add_info_mice,
                                    delimiter=delimiter)
             save_single_histograms(time_together_exp[i],
                                    'expected_durations_dynamic_interaction_%s' % method,
-                                   ehd.mice,
+                                   mice,
                                    phase,
                                    res_dir,
-                                   'other_variables/durations_dynamic_interaction/histograms',
+                                   other_dir,
                                    prefix,
                                    additional_info=add_info_mice,
                                    delimiter=delimiter)
             save_single_histograms((time_together[i]-time_together_exp[i]),
                                    'excess_durations_dynamic_interaction_%s' % method,
-                                   ehd.mice,
+                                   mice,
                                    phase,
                                    res_dir,
-                                   'other_variables/durations_dynamic_interaction/histograms',
+                                   other_dir,
                                    prefix,
                                    additional_info=add_info_mice,
                                    delimiter=delimiter)
 
             single_in_cohort_soc_plot(time_together[i],
                                       time_together_exp[i],
-                                      ehd.mice,
+                                      mice,
                                       phase,
                                       "durations_dynamic_interaction_%s" % method,
                                       res_dir,
-                                      'other_variables/durations_dynamic_interaction/histograms',
+                                      other_dir,
                                       prefix+add_info_mice,
                                       hist=False,
                                       vmin=0,
@@ -442,7 +452,7 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
                                       labels=['following mouse',
                                               'followed mouse'])
 
-    write_csv_rasters(ehd.mice,
+    write_csv_rasters(mice,
                       phases,
                       following,
                       res_dir,
@@ -450,7 +460,7 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
                       fname_,
                       symmetric=False,
                       delimiter=delimiter)
-    write_csv_rasters(ehd.mice,
+    write_csv_rasters(mice,
                       phases,
                       following,
                       res_dir,
@@ -458,14 +468,14 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
                       fname_rev_,
                       symmetric=False,
                       reverse_order=True)
-    write_csv_rasters(ehd.mice,
+    write_csv_rasters(mice,
                       phases,
                       (following-following_exp),
                       res_dir,
                       raster_dir,
                       fname_exp,
                       symmetric=False)
-    write_csv_rasters(ehd.mice,
+    write_csv_rasters(mice,
                       phases,
                       (following-following_exp),
                       res_dir,
@@ -481,7 +491,7 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
                     (following-following_exp),
                     phases,
                     fname_exp,
-                    ehd.mice,
+                    mice,
                     title='% excess following',
                     symmetric=False)
 
@@ -490,28 +500,28 @@ def get_dynamic_interactions(ehd, cf, N, res_dir="", prefix="",
                            phases,
                            'Dynamic_interactions_histogram',
                            res_dir,
-                           'other_variables/dynamic_interactions_excess_histograms',
+                           other_excess_hist,
                            prefix,
                            additional_info=add_info_mice)
 
     if save_times_following:
         make_histograms_for_every_mouse(interval_details,
-                                        "dynamic_interactions_intervals_histogram",
-                                        ehd.mice,
+                                        "dynamic_interactions_intervals_hist",
+                                        mice,
                                         res_dir,
-                                        "other_variables/histograms_of_dynamic_interactions_intervals",
+                                        other_hist,
                                         prefix,
                                         additional_info=add_info_mice)
         make_pooled_histograms_for_every_mouse(interval_details,
-                                               "dynamic_interactions_intervals_histogram",
-                                               ehd.mice,
+                                               "dynamic_interactions_intervals_hist",
+                                               mice,
                                                res_dir,
-                                               "other_variables/histograms_of_dynamic_interactions_intervals",
+                                               other_hist,
                                                prefix,
                                                additional_info=add_info_mice)
         write_interpair_intervals(interval_details,
-                                  "other_variables/histograms_of_dynamic_interactions_intervals",
-                                  res_dir, "dynamic_interactions_intervals", prefix,
-                                  additional_info=add_info_mice,
+                                  other_hist,
+                                  res_dir, "dynamic_interactions_intervals",
+                                  prefix, additional_info=add_info_mice,
                                   delimiter=delimiter)
-    return following, following_exp, phases, ehd.mice
+    return following, following_exp, phases, mice
