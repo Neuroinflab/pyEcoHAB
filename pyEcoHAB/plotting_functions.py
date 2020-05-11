@@ -386,7 +386,7 @@ def pool_results_followed(res_dict, mice):
     return pooled_results
 
 def single_histogram_figures(single_results, fname, main_directory,
-                             path, title, nbins=False,
+                             path, title, nbins=10,
                              xlabel=None, ylabel=None,
                              fontsize=14,
                              median_mean=False, add_text=""):

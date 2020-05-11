@@ -1,17 +1,23 @@
 [1 dark]
 startdate = 10.10.2010
-starttime = 11:00
+starttime = 00:00
 enddate = 10.10.2010
-endtime = 11:30
+endtime = 12:00
 
 [1 light]
 startdate = 10.10.2010
-starttime = 11:30
-enddate = 10.10.2010
+starttime = 12:00
+enddate = 11.10.2010
+endtime = 00:00
+
+[2 dark]
+startdate = 11.10.2010
+starttime = 00:00
+enddate = 11.10.2010
 endtime = 12:00
 
 [ALL]
 startdate = 10.10.2010
-starttime = 11:00
-enddate = 10.10.2010
+starttime = 00:00
+enddate = 11.10.2010
 endtime = 12:00

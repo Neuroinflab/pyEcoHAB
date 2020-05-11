@@ -10,4 +10,4 @@ from .incohort_sociability import get_incohort_sociability
 from .incohort_sociability import get_solitude
 from .cage_visits import get_activity
 from .tube_dominance import get_tube_dominance
-from .following import get_following, resample_single_phase
+from .following import get_dynamic_interactions, resample_single_phase

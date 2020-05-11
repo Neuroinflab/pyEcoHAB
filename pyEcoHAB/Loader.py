@@ -188,13 +188,12 @@ class Loader(EcoHabDataBase):
            will be reported, while loading Eco-HAB data.
         how_many_appearances: int
            Animal tags that are registered less times than how_many_appearances
-           will be removed from loaded data. By default an animal tag must be
-           registered at least 200 times not to be removed from loaded data
+           will be removed from loaded data. By default no animal tag
+           registrations are removed.
         min_appearance_factor: float of value less than 1
            Animal tags that are registered in fraction of the experiment
            duration lower than min_appearance_factor will be removed
-           from loaded data. By default an animal tag must be registered
-           during at least half of the experiment duration.
+           from loaded data. By default no animal tag registrations are removed.
         remove_antennas: list
            Registrations by antenna ids in remove_antennas will be removed from
            loaded data. By default Loader keeps all the registrations.
@@ -224,10 +223,9 @@ class Loader(EcoHabDataBase):
                                   ufl.results_path(self.path))
         self.prefix = ufl.make_prefix(self.path)
         self.max_break = kwargs.pop("max_break", self.MAX_BREAK)
-        how_many_appearances = kwargs.pop('how_many_appearances', 50)
-        min_appearance_factor = kwargs.pop('min_appearance_factor', 0.5)
+        how_many_appearances = kwargs.pop('how_many_appearances', 0)
+        factor = kwargs.pop('min_appearance_factor', 0)
         remove_antennas = kwargs.pop('remove_antennas', [])
-        factor = 1/min_appearance_factor
         tags = kwargs.pop('remove_mice',[])
 
         #Read in data
@@ -258,7 +256,7 @@ class Loader(EcoHabDataBase):
         for f_name in self._fnames:
             raw_data += ufl.read_single_file(self.path, f_name)
             days.add(f_name.split('_')[0])
-        how_many_days = len(days)/factor
+        how_many_days = len(days)*factor
         data = ufl.remove_ghost_tags(raw_data,
                                      how_many_appearances,
                                      how_many_days,

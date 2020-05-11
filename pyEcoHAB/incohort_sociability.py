@@ -96,7 +96,7 @@ def get_solitude(ehs, cf, res_dir="", prefix="", delimiter=";"):
         prefix = ehs.prefix
     if res_dir is "":
         res_dir = ehs.res_dir
-    phases = utils.filter_dark(cf.sections())
+    phases = utils.filter_dark_light(cf.sections())
     output = make_solitude_output(ehs.cages, ehs.mice)
 
     for phase in phases:
@@ -166,64 +166,6 @@ def single_phase_results(data, mice, addresses, total_time):
                                                          addresses,
                                                          total_time)
     return res, res_exp
-
-
-def get_dark_light_data(phase, cf, ehs, mice):
-
-    if phase == "dark" or phase == "DARK" or phase == "Dark":
-        phases = utils.filter_dark(cf.sections())
-    elif phase == "light" or phase == "LIGHT" or phase == "Light":
-        phases = utils.filter_light(cf.sections())
-    out_phases = [phase]
-    data = {mouse:[] for mouse in mice}
-    total_time = 0
-    for i, ph in enumerate(phases):
-        time = cf.gettime(ph)
-        out = utils.prepare_data(ehs, mice, time)
-        for mouse in mice:
-            data[mouse].extend(out[mouse])
-        total_time += (time[1] - time[0])
-    out_data = {phase: {0: data}}
-    return out_phases, {phase: {0: total_time}}, {phase: {0: data}}
-
-def prepare_fnames_and_totals(ehs, cf, prefix, bins, mice, filter_dark=True):
-    if bins in ["ALL", "all", "All"]:
-        phases = ["ALL"]
-        time = cf.gettime("ALL")
-        total_time = {"ALL": {0: (time[1] - time[0])}}
-        data = {"ALL": {0: utils.prepare_data(ehs, mice, time)}}
-        keys = [["ALL"], [0]]
-    elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
-        phases, total_time, data = get_dark_light_data(bins, cf, ehs, mice)
-        keys = [list(data.keys()), [0]]
-    elif isinstance(bins, int) or isintance(bins, float):
-        phases = []
-        data = OrderedDict()
-        total_time = OrderedDict()
-        if filter_dark:
-            all_phases = utils.filter_dark(cf.sections())
-        else:
-            all_phases = utils.filter_dark_light(cf.sections())
-        bin_labels = utils.get_times(bins)
-        for phase in all_phases:
-            t_start, t_end = cf.gettime(phase)
-            phases.append("%s_%5.2fh" % (phase, bins))
-            data[phase] = OrderedDict()
-            total_time[phase] = OrderedDict()
-            j = 0
-            while t_start < t_end:
-                t_e = t_start + bins
-                if t_e > t_end:
-                    t_e = t_end
-                time = [t_start, t_e]
-                data[phase][bin_labels[j]] = utils.prepare_data(ehs, mice, time)
-                total_time[phase][bin_labels[j]] = time[1] - time[0]
-                t_start += bins
-                j += 1
-        keys = [all_phases, bin_labels]
-
-   
-    return phases, total_time, data, keys
 
 
 def make_all_results_dict(phases, bins):
@@ -297,15 +239,11 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                                                                           add_info_mice)
     fname_excess_prefix = "incohort_sociability_excess_time_%s_%s" % (prefix,
                                                                       add_info_mice)
-    phases, time, data, keys = prepare_fnames_and_totals(ehs,
-                                                         cf,
-                                                         prefix,
-                                                         binsize,
-                                                         mice,
-                                                         filter_dark)
+    phases, time, data, keys = utils.prepare_binned_data(ehs, cf, prefix, binsize, mice)
+
     if isinstance(binsize, int) or isinstance(binsize, float):
         binsize_name = "%3.2f_h" % (binsize/3600)
-        if binsize == 43200:
+        if int(binsize) == 43200 or int(binsize) == 24*3600:
             csv_results_incohort = np.zeros((len(phases), len(mice),
                                              len(mice)))
             csv_results_incohort_exp = np.zeros((len(phases), len(mice),
@@ -320,6 +258,10 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                                  "bins_%s" % binsize_name)
     out_dict_rasters = os.path.join("incohort_sociability", "raster_plots",
                                     "bins_%s" % binsize_name)
+    out_dict_hist_add = os.path.join("incohort_sociability", "additionals", "histograms",
+                                 "bins_%s" % binsize_name)
+    out_dict_rasters_add = os.path.join("incohort_sociability", "additionals", "raster_plots",
+                                    "bins_%s" % binsize_name)
     all_phases, bin_labels = keys[0], keys[1]
     for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase].replace(' ', '_')
@@ -333,13 +275,13 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
         write_binned_data(full_results[ph],
                           'incohort_sociability_measured_time',
                           mice, bin_labels, new_phase, res_dir, 
-                          out_dict_hist,
+                          out_dict_hist_add,
                           prefix, additional_info=add_info_mice,
                           delimiter=delimiter)
         write_binned_data(full_results_exp[ph],
                           'incohort_sociability_expected_time',
                           mice, bin_labels, new_phase, res_dir, 
-                          out_dict_hist,
+                          out_dict_hist_add,
                           prefix, additional_info=add_info_mice,
                           delimiter=delimiter)
         excess_time = utils.calc_excess(full_results[ph],
@@ -351,7 +293,7 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                           out_dict_hist, prefix, additional_info=add_info_mice,
                           delimiter=delimiter)
         if isinstance(binsize, int) or isinstance(binsize, float):
-            if int(binsize) == 12*3600:
+            if int(binsize) == 12*3600 or int(binsize) == 24*3600:
                 fname = "incohort_sociability_"
                 res = utils.dict_to_array_2D(full_results[ph][0],
                                              mice, mice)
@@ -382,14 +324,14 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                           raster_labels,
                           phase_full_results,
                           res_dir,
-                          out_dict_rasters,
+                          out_dict_rasters_add,
                           fname_measured,
                           delimiter=delimiter)
         write_csv_rasters(mice,
                           raster_labels,
                           phase_exp_full_results,
                           res_dir,
-                          out_dict_rasters,
+                          out_dict_rasters_add,
                           fname_expected,
                           delimiter=delimiter)
         write_csv_rasters(mice,
@@ -405,14 +347,14 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                               all_phases,
                               csv_results_incohort,
                               res_dir,
-                              out_dict_rasters,
+                              out_dict_rasters_add,
                               "incohort_sociability_measured_time_ALL_phases_binned.csv",
                               delimiter=delimiter)
             write_csv_rasters(mice,
                               all_phases,
                               csv_results_incohort_exp,
                               res_dir,
-                              out_dict_rasters,
+                              out_dict_rasters_add,
                               "incohort_sociability_expected_time_ALL_phases_binned.csv",
                               delimiter=delimiter)
             write_csv_rasters(mice,
@@ -423,7 +365,7 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                                "incohort_sociability_excess_time_ALL_phases_binned.csv",
                               delimiter=delimiter)
             make_RasterPlot(res_dir,
-                            out_dict_rasters,
+                            out_dict_rasters_add,
                             csv_results_incohort,
                             all_phases,
                             "incohort_sociability_measured_time_ALL_phases_binned",
@@ -435,7 +377,7 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                             title="Measured in-cohort sociability",
                             symmetric=True)
             make_RasterPlot(res_dir,
-                            out_dict_rasters,
+                            out_dict_rasters_add,
                             csv_results_incohort_exp,
                             all_phases,
                             "incohort_sociability_expected_time_ALL_phases_binned",
