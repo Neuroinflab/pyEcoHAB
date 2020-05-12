@@ -596,9 +596,9 @@ def prepare_binned_data(ehs, cf, bins, mice):
 
     return phases, total_time, data, keys
 
-def prepare_registrations(ehd, st, en):
+def prepare_registrations(ehd, mice, st, en):
     directions = {}
-    for j, mouse1 in enumerate(ehd.mice):
+    for j, mouse1 in enumerate(mice):
         times_antennas = utils.get_times_antennas(ehd,
                                                   mouse1,
                                                   st,
@@ -621,9 +621,8 @@ def prepare_binned_registrations(ehs, cf, bins, mice):
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
         time = cf.gettime("ALL")
-        data = {"ALL": {0: prepare_registrations(ehs, mice, time)}}
-        all_phases = ["All"]
-        bin_labels = [0.0]
+        data = {"ALL": {0: prepare_registrations(ehs, mice, *time)}}
+        data_keys = [["All"], [0.0]]
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
         data = OrderedDict()
@@ -657,10 +656,11 @@ def prepare_binned_registrations(ehs, cf, bins, mice):
                 time = [t_start, t_e]
                 data[phase][bin_labels[j]] = prepare_registrations(ehs,
                                                                    mice,
-                                                                   time)
+                                                                   *time)
                 t_start += bins
                 j += 1
-    return phases, data, all_phases, bin_labels
+            data_keys = [all_phases, bin_labels]
+    return phases, data, data_keys
 
 def make_results_dict(mice):
     result = OrderedDict()
