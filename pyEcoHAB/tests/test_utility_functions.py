@@ -2071,7 +2071,7 @@ class TestPrepareBinnedData(unittest.TestCase):
         cls.phases_900s_bins, cls.total_time_900s_bins,\
             cls.data_900s_bins, cls.keys_900s_bins = uf.prepare_binned_data(cls.data, cls.config, 900, ["mouse_1"])
 
-        path = os.path.join(data_path, "weird_short_2_mice")
+        path = os.path.join(data_path, "weird_short_3_mice")
         cls.data2 = Loader(path)
         cls.config2 = ExperimentConfigFile(path)
         cls.phases_24h_bins, cls.total_time_24h_bins,\
