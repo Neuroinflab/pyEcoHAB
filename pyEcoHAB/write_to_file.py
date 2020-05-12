@@ -275,12 +275,12 @@ def write_bootstrap_results(results, phase, mice_list,
                                                          add_info))
 
     f = open(new_name, "w")
-    for i, mouse1 in enumerate(mice_list):
-        for j, mouse2 in enumerate(mice_list):
+    for mouse1 in mice_list:
+        for  mouse2 in mice_list:
             if mouse1 != mouse2:
                 key = "%s|%s" % (mouse1, mouse2)
                 f.write(key)
-                for value in results[i, j]:
+                for value in results[mouse1][mouse2]:
                     f.write(delimiter + str(value))
                 f.write("\n")
     f.close()

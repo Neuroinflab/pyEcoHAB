@@ -261,8 +261,13 @@ def make_pooled_histograms(res,
     bins, counts = [], []
     xticks = True
     for i, phase in enumerate(phases):
-        results = res[i]
-        results_exp = res_exp[i]
+        results = utils.dict_to_array_2D(res[phase][0],
+                                         list(res[phase][0].keys()),
+                                         list(res[phase][0].keys()))
+        results_exp = utils.dict_to_array_2D(res_exp[phase][0],
+                                         list(res[phase][0].keys()),
+                                         list(res[phase][0].keys()))
+
         deltas = results[results > 0] - results_exp[results > 0]
         new_title = phases[i]
         yticks = not i

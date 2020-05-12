@@ -5,8 +5,8 @@ import time
 import sys
 from collections import OrderedDict
 import numpy as np
-#NamedDict class was originally written by Zbyszek Jędrzejewski-Szmek and Avrama Blackwell for
-#moose_nerp https://github.com/neurord/moose_nerp
+#NamedDict class was originally written by Zbyszek Jędrzejewski-Szmek
+#and Avrama Blackwell for moose_nerp https://github.com/neurord/moose_nerp
 
 same_pipe = {1: [1, 2],
              2: [1, 2],
@@ -55,6 +55,8 @@ surrounding = {(1, 3): "B", #1,
                (5, 7): "D", #3,
                (6, 8): "D", #3
 }
+keys = ['12', '21', '34', '43', '56', '65', '78', '87']
+
 
 def check_directory(directory, subdirectory=None):
     if subdirectory:
@@ -546,19 +548,19 @@ def get_dark_light_data(phase, cf, ehs, mice):
 
 
 def prepare_binned_data(ehs, cf, bins, mice):
+    total_time = OrderedDict()
+    data = OrderedDict()
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
         time = cf.gettime("ALL")
-        total_time = {"ALL": {0: (time[1] - time[0])}}
-        data = {"ALL": {0: prepare_data(ehs, mice, time)}}
+        total_time["ALL"] =  {0: (time[1] - time[0])}
+        data["ALL"] =  {0: prepare_data(ehs, mice, time)}
         keys = [["ALL"], [0]]
     elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
         phases, total_time, data = get_dark_light_data(bins, cf, ehs, mice)
         keys = [list(data.keys()), [0]]
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
-        data = OrderedDict()
-        total_time = OrderedDict()
         all_phases = filter_dark_light(cf.sections())
         # you can not iterate by phases, if bins are longer than phases
         if bins > 12*3600:
@@ -593,20 +595,41 @@ def prepare_binned_data(ehs, cf, bins, mice):
                 t_start += bins
                 j += 1
         keys = [all_phases, bin_labels]
-
     return phases, total_time, data, keys
+
+
+def extract_directions(times, antennas, last_antenna):
+    direction_dict = {key:[[], []] for key in keys}
+    change_indices = change_state(antennas)
+    for c_idx in change_indices:
+        if c_idx + 1 >= len(antennas):
+            break
+        ant, next_ant = antennas[c_idx], antennas[c_idx + 1]
+        key = get_key_for_frequencies(ant, next_ant)
+        if key is not None:
+            try:
+                third_antenna = antennas[c_idx + 2]
+            except IndexError:
+               third_antenna = last_antenna
+            if third_antenna == ant:
+                continue
+            direction_dict[key][0].append(times[c_idx])
+            direction_dict[key][1].append(times[c_idx + 1])
+    return direction_dict
+
 
 def prepare_registrations(ehd, mice, st, en):
     directions = {}
     for j, mouse1 in enumerate(mice):
-        times_antennas = utils.get_times_antennas(ehd,
-                                                  mouse1,
-                                                  st,
-                                                  en)
-        last_times, last_antennas = utils.get_times_antennas(ehd,
-                                                             mouse1,
-                                                             en,
-                                                             en+(en-st))
+        times_antennas = get_times_antennas(ehd,
+                                            mouse1,
+                                            st,
+                                            en)
+        last_times, last_antennas = get_times_antennas(ehd,
+                                                       mouse1,
+                                                       en,
+                                                       en+(en-st))
+
         try:
             last_antenna = last_antennas[0]
         except IndexError:
@@ -618,15 +641,19 @@ def prepare_registrations(ehd, mice, st, en):
 
 
 def prepare_binned_registrations(ehs, cf, bins, mice):
+    total_time = OrderedDict()
+    data = OrderedDict()
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
         time = cf.gettime("ALL")
-        data = {"ALL": {0: prepare_registrations(ehs, mice, *time)}}
-        data_keys = [["All"], [0.0]]
+        data["ALL"] = {0: prepare_registrations(ehs, mice, *time)}
+        data_keys = [["ALL"], [0.0]]
+        total_time["ALL"] =  {0: time}
+
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
-        data = OrderedDict()
         all_phases = filter_dark_light(cf.sections())
+
         # you can not iterate by phases, if bins are longer than phases
         if bins > 12*3600:
             t_start = cf.gettime(all_phases[0])[0]
@@ -646,30 +673,38 @@ def prepare_binned_registrations(ehs, cf, bins, mice):
             times = [cf.gettime(phase) for phase in all_phases]
         for i, phase in enumerate(all_phases):
             t_start, t_end = times[i]
-            phases.append("%s_%4.2fh" % (phase.replace(" ", "_"), bins/3600))
+            phases.append("%s_%4.2fh" % (phase.replace(" ", "_"),
+                                         bins/3600))
             data[phase] = OrderedDict()
+            total_time[phase] = OrderedDict()
             j = 0
             while t_start < t_end:
                 t_e = t_start + bins
                 if t_e > t_end:
                     t_e = t_end
-                time = [t_start, t_e]
+                time = (t_start, t_e)
                 data[phase][bin_labels[j]] = prepare_registrations(ehs,
                                                                    mice,
                                                                    *time)
+                total_time[phase][bin_labels[j]] = time
                 t_start += bins
                 j += 1
             data_keys = [all_phases, bin_labels]
-    return phases, data, data_keys
+    return phases, total_time, data, data_keys
 
-def make_results_dict(mice):
+
+def make_results_dict(mice, tolist=False):
     result = OrderedDict()
     for mouse1 in mice:
         result[mouse1] = OrderedDict()
         for mouse2 in mice:
-            result[mouse1][mouse2] = 0
+            if not tolist:
+                result[mouse1][mouse2] = 0
+            else:
+                result[mouse1][mouse2] = []
 
     return result
+
 
 def make_all_results_dict(phases, bins):
     result = OrderedDict()
