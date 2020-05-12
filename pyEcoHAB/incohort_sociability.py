@@ -259,7 +259,7 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                                         "bins_%s" % binsize_name)
     all_phases, bin_labels = keys[0], keys[1]
     for idx_phase, ph in enumerate(all_phases):
-        new_phase = phases[idx_phase].replace(' ', '_')
+        new_phase = phases[idx_phase]
         for lab in bin_labels:
             full_results[ph][lab],\
                 full_results_exp[ph][lab] = single_phase_results(data[ph][lab],
