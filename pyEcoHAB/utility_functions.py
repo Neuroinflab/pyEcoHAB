@@ -183,7 +183,7 @@ def get_mice(mouse_list, remove_mouse):
 
 
 def add_info_mice_filename(remove_mouse):
-    if remove_mouse is None:
+    if remove_mouse is None or remove_mouse == '' or len(remove_mouse) == 0:
         return ''
     if isinstance(remove_mouse, str):
         remove_mouse = [remove_mouse]
