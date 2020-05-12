@@ -233,12 +233,12 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
 
    
-    fname_measured_prefix = "incohort_sociability_measured_time_%s_%s" % (prefix,
-                                                                     add_info_mice)
-    fname_expected_prefix = "incohort_sociability_expected_time_%s_%s" % (prefix,
-                                                                          add_info_mice)
-    fname_excess_prefix = "incohort_sociability_excess_time_%s_%s" % (prefix,
-                                                                      add_info_mice)
+    meas_prefix = "incohort_sociability_measured_time_%s_%s" % (prefix,
+                                                                add_info_mice)
+    exp_prefix = "incohort_sociability_expected_time_%s_%s" % (prefix,
+                                                               add_info_mice)
+    excess_prefix = "incohort_sociability_excess_time_%s_%s" % (prefix,
+                                                                add_info_mice)
     phases, time, data, keys = utils.prepare_binned_data(ehs, cf, prefix, binsize, mice)
 
     if isinstance(binsize, int) or isinstance(binsize, float):
@@ -256,12 +256,15 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
     full_results_exp = make_all_results_dict(*keys)
     out_dict_hist = os.path.join("incohort_sociability", "histograms",
                                  "bins_%s" % binsize_name)
-    out_dict_rasters = os.path.join("incohort_sociability", "raster_plots",
+    out_dict_rasters = os.path.join("incohort_sociability",
+                                    "raster_plots",
                                     "bins_%s" % binsize_name)
-    out_dict_hist_add = os.path.join("incohort_sociability", "additionals", "histograms",
+    out_dict_hist_add = os.path.join("incohort_sociability",
+                                     "additionals", "histograms",
                                  "bins_%s" % binsize_name)
-    out_dict_rasters_add = os.path.join("incohort_sociability", "additionals", "raster_plots",
-                                    "bins_%s" % binsize_name)
+    out_dict_rasters_add = os.path.join("incohort_sociability",
+                                        "additionals", "raster_plots",
+                                        "bins_%s" % binsize_name)
     all_phases, bin_labels = keys[0], keys[1]
     for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase].replace(' ', '_')
@@ -310,9 +313,9 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                 csv_results_incohort[idx_phase] = res
                 csv_results_incohort_exp[idx_phase] = exp_res
 
-        fname_measured = "%s_%s.csv" % (fname_measured_prefix, new_phase)
-        fname_excess = "%s_%s.csv" % (fname_excess_prefix, new_phase)
-        fname_expected = "%s_%s.csv" % (fname_expected_prefix, new_phase)
+        fname_measured = "%s_%s.csv" % (meas_prefix, new_phase)
+        fname_excess = "%s_%s.csv" % (excess_prefix, new_phase)
+        fname_expected = "%s_%s.csv" % (exp_prefix, new_phase)
         raster_labels = [bin_label/3600 for bin_label in bin_labels]
         phase_full_results = utils.dict_to_array_3D(full_results[ph],
                                                     bin_labels,
