@@ -610,7 +610,7 @@ class TestSinglePhaseResults(unittest.TestCase):
         data = Loader(path)
         cls.phases, cls.total_time,\
             cls.data, cls.keys = utils.prepare_binned_data(data,
-                                                           cls.config, "",
+                                                           cls.config,
                                                            cls.duration,
                                                            ["mouse_1",
                                                             "mouse_2"])

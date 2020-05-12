@@ -239,7 +239,7 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                                                                add_info_mice)
     excess_prefix = "incohort_sociability_excess_time_%s_%s" % (prefix,
                                                                 add_info_mice)
-    phases, time, data, keys = utils.prepare_binned_data(ehs, cf, prefix, binsize, mice)
+    phases, time, data, keys = utils.prepare_binned_data(ehs, cf, binsize, mice)
 
     if isinstance(binsize, int) or isinstance(binsize, float):
         binsize_name = "%3.2f_h" % (binsize/3600)

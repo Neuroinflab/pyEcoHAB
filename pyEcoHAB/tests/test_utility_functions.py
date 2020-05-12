@@ -2052,24 +2052,30 @@ class TestPrepareBinnedData(unittest.TestCase):
 
         cls.all_phases, cls.all_total_time,\
             cls.all_data, cls.all_keys = uf.prepare_binned_data(cls.data,
-                                                                      cls.config, "", "ALL", ["mouse_1"])
+                                                                cls.config,
+                                                                "ALL",
+                                                                ["mouse_1"])
         cls.dark_phases, cls.dark_total_time,\
             cls.dark_data, cls.dark_keys = uf.prepare_binned_data(cls.data,
-                                                                      cls.config, "", "DARK", ["mouse_1"])
+                                                                  cls.config,
+                                                                  "DARK",
+                                                                  ["mouse_1"])
         cls.light_phases, cls.light_total_time,\
             cls.light_data, cls.light_keys = uf.prepare_binned_data(cls.data,
-                                                                      cls.config, "", "LIGHT", ["mouse_1"])
+                                                                    cls.config,
+                                                                    "LIGHT",
+                                                                    ["mouse_1"])
 
         cls.phases_100s_bins, cls.total_time_100s_bins,\
-            cls.data_100s_bins, cls.keys_100s_bins = uf.prepare_binned_data(cls.data, cls.config, "", 100, ["mouse_1"])
+            cls.data_100s_bins, cls.keys_100s_bins = uf.prepare_binned_data(cls.data, cls.config,100, ["mouse_1"])
         cls.phases_900s_bins, cls.total_time_900s_bins,\
-            cls.data_900s_bins, cls.keys_900s_bins = uf.prepare_binned_data(cls.data, cls.config, "", 900, ["mouse_1"])
+            cls.data_900s_bins, cls.keys_900s_bins = uf.prepare_binned_data(cls.data, cls.config, 900, ["mouse_1"])
 
         path = os.path.join(data_path, "weird_short_2_mice")
         cls.data2 = Loader(path)
         cls.config2 = ExperimentConfigFile(path)
         cls.phases_24h_bins, cls.total_time_24h_bins,\
-        cls.data_24h_bins, cls.keys_24h_bins = uf.prepare_binned_data(cls.data2, cls.config2, "", 24*3600, ["mouse_1"])
+        cls.data_24h_bins, cls.keys_24h_bins = uf.prepare_binned_data(cls.data2, cls.config2, 24*3600, ["mouse_1"])
 
     def test_all_phases(self):
         self.assertEqual(self.all_phases, ["ALL"])

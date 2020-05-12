@@ -545,7 +545,7 @@ def get_dark_light_data(phase, cf, ehs, mice):
     return out_phases, {phase: {0: total_time}}, {phase: {0: data}}
 
 
-def prepare_binned_data(ehs, cf, prefix, bins, mice):
+def prepare_binned_data(ehs, cf, bins, mice):
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
         time = cf.gettime("ALL")
