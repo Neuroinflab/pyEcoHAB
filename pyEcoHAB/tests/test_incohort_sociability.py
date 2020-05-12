@@ -737,5 +737,14 @@ class TestSinglePhaseResults(unittest.TestCase):
         self.out["mouse_2"]["mouse_2"])
 
 
+class TestGetIncohortSociability(unittest.TestCase):
+    def test_run(cls):
+        path = os.path.join(data_path, "weird_short_3_mice")
+        data = Loader(path)
+        config = ExperimentConfigFile(path)
+        ics.get_incohort_sociability(data, config, 3600)
+        ics.get_incohort_sociability(data, config, 24*3600)
+
+
 if __name__ == '__main__':
     unittest.main()
