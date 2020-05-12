@@ -662,6 +662,14 @@ def prepare_binned_registrations(ehs, cf, bins, mice):
                 j += 1
     return phases, data, all_phases, bin_labels
 
+def make_results_dict(mice):
+    result = OrderedDict()
+    for mouse1 in mice:
+        result[mouse1] = OrderedDict()
+        for mouse2 in mice:
+            result[mouse1][mouse2] = 0
+
+    return result
 
 def make_all_results_dict(phases, bins):
     result = OrderedDict()

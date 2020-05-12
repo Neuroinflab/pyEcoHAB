@@ -145,18 +145,11 @@ def mice_together(data_mice, m1, m2, addresses, total_time):
                                                                       total_time)
     return time_together, exp_time_together
 
-def make_results_dict(mice):
-    result = OrderedDict()
-    for mouse1 in mice:
-        result[mouse1] = OrderedDict()
-        for mouse2 in mice:
-            result[mouse1][mouse2] = 0
 
-    return result
 
 def single_phase_results(data, mice, addresses, total_time):
-    res = make_results_dict(mice)
-    res_exp = make_results_dict(mice)
+    res = utils.make_results_dict(mice)
+    res_exp = utils.make_results_dict(mice)
     for ii, m1 in enumerate(mice):
         for jj in range(ii + 1, len(mice)):
             m2 = mice[jj]
