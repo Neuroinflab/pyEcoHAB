@@ -253,25 +253,6 @@ def extract_directions(times, antennas, last_antenna):
     return direction_dict
 
 
-def prepare_data(ehd, st, en):
-    directions = {}
-    for j, mouse1 in enumerate(ehd.mice):
-        times_antennas = utils.get_times_antennas(ehd,
-                                                  mouse1,
-                                                  st,
-                                                  en)
-        last_times, last_antennas = utils.get_times_antennas(ehd,
-                                                             mouse1,
-                                                             en,
-                                                             en+(en-st))
-        try:
-            last_antenna = last_antennas[0]
-        except IndexError:
-            last_antenna = None
-        directions[mouse1] = extract_directions(times_antennas[0],
-                                                times_antennas[1],
-                                                last_antenna)
-    return directions
 
 
 def add_intervals(all_intervals, phase_intervals):
@@ -343,7 +324,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
     for i, phase in enumerate(phases):
         t_start, t_stop = cf.gettime(phase)
         assert  t_stop - t_start > 0
-        directions_dict = prepare_data(ehd, t_start, t_stop)
+        directions_dict = utils.prepare_registrations(ehd, t_start, t_stop)
         out = following_matrices(directions_dict, mice, t_start, t_stop)
         following[i], time_together[i], phase_intervals  = out
         start, end = cf.gettime(phase)
