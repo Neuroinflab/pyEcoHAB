@@ -663,3 +663,11 @@ def prepare_binned_registrations(ehs, cf, bins, mice):
     return phases, data, all_phases, bin_labels
 
 
+def make_all_results_dict(phases, bins):
+    result = OrderedDict()
+    for phase in phases:
+        result[phase] = OrderedDict()
+        for bin1 in bins:
+            result[phase][bin1] = 0
+
+    return result

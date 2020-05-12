@@ -168,14 +168,6 @@ def single_phase_results(data, mice, addresses, total_time):
     return res, res_exp
 
 
-def make_all_results_dict(phases, bins):
-    result = OrderedDict()
-    for phase in phases:
-        result[phase] = OrderedDict()
-        for bin1 in bins:
-            result[phase][bin1] = 0
-
-    return result
 
 
 def get_incohort_sociability(ehs, cf, binsize, res_dir="",
@@ -252,8 +244,8 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
         binsize_name = binsize
     if time == 0:
         return
-    full_results = make_all_results_dict(*keys)
-    full_results_exp = make_all_results_dict(*keys)
+    full_results = utils.make_all_results_dict(*keys)
+    full_results_exp = utils.make_all_results_dict(*keys)
     out_dict_hist = os.path.join("incohort_sociability", "histograms",
                                  "bins_%s" % binsize_name)
     out_dict_rasters = os.path.join("incohort_sociability",
