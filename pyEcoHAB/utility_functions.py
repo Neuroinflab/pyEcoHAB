@@ -595,3 +595,71 @@ def prepare_binned_data(ehs, cf, bins, mice):
         keys = [all_phases, bin_labels]
 
     return phases, total_time, data, keys
+
+def prepare_registrations(ehd, st, en):
+    directions = {}
+    for j, mouse1 in enumerate(ehd.mice):
+        times_antennas = utils.get_times_antennas(ehd,
+                                                  mouse1,
+                                                  st,
+                                                  en)
+        last_times, last_antennas = utils.get_times_antennas(ehd,
+                                                             mouse1,
+                                                             en,
+                                                             en+(en-st))
+        try:
+            last_antenna = last_antennas[0]
+        except IndexError:
+            last_antenna = None
+        directions[mouse1] = extract_directions(times_antennas[0],
+                                                times_antennas[1],
+                                                last_antenna)
+    return directions
+
+
+def prepare_binned_registrations(ehs, cf, bins, mice):
+    if bins in ["ALL", "all", "All"]:
+        phases = ["ALL"]
+        time = cf.gettime("ALL")
+        data = {"ALL": {0: prepare_registrations(ehs, mice, time)}}
+        all_phases = ["All"]
+        bin_labels = [0.0]
+     elif isinstance(bins, int) or isinstance(bins, float):
+        phases = []
+        data = OrderedDict()
+        all_phases = filter_dark_light(cf.sections())
+        # you can not iterate by phases, if bins are longer than phases
+        if bins > 12*3600:
+            t_start = cf.gettime(all_phases[0])[0]
+            t_end = cf.gettime(all_phases[-1])[-1]
+            bin_labels = [0.0]
+            all_phases = []
+            times = []
+            i = 1
+            while t_start < t_end:
+                times.append((t_start, t_start + bins))
+                all_phases.append("%d_x" % i)
+                i += 1
+                t_start += bins
+        else:
+            all_phases = filter_dark_light(cf.sections())
+            bin_labels = get_times(bins)
+            times = [cf.gettime(phase) for phase in all_phases]
+        for i, phase in enumerate(all_phases):
+            t_start, t_end = times[i]
+            phases.append("%s_%4.2fh" % (phase.replace(" ", "_"), bins/3600))
+            data[phase] = OrderedDict()
+            j = 0
+            while t_start < t_end:
+                t_e = t_start + bins
+                if t_e > t_end:
+                    t_e = t_end
+                time = [t_start, t_e]
+                data[phase][bin_labels[j]] = prepare_registrations(ehs,
+                                                                   mice,
+                                                                   time)
+                t_start += bins
+                j += 1
+    return phases, data, all_phases, bin_labels
+
+
