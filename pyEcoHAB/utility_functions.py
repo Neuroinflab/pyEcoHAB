@@ -624,7 +624,7 @@ def prepare_binned_registrations(ehs, cf, bins, mice):
         data = {"ALL": {0: prepare_registrations(ehs, mice, time)}}
         all_phases = ["All"]
         bin_labels = [0.0]
-     elif isinstance(bins, int) or isinstance(bins, float):
+    elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
         data = OrderedDict()
         all_phases = filter_dark_light(cf.sections())
