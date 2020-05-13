@@ -6,7 +6,7 @@ from pyEcoHAB import following as fol
 from pyEcoHAB import utility_functions as uf
 from pyEcoHAB import Loader
 from pyEcoHAB import ExperimentConfigFile
-from pyEcoHAB import data_path
+from pyEcoHAB import sample_data
 
 try:
     basestring
@@ -315,12 +315,11 @@ class TestIntervalGeneration(unittest.TestCase):
 class TestExecution(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(data_path, "weird_short_3_mice")
-        cls.data = Loader(path)
-        cls.config = ExperimentConfigFile(path)
+        cls.data = Loader(sample_data)
+        cls.config = ExperimentConfigFile(sample_data)
 
     def test_phases(self):
-        fol.get_dynamic_interactions(self.data, self.config, 10,
+        fol.get_dynamic_interactions(self.data, self.config, 1,
                                      save_distributions=True,
                                      save_figures=False, return_median=False,
                                      delimiter=";",
