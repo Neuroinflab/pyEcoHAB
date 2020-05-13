@@ -134,25 +134,32 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, N, phase,
                                                          mice,
                                                          t_start, t_stop,
                                                          N=N)
+    binsize = (t_stop - t_start)/3600
+    hist_dir = os.path.join("other_variables",
+                            "dynamic_interactions_hists",
+                            "bin_%4.2f" % binsize)
+    hist_time_dir = os.path.join("other_variables",
+                                 "durations_dynamic_interaction_hists",
+                                 "bin_%4.2f" % binsize)
     if save_figures:
-        fname_following = "dynamic_interactions_count_distribution_%d" % N
-        fname_times = "dynamic_interaction_durations_distribution_%d" % N
+        fname_following = "dynamic_interactions_count_distribution_%d_%4.2f" % (N, binsize)
+        fname_times = "dynamic_interaction_durations_distribution_%d_%4.2" % (N, binsize)
         for mouse1 in mice:
             for mouse2 in mice:
                 if mouse1 == mouse2:
                     continue
                 key = "%s|%s" % (mouse1, mouse2)
-                fname1 = "%s_histogram_%s_%s_N_%d" % ("dynamic_interactions",
+                fname1 = "%s_histogram_%s_%s_N_%d_%4.2f" % ("dynamic_interactions",
                                                       phase.replace(' ',
                                                                     '_'),
-                                                      key, N)
-                fname2 = "%s_histogram_%s_%s_N_%d" % ("durations_dynamic_interactions",
+                                                            key, N, binsize)
+                fname2 = "%s_histogram_%s_%s_N_%d_%4.2f" % ("durations_dynamic_interactions",
                                                       phase.replace(' ',
                                                                     '_'),
-                                                      key, N)
+                                                            key, N, binsize)
                 single_histogram_figures(followings[mouse1][mouse2],
                                          fname1, res_dir,
-                                         "other_variables/dynamic_interactions_hists",
+                                         hist_dir,
                                          "Dynamic interation count distribution",
                                          xlabel="dynamic interactions",
                                          ylabel="count",
@@ -161,21 +168,25 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, N, phase,
                     single_histogram_figures(times_following[mouse1][mouse2],
                                              fname2,
                                              "Dynamic interaction durations distribution",
-                                             "other_variables/durations_dynamic_interaction_hists",
+                                             hist_time_dir,
                                              prefix,
                                              xlabel="duration",
                                              ylabel="count", nbins=10,
                                              median_mean=True)
+    dist_dir_fol = os.path.join("other_variables", "dynamic_interactions_hists",
+                                "bin_%4.2f" % binsize)
+    dist_dir_time = os.path.join("other_variables", "durations_dynamic_interaction_hists",
+                                 "bin_%4.2f" % binsize)
     if save_distributions:
         fname_following = "dynamic_interaction_count_distribution_%d" % N
         fname_times = "dynamic_interaction_durations_distribution_%d" % N
         write_bootstrap_results(followings, phase, mice,
                                 fname_following, res_dir,
-                                "other_variables/dynamic_interactions_hists", prefix)
+                                dist_dir_fol, prefix)
         if stf:
             write_bootstrap_results(times_following, phase, mice,
                                     fname_times, res_dir,
-                                    "other_variables/durations_dynamic_interaction_hists",
+                                    dist_dir_time,
                                     prefix)
     out_followings = utils.make_results_dict(mice)
     out_times = utils.make_results_dict(mice)
