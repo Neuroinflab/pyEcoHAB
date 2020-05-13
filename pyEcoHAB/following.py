@@ -383,7 +383,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
 
         if isinstance(binsize, int) or isinstance(binsize, float):
             if int(binsize) == 12*3600 or int(binsize) == 24*3600:
-                fname = "dynamic_interactions_"
+                fname = "dynamic_interactions_N_%d_%s" % (N, method)
                 res = utils.dict_to_array_2D(following[ph][0],
                                              mice, mice)
                 exp_res = utils.dict_to_array_2D(following_exp[ph][0],
@@ -431,7 +431,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                               delimiter=delimiter)
             if isinstance(binsize, int) or isinstance(binsize, float):
                 if int(binsize) == 12*3600 or int(binsize) == 24*3600:
-                    fname = "duration_dynamic_interactions_%s" % method
+                    fname = "duration_dynamic_interactions_N_%d_%s" % (N, method)
                     res = utils.dict_to_array_2D(time_together[ph][0],
                                                  mice, mice)
                     exp_res = utils.dict_to_array_2D(time_together_exp[ph][0],
