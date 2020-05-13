@@ -1,5 +1,6 @@
 from __future__ import division, absolute_import
 import random
+import os
 import numpy as np
 
 from . import utility_functions as utils
@@ -320,13 +321,23 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
         vmaxt = 0.01
         vmin1t = -0.01
         vmax1t = 0.01
-    raster_dir = "dynamic_interactions/raster_plots"
-    raster_dir_add = 'dynamic_interactions/additionals/raster_plots'
-    hist_dir = 'dynamic_interactions/histograms'
-    hist_dir_add = 'dynamic_interactions/additionals/histograms'
-    other_dir =  'other_variables/durations_dynamic_interaction/histograms'
-    other_hist = "other_variables/histograms_of_dynamic_interactions_intervals"
-    other_excess_hist = 'other_variables/dynamic_interactions_excess_histograms'
+    raster_dir = os.path.join("dynamic_interactions", "raster_plots",
+                              "bins_%s" % binsize_name)
+    raster_dir_add = os.path.join('dynamic_interactions', 'additionals',
+                                  'raster_plots', "bins_%s" % binsize_name)
+    hist_dir = os.path.join('dynamic_interactions', 'histograms',
+                             "bins_%s" % binsize_name)
+    hist_dir_add = os.path.join("dynamic_interactions", "additionals",
+                                "histograms", "bins_%s" % binsize_name)
+    other_dir =  os.path.join('other_variables',
+                              'durations_dynamic_interaction', 'histograms' ,
+                              "bins_%s" % binsize_name)
+    other_hist = os.path.join("other_variables",
+                              "histograms_of_dynamic_interactions_intervals",
+                              "bins_%s" % binsize_name)
+    other_excess_hist = os.path.join('other_variables',
+                                     'dynamic_interactions_excess_histograms',
+                                     "bins_%s" % binsize_name)
 
     for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase]
@@ -469,7 +480,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                               phases,
                               csv_results_following,
                               res_dir,
-                              raster_dir,
+                              raster_dir_add,
                               fname_,
                               symmetric=False,
                               delimiter=delimiter)
@@ -477,7 +488,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                               phases,
                               csv_results_following,
                               res_dir,
-                              raster_dir,
+                              raster_dir_add,
                               fname_rev_,
                               symmetric=False,
                               reverse_order=True,
