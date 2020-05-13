@@ -2052,24 +2052,30 @@ class TestPrepareBinnedData(unittest.TestCase):
 
         cls.all_phases, cls.all_total_time,\
             cls.all_data, cls.all_keys = uf.prepare_binned_data(cls.data,
-                                                                      cls.config, "", "ALL", ["mouse_1"])
+                                                                cls.config,
+                                                                "ALL",
+                                                                ["mouse_1"])
         cls.dark_phases, cls.dark_total_time,\
             cls.dark_data, cls.dark_keys = uf.prepare_binned_data(cls.data,
-                                                                      cls.config, "", "DARK", ["mouse_1"])
+                                                                  cls.config,
+                                                                  "DARK",
+                                                                  ["mouse_1"])
         cls.light_phases, cls.light_total_time,\
             cls.light_data, cls.light_keys = uf.prepare_binned_data(cls.data,
-                                                                      cls.config, "", "LIGHT", ["mouse_1"])
+                                                                    cls.config,
+                                                                    "LIGHT",
+                                                                    ["mouse_1"])
 
         cls.phases_100s_bins, cls.total_time_100s_bins,\
-            cls.data_100s_bins, cls.keys_100s_bins = uf.prepare_binned_data(cls.data, cls.config, "", 100, ["mouse_1"])
+            cls.data_100s_bins, cls.keys_100s_bins = uf.prepare_binned_data(cls.data, cls.config,100, ["mouse_1"])
         cls.phases_900s_bins, cls.total_time_900s_bins,\
-            cls.data_900s_bins, cls.keys_900s_bins = uf.prepare_binned_data(cls.data, cls.config, "", 900, ["mouse_1"])
+            cls.data_900s_bins, cls.keys_900s_bins = uf.prepare_binned_data(cls.data, cls.config, 900, ["mouse_1"])
 
-        path = os.path.join(data_path, "weird_short_2_mice")
+        path = os.path.join(data_path, "weird_short_3_mice")
         cls.data2 = Loader(path)
         cls.config2 = ExperimentConfigFile(path)
         cls.phases_24h_bins, cls.total_time_24h_bins,\
-        cls.data_24h_bins, cls.keys_24h_bins = uf.prepare_binned_data(cls.data2, cls.config2, "", 24*3600, ["mouse_1"])
+        cls.data_24h_bins, cls.keys_24h_bins = uf.prepare_binned_data(cls.data2, cls.config2, 24*3600, ["mouse_1"])
 
     def test_all_phases(self):
         self.assertEqual(self.all_phases, ["ALL"])
@@ -2164,6 +2170,211 @@ class TestPrepareBinnedData(unittest.TestCase):
     def test_data_2_bin(self):
         self.assertEqual(self.data_24h_bins["2_x"][0.0]["mouse_1"],
                          [('C', 1286790836.218, 1286791196.218)])
+
+
+class TestExtractDirections(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        antennas1 = [1, 2,   3, 4,  5,  6,  7,   8,  1, 2]
+        times1 = [15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34 ]
+        antennas2 = [8, 1,   2,    1,  2,  3,  4,   5, 6,   7,   8]
+        times2 =   [10, 16, 19, 19.5, 22, 25,  26, 27, 28, 31, 35]
+        cls.res1 = uf.extract_directions(times1, antennas1, 3)
+        cls.res1_1 = uf.extract_directions(times1, antennas1, 1)
+        cls.res2 = uf.extract_directions(times2, antennas2, 1)
+        cls.res2_1 = uf.extract_directions(times2, antennas2, 7)
+
+    def test_1(self):
+        direction_dict = {key:[[], []] for key in uf.keys}
+        direction_dict["12"][0].append(15)
+        direction_dict["12"][1].append(16.5)
+        direction_dict["34"][0].append(19)
+        direction_dict["34"][1].append(20)
+        direction_dict["56"][0].append(21)
+        direction_dict["56"][1].append(22)
+        direction_dict["78"][0].append(24)
+        direction_dict["78"][1].append(25)
+        direction_dict["12"][0].append(29)
+        direction_dict["12"][1].append(34)
+
+        self.assertEqual(direction_dict, self.res1)
+
+    def test_2(self):
+        direction_dict = {key:[[], []] for key in uf.keys}
+        direction_dict["12"][0].append(19.5)
+        direction_dict["12"][1].append(22)
+        direction_dict["34"][0].append(25)
+        direction_dict["34"][1].append(26)
+        direction_dict["56"][0].append(27)
+        direction_dict["56"][1].append(28)
+        direction_dict["78"][0].append(31)
+        direction_dict["78"][1].append(35)
+
+        self.assertEqual(direction_dict, self.res2)
+
+    def test_1_1(self):
+        direction_dict = {key:[[], []] for key in uf.keys}
+        direction_dict["12"][0].append(15)
+        direction_dict["12"][1].append(16.5)
+        direction_dict["34"][0].append(19)
+        direction_dict["34"][1].append(20)
+        direction_dict["56"][0].append(21)
+        direction_dict["56"][1].append(22)
+        direction_dict["78"][0].append(24)
+        direction_dict["78"][1].append(25)
+
+        self.assertEqual(direction_dict, self.res1_1)
+
+    def test_2_1(self):
+        direction_dict = {key:[[], []] for key in uf.keys}
+        direction_dict["12"][0].append(19.5)
+        direction_dict["12"][1].append(22)
+        direction_dict["34"][0].append(25)
+        direction_dict["34"][1].append(26)
+        direction_dict["56"][0].append(27)
+        direction_dict["56"][1].append(28)
+
+        self.assertEqual(direction_dict, self.res2_1)
+
+
+class TestPrepareRegistrations(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_3_mice")
+        data = Loader(path)
+        config = ExperimentConfigFile(path)
+        times = config.gettime("1 dark")
+        t_start = times[-1] - 3600/3*2
+        t_end = times[-1] - 3600/3
+        cls.out = uf.prepare_registrations(data, ["mouse_1"],
+                                            t_start, t_end)
+    def test_1(self):
+        self.assertEqual(["mouse_1"], list(self.out.keys()))
+
+    def test_2(self):
+        self.assertEqual(len(self.out["mouse_1"]["56"][0]), 3)
+
+    def test_3(self):
+        # check if last antenna is working
+        self.assertEqual(len(self.out["mouse_1"]["65"][0]), 2)
+
+
+class TestPrepareBinnedRegistrations(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_3_mice")
+        cls.data = Loader(path)
+        cls.config = ExperimentConfigFile(path)
+        cls.out_all = uf.prepare_binned_registrations(cls.data,
+                                                      cls.config,
+                                                      "All",
+                                                      ["mouse_1"])
+        cls.out_6h = uf.prepare_binned_registrations(cls.data,
+                                                     cls.config,
+                                                     6*3600,
+                                                     ["mouse_1"])
+        cls.out_24h = uf.prepare_binned_registrations(cls.data,
+                                                      cls.config,
+                                                      24*3600,
+                                                      ["mouse_1"])
+
+    def test_all_phases(self):
+        self.assertEqual(self.out_all[0], ["ALL"])
+
+    def test_all_total_time(self):
+        out = OrderedDict()
+        out["ALL"] = {0: self.config.gettime("ALL")}
+        self.assertEqual(self.out_all[1], out)
+
+    def test_all_data(self):
+        out = OrderedDict()
+        time = self.config.gettime("ALL")
+        out["ALL"] = {0: uf.prepare_registrations(self.data,
+                                                  ["mouse_1"],
+                                                  *time)}
+        self.assertEqual(self.out_all[2], out)
+
+    def test_all_keys(self):
+        self.assertEqual(self.out_all[3], [["ALL"], [0.0]])
+
+    def test_6h_phases(self):
+        self.assertEqual(self.out_6h[0], ["1_dark_6.00h",
+                                          "1_light_6.00h",
+                                          "2_dark_6.00h"])
+
+    def test_6h_data(self):
+        phases = ["1 dark", "1 light", "2 dark"]
+        out = OrderedDict()
+        for phase in phases:
+            times = self.config.gettime(phase)
+            out[phase] = OrderedDict()
+            out[phase][0.0] = uf.prepare_registrations(self.data,
+                                                     ["mouse_1"],
+                                                      times[0],
+                                                      times[0]+
+                                                      6*3600)
+            key = 6*3600.
+            out[phase][key] = uf.prepare_registrations(self.data,
+                                                     ["mouse_1"],
+                                                      times[0]+
+                                                      6*3600,
+                                                      times[-1])
+        self.assertEqual(self.out_6h[2], out)
+
+    def test_6h_total(self):
+        out = OrderedDict()
+        phases = ["1 dark", "1 light", "2 dark"]
+        for phase in phases:
+            out[phase] = OrderedDict()
+            times = self.config.gettime(phase)
+            out[phase][0.0] = (times[0], times[0] + 6*3600)
+            out[phase][6*3600.0] = (times[0] + 6*3600, times[-1])
+        self.assertEqual(out, self.out_6h[1])
+
+    def test_6h_keys(self):
+        data_keys = [["1 dark", "1 light", "2 dark"],
+                     [0.0, 6*3600.0]]
+
+    def test_24h_phases(self):
+        self.assertEqual(self.out_24h[0], ['1_x_24.00h',
+                                           '2_x_24.00h'])
+
+    def test_24h_data(self):
+        phases = ["1_x", "2_x"]
+        times = self.config.gettime("ALL")
+        out = OrderedDict()
+        for phase in phases:
+            out[phase] = OrderedDict()
+
+        out["1_x"][0.0] = uf.prepare_registrations(self.data,
+                                                   ["mouse_1"],
+                                                   times[0],
+                                                   times[0]+
+                                                   24*3600)
+
+        out["2_x"][0.0] = uf.prepare_registrations(self.data,
+                                                   ["mouse_1"],
+                                                   times[0]+
+                                                   24*3600,
+                                                   times[0]+
+                                                   2*24*3600)
+        self.assertEqual(self.out_24h[2], out)
+
+    def test_24h_total(self):
+        out = OrderedDict()
+        times = self.config.gettime("ALL")
+        phases = ["1_x", "2_x"]
+        for phase in phases:
+            out[phase] = OrderedDict()
+        out["1_x"][0.0] = (times[0], times[0] + 24*3600)
+        out["2_x"][0.0] = (times[0] + 24*3600,
+                           times[0] + 2*24*3600)
+        self.assertEqual(out, self.out_24h[1])
+
+    def test_24h_keys(self):
+        data_keys = [["1_x", "2_x"],
+                     [0.0]]
+
 
 if __name__ == '__main__':
     unittest.main()

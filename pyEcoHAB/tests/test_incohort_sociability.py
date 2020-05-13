@@ -610,7 +610,7 @@ class TestSinglePhaseResults(unittest.TestCase):
         data = Loader(path)
         cls.phases, cls.total_time,\
             cls.data, cls.keys = utils.prepare_binned_data(data,
-                                                           cls.config, "",
+                                                           cls.config,
                                                            cls.duration,
                                                            ["mouse_1",
                                                             "mouse_2"])
@@ -735,6 +735,15 @@ class TestSinglePhaseResults(unittest.TestCase):
     def test_2_2(self):
         self.assertEqual(self.correct_res["mouse_2"]["mouse_2"],
         self.out["mouse_2"]["mouse_2"])
+
+
+class TestGetIncohortSociability(unittest.TestCase):
+    def test_run(cls):
+        path = os.path.join(data_path, "weird_short_3_mice")
+        data = Loader(path)
+        config = ExperimentConfigFile(path)
+        ics.get_incohort_sociability(data, config, 3600)
+        ics.get_incohort_sociability(data, config, 24*3600)
 
 
 if __name__ == '__main__':

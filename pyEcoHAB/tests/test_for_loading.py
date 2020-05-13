@@ -121,7 +121,7 @@ class TestReadInSingleFile(unittest.TestCase):
 class TestRemoveAntennas(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(data_path, "weird_short_2_mice")
+        path = os.path.join(data_path, "weird_short_3_mice")
         out = uf.read_single_file(path, "20101010_110000.txt")
         cls.data = {}
         cls.data["Antenna"] = [int(o[2]) for o in out]
@@ -230,7 +230,7 @@ class TestRemoveAntennas(unittest.TestCase):
 class TestRemoveGhostTags(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(data_path, "weird_short_2_mice")
+        path = os.path.join(data_path, "weird_short_3_mice")
         cls.data = uf.read_single_file(path, "20101010_110000.txt")
 
     def test_1(self):
@@ -309,7 +309,7 @@ class TestRemoveGhostTags(unittest.TestCase):
 class TestRemoveAntenna(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(data_path, "weird_short_2_mice")
+        path = os.path.join(data_path, "weird_short_3_mice")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         cls.data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
 
@@ -343,7 +343,7 @@ class TestRemoveAntenna(unittest.TestCase):
 class TestRemoveAntennas(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(data_path, "weird_short_2_mice")
+        path = os.path.join(data_path, "weird_short_3_mice")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         cls.data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
 
@@ -386,7 +386,7 @@ class TestTransformRaw(unittest.TestCase):
 class TestTransformAllData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(data_path, "weird_short_2_mice")
+        path = os.path.join(data_path, "weird_short_3_mice")
         cls.raw_data = uf.read_single_file(path, "20101010_110000.txt")
         cls.data = uf.from_raw_data(cls.raw_data, STANDARD_ANTENNAS)
 
@@ -404,7 +404,7 @@ class TestTransformAllData(unittest.TestCase):
 class TestAntennaMismatch(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(data_path, "weird_short_2_mice")
+        path = os.path.join(data_path, "weird_short_3_mice")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
         cls.mismatch1 = uf.antenna_mismatch(data)
@@ -425,7 +425,7 @@ class TestAntennaMismatch(unittest.TestCase):
 class TestCheckAntennaPresence(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(data_path, "weird_short_2_mice")
+        path = os.path.join(data_path, "weird_short_3_mice")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
         cls.presences = uf.check_antenna_presence(data, 24*3600)
@@ -460,7 +460,7 @@ class TestCheckAntennaPresence(unittest.TestCase):
 class TestRunDiagnostics(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.path.join(data_path, "weird_short_2_mice")
+        path = os.path.join(data_path, "weird_short_3_mice")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
         cls.mismatch1 = uf.antenna_mismatch(data)
@@ -511,7 +511,7 @@ class TestRunDiagnostics(unittest.TestCase):
         self.assertEqual(read, self.str21)
 
     def test_registration_breaks_file(self):
-        path = os.path.join(data_path, "weird_short_2_mice")
+        path = os.path.join(data_path, "weird_short_3_mice")
         res_path = os.path.join(path, "Results")
         f_path = os.path.join(res_path +
                               "/diagnostics/breaks_in_registrations.csv")
@@ -520,7 +520,7 @@ class TestRunDiagnostics(unittest.TestCase):
         self.assertEqual(read, self.str12)
 
     def test_mismatch_antennas_file(self):
-        path = os.path.join(data_path, "weird_short_2_mice")
+        path = os.path.join(data_path, "weird_short_3_mice")
         res_path = os.path.join(path, "Results")
         f_path = os.path.join(res_path +
                               "/diagnostics/antenna_mismatches.csv")
