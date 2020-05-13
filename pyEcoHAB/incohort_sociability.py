@@ -3,7 +3,6 @@ from __future__ import print_function, division, absolute_import
 import os
 from collections import OrderedDict
 import numpy as np
-import matplotlib.pyplot as plt
 from . import utility_functions as utils
 from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot
 from .write_to_file import write_binned_data, write_csv_rasters, write_csv_alone

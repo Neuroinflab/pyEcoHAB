@@ -16,6 +16,12 @@ if sys.version_info < (3, 0):
     from ConfigParser import RawConfigParser, NoSectionError
 else:
     from configparser import RawConfigParser, NoSectionError
+
+import matplotlib as mpl
+if os.environ.get('DISPLAY','') == '':
+    print('no display found. Using non-interactive Agg backend')
+    mpl.use('Agg')
+
 import matplotlib.ticker
 import matplotlib.dates as mpd
 import matplotlib.pyplot as plt
