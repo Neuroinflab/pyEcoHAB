@@ -384,7 +384,17 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                                           fname,
                                           res_dir,
                                           hist_dir,
-                                          prefix+add_info_mice)
+                                          prefix+add_info_mice,
+                                          hist=False,
+                                          vmin=0,
+                                          vmax=vmax,
+                                          vmin1=vmin1,
+                                          vmax1=vmax1,
+                                          titles=['# dynamic interactions',
+                                                  '# expected dynamic interactions',
+                                                  '# excess dynamic interactions',
+                                                  'histogram of # excess dynamic interactions',],
+                                        labels=['following mouse', 'followed mouse'])
                 csv_results_following[idx_phase] = res
                 csv_results_following_exp[idx_phase] = exp_res
         if save_times_following:
