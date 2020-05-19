@@ -458,7 +458,7 @@ def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
         ax.set_xticklabels([])
     ax.set_title(title, fontsize=fontsize)
     if median_mean == True:
-        mean = single_results.mean()
+        mean = np.mean(single_results)
         median = np.median(single_results)
         ax.axvline(mean, color='k', linestyle='dashed', linewidth=1)
         ax.axvline(median, color='r', linestyle='dashed', linewidth=1)
