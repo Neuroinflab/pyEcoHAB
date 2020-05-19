@@ -267,7 +267,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                              remove_mouse=None, save_distributions=True,
                              save_figures=False, return_median=False,
                              delimiter=";",
-                             save_times_following=False):
+                             save_times_following=False, seed=None):
     if res_dir == "":
         res_dir = ehd.res_dir
     if prefix == "":
@@ -277,7 +277,8 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
     phases, times, data, data_keys = utils.prepare_binned_registrations(ehd, cf,
                                                                         binsize,
                                                                         mice)
-
+    if isinstance(seed, int):
+        random.seed(seed)
     all_phases, bin_labels = data_keys
     following = utils.make_all_results_dict(*data_keys)
     following_exp = utils.make_all_results_dict(*data_keys)
