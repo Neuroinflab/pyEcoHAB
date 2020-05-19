@@ -66,8 +66,8 @@ def write_binned_data(data_stim, fname, mice, bin_labels, phase,
                                                         phase,
                                                         additional_info))
     if not os.path.exists(new_path):
-        print(new_path)
         os.makedirs(new_path)
+    print(fname)
     f = open(fname, "w")
     header = make_header_for_activity(mice, delimiter)
 
@@ -95,6 +95,7 @@ def save_single_histograms(result, fname, mice, phase, main_directory,
                                                          prefix,
                                                          phase,
                                                          additional_info))
+    print(fname)
     try:
         f = open(fname, 'w')
     except IOError:
@@ -116,6 +117,7 @@ def write_csv_rasters(mice, phases, output, directory,
     new_name = os.path.join(dirname, 'data')
     directory = utils.check_directory(directory, new_name)
     fname = os.path.join(directory, fname)
+    print(fname)
     try:
         f = open(fname, 'w')
     except IOError:
@@ -145,6 +147,7 @@ def write_csv_tables(results, phases, mice, main_directory,
     new_name = os.path.join(dirname, 'data')
     directory = utils.check_directory(main_directory, new_name)
     fname =  os.path.join(directory, '%s_%s.csv' % (fname, prefix))
+    print(fname)
     try:
         f = open(fname, 'w')
     except IOError:
