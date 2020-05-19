@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import division, absolute_import
 import random
 import os
@@ -139,51 +140,43 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, N, phase,
                             "dynamic_interactions_hists",
                             "bin_%4.2f" % binsize)
     hist_time_dir = os.path.join("other_variables",
-                                 "durations_dynamic_interaction_hists",
+                                 "durations_dynamic_interactions_hists",
                                  "bin_%4.2f" % binsize)
+    fname_following = "%s_DI_count_dist_%d_%4.2f" % (prefix, N, binsize)
+    fname_times = "%s_DI_durations_dis_%d_%4.2f" % (prefix, N, binsize)
     if save_figures:
-        fname_following = "dynamic_interactions_count_distribution_%d_%4.2f" % (N, binsize)
-        fname_times = "dynamic_interaction_durations_distribution_%d_%4.2" % (N, binsize)
         for mouse1 in mice:
             for mouse2 in mice:
                 if mouse1 == mouse2:
                     continue
-                key = "%s|%s" % (mouse1, mouse2)
-                fname1 = "%s_histogram_%s_%s_N_%d_%4.2f" % ("dynamic_interactions",
-                                                      phase.replace(' ',
-                                                                    '_'),
-                                                            key, N, binsize)
-                fname2 = "%s_histogram_%s_%s_N_%d_%4.2f" % ("durations_dynamic_interactions",
-                                                      phase.replace(' ',
-                                                                    '_'),
-                                                            key, N, binsize)
+                key = "%s_%s" % (mouse1, mouse2)
+                fname1 = "%s%s_hist_%s_%s_N_%d_%4.2f" % (prefix, "DI", phase.replace(' ', '_'), key, N, binsize)
+                fname2 = "%s%s_hist_%s_%s_N_%d_%4.2f" % (prefix, "durations_DI", phase.replace(' ', '_'), key, N, binsize)
                 single_histogram_figures(followings[mouse1][mouse2],
                                          fname1, res_dir,
                                          hist_dir,
-                                         "Dynamic interation count distribution",
+                                         "Dynamic interactions count distribution",
                                          xlabel="dynamic interactions",
                                          ylabel="count",
                                          median_mean=True)
                 if stf:
                     single_histogram_figures(times_following[mouse1][mouse2],
                                              fname2,
-                                             "Dynamic interaction durations distribution",
+                                             res_dir,
                                              hist_time_dir,
-                                             prefix,
+                                             "Dynamic interaction durations distribution",
                                              xlabel="duration",
                                              ylabel="count", nbins=10,
                                              median_mean=True)
     dist_dir_fol = os.path.join("other_variables", "dynamic_interactions_hists",
                                 "bin_%4.2f" % binsize)
-    dist_dir_time = os.path.join("other_variables", "durations_dynamic_interaction_hists",
+    dist_dir_time = os.path.join("other_variables", "durations_dynamic_interactions_hists",
                                  "bin_%4.2f" % binsize)
     if save_distributions:
-        fname_following = "dynamic_interaction_count_distribution_%d" % N
-        fname_times = "dynamic_interaction_durations_distribution_%d" % N
-        write_bootstrap_results(followings, phase, mice,
+         write_bootstrap_results(followings, phase, mice,
                                 fname_following, res_dir,
                                 dist_dir_fol, prefix)
-        if stf:
+         if stf:
             write_bootstrap_results(times_following, phase, mice,
                                     fname_times, res_dir,
                                     dist_dir_time,
@@ -342,7 +335,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
     hist_dir_add = os.path.join("dynamic_interactions", "additionals",
                                 "histograms", "bins_%s" % binsize_name)
     other_dir =  os.path.join('other_variables',
-                              'durations_dynamic_interaction', 'histograms' ,
+                              'durations_dynamic_interactions', 'histograms' ,
                               "bins_%s" % binsize_name)
     other_hist = os.path.join("other_variables",
                               "histograms_of_dynamic_interactions_intervals",
@@ -357,9 +350,9 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
     excess_prefix = "excess_dynamic_interactions_%s_%s" % (prefix,
                                                            add_info_mice)
 
-    meas_prefix_dur = "duration_dynamic_interactions_%s_%s" % (prefix, add_info_mice)
-    exp_prefix_dur = "exp_duration_dynamic_interactions_%s_%s" % (prefix,  add_info_mice)
-    excess_prefix_dur = "excess_duration_dynamic_interactions_%s_%s" % (prefix, add_info_mice)
+    meas_prefix_dur = "durations_dynamic_interactions_%s_%s" % (prefix, add_info_mice)
+    exp_prefix_dur = "exp_durations_dynamic_interactions_%s_%s" % (prefix,  add_info_mice)
+    excess_prefix_dur = "excess_durations_dynamic_interactions_%s_%s" % (prefix, add_info_mice)
 
     other_raster_dir = os.path.join("other_variables",
                                     "durations_dynamic_interactions",
@@ -401,7 +394,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
         excess_following = utils.calc_excess(following[ph],
                                              following_exp[ph])
         write_binned_data(excess_following,
-                          'dynamic_interactions_expected_%s' % method,
+                          'dynamic_interactions_excess_%s' % method,
                           mice, bin_labels, new_phase, res_dir,
                           hist_dir,
                           prefix, additional_info=add_info_mice,
@@ -467,13 +460,13 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
 
         if save_times_following:
             write_binned_data(time_together[ph],
-                              'duration_dynamic_interactions',
+                              'durations_dynamic_interactions',
                               mice, bin_labels, new_phase, res_dir,
                               other_dir,
                               prefix, additional_info=add_info_mice,
                               delimiter=delimiter)
             write_binned_data(time_together_exp[ph],
-                              'duration_dynamic_interactions_expected_%s' % method,
+                              'durations_dynamic_interactions_expected_%s' % method,
                               mice, bin_labels, new_phase, res_dir,
                               other_dir,
                               prefix, additional_info=add_info_mice,
@@ -481,14 +474,15 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
             excess_time = utils.calc_excess(time_together[ph],
                                             time_together[ph])
             write_binned_data(excess_time,
-                              'duration_dynamic_interactions_expected_%s' % method,
+                              'durations_dynamic_interactions_expected_%s' % method,
                               mice, bin_labels, new_phase, res_dir,
                               other_dir,
                               prefix, additional_info=add_info_mice,
                               delimiter=delimiter)
+
             if isinstance(binsize, int) or isinstance(binsize, float):
                 if int(binsize) == 12*3600 or int(binsize) == 24*3600:
-                    fname = "duration_dynamic_interactions_N_%d_%s" % (N, method)
+                    fname = "durations_dynamic_interactions_N_%d_%s" % (N, method)
                     res = utils.dict_to_array_2D(time_together[ph][0],
                                                  mice, mice)
                     exp_res = utils.dict_to_array_2D(time_together_exp[ph][0],
@@ -645,7 +639,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                             other_raster_dir,
                             (csv_results_time - csv_results_time_exp),
                             phases,
-                            "excess_duration_dynamic_interactions",
+                            "excess_durations_dynamic_interactions",
                             mice,
                             title='% excess duration dynamic interactions',
                             symmetric=False)
