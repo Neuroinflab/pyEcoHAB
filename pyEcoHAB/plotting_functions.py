@@ -88,6 +88,7 @@ def make_RasterPlot(main_directory,
     fig.subplots_adjust(bottom=0.25)
     name = name + prefix
     new_name = os.path.join(new_path, name)
+    print(new_name)
     plt.savefig(new_name+".png",
                 transparent=False,
                 bbox_inches=None,
@@ -170,6 +171,7 @@ def single_in_cohort_soc_plot(results,
     new_name = os.path.join(directory, 'figs')
     directory = utils.check_directory(main_directory, new_name)
     fname =  os.path.join(directory, '%s_%s_%s'% (fname, prefix, phase))
+    print(fname)
     label_mice = make_labels(mice)
     fig = plt.figure(figsize=(10, 6))
     ax = []
@@ -418,6 +420,7 @@ def single_histogram_figures(single_results, fname, main_directory,
                 bbox_inches=None,
                 pad_inches=.5,
                 frameon=None, dpi=100)
+    print(new_fname)
     plt.close(fig)
 
 
@@ -455,7 +458,7 @@ def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
         ax.set_xticklabels([])
     ax.set_title(title, fontsize=fontsize)
     if median_mean == True:
-        mean = single_results.mean()
+        mean = np.mean(single_results)
         median = np.median(single_results)
         ax.axvline(mean, color='k', linestyle='dashed', linewidth=1)
         ax.axvline(median, color='r', linestyle='dashed', linewidth=1)
@@ -585,4 +588,5 @@ def make_visit_duration_histogram(results, time, phase, mice,
                     bbox_inches=None,
                     pad_inches=.5,
                     frameon=None)
+        print(new_name)
         plt.close(fig)
