@@ -443,20 +443,36 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                           res_dir,
                           raster_dir_add,
                           fname_measured,
-                          delimiter=delimiter)
+                          delimiter=delimiter,
+                          symmetric=False)
         write_csv_rasters(mice,
                           raster_labels,
                           phase_exp_full_results,
                           res_dir,
                           raster_dir_add,
                           fname_expected,
-                          delimiter=delimiter)
+                          delimiter=delimiter,
+                          symmetric=False)
         write_csv_rasters(mice,
                           raster_labels,
                           phase_full_results - phase_exp_full_results,
                           res_dir,
                           raster_dir,
-                          fname_excess, delimiter=delimiter)
+                          "excess_following_binsize_%sh_%s.csv" %(binsize,
+                                                                  new_phase),
+                          delimiter=delimiter,
+                          symmetric=False)
+
+        write_csv_rasters(mice,
+                          raster_labels,
+                          phase_full_results - phase_exp_full_results,
+                          res_dir,
+                          raster_dir,
+                          "excess_leading_binsize_%sh_%s.csv" %(binsize,
+                                                                new_phase),
+                          delimiter=delimiter,
+                          symmetric=False,
+                          reverse_order=True)
 
         if save_times_following:
             write_binned_data(time_together[ph],
@@ -509,7 +525,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                     csv_results_time[idx_phase] = res
                     csv_results_time_exp[idx_phase] = exp_res
             fname_measured = "%s_%s.csv" % (meas_prefix_dur, new_phase)
-            fname_excess = "%s_%s.csv" % (excess_prefix_dur, new_phase)
+ 
             fname_expected = "%s_%s.csv" % (exp_prefix_dur, new_phase)
             raster_labels = [bin_label/3600 for bin_label in bin_labels]
             phase_full_results = utils.dict_to_array_3D(following[ph],
@@ -524,20 +540,23 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                               res_dir,
                               other_dir,
                               fname_measured,
-                              delimiter=delimiter)
+                              delimiter=delimiter,
+                              symmetric=False)
             write_csv_rasters(mice,
                               raster_labels,
                               phase_exp_full_results,
                               res_dir,
                               other_dir,
                               fname_expected,
-                              delimiter=delimiter)
+                              delimiter=delimiter,
+                              symmetric=False)
             write_csv_rasters(mice,
                               raster_labels,
                               phase_full_results - phase_exp_full_results,
                               res_dir,
                               other_dir,
-                              fname_excess, delimiter=delimiter)
+                              fname_excess, delimiter=delimiter,
+                              symmetric=False)
 
     if isinstance(binsize, int) or isinstance(binsize, float):
         if binsize == 43200:
