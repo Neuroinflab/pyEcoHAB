@@ -302,14 +302,14 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
     fname_rev_ = 'leading_%s%s.csv' % (prefix, add_info_mice)
     fname_beg = 'following_excess'
     fname_rev = 'leading_excess'
-    fname_exp = '%s_%s_%s%s.csv' % (fname_beg,
+    fname_excess = '%s_%s_%s%s.csv' % (fname_beg,
                                     method,
                                     prefix,
                                     add_info_mice)
-    fname_exp_rev = '%s_%s_%s%s.csv' % (fname_rev,
-                                    method,
-                                    prefix,
-                                    add_info_mice)
+    fname_excess_rev = '%s_%s_%s%s.csv' % (fname_rev,
+                                           method,
+                                           prefix,
+                                           add_info_mice)
     keys = utils.all_pairs(mice)
     interval_details = {key:[] for key in keys}
     if ehd.how_many_antennas() > 2:
@@ -458,21 +458,19 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                           phase_full_results - phase_exp_full_results,
                           res_dir,
                           raster_dir,
-                          "excess_following_binsize_%sh_%s.csv" %(binsize,
-                                                                  new_phase),
+                          "excess_following_%s.csv" % new_phase,
                           delimiter=delimiter,
-                          symmetric=False)
+                          symmetric=False,
+                          reverse_order=True)
 
         write_csv_rasters(mice,
                           raster_labels,
                           phase_full_results - phase_exp_full_results,
                           res_dir,
                           raster_dir,
-                          "excess_leading_binsize_%sh_%s.csv" %(binsize,
-                                                                new_phase),
+                          "excess_leading_%s.csv" % new_phase,
                           delimiter=delimiter,
-                          symmetric=False,
-                          reverse_order=True)
+                          symmetric=False)
 
         if save_times_following:
             write_binned_data(time_together[ph],
@@ -565,17 +563,17 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                               csv_results_following - csv_results_following_exp,
                               res_dir,
                               raster_dir,
-                              fname_exp,
+                              fname_excess,
                               symmetric=False,
-                              delimiter=delimiter)
+                              delimiter=delimiter,
+                              reverse_order=True)
             write_csv_rasters(mice,
                               phases,
                               csv_results_following - csv_results_following_exp,
                               res_dir,
                               raster_dir,
-                              fname_exp_rev,
+                              fname_excess_rev,
                               symmetric=False,
-                              reverse_order=True,
                               delimiter=delimiter)
             write_csv_rasters(mice,
                               phases,
@@ -584,6 +582,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                               raster_dir_add,
                               fname_,
                               symmetric=False,
+                              reverse_order=True,
                               delimiter=delimiter)
             write_csv_rasters(mice,
                               phases,
@@ -592,7 +591,6 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                               raster_dir_add,
                               fname_rev_,
                               symmetric=False,
-                              reverse_order=True,
                               delimiter=delimiter)
 
 
@@ -600,7 +598,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                             raster_dir,
                             (csv_results_following - csv_results_following_exp),
                             phases,
-                            fname_exp,
+                            fname_excess,
                             mice,
                             title='% excess following',
                             symmetric=False)
@@ -642,6 +640,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                               other_raster_dir,
                               "excess_duration_following",
                               symmetric=False,
+                              reverse_order=True,
                               delimiter=delimiter)
             write_csv_rasters(mice,
                               phases,
@@ -650,7 +649,6 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                               other_raster_dir,
                               "excess_duration_leading",
                               symmetric=False,
-                              reverse_order=True,
                               delimiter=delimiter)
 
 
