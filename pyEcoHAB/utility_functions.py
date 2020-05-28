@@ -656,7 +656,7 @@ def prepare_binned_registrations(ehs, cf, bins, mice):
         all_phases = filter_dark_light(cf.sections())
         min_phase = get_shortest_phase_duration(cf)
         # you can not iterate by phases, if bins are longer than phases
-        if bins > shortest_phase:
+        if bins > min_phase:
             t_start = cf.gettime(all_phases[0])[0]
             t_end = cf.gettime(all_phases[-1])[-1]
             bin_labels = [0.0]

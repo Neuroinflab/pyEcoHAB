@@ -604,7 +604,7 @@ class TestExpectedTimeTogether(unittest.TestCase):
 class TestSinglePhaseResults(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.duration = 43200
+        cls.duration = 3*3600
         path = os.path.join(data_path, "weird_3_mice")
         cls.config = ExperimentConfigFile(path)
         data = Loader(path)
