@@ -147,6 +147,48 @@ class EcoHabDataBase(object):
                 out.append(visit)
         return sorted(out, key = lambda o: o["t_start"])
 
+    def get_registration_stats(self, tag, t_start,
+                               t_end, antenna, binsize):
+        """Count number and combined durations of registrations of a mouse tag
+        by a specified antenna in bins of size binsize for tags
+        registered in a time interval (t_start, t_end).
+
+        Args:
+        mouse: string
+        t_start: float
+           begining of the time interval (calculated from epoch)
+        t_end: float
+           end of the time interval (calculated from epoch)
+        antenna: int
+           antena id
+        binsize: float
+           bin length
+
+        Returns:
+           count: list
+              count of tag registrations by the antenna in consecutive bins
+           durations: list
+              durations (ms) of tag registrations by the antenna in consecutive
+              bins
+        """
+        count_in_bins = []
+        durations_in_bins = []
+        t_s = t_start
+        while t_s < t_end:
+            t_e = t_s + binsize
+            self.mask_data(t_s, t_e)
+            antennas = self.get_antennas(tag)
+            indices = np.where(np.array(antennas) == antenna )[0]
+            count_in_bins.append(len(indices))
+            durations = self.get_durations(tag)
+            sum_time = 0
+            for ind in indices:
+                sum_time += durations[ind]
+            durations_in_bins.append(sum_time/1000)
+            self.unmask_data()
+            t_s = t_e
+        return count_in_bins, durations_in_bins
+
 
 class Loader(EcoHabDataBase):
     """Reads in Eco-HAB data files that are located in path.
