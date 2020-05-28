@@ -562,8 +562,9 @@ def prepare_binned_data(ehs, cf, bins, mice):
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
         all_phases = filter_dark_light(cf.sections())
+        shortest_phase = get_shortest_phase_duration(cf)
         # you can not iterate by phases, if bins are longer than phases
-        if bins > 12*3600:
+        if bins > shortest_phase:
             t_start = cf.gettime(all_phases[0])[0]
             t_end = cf.gettime(all_phases[-1])[-1]
             bin_labels = [0.0]
@@ -653,9 +654,9 @@ def prepare_binned_registrations(ehs, cf, bins, mice):
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
         all_phases = filter_dark_light(cf.sections())
-
+        min_phase = get_shortest_phase_duration(cf)
         # you can not iterate by phases, if bins are longer than phases
-        if bins > 12*3600:
+        if bins > shortest_phase:
             t_start = cf.gettime(all_phases[0])[0]
             t_end = cf.gettime(all_phases[-1])[-1]
             bin_labels = [0.0]
@@ -714,3 +715,11 @@ def make_all_results_dict(phases, bins):
             result[phase][bin1] = 0
 
     return result
+
+
+def get_shortest_phase_duration(cf):
+    durs = []
+    for phase in cf.sections():
+        time = cf.gettime(phase)
+        durs.append(time[1] - time[0])
+    return min(durs)
