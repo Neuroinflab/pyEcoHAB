@@ -149,6 +149,47 @@ def single_heat_map(result,
     plt.close(fig)
 
 
+def single_timeline_heat_map(result,
+                             directory,
+                             mice,
+                             prefix,
+                             phase,
+                             binsize,
+                             antenna,
+                             subdirectory):
+    name = 'duration_of_antenna_%d_registration_%s_%4.2f_%s' % (antenna,prefix, binsize/3600, phase)
+    fig, ax = plt.subplots()
+    vmin = 0
+    vmax = 0.5*binsize
+    l = len(result[mice[0]])
+    out = np.zeros((len(mice), l))
+
+    for j, mouse in enumerate(mice):
+        out[j] = np.array(result[mouse])
+
+    cax = ax.imshow(out, interpolation='none', aspect='auto', cmap="viridis",
+                    origin="lower", vmin=vmin, vmax=vmax)
+    cbar = fig.colorbar(cax)
+    turn = False
+    yticks = [mouse.split('-')[-1] for mouse in mice]
+
+    fig.subplots_adjust(left=0.25)
+    ax.get_yaxis().set_ticks([i for i,x in enumerate(yticks)])
+    ax.set_yticklabels(yticks)
+    ax.set_xlabel("time (h)")
+    ax.set_title("In range of antenna %d (in sec)" % antenna)
+    if subdirectory:
+        subdirectory = os.path.join(subdirectory, 'figs')
+    dir_name = utils.check_directory(directory, subdirectory)
+    new_name = os.path.join(dir_name, name)
+    print(new_name)
+    fig.subplots_adjust(left=0.25)
+    fig.subplots_adjust(bottom=0.25)
+    fig.savefig(new_name + ".png", transparent=False, bbox_inches=None,
+                pad_inches=0.5, frameon=None, dpi=100)
+    plt.close(fig)
+
+
 def single_in_cohort_soc_plot(results,
                               results_exp,
                               mice,

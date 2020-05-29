@@ -287,3 +287,37 @@ def write_bootstrap_results(results, phase, mice_list,
                     f.write(delimiter + str(value))
                 f.write("\n")
     f.close()
+
+def write_registrations_stats(crossings, phase, mice_list,
+                              binsize, fname, main_directory,
+                              directory, prefix,
+                              add_info="", delimiter=";"):
+    header = ""
+    new_dir = os.path.join(main_directory, directory)
+    new_dir = utils.check_directory(new_dir, "data")
+    new_name =  os.path.join(new_dir, '%s_%s_%s_%s.csv'%(fname,
+                                                         phase.replace(' ',
+                                                                       '_'),
+                                                         prefix,
+                                                         add_info))
+
+    antennas = sorted(crossings.keys())
+    n_rows = len(crossings[antennas[0]][mice_list[0]])
+
+    f = open(new_name, "w")
+    for i in range(n_rows):
+        header +="%s%4.2f" % (delimiter, i*binsize/3600)
+    f.write(delimiter)
+    for antenna in antennas:
+        f.write("Antenna %d" % antenna + (n_rows)*delimiter)
+    f.write('\n')
+    for antenna in antennas:
+        f.write(header)
+    f.write("\n")
+    for mouse in mice_list:
+        f.write(mouse)
+        for antenna in antennas:
+            for i, row in enumerate(range(n_rows)):
+                f.write(delimiter+str(crossings[antenna][mouse][i]))
+        f.write("\n")
+    f.close()

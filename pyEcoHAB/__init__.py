@@ -11,3 +11,4 @@ from .incohort_sociability import get_solitude
 from .cage_visits import get_activity
 from .tube_dominance import get_tube_dominance
 from .following import get_dynamic_interactions, resample_single_phase
+from .single_antenna_registrations import get_single_antenna_stats
