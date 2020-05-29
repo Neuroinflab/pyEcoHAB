@@ -1,6 +1,7 @@
 from __future__ import print_function, division, absolute_import
 import os
 import sys
+from datetime import date
 from collections import OrderedDict
 
 try:
@@ -200,6 +201,9 @@ class Loader(EcoHabDataBase):
         remove_mice: list
            Animal tag registrations to be removed from loaded data. By default
            no registrations are removed.
+        add_date: True or False
+           Add analysis date to results directory filename.
+           As a default current date will be added.
     """
     STANDARD_ANTENNAS = {'1': 1, '2': 2,
                          '3': 3, '4': 4,
@@ -219,15 +223,19 @@ class Loader(EcoHabDataBase):
 
         self.mask = kwargs.pop('mask', None)
         self.visit_threshold = kwargs.pop('visit_threshold', 2.)
-        self.res_dir = kwargs.pop("res_dir",
-                                  ufl.results_path(self.path))
+        add_date = kwargs.pop('add_date', True)
+        res_dir = kwargs.pop("res_dir", ufl.results_path(self.path))
         self.prefix = ufl.make_prefix(self.path)
         self.max_break = kwargs.pop("max_break", self.MAX_BREAK)
         how_many_appearances = kwargs.pop('how_many_appearances', 0)
         factor = kwargs.pop('min_appearance_factor', 0)
         remove_antennas = kwargs.pop('remove_antennas', [])
         tags = kwargs.pop('remove_mice',[])
-
+        if add_date:
+            today = date.today().strftime("%d.%m.%y")
+            self.res_dir = "%s_%s" %(res_dir, today)
+        else:
+            self.res_dir = res_dir
         #Read in data
         rawdata = self._read_in_raw_data(factor,
                                          how_many_appearances,
