@@ -6,6 +6,7 @@ from collections import OrderedDict
 
 from . import utility_functions as utils
 from .write_to_file import write_registrations_stats
+from .plotting_functions import  single_timeline_heat_map
 
 def get_single_antenna_stats(ehs, cf, binsize, antennas="ALL", res_dir="",
                              prefix="", remove_mouse="", delimiter=";"):
@@ -87,6 +88,15 @@ def get_single_antenna_stats(ehs, cf, binsize, antennas="ALL", res_dir="",
                                                      antenna,
                                                      binsize)
                 count[antenna][mouse], durations[antenna][mouse] = results
+
+            single_timeline_heat_map(durations[antenna],
+                                     res_dir,
+                                     mice,
+                                     prefix,
+                                     phase,
+                                     binsize,
+                                     antenna,
+                                     out_dir)
         write_registrations_stats(count, phase, mice, binsize,
                                  fname_count, res_dir,
                                  out_dir, prefix,
@@ -96,4 +106,4 @@ def get_single_antenna_stats(ehs, cf, binsize, antennas="ALL", res_dir="",
                                  out_dir, prefix,
                                  add_info=add_info_mice, delimiter=";")
         
-    
+
