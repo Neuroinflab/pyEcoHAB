@@ -15,6 +15,23 @@
       external_antenna1 = 8
       external_antenna2 = 1
 
+[pipe DA]
+      internal_antenna1 = 1
+      internal_antenna2 = 2
+
+[pipe AB]
+      internal_antenna1 = 3
+      internal_antenna2 = 4
+      
+[pipe BC]
+      internal_antenna1 = 5
+      internal_antenna2 = 6
+      
+[pipe CD]
+      internal_antenna1 = 7
+      internal_antenna2 = 8
+
+
 
 #setup with additional antennas
 
@@ -24,4 +41,8 @@
 
 [cage D]
       external_antenna1 = 1
-      
+
+
+[pipe AD]
+      internal_antenna1 = 1
+      internal_antenna2 = 2
