@@ -1,0 +1,27 @@
+#standard setup
+[cage A]
+      external_antenna1 = 2
+      external_antenna2 = 3
+
+[cage B]
+      external_antenna1 = 4
+      external_antenna2 = 5
+
+[cage C]
+      external_antenna1 = 6
+      external_antenna2 = 7
+
+[cage D]
+      external_antenna1 = 8
+      external_antenna2 = 1
+
+
+#setup with additional antennas
+
+[cage A]
+      external_antenna1 = 2
+      internal_antenna1 = 8
+
+[cage D]
+      external_antenna1 = 1
+      
