@@ -15,19 +15,8 @@ from .plotting_functions import make_pooled_histograms
 from .plotting_functions import make_histograms_for_every_mouse
 from .plotting_functions import make_pooled_histograms_for_every_mouse
 from .plotting_functions import single_histogram_figures
-from .utility_functions import keys
-phase_duration = 12*3600
+from .utility_functions import KEYS
 
-KEY_DICT = {
-    '12': 0,
-    '21': 0,
-    '34': 0,
-    '43': 0,
-    '56': 0,
-    '65': 0,
-    '78': 0,
-    '87': 0,
-}
 
 def insert_interval(candidate_t_start, interval,
                     t_starts, t_ends, duration):
@@ -87,7 +76,7 @@ def generate_intervals(t_starts, t_stops, duration):
     return new_t_starts, new_t_stops
 
 
-def generate_directions_dict(directions_dict, duration):
+def generate_directions_dict(directions_dict, duration, keys=KEYS):
     new_dict = {}
     for key in keys:
         old_intervals = directions_dict[key]
@@ -196,7 +185,7 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, N, phase,
 
     return out_followings, out_times
 
-def following_single_pair(directions_m1, directions_m2):
+def following_single_pair(directions_m1, directions_m2, keys=KEYS):
     
     followings = 0
     intervals = []

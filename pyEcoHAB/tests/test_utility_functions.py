@@ -2196,7 +2196,7 @@ class TestExtractDirections(unittest.TestCase):
         cls.res2_1 = uf.extract_directions(times2, antennas2, 7)
 
     def test_1(self):
-        direction_dict = {key:[[], []] for key in uf.keys}
+        direction_dict = {key:[[], []] for key in uf.KEYS}
         direction_dict["12"][0].append(15)
         direction_dict["12"][1].append(16.5)
         direction_dict["34"][0].append(19)
@@ -2211,7 +2211,7 @@ class TestExtractDirections(unittest.TestCase):
         self.assertEqual(direction_dict, self.res1)
 
     def test_2(self):
-        direction_dict = {key:[[], []] for key in uf.keys}
+        direction_dict = {key:[[], []] for key in uf.KEYS}
         direction_dict["12"][0].append(19.5)
         direction_dict["12"][1].append(22)
         direction_dict["34"][0].append(25)
@@ -2224,7 +2224,7 @@ class TestExtractDirections(unittest.TestCase):
         self.assertEqual(direction_dict, self.res2)
 
     def test_1_1(self):
-        direction_dict = {key:[[], []] for key in uf.keys}
+        direction_dict = {key:[[], []] for key in uf.KEYS}
         direction_dict["12"][0].append(15)
         direction_dict["12"][1].append(16.5)
         direction_dict["34"][0].append(19)
@@ -2237,7 +2237,7 @@ class TestExtractDirections(unittest.TestCase):
         self.assertEqual(direction_dict, self.res1_1)
 
     def test_2_1(self):
-        direction_dict = {key:[[], []] for key in uf.keys}
+        direction_dict = {key:[[], []] for key in uf.KEYS}
         direction_dict["12"][0].append(19.5)
         direction_dict["12"][1].append(22)
         direction_dict["34"][0].append(25)

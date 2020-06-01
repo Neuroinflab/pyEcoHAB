@@ -8,7 +8,7 @@ import numpy as np
 #NamedDict class was originally written by Zbyszek Jędrzejewski-Szmek
 #and Avrama Blackwell for moose_nerp https://github.com/neurord/moose_nerp
 
-same_pipe = {1: [1, 2],
+SAME_PIPE = { 1: [1, 2],
              2: [1, 2],
              3: [3, 4],
              4: [3, 4],
@@ -17,7 +17,7 @@ same_pipe = {1: [1, 2],
              7: [7, 8],
              8: [7, 8]}
 
-opposite_pipe = {1: [5, 6],
+OPPOSITE_PIPE = {1: [5, 6],
                  2: [5, 6],
                  3: [7, 8],
                  4: [7, 8],
@@ -26,7 +26,7 @@ opposite_pipe = {1: [5, 6],
                  7: [3, 4],
                  8: [3, 4]}
 
-address = {1: "A", #4
+ADDRESS = {1: "A", #4
            2: "B", #1,
            3: "B", #1,
            4: "C", #2,
@@ -36,7 +36,7 @@ address = {1: "A", #4
            8: "A", #4
 }
 
-address_not_adjacent = {1: "B", #1,
+ADDRESS_NON_ADJACENT = {1: "B", #1,
                         2: "A", #4,
                         3: "C", #2,
                         4: "B", #1,
@@ -46,7 +46,7 @@ address_not_adjacent = {1: "B", #1,
                         8: "D", #3
 }
 # Surrounding: difference between antennas only 2 or 6 -- skipped one antenna
-surrounding = {(1, 3): "B", #1,
+SURROUNDING = {(1, 3): "B", #1,
                (1, 7): "A", #4,
                (2, 4): "B", #1,
                (2, 8): "A", #4,
@@ -55,7 +55,7 @@ surrounding = {(1, 3): "B", #1,
                (5, 7): "D", #3,
                (6, 8): "D", #3
 }
-keys = ['12', '21', '34', '43', '56', '65', '78', '87']
+KEYS = ['12', '21', '34', '43', '56', '65', '78', '87']
 
 
 def check_directory(directory, subdirectory=None):
@@ -454,7 +454,10 @@ def prepare_data(ehs, mice, times=None):
     return data
 
 
-def get_animal_position(times, antennas, mouse, threshold):
+def get_animal_position(times, antennas, mouse, threshold, same_pipe=SAME_PIPE,
+                        opposite_pipe=OPPOSITE_PIPE,
+                        address=ADDRESS, surrounding=SURROUNDING,
+                        address_not_adjacent=ADDRESS_NON_ADJACENT ):
     out = []
     for t_start, t_end, an_start, an_end in zip(times[:-1], times[1:],
                                                 antennas[:-1],
@@ -599,7 +602,7 @@ def prepare_binned_data(ehs, cf, bins, mice):
     return phases, total_time, data, keys
 
 
-def extract_directions(times, antennas, last_antenna):
+def extract_directions(times, antennas, last_antenna, keys=KEYS):
     direction_dict = {key:[[], []] for key in keys}
     change_indices = change_state(antennas)
     for c_idx in change_indices:
