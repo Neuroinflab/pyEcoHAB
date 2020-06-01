@@ -15,19 +15,19 @@
       external_antenna1 = 8
       external_antenna2 = 1
 
-[pipe 1]
+[tunnel 1]
       antenna1 = 1
       antenna2 = 2
 
-[pipe 2]
+[tunnel 2]
       antenna1 = 3
       antenna2 = 4
 
-[pipe 3]
+[tunnel 3]
       antenna1 = 5
       antenna2 = 6
 
-[pipe 4]
+[tunnel 4]
       antenna1 = 7
       antenna2 = 8
 
@@ -40,6 +40,6 @@
 [cage D]
       external_antenna1 = 1
       
-[pipe 1]
+[tunnel 1]
       antenna1 = 1
       antenna2 = 2
