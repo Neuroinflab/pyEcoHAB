@@ -269,34 +269,6 @@ def skipped_antennas(antennas):
     return False
 
     
-def change_seven_to_one(change):
-    if isinstance(change, list):
-        change = np.array(change)
-    seven = np.where(change == 7)[0]
-    if len(seven):
-        change[seven] = -1
-    minus_seven = np.where(change == -7)[0]
-    if len(minus_seven):
-        change[minus_seven] = 1
-    return change
-
-
-def mouse_going_clockwise(antennas):
-    change = np.array(antennas[:-1]) - np.array(antennas[1:])
-    change = change_seven_to_one(change)
-    if sum(change) < 0:
-        return True
-    return False
-
-
-def mouse_going_counterclockwise(antennas):
-    change = np.array(antennas[:-1]) - np.array(antennas[1:])
-    change = change_seven_to_one(change)
-    if sum(change) > 0:
-        return True
-    return False
-
-
 def get_times_antennas(ehd, mouse, t_1, t_2):
     if t_1 == 0 and t_2 == -1:
         ehd.unmask_data()

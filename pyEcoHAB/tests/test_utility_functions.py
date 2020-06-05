@@ -280,42 +280,6 @@ class TestGetMoreStates(unittest.TestCase):
         states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
         self.assertEqual(len(states), len(readouts))
 
-
-class TestInPipe(unittest.TestCase):
-    def test_pipe_1_2_clockwise(self):
-        self.assertTrue(uf.in_tube(1, 2))
-    def test_pipe_2_1_counterclockwise(self):
-        self.assertTrue(uf.in_tube(2, 1))
-    def test_pipe_2_3_clockwise(self):
-        self.assertFalse(uf.in_tube(2, 3))
-    def test_pipe_3_2_counterclockwise(self):
-        self.assertFalse(uf.in_tube(3, 2))
-    def test_pipe_7_8_clockwise(self):
-        self.assertTrue(uf.in_tube(7, 8))
-    def test_pipe_8_7_counterclockwise(self):
-        self.assertTrue(uf.in_tube(8, 7))
-    def test_pipe_1_8_clockwise(self):
-        self.assertFalse(uf.in_tube(1, 8))
-    def test_pipe_8_1_counterclockwise(self):
-        self.assertFalse(uf.in_tube(8, 1))
-
-class TestInChambers(unittest.TestCase):
-    def test_pipe_1_2_clockwise(self):
-        self.assertFalse(uf.in_chamber(1, 2))
-    def test_pipe_2_1_counterclockwise(self):
-        self.assertFalse(uf.in_chamber(2, 1))
-    def test_pipe_2_3_clockwise(self):
-        self.assertTrue(uf.in_chamber(2, 3))
-    def test_pipe_3_2_counterclockwise(self):
-        self.assertTrue(uf.in_chamber(3, 2))
-    def test_pipe_7_8_clockwise(self):
-        self.assertFalse(uf.in_chamber(7, 8))
-    def test_pipe_8_7_counterclockwise(self):
-        self.assertFalse(uf.in_chamber(8, 7))
-    def test_pipe_1_8_clockwise(self):
-        self.assertTrue(uf.in_chamber(1, 8))
-    def test_pipe_8_1_counterclockwise(self):
-        self.assertTrue(uf.in_chamber(8, 1))
     
 class TestChangeState(unittest.TestCase):
     def test_check_no_change(self):
@@ -435,19 +399,6 @@ class TestSkipAntennas(unittest.TestCase):
     def test_skipped_antennas_long_with_8(self):
         out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 6])
         self.assertTrue(out)
-
-class TestChangeOneToSeven(unittest.TestCase):
-    def test_change_seven(self):
-        out = uf.change_seven_to_one([1, 0, -1, 7])
-        self.assertEqual(out[3], -1)
-    def test_change_minus_seven(self):
-        out = uf.change_seven_to_one([1, 0, -1, -7])
-        self.assertEqual(out[3], 1)
-    def test_no_change(self):
-        values = [1, 2, 8, 3, 5, 6]
-        out = uf.change_seven_to_one(values)
-        for i, val in enumerate(values):
-            self.assertEqual(val, out[i])
 
 
 class TestMouseGoingClockwise(unittest.TestCase):
