@@ -46,9 +46,57 @@ class TestReadingIn(unittest.TestCase):
 
     def test_read_in_custom_fname(self):
         self.assertEqual(self.c.fname, "setup2.txt")
-       
-            
+
+
+class TestGetCagesTunnels(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.default = SetupConfig()
+
+    def test_standard_cages(self):
+        out = sorted(["cage A", "cage B", "cage C", "cage D"])
+        res = sorted(self.default.get_cages())
+        self.assertEqual(out, res)
    
+    def test_standard_tunnels(self):
+        out = sorted(["tunnel 1", "tunnel 2", "tunnel 3", "tunnel 4"])
+        res = sorted(self.default.get_tunnels())
+        self.assertEqual(out, res)
+
+
+class TestGetDicts(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.default = SetupConfig()
+        path = os.path.join(data_path, "test_setups")
+        cls.custom = SetupConfig(path=path, fname="setup_internal.txt")
+
+    def test_default_cages(self):
+        out = self.default.get_cages_dict()
+        correct = OrderedDict()
+        correct["cage A"] = [2, 3]
+        correct["cage B"] = [4, 5]
+        correct["cage C"] = [6, 7]
+        correct["cage D"] = [8, 1]
+        self.assertEqual(out, correct)
+
+
+    def test_default_tunnels(self):
+        out = self.default.get_tunnels_dict()
+        correct = OrderedDict()
+        correct["tunnel 1"] = [1, 2]
+        correct["tunnel 2"] = [3, 4]
+        correct["tunnel 3"] = [5, 6]
+        correct["tunnel 4"] = [7, 8]
+        self.assertEqual(out, correct)
+
+    def test_default_internal(self):
+        out = self.default.get_compartments_with_additional_antennas()
+        self.assertEqual(out, [])
+
+    def test_custom_internal(self):
+        out = self.custom.get_compartments_with_additional_antennas()
+        self.assertEqual(out, ["cage B"])
         
 if __name__ == '__main__':
     unittest.main()
