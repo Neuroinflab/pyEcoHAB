@@ -1,11 +1,11 @@
 #standard setup
 [cage A]
 external_antenna1 = 2
-external_antenna2 = 3
+external_antenna2 = 5
 
 [cage B]
 external_antenna1 = 4
-external_antenna2 = 5
+external_antenna2 = 3
 
 [cage C]
 external_antenna1 = 6
@@ -20,11 +20,11 @@ entrance_antenna1 = 1
 entrance_antenna2 = 2
 
 [tunnel 2]
-entrance_antenna1 = 3
+entrance_antenna1 = 5
 entrance_antenna2 = 4
 
 [tunnel 3]
-entrance_antenna1 = 5
+entrance_antenna1 = 3
 entrance_antenna2 = 6
 
 [tunnel 4]
