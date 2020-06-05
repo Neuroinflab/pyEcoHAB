@@ -401,45 +401,6 @@ class TestSkipAntennas(unittest.TestCase):
         self.assertTrue(out)
 
 
-class TestMouseGoingClockwise(unittest.TestCase):
-    def test_correct(self):
-        positions = [3, 4, 4, 3, 3, 4, 4, 5]
-        self.assertTrue(uf.mouse_going_clockwise(positions))
-        
-    def test_incorrect(self):
-        positions = [4, 3, 2, 1]
-        self.assertFalse(uf.mouse_going_clockwise(positions))
-
-    def test_incorrect2(self):
-        positions = [4, 4, 4, 4]
-        self.assertFalse(uf.mouse_going_clockwise(positions))
-
-    def test_correct_with_8(self):
-        positions = [7, 8, 1, 2, 3, 4, 4, 5]
-        self.assertTrue(uf.mouse_going_clockwise(positions))
-
-class TestMouseGoingCounterClockwise(unittest.TestCase):
-    def test_incorrect(self):
-        positions = [3, 4, 4, 3, 3, 4, 4, 5]
-        self.assertFalse(uf.mouse_going_counterclockwise(positions))
-        
-    def test_correct(self):
-        positions = [4, 3, 2, 1]
-        self.assertTrue(uf.mouse_going_counterclockwise(positions))
-
-    def test_incorrect2(self):
-        positions = [4, 4, 4, 4]
-        self.assertFalse(uf.mouse_going_counterclockwise(positions))
-
-    def test_incorrect_with_8(self):
-        positions = [7, 8, 1, 2, 3, 4, 4, 5]
-        self.assertFalse(uf.mouse_going_counterclockwise(positions))
-
-    def test_correct_with_8(self):
-        positions = [1, 8, 7]
-        self.assertTrue(uf.mouse_going_counterclockwise(positions))
-
-
 class TestGetTimestamp(unittest.TestCase):
 
     def test_up(self):
@@ -1297,58 +1258,6 @@ class TestSkipAntennas(unittest.TestCase):
     def test_skipped_antennas_long_with_8(self):
         out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 6])
         self.assertTrue(out)
-
-class TestChangeOneToSeven(unittest.TestCase):
-    def test_change_seven(self):
-        out = uf.change_seven_to_one([1, 0, -1, 7])
-        self.assertEqual(out[3], -1)
-    def test_change_minus_seven(self):
-        out = uf.change_seven_to_one([1, 0, -1, -7])
-        self.assertEqual(out[3], 1)
-    def test_no_change(self):
-        values = [1, 2, 8, 3, 5, 6]
-        out = uf.change_seven_to_one(values)
-        for i, val in enumerate(values):
-            self.assertEqual(val, out[i])
-
-
-class TestMouseGoingClockwise(unittest.TestCase):
-    def test_correct(self):
-        positions = [3, 4, 4, 3, 3, 4, 4, 5]
-        self.assertTrue(uf.mouse_going_clockwise(positions))
-        
-    def test_incorrect(self):
-        positions = [4, 3, 2, 1]
-        self.assertFalse(uf.mouse_going_clockwise(positions))
-
-    def test_incorrect2(self):
-        positions = [4, 4, 4, 4]
-        self.assertFalse(uf.mouse_going_clockwise(positions))
-
-    def test_correct_with_8(self):
-        positions = [7, 8, 1, 2, 3, 4, 4, 5]
-        self.assertTrue(uf.mouse_going_clockwise(positions))
-
-class TestMouseGoingCounterClockwise(unittest.TestCase):
-    def test_incorrect(self):
-        positions = [3, 4, 4, 3, 3, 4, 4, 5]
-        self.assertFalse(uf.mouse_going_counterclockwise(positions))
-        
-    def test_correct(self):
-        positions = [4, 3, 2, 1]
-        self.assertTrue(uf.mouse_going_counterclockwise(positions))
-
-    def test_incorrect2(self):
-        positions = [4, 4, 4, 4]
-        self.assertFalse(uf.mouse_going_counterclockwise(positions))
-
-    def test_incorrect_with_8(self):
-        positions = [7, 8, 1, 2, 3, 4, 4, 5]
-        self.assertFalse(uf.mouse_going_counterclockwise(positions))
-
-    def test_correct_with_8(self):
-        positions = [1, 8, 7]
-        self.assertTrue(uf.mouse_going_counterclockwise(positions))
 
 
 class TestGetTimestamp(unittest.TestCase):
