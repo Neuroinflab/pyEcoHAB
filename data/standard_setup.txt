@@ -16,20 +16,20 @@ external_antenna1 = 8
 external_antenna2 = 1
 
 [tunnel 1]
-antenna1 = 1
-antenna2 = 2
+entrance_antenna1 = 1
+entrance_antenna2 = 2
 
 [tunnel 2]
-antenna1 = 3
-antenna2 = 4
+entrance_antenna1 = 3
+entrance_antenna2 = 4
 
 [tunnel 3]
-antenna1 = 5
-antenna2 = 6
+entrance_antenna1 = 5
+entrance_antenna2 = 6
 
 [tunnel 4]
-antenna1 = 7
-antenna2 = 8
+entrance_antenna1 = 7
+entrance_antenna2 = 8
 
 
 #setup with additional antennas
