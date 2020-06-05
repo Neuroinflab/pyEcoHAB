@@ -252,7 +252,7 @@ class Loader(EcoHabDataBase):
                          '5': 5, '6': 6,
                          '7': 7, '8': 8}
     MAX_BREAK = 3600
-
+    internal_antennas = []
     def __init__(self, path, **kwargs):
         #Read in parameters
         self.path = path
