@@ -17,6 +17,17 @@ SAME_PIPE = { 1: [1, 2],
              7: [7, 8],
              8: [7, 8]}
 
+SAME_ADDRESS = {
+    1: [1, 8],
+    2: [2, 3],
+    3: [2, 3],
+    4: [4, 5],
+    5: [4, 5],
+    6: [6, 7],
+    7: [6, 7],
+    8: [1, 8],
+}
+
 OPPOSITE_PIPE = {1: [5, 6],
                  2: [5, 6],
                  3: [7, 8],
@@ -427,6 +438,7 @@ def prepare_data(ehs, mice, times=None):
 
 
 def get_animal_position(times, antennas, mouse, threshold, same_pipe=SAME_PIPE,
+                        same_address=SAME_ADDRESS,
                         opposite_pipe=OPPOSITE_PIPE,
                         address=ADDRESS, surrounding=SURROUNDING,
                         address_not_adjacent=ADDRESS_NON_ADJACENT ):
@@ -438,26 +450,24 @@ def get_animal_position(times, antennas, mouse, threshold, same_pipe=SAME_PIPE,
         # Workflow as agreed on 14 May 2014
         if delta_t < threshold:
             continue
-        delta_an = np.abs(an_end - an_start)
-        if delta_an == 0:
+
+        if an_end == an_start:
             out.append((address[an_start], mouse,
-                        t_start, t_end, t_end-t_start, True))
-        elif delta_an in [1, 7]:
-            if an_end in same_pipe[an_start]:
-                continue
-            else:
-                out.append((address[an_start], mouse,
-                            t_start, t_end, t_end-t_start, True))
-        elif delta_an in [2, 6]:
+                        t_start, t_end, delta_t, True))
+        elif an_end in same_pipe[an_start]:
+            continue
+        elif an_end in same_address[an_start]:
+            out.append((address[an_start], mouse,
+                        t_start, t_end, delta_t, True))
+        elif (min(an_start, an_end), max(an_start, an_end)) in surrounding:
             out.append((surrounding[(min(an_start, an_end),
                                      max(an_start, an_end))],
-                        mouse, t_start, t_end, t_end-t_start, False))
-        elif delta_an in [3, 4, 5]:
-            if an_end in opposite_pipe[an_start]:
-                continue
-            else:
-                out.append((address_not_adjacent[an_start],
-                            mouse, t_start, t_end, t_end-t_start, False))
+                        mouse, t_start, t_end, delta_t, False))
+        elif an_end in opposite_pipe[an_start]:
+            continue
+        else:
+            out.append((address_not_adjacent[an_start],
+                        mouse, t_start, t_end, delta_t, False))
     return out
 
 
