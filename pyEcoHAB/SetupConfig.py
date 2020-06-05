@@ -88,3 +88,21 @@ class SetupConfig(RawConfigParser):
             all_items = self.items(sec)
             out += [sec for item in all_items if item[0].startswith("int")]
         return out
+
+    @property
+    def same_tunnel(self):
+        tunnel_dict = self.get_tunnels_dict()
+        out = {}
+        for tunnel, value in tunnel_dict.items():
+            for antenna in value:
+                out[antenna] = value
+        return out
+
+    @property
+    def same_address(self):
+        cage_dict = self.get_cages_dict()
+        out = {}
+        for cage, value in cage_dict.items():
+            for antenna in value:
+                out[antenna] = value
+        return out
