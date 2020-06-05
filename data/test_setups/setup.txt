@@ -1,19 +1,19 @@
 #standard setup
 [cage A]
-external_antenna1 = 2
-external_antenna2 = 3
+entrance_antenna1 = 2
+entrance_antenna2 = 3
 
 [cage B]
-external_antenna1 = 4
-external_antenna2 = 5
+entrance_antenna1 = 4
+entrance_antenna2 = 5
 
 [cage C]
-external_antenna1 = 6
-external_antenna2 = 7
+entrance_antenna1 = 6
+entrance_antenna2 = 7
 
 [cage D]
-external_antenna1 = 8
-external_antenna2 = 1
+entrance_antenna1 = 8
+entrance_antenna2 = 1
 
 [tunnel 1]
 entrance_antenna1 = 1
@@ -35,19 +35,11 @@ entrance_antenna2 = 8
 #setup with additional antennas
 
 # [cage A]
-<<<<<<< HEAD
 # entrance_antenna1 = 2
 # internal_antenna1 = 8
 
 # [cage D]
 # entrance_antenna1 = 1
-=======
-# external_antenna1 = 2
-# internal_antenna1 = 8
-
-# [cage D]
-# external_antenna1 = 1
->>>>>>> Start writing tests for config setup
 
 # [tunnel 1]
 # antenna1 = 1
