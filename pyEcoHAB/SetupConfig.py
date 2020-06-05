@@ -49,11 +49,9 @@ class SetupConfig(RawConfigParser):
                       self.sections())
 
     def get_cages_dict(self):
-        secs = self.sections()
         cage_dict = OrderedDict()
-        for sec in secs:
-            if not sec.startswith("cage"):
-                continue
+        cages = self.get_cages()
+        for sec in cages:
             cage_dict[sec] = []
             for antenna_type, val in self.items(sec):
                 if antenna_type.startswith("entrance"):
@@ -68,16 +66,14 @@ class SetupConfig(RawConfigParser):
             print("Did not registered any cages in this setup")
         return cage_dict
 
-    def get_pipes_dict(self):
-        secs = self.sections()
+    def get_tunnels_dict(self):
         tunnel_dict = OrderedDict()
-        for sec in secs:
-            if not sec.startswith("tunnel"):
-                continue
+        tunnels = self.get_tunnels()
+        for sec in tunnels:
             tunnel_dict[sec] = []
             for antenna_type, val in self.items(sec):
                 if antenna_type.startswith("entrance"):
-                    tunnel_dict[sec].append(val)
+                    tunnel_dict[sec].append(int(val))
                 else:
                     print("Unknown antenna type %s" % antenna_type)
             if not len(tunnel_dict[sec]):
@@ -90,5 +86,5 @@ class SetupConfig(RawConfigParser):
         out = []
         for sec in self.sections():
             all_items = self.items(sec)
-            out += [item[1] for item in all_items if item[1].startswith("int")]
+            out += [sec for item in all_items if item[0].startswith("int")]
         return out
