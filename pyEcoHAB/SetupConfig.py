@@ -39,14 +39,20 @@ class SetupConfig(RawConfigParser):
 
         full_path = os.path.join(self.path, self.fname)
         self.read(full_path)
+        self.cages = self.get_cages()
+        self.tunnels = self.get_tunnels()
+        self.cages_dict = self.get_cages_dict()
+        self.tunnels_dict = self.get_tunnels_dict()
+        self.same_tunnel = self.get_same_tunnel()
+        self.same_address = self.get_same_address()
 
     def get_cages(self):
-        return filter(lambda x: x.startswith("cage"),
-                      self.sections())
+        return sorted(filter(lambda x: x.startswith("cage"),
+                      self.sections()))
 
     def get_tunnels(self):
-        return filter(lambda x: x.startswith("tunnel"),
-                      self.sections())
+        return sorted(filter(lambda x: x.startswith("tunnel"),
+                      self.sections()))
 
     def get_cages_dict(self):
         cage_dict = OrderedDict()
@@ -55,7 +61,7 @@ class SetupConfig(RawConfigParser):
             cage_dict[sec] = []
             for antenna_type, val in self.items(sec):
                 if antenna_type.startswith("entrance"):
-                    cage_dict[sec].append(int(val))
+                    cage_dict[sec].append(val)
                 elif antenna_type.startswith("internal"):
                     continue
                 else:
@@ -73,7 +79,7 @@ class SetupConfig(RawConfigParser):
             tunnel_dict[sec] = []
             for antenna_type, val in self.items(sec):
                 if antenna_type.startswith("entrance"):
-                    tunnel_dict[sec].append(int(val))
+                    tunnel_dict[sec].append(val)
                 else:
                     print("Unknown antenna type %s" % antenna_type)
             if not len(tunnel_dict[sec]):
@@ -82,15 +88,15 @@ class SetupConfig(RawConfigParser):
             print("Did not registered any tunnels in this setup")
         return tunnel_dict
 
-    def get_compartments_with_additional_antennas(self):
+    @property
+    def internal_antennas(self):
         out = []
         for sec in self.sections():
             all_items = self.items(sec)
             out += [sec for item in all_items if item[0].startswith("int")]
         return out
 
-    @property
-    def same_tunnel(self):
+    def get_same_tunnel(self):
         tunnel_dict = self.get_tunnels_dict()
         out = {}
         for tunnel, value in tunnel_dict.items():
@@ -98,11 +104,20 @@ class SetupConfig(RawConfigParser):
                 out[antenna] = value
         return out
 
-    @property
-    def same_address(self):
+    def get_same_address(self):
         cage_dict = self.get_cages_dict()
         out = {}
         for cage, value in cage_dict.items():
             for antenna in value:
                 out[antenna] = value
         return out
+
+    @property
+    def entrance_antennas(self):
+        out = []
+        for sec in self.sections():
+            for key, value in self.items(sec):
+                if key.startswith("entrance"):
+                    out.append(value)
+        return out
+

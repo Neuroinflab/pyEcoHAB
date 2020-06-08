@@ -74,52 +74,52 @@ class TestGetDicts(unittest.TestCase):
     def test_default_cages(self):
         out = self.default.get_cages_dict()
         correct = OrderedDict()
-        correct["cage A"] = [2, 3]
-        correct["cage B"] = [4, 5]
-        correct["cage C"] = [6, 7]
-        correct["cage D"] = [8, 1]
+        correct["cage A"] = ['2', '3']
+        correct["cage B"] = ['4', '5']
+        correct["cage C"] = ['6', '7']
+        correct["cage D"] = ['8', '1']
         self.assertEqual(out, correct)
 
 
     def test_default_tunnels(self):
         out = self.default.get_tunnels_dict()
         correct = OrderedDict()
-        correct["tunnel 1"] = [1, 2]
-        correct["tunnel 2"] = [3, 4]
-        correct["tunnel 3"] = [5, 6]
-        correct["tunnel 4"] = [7, 8]
+        correct["tunnel 1"] = ['1', '2']
+        correct["tunnel 2"] = ['3', '4']
+        correct["tunnel 3"] = ['5', '6']
+        correct["tunnel 4"] = ['7', '8']
         self.assertEqual(out, correct)
 
     def test_default_internal(self):
-        out = self.default.get_compartments_with_additional_antennas()
+        out = self.default.internal_antennas
         self.assertEqual(out, [])
 
     def test_custom_internal(self):
-        out = self.custom.get_compartments_with_additional_antennas()
+        out = self.custom.internal_antennas
         self.assertEqual(out, ["cage B"])
 
     def test_same_tunnel_default(self):
         out = {}
-        out[1] = [1, 2]
-        out[2] = [1, 2]
-        out[3] = [3, 4]
-        out[4] = [3, 4]
-        out[5] = [5, 6]
-        out[6] = [5, 6]
-        out[7] = [7, 8]
-        out[8] = [7, 8]
+        out["1"] = ["1", "2"]
+        out["2"] = ["1", "2"]
+        out["3"] = ["3", "4"]
+        out["4"] = ["3", "4"]
+        out["5"] = ["5", "6"]
+        out["6"] = ["5", "6"]
+        out["7"] = ["7", "8"]
+        out["8"] = ["7", "8"]
         self.assertEqual(out, self.default.same_tunnel)
 
     def test_same_address_default(self):
         out = {}
-        out[1] = [8, 1]
-        out[2] = [2, 3]
-        out[3] = [2, 3]
-        out[4] = [4, 5]
-        out[5] = [4, 5]
-        out[6] = [6, 7]
-        out[7] = [6, 7]
-        out[8] = [8, 1]
+        out["1"] = ["8", "1"]
+        out["2"] = ["2", "3"]
+        out["3"] = ["2", "3"]
+        out["4"] = ["4", "5"]
+        out["5"] = ["4", "5"]
+        out["6"] = ["6", "7"]
+        out["7"] = ["6", "7"]
+        out["8"] = ["8", "1"]
         self.assertEqual(out, self.default.same_address)
 
 
