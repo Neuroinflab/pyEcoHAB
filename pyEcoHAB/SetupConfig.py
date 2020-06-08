@@ -45,6 +45,7 @@ class SetupConfig(RawConfigParser):
         self.tunnels_dict = self.get_tunnels_dict()
         self.same_tunnel = self.get_same_tunnel()
         self.same_address = self.get_same_address()
+        self.opposite_tunnel = self.get_opposite_tunnel_dict()
 
     def get_cages(self):
         return sorted(filter(lambda x: x.startswith("cage"),
@@ -117,7 +118,65 @@ class SetupConfig(RawConfigParser):
         out = []
         for sec in self.sections():
             for key, value in self.items(sec):
-                if key.startswith("entrance"):
+                if key.startswith("entrance") and value not in out:
                     out.append(value)
         return out
 
+    def other_tunnel_antenna(self, antenna):
+        tunnel_antennas = self.same_tunnel[antenna][:]
+        idx = tunnel_antennas.index(antenna)
+        tunnel_antennas.pop(idx)
+        return tunnel_antennas
+
+    def other_cage_antenna(self, antenna):
+        cage_antennas = self.same_address[antenna][:]
+        idx = cage_antennas.index(antenna)
+        cage_antennas.pop(idx)
+
+        return cage_antennas
+
+    def next_tunnel_antennas(self, antenna):
+        out = []
+        same_pipe = self.same_tunnel[antenna]
+        for ant in same_pipe:
+            same_cage_a = self.other_cage_antenna(ant)
+            for a_2 in same_cage_a:
+                other_pipe = self.same_tunnel[a_2]
+                if other_pipe != same_pipe:
+                    out.extend(other_pipe)
+        return sorted(out)
+
+    def get_opposite_tunnel_dict(self):
+        # distance equal two
+        all_antennas = self.entrance_antennas
+        same_cages = self.same_address
+        same_pipe = self.same_tunnel
+        out = {}
+        for a_1 in all_antennas:
+            same_cage_antennas = self.other_cage_antenna(a_1)
+
+            for a_2 in same_cage_antennas:
+                pipe_next = self.other_tunnel_antenna(a_2)
+
+                for a_3 in pipe_next:
+                    cage_plus_2 = self.other_cage_antenna(a_3)
+
+                    for a_4 in cage_plus_2:
+                        tunnel_antennas = same_pipe[a_4]
+                        next_tunnel_antennas = self.next_tunnel_antennas(a_4)
+                        if a_1 not in tunnel_antennas and a_1 not in next_tunnel_antennas:
+                            if a_1 not in out:
+                                out[a_1] = []
+                            for ant in tunnel_antennas:
+                                if ant not in out[a_1]:
+                                    out[a_1].extend(ant)
+
+        return out
+
+    def get_adress_non_adjacent(self):
+        all_antennas = self.entrance_antennas
+        same_cages = self.same_address
+        same_pipe = self.same_tunnel
+        out = {}
+        for antenna in all_antennas:
+            pipe_next = self.other_tunnel_antenna(antenna)
