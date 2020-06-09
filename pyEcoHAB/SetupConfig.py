@@ -49,6 +49,7 @@ class SetupConfig(RawConfigParser):
         self.address = self.get_cage_address_dict()
         self.address_non_adjacent = self.get_address_non_adjacent_dict()
         self.address_surrounding = self.get_surrounding_dict()
+        self.directions = self.get_directions_dict()
 
     def get_cages(self):
         return sorted(filter(lambda x: x.startswith("cage"),
@@ -217,3 +218,13 @@ class SetupConfig(RawConfigParser):
                 if key not in out:
                     out[key] = cage_dict[caa]
         return out
+
+    def get_directions_dict(self):
+        out = []
+        for tunnel in self.tunnels:
+            vals = [item[1] for item in self.items(tunnel) if item[0].startswith("entra")]
+            if len(vals) > 2:
+                raise Exception("There are more than 2 antennas at the entrances to %s" % tunnel)
+            out += [vals[0]+vals[1], vals[1]+vals[0]]
+        return sorted(out)
+
