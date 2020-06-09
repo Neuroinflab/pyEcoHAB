@@ -65,7 +65,8 @@ SURROUNDING = {("1", "3"): "cage B", #"1",
 }
 
 KEYS = ['12', '21', '34', '43', '56', '65', '78', '87']
-
+PAIRS = ["1 3", "1 4", "1 5", "1 6", "1 7", "2 4", "2 5", "2 6", "2 7", "2 8",
+         "3 5", "3 6", "3 7", "3 8", "4 6", "4 7", "4 8", "5 7", "5 8", "6 8"]
 class TestReadingIn(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -336,6 +337,21 @@ class TestOppositePipe(unittest.TestCase):
         self.assertEqual(KEYS,
                          self.default.get_directions_dict())
 
+    def test_unused_antennas_d(self):
+        self.assertEqual([],
+                         self.default.find_unused_antennas())
+
+    def test_unused_antennas_custom(self):
+        self.assertEqual(["3", "4", "5", "6", "7"],
+                         self.custom.find_unused_antennas())
+
+    def test_mismatch_pairs_default(self):
+        self.assertEqual(PAIRS,
+                         self.default.get_mismatched_pairs())
+
+    def test_mismatch_pairs_custom(self):
+        self.assertEqual(["1 8"],
+                         self.custom.get_mismatched_pairs())
 
 if __name__ == '__main__':
     unittest.main()
