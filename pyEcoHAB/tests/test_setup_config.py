@@ -64,6 +64,7 @@ SURROUNDING = {("1", "3"): "cage B", #"1",
                ("6", "8"): "cage D", #"3"
 }
 
+KEYS = ['12', '21', '34', '43', '56', '65', '78', '87']
 
 class TestReadingIn(unittest.TestCase):
     @classmethod
@@ -326,6 +327,14 @@ class TestOppositePipe(unittest.TestCase):
     def test_cage_surrounding_custom(self):
         self.assertEqual({},
                          self.custom.get_surrounding_dict())
+
+    def test_directions_custom(self):
+        self.assertEqual(["12", "21"],
+                         self.custom.get_directions_dict())
+
+    def test_directions_default(self):
+        self.assertEqual(KEYS,
+                         self.default.get_directions_dict())
 
 
 if __name__ == '__main__':
