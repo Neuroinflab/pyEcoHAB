@@ -1,7 +1,6 @@
 from __future__ import print_function, division, absolute_import
 import os
 import unittest
-from collections import OrderedDict
 
 from pyEcoHAB import SetupConfig 
 from pyEcoHAB import data_path
@@ -133,17 +132,17 @@ class TestGetDicts(unittest.TestCase):
 
     def test_default_cages(self):
         out = self.default.get_cages_dict()
-        correct = OrderedDict()
-        correct["cage A"] = ['2', '3']
-        correct["cage B"] = ['4', '5']
-        correct["cage C"] = ['6', '7']
-        correct["cage D"] = ['8', '1']
+        correct = {}
+        correct["cage B"] = ['2', '3']
+        correct["cage C"] = ['4', '5']
+        correct["cage D"] = ['6', '7']
+        correct["cage A"] = ['8', '1']
         self.assertEqual(out, correct)
 
 
     def test_default_tunnels(self):
         out = self.default.get_tunnels_dict()
-        correct = OrderedDict()
+        correct = {}
         correct["tunnel 1"] = ['1', '2']
         correct["tunnel 2"] = ['3', '4']
         correct["tunnel 3"] = ['5', '6']
