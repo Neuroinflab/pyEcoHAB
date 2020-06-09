@@ -319,6 +319,14 @@ class TestOppositePipe(unittest.TestCase):
         self.assertEqual(out,
                          self.custom.get_address_non_adjacent_dict())
 
+    def test_cage_surrounding_default(self):
+        self.assertEqual(SURROUNDING,
+                         self.default.get_surrounding_dict())
+
+    def test_cage_surrounding_custom(self):
+        self.assertEqual({},
+                         self.custom.get_surrounding_dict())
+
 
 if __name__ == '__main__':
     unittest.main()
