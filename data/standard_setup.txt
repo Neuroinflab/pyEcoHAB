@@ -1,17 +1,17 @@
 #standard setup
-[cage A]
+[cage B]
 entrance_antenna1 = 2
 entrance_antenna2 = 3
 
-[cage B]
+[cage C]
 entrance_antenna1 = 4
 entrance_antenna2 = 5
 
-[cage C]
+[cage D]
 entrance_antenna1 = 6
 entrance_antenna2 = 7
 
-[cage D]
+[cage A]
 entrance_antenna1 = 8
 entrance_antenna2 = 1
 
@@ -34,11 +34,11 @@ entrance_antenna2 = 8
 
 #setup with additional antennas
 
-# [cage A]
+# [cage B]
 # entrance_antenna1 = 2
 # internal_antenna1 = 8
 
-# [cage D]
+# [cage A]
 # entrance_antenna1 = 1
 
 # [tunnel 1]

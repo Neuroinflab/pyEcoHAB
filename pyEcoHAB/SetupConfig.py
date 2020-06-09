@@ -6,7 +6,6 @@ import os
 import glob
 import sys
 
-from collections import OrderedDict
 from pyEcoHAB import data_path
 
 if sys.version_info < (3, 0):
@@ -56,7 +55,7 @@ class SetupConfig(RawConfigParser):
                       self.sections()))
 
     def get_cages_dict(self):
-        cage_dict = OrderedDict()
+        cage_dict = {}
         cages = self.get_cages()
         for sec in cages:
             cage_dict[sec] = []
@@ -74,7 +73,7 @@ class SetupConfig(RawConfigParser):
         return cage_dict
 
     def get_tunnels_dict(self):
-        tunnel_dict = OrderedDict()
+        tunnel_dict = {}
         tunnels = self.get_tunnels()
         for sec in tunnels:
             tunnel_dict[sec] = []
