@@ -309,6 +309,16 @@ class TestOppositePipe(unittest.TestCase):
                "2": "cage B"}
         self.assertEqual(out, self.custom.get_cage_address_dict())
 
+    def test_cage_adjacent_default(self):
+        self.assertEqual(ADDRESS_NON_ADJACENT,
+                         self.default.get_address_non_adjacent_dict())
+
+    def test_cage_adjacent_custom(self):
+        out = {"1": "cage B",
+               "2": "cage A"}
+        self.assertEqual(out,
+                         self.custom.get_address_non_adjacent_dict())
+
 
 if __name__ == '__main__':
     unittest.main()
