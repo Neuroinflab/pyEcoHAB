@@ -20,6 +20,7 @@ class EcoHabDataBase(object):
 
     def __init__(self, data, mask, threshold, config):
         self.readings = BaseFunctions.Data(data, mask)
+        self.config = config
         self.threshold = threshold
         self.mice = self.get_mice()
         self.visits = self._calculate_visits(config)
@@ -35,16 +36,15 @@ class EcoHabDataBase(object):
             times, antennas = utils.get_times_antennas(self.readings,
                                                        mouse,
                                                        0, -1)
-            out = utils.get_animal_position(times, antennas,
-                                            mouse,
-                                            self.threshold,
-                                            config.same_tunnel,
-                                            config.same_address,
-                                            config.opposite_tunnel,
-                                            config.address,
-                                            config.address_surrounding,
-                                            config.address_non_adjacent)
-            tempdata.extend(out)
+            tempdata.extend(utils.get_animal_position(times, antennas,
+                                                      mouse,
+                                                      self.threshold,
+                                                      self.config.same_tunnel,
+                                                      self.config.same_address,
+                                                      self.config.opposite_tunnel,
+                                                      self.address,
+                                                      self.address_surrounding,
+                                                      self.address_non_adjacent))
         tempdata.sort(key=lambda x: x[2])
         return tempdata
 
@@ -265,12 +265,12 @@ class Loader(EcoHabDataBase):
         #Read in parameters
         self.path = path
         setup_config = kwargs.pop('setup_config', None)
-        if isinstance(setup_config, SetupConfig.SetupConfig):
+        if isinstance(setup_config, SetupConfig):
             antennas = setup_config
         elif isinstance(setup_config, str):
-            antennas = SetupConfig.SetupConfig(path=setup_config)
+            antennas = SetupConfig(path=setup_config)
         else:
-            antennas = SetupConfig.SetupConfig(path=self.path)
+            antennas = SetupConfig(path=path)
         
         self.mask = kwargs.pop('mask', None)
         self.visit_threshold = kwargs.pop('visit_threshold', 2.)
@@ -302,9 +302,7 @@ class Loader(EcoHabDataBase):
                             antennas.mismatched_pairs)
         super(Loader, self).__init__(data, self.mask,
                                      self.visit_threshold, antennas)
-        self.cages = antennas.cages
-        self.directions = antennas.directions
-        self.setup_config = antennas
+        self.cages = self.get_cages()
 
     def get_cages(self):
         return sorted(list(set(self.get_visit_addresses(self.mice))))

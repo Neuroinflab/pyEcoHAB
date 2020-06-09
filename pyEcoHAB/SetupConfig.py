@@ -51,7 +51,7 @@ class SetupConfig(RawConfigParser):
         self.address_non_adjacent = self.get_address_non_adjacent_dict()
         self.address_surrounding = self.get_surrounding_dict()
         self.directions = self.get_directions_dict()
-        self.mismatched_antennas = self.get_mismatched_pairs()
+        self.mismatched_pairs = self.get_mismatched_pairs()
 
     def get_cages(self):
         return sorted(filter(lambda x: x.startswith("cage"),
