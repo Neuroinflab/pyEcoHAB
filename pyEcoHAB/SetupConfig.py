@@ -190,8 +190,6 @@ class SetupConfig(RawConfigParser):
 
     def get_address_non_adjacent_dict(self):
         all_antennas = self.entrance_antennas
-        same_cages = self.same_address
-        same_pipe = self.same_tunnel
         out = {}
         cage_dict = self.get_cage_address_dict()
         for antenna in all_antennas:
