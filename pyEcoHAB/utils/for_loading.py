@@ -276,12 +276,12 @@ def check_antenna_presence(raw_data, max_break):
     return breaks
 
 
-def antenna_mismatch(raw_data):
+def antenna_mismatch(raw_data, pairs=PAIRS):
     t_start = raw_data['Time'][0]
     all_times = raw_data['Time']
     mice = set(raw_data['Tag'])
     mismatches = OrderedDict()
-    for pair in PAIRS:
+    for pair in pairs:
         mismatches[pair] = 0
 
     for mouse in mice:
@@ -297,8 +297,8 @@ def antenna_mismatch(raw_data):
                 mismatches[key] += 1
     return mismatches
 
-def run_diagnostics(raw_data, max_break, res_dir):
-    mismatches = antenna_mismatch(raw_data)
+def run_diagnostics(raw_data, max_break, res_dir, pairs):
+    mismatches = antenna_mismatch(raw_data, pairs)
     out_f1 = "First reading, consecutive reading,  count, percentage\n"
     print("Mismatched antenna readings")
     print("First reading, consecutive reading,  count, percentage")
@@ -341,20 +341,20 @@ def run_diagnostics(raw_data, max_break, res_dir):
     return out_f1, out_f2
 
 
-def transform_raw(row, a_pos):
+def transform_raw(row):
     return (int(row[0]), time_to_sec(row[1]),
-            a_pos[row[2]], int(row[3]), row[4])
+            row[2], int(row[3]), row[4])
 
 
-def from_raw_data(raw_data, antenna_positions):
+def from_raw_data(raw_data):
     """
     Transform raw data, which is in the form of a double list
     to a 2D structured array with registrations of animal tags.
     """
     new_data = []
     for row in raw_data:
-        new_data.append(transform_raw(row, antenna_positions))
-    data_type = [("Id", int), ("Time", float), ("Antenna", int),
+        new_data.append(transform_raw(row))
+    data_type = [("Id", int), ("Time", float), ("Antenna", str),
                  ("Duration", int), ("Tag", "U15")]
     return np.array(new_data, dtype=data_type)
 

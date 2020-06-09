@@ -12,13 +12,15 @@ except NameError:
 import numpy as np
 
 from . import BaseFunctions
+from . import SetupConfig
 from . import utility_functions as utils
 from .utils import for_loading as ufl
 
 class EcoHabDataBase(object):
 
-    def __init__(self, data, mask, threshold):
+    def __init__(self, data, mask, threshold, config):
         self.readings = BaseFunctions.Data(data, mask)
+        self.config = config
         self.threshold = threshold
         self.mice = self.get_mice()
         self.visits = self._calculate_visits()
@@ -36,7 +38,13 @@ class EcoHabDataBase(object):
                                                        0, -1)
             tempdata.extend(utils.get_animal_position(times, antennas,
                                                       mouse,
-                                                      self.threshold))
+                                                      self.threshold,
+                                                      self.config.same_tunnel,
+                                                      self.config.same_address,
+                                                      self.config.opposite_tunnel,
+                                                      self.address,
+                                                      self.address_surrounding,
+                                                      self.address_non_adjacent))
         tempdata.sort(key=lambda x: x[2])
         return tempdata
 
@@ -206,10 +214,13 @@ class Loader(EcoHabDataBase):
            directory containing Eco-HAB data
 
     Keyword Args:
-        antenna_positions: dictionary
-           a dictionary specifing conversion of registered antenna ids
-           to integers
-           int(antenna_id) is the default conversion
+        setup_config: str or an instance of SetupConfig
+           directory path to config file with antenna setup. If no "setup.txt" file 
+           can be found in path a standard setup is going to be loaded
+           (pyEcoHAB/data/standard_setup.txt). You need to provide a 
+           separate setup.txt file or a path to a file with a configuration
+           of your experiment, if you are using a non-standard EcoHAB
+           experimental setup.
         mask: list or tuple of floats
            Loader will read in data registed between mask[0] and mask[1].
            mask[0] and mask[1] need to be expressed seconds from the epoch,
@@ -247,28 +258,27 @@ class Loader(EcoHabDataBase):
            Add analysis date to results directory filename.
            As a default current date will be added.
     """
-    STANDARD_ANTENNAS = {'1': 1, '2': 2,
-                         '3': 3, '4': 4,
-                         '5': 5, '6': 6,
-                         '7': 7, '8': 8}
+    
     MAX_BREAK = 3600
     internal_antennas = []
     def __init__(self, path, **kwargs):
         #Read in parameters
         self.path = path
-        antenna_positions = kwargs.pop('antenna_positions', None)
-
-        if antenna_positions is None:
-            self.antenna_positions = self.STANDARD_ANTENNAS
+        setup_config = kwargs.pop('setup_config', None)
+        if isinstance(setup_config, SetupConfig):
+            antennas = setup_config
+        elif isinstance(setup_config, str):
+            antennas = SetupConfig(path=setup_config)
         else:
-            self.antenna_positions = antenna_positions
-
+            antennas = SetupConfig(path=path)
+        
         self.mask = kwargs.pop('mask', None)
         self.visit_threshold = kwargs.pop('visit_threshold', 2.)
         add_date = kwargs.pop('add_date', True)
         res_dir = kwargs.pop("res_dir", "Results")
         self.prefix = ufl.make_prefix(self.path)
         self.max_break = kwargs.pop("max_break", self.MAX_BREAK)
+
         how_many_appearances = kwargs.pop('how_many_appearances', 0)
         factor = kwargs.pop('min_appearance_factor', 0)
         remove_antennas = kwargs.pop('remove_antennas', [])
@@ -283,14 +293,15 @@ class Loader(EcoHabDataBase):
         rawdata = self._read_in_raw_data(factor,
                                          how_many_appearances,
                                          tags)
-        data = ufl.from_raw_data(rawdata,
-                                 self.antenna_positions)
+        data = ufl.from_raw_data(rawdata)
+                                 
         data = ufl.remove_antennas(data, remove_antennas)
         #As in antenna readings
         
-        ufl.run_diagnostics(data, self.max_break, self.res_dir)
+        ufl.run_diagnostics(data, self.max_break, self.res_dir,
+                            antennas.mismatched_pairs)
         super(Loader, self).__init__(data, self.mask,
-                                     self.visit_threshold)
+                                     self.visit_threshold, antennas)
         self.cages = self.get_cages()
 
     def get_cages(self):
