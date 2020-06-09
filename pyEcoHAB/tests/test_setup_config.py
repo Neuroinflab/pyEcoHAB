@@ -301,10 +301,10 @@ class TestOppositePipe(unittest.TestCase):
         self.assertEqual(sorted(["1", "2", "5", "6"]),
                          self.default.next_tunnel_antennas("8"))
 
-    def test_cage_address_dict_default(self):
+    def test_cage_address_default(self):
         self.assertEqual(ADDRESS, self.default.get_cage_address_dict())
 
-    def test_cage_address_dict_custom(self):
+    def test_cage_address_custom(self):
         out = {"1": "cage A",
                "2": "cage B"}
         self.assertEqual(out, self.custom.get_cage_address_dict())
