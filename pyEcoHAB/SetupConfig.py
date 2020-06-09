@@ -45,6 +45,8 @@ class SetupConfig(RawConfigParser):
         self.same_tunnel = self.get_same_tunnel()
         self.same_address = self.get_same_address()
         self.opposite_tunnel = self.get_opposite_tunnel_dict()
+        self.address = self.get_cage_address_dict()
+        #self.address_non_adjacent = self.get_address_non_adjacent_dict()
 
     def get_cages(self):
         return sorted(filter(lambda x: x.startswith("cage"),
@@ -172,7 +174,19 @@ class SetupConfig(RawConfigParser):
 
         return out
 
-    def get_adress_non_adjacent(self):
+    def get_cage_address_dict(self):
+        out = {}
+        for sec in self.cages:
+            for antenna_type, antenna in self.items(sec):
+                if antenna_type.startswith("entrance"):
+                    if antenna in out:
+                        raise Exception("%s was specified as %s twice"%(antenna_type,
+                                                                        antenna))
+                    else:
+                        out[antenna] = sec
+        return out
+
+    def get_address_non_adjacent_dict(self):
         all_antennas = self.entrance_antennas
         same_cages = self.same_address
         same_pipe = self.same_tunnel
