@@ -46,7 +46,7 @@ class SetupConfig(RawConfigParser):
         self.same_address = self.get_same_address()
         self.opposite_tunnel = self.get_opposite_tunnel_dict()
         self.address = self.get_cage_address_dict()
-        #self.address_non_adjacent = self.get_address_non_adjacent_dict()
+        self.address_non_adjacent = self.get_address_non_adjacent_dict()
 
     def get_cages(self):
         return sorted(filter(lambda x: x.startswith("cage"),
@@ -191,5 +191,12 @@ class SetupConfig(RawConfigParser):
         same_cages = self.same_address
         same_pipe = self.same_tunnel
         out = {}
+        cage_dict = self.get_cage_address_dict()
         for antenna in all_antennas:
             pipe_next = self.other_tunnel_antenna(antenna)
+            try:
+                cage_adjacent = cage_dict[pipe_next[0]]
+                out[antenna] = cage_adjacent
+            except:
+                pass
+        return out
