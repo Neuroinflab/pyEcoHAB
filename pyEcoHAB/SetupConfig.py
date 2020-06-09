@@ -15,6 +15,7 @@ else:
 
 
 class SetupConfig(RawConfigParser):
+    ALL_ANTENNAS = ["1", "2", "3", "4", "5", "6", "7", "8"]
     def __init__(self, path=None, fname=None):    
         RawConfigParser.__init__(self)
         if path is None:
@@ -50,6 +51,7 @@ class SetupConfig(RawConfigParser):
         self.address_non_adjacent = self.get_address_non_adjacent_dict()
         self.address_surrounding = self.get_surrounding_dict()
         self.directions = self.get_directions_dict()
+        self.mismatched_antennas = self.get_mismatched_pairs()
 
     def get_cages(self):
         return sorted(filter(lambda x: x.startswith("cage"),
@@ -228,3 +230,53 @@ class SetupConfig(RawConfigParser):
             out += [vals[0]+vals[1], vals[1]+vals[0]]
         return sorted(out)
 
+    def find_unused_antennas(self):
+        out_l = []
+        for sec in self.sections():
+            ants = [item[1] for item in self.items(sec)]
+            out_l.extend(ants)
+        return sorted(set(self.ALL_ANTENNAS) - set(out_l))
+
+    def get_mismatched_pairs(self):
+        pairs = []
+        for i in range(1, 9):
+            for j in range(i+1, 9):
+                pairs.append("%d %d" % (i, j))
+
+        unused = sorted(list(self.find_unused_antennas()))
+        legal = []
+        for i, u in enumerate(unused):
+            for u2 in self.ALL_ANTENNAS:
+                if u == u2:
+                    continue
+                key = "%s %s" % (min(u, u2), max(u, u2))
+                if key not in legal:
+                    legal.append(key)
+
+        for sec in self.sections():
+            values = [item[1] for item in self.items(sec)]
+            for i, val in enumerate(values):
+                for val2 in values[i+1:]:
+                    key = "%s %s" %(min(val, val2),
+                                          max(val, val2))
+                    if key not in legal:
+                        legal.append(key)
+
+        for sec in self.tunnels:
+            for antenna, tunnel_val in self.items(sec):
+                if antenna.startswith("entrance"):
+                    other_cage_antennas = self.other_cage_antenna(tunnel_val)
+                    for oca in other_cage_antennas:
+                        cage = self.address[oca]
+                        values = [item[1] for item in self.items(sec)]
+                        for cage_val in values:
+                            if cage_val == tunnel_val:
+                                continue
+                            key = "%s %s" %(min(cage_val, tunnel_val),
+                                          max(cage_val, tunnel_val))
+                            if key not in legal:
+                                legal.append(key)
+        for l in legal:
+            if l in pairs:
+                pairs.remove(l)
+        return pairs
