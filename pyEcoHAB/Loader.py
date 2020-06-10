@@ -304,6 +304,7 @@ class Loader(EcoHabDataBase):
                                      self.visit_threshold, antennas)
         self.cages = antennas.cages
         self.directions = antennas.directions
+        self.setup_config = antennas
 
     def get_cages(self):
         return sorted(list(set(self.get_visit_addresses(self.mice))))
