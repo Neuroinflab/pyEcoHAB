@@ -36,15 +36,16 @@ class EcoHabDataBase(object):
             times, antennas = utils.get_times_antennas(self.readings,
                                                        mouse,
                                                        0, -1)
-            tempdata.extend(utils.get_animal_position(times, antennas,
-                                                      mouse,
-                                                      self.threshold,
-                                                      self.config.same_tunnel,
-                                                      self.config.same_address,
-                                                      self.config.opposite_tunnel,
-                                                      self.address,
-                                                      self.address_surrounding,
-                                                      self.address_non_adjacent))
+            out = utils.get_animal_position(times, antennas,
+                                            mouse,
+                                            self.threshold,
+                                            self.config.same_tunnel,
+                                            self.config.same_address,
+                                            self.config.opposite_tunnel,
+                                            self.config.address,
+                                            self.config.address_surrounding,
+                                            self.config.address_non_adjacent)
+            tempdata.extend(out)
         tempdata.sort(key=lambda x: x[2])
         return tempdata
 

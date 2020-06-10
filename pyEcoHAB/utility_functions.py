@@ -450,7 +450,6 @@ def get_animal_position(times, antennas, mouse, threshold, same_pipe=SAME_PIPE,
         # Workflow as agreed on 14 May 2014
         if delta_t < threshold:
             continue
-
         if an_end == an_start:
             out.append((address[an_start], mouse,
                         t_start, t_end, delta_t, True))
