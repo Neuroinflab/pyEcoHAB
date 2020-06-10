@@ -1344,12 +1344,12 @@ class TestIntervalOverlap(unittest.TestCase):
 class TestGetStatesForEhs(unittest.TestCase):
     def test_chambers(self):
         out = uf.get_animal_position([1, 5], [2, 3], "mouse 1", 2)
-        res = [("B", "mouse 1", 1, 5, 4, True)]
+        res = [("cage B", "mouse 1", 1, 5, 4, True)]
         self.assertEqual(out, res)
 
     def test_chambers_8(self):
         out = uf.get_animal_position([1, 5], [1, 8], "mouse 1", 2)
-        res = [("A", "mouse 1", 1, 5, 4, True)]
+        res = [("cage A", "mouse 1", 1, 5, 4, True)]
         self.assertEqual(out, res)
 
     def test_too_fast(self):
@@ -1362,17 +1362,17 @@ class TestGetStatesForEhs(unittest.TestCase):
 
     def test_same_chamber(self):
         out = uf.get_animal_position([1, 5], [1, 1], "mouse 1", 2)
-        res = [("A", "mouse 1", 1, 5, 4, True)]
+        res = [("cage A", "mouse 1", 1, 5, 4, True)]
         self.assertEqual(out, res)
 
     def test_skipped_antenna(self):
         out = uf.get_animal_position([1, 5], [1, 3], "mouse 1", 2)
-        res = [("B", "mouse 1", 1, 5, 4, False)]
+        res = [("cage B", "mouse 1", 1, 5, 4, False)]
         self.assertEqual(out, res)
 
     def test_skipped_antenna_2(self):
         out = uf.get_animal_position([1, 5], [7, 1], "mouse 1", 2)
-        res = [("A", "mouse 1", 1, 5, 4, False)]
+        res = [("cage A", "mouse 1", 1, 5, 4, False)]
         self.assertEqual(out, res)
 
     def test_opposite_pipe_1(self):
@@ -1384,14 +1384,14 @@ class TestGetStatesForEhs(unittest.TestCase):
     def test_not_opposite_pipe_1(self):
         out = uf.get_animal_position([1, 5], [2, 7],
                                     "mouse 1", 2)
-        self.assertEqual(out, [("A", "mouse 1", 1, 5, 4, False)])
+        self.assertEqual(out, [("cage A", "mouse 1", 1, 5, 4, False)])
 
     def test_longer(self):
         out = uf.get_animal_position([2, 7, 23, 45, 55, 61],
                                     [1, 2, 3, 4, 5, 6],
                                     "mouse 1", 2)
-        res = [("B", "mouse 1", 7, 23, 16, True),
-               ("C", "mouse 1", 45, 55, 10, True)]
+        res = [("cage B", "mouse 1", 7, 23, 16, True),
+               ("cage C", "mouse 1", 45, 55, 10, True)]
         self.assertEqual(out, res)
 
 
@@ -1646,25 +1646,29 @@ class TestGetEHSData(unittest.TestCase):
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short")
         cls.data = Loader(path)
-        cls.t1 = calendar.timegm(uf.to_struck("10.10.201011:04:30"))
-        cls.t2 = calendar.timegm(uf.to_struck("10.10.201011:06:20"))
+        cls.t1 = 1286701470
+        cls.t2 = 1286701580
+        print("test ehs data")
         cls.m_1_a, cls.s1, cls.e1 = uf.get_ehs_data_with_margin(cls.data,
                                                                 "mouse_1",
-                                                                cls.t1, cls.t2,
+                                                                cls.t1,
+                                                                cls.t2,
                                                                 margin=100)
+        for a, s, e in zip(cls.m_1_a, cls.s1, cls.e1):
+            print(a, s, e)
 
     def test_get_ehs_address(self):
-        self.assertEqual(["C", "C", "D", "C", "D", "C", "B", "C", "D",
-                          "C", "D", "C", "D"], self.m_1_a)
+        self.assertEqual(["cage C", "cage C", "cage D", "cage C", "cage D",
+                          "cage C", "cage B", "cage C", "cage D", "cage C",
+                          "cage D", "cage C", "cage D"], self.m_1_a)
        
     def test_get_ehs_starttimes(self):
         out = sorted(self.s1)
-        starttimes = [1286708667.302, 1286708669.9, 1286708676.243,
-                      1286708680.721, 1286708749.62, 1286708768.349,
-                      1286708783.809, 1286708800.057, 1286708804.718,
-                      1286708817.259, 1286708825.762, 1286708838.969,
-                      1286708858.91]
-        
+        starttimes = [1286701467.302, 1286701469.9, 1286701476.243,
+                      1286701480.721, 1286701549.62, 1286701568.349,
+                      1286701583.809, 1286701600.057, 1286701604.718,
+                      1286701617.259, 1286701625.762, 1286701638.969,
+                      1286701658.91]
         self.assertEqual(out, starttimes)
 
     def test_get_ehs_endtimes(self):
@@ -1708,7 +1712,8 @@ class TestPrepareData(unittest.TestCase):
         
 
     def test_get_ehs_address(self):
-        self.assertEqual(["C", "D", "C", "D", "C"], [x[0] for x in self.out])
+        self.assertEqual(["cage C", "cage D", "cage C", "cage D", "cage C"],
+                         [x[0] for x in self.out])
 
     def test_get_ehs_starttimes(self):
         starttimes = [1286708670, 1286708676.243, 1286708680.721,
@@ -1782,35 +1787,35 @@ class TestGetAnimalPositions(unittest.TestCase):
 
     def test_chamber_A1(self):
         out = uf.get_animal_position([2, 6], [1, 8], "mouse_1", 2)
-        self.assertEqual([("A", "mouse_1", 2, 6, 4, True)], out)
+        self.assertEqual([("cage A", "mouse_1", 2, 6, 4, True)], out)
         
     def test_chamber_A2(self):
         out = uf.get_animal_position([2, 6], [8, 1], "mouse_1", 2)
-        self.assertEqual([("A", "mouse_1", 2, 6, 4, True)], out)
+        self.assertEqual([("cage A", "mouse_1", 2, 6, 4, True)], out)
 
     def test_chamber_B1(self):
         out = uf.get_animal_position([2, 6], [2, 3], "mouse_1", 2)
-        self.assertEqual([("B", "mouse_1", 2, 6, 4, True)], out)
+        self.assertEqual([("cage B", "mouse_1", 2, 6, 4, True)], out)
         
     def test_chamber_B2(self):
         out = uf.get_animal_position([2, 6], [3, 2], "mouse_1", 2)
-        self.assertEqual([("B", "mouse_1", 2, 6, 4, True)], out)
+        self.assertEqual([("cage B", "mouse_1", 2, 6, 4, True)], out)
 
     def test_chamber_C1(self):
         out = uf.get_animal_position([2, 6], [4, 5], "mouse_1", 2)
-        self.assertEqual([("C", "mouse_1", 2, 6, 4, True)], out)
+        self.assertEqual([("cage C", "mouse_1", 2, 6, 4, True)], out)
         
     def test_chamber_C2(self):
         out = uf.get_animal_position([2, 6], [5, 4], "mouse_1", 2)
-        self.assertEqual([("C", "mouse_1", 2, 6, 4, True)], out)
+        self.assertEqual([("cage C", "mouse_1", 2, 6, 4, True)], out)
 
     def test_chamber_D1(self):
         out = uf.get_animal_position([2, 6], [6, 7], "mouse_1", 2)
-        self.assertEqual([("D", "mouse_1", 2, 6, 4, True)], out)
+        self.assertEqual([("cage D", "mouse_1", 2, 6, 4, True)], out)
         
     def test_chamber_D2(self):
         out = uf.get_animal_position([2, 6], [7, 6], "mouse_1", 2)
-        self.assertEqual([("D", "mouse_1", 2, 6, 4, True)], out)
+        self.assertEqual([("cage D", "mouse_1", 2, 6, 4, True)], out)
 
 
 class TestDictToArray2D(unittest.TestCase):
@@ -2021,7 +2026,7 @@ class TestPrepareBinnedData(unittest.TestCase):
 
     def test_bins_data_8th_address(self):
         data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
-        self.assertEqual(data[0], "B")
+        self.assertEqual(data[0], "cage B")
 
     def test_bins_24_h_phases(self):
         self.assertEqual(self.phases_24h_bins, ['1_x_24.00h', '2_x_24.00h'])
@@ -2036,11 +2041,11 @@ class TestPrepareBinnedData(unittest.TestCase):
 
     def test_data_1_bin(self):
         self.assertEqual(self.data_24h_bins["1_x"][0.0]["mouse_1"][-1],
-                         ('B', 1286711990.827, 1286711995.578))
+                         (u'cage B', 1286704790.827, 1286704795.578))
 
     def test_data_2_bin(self):
         self.assertEqual(self.data_24h_bins["2_x"][0.0]["mouse_1"],
-                         [('C', 1286798036.218, 1286798396.218)])
+                         [(u'cage C', 1286790836.218, 1286791196.218)])
 
 
 class TestExtractDirections(unittest.TestCase):

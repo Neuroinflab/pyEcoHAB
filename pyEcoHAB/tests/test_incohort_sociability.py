@@ -641,11 +641,11 @@ class TestSinglePhaseResults(unittest.TestCase):
 
         cls.out, cls.exp = ics.single_phase_results(cls.data["1 dark"][0],
                                                    ["mouse_1", "mouse_2"],
-                                                   ["A", "D"],
+                                                   ["cage A", "cage D"],
                                                    cls.duration)
         cls.out_A, cls.exp_A = ics.single_phase_results(cls.data["1 dark"][0],
                                                        ["mouse_1", "mouse_2"],
-                                                       ["A"],
+                                                       ["cage A"],
                                                        cls.duration)
         cls.correct_res_A= {
             "mouse_1": {
