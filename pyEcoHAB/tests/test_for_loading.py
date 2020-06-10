@@ -10,11 +10,7 @@ import numpy as np
 import pyEcoHAB.utils.for_loading as uf
 import pyEcoHAB.utility_functions as utils
 from pyEcoHAB import data_path
-
-STANDARD_ANTENNAS = {'1': 1, '2': 2,
-                         '3': 3, '4': 4,
-                         '5': 5, '6': 6,
-                         '7': 7, '8': 8}
+from pyEcoHAB.SetupConfig import SetupConfig
 
 class TestParseFilename(unittest.TestCase):
     def test_normal(self):
@@ -117,116 +113,6 @@ class TestReadInSingleFile(unittest.TestCase):
         last_line= ["15894", "20101010 11:59:56.218", "4", "307", "mouse_1"]
         self.assertEqual(last_line, self.out[-1])
 
-
-class TestRemoveAntennas(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        path = os.path.join(data_path, "weird_short_3_mice")
-        out = uf.read_single_file(path, "20101010_110000.txt")
-        cls.data = {}
-        cls.data["Antenna"] = [int(o[2]) for o in out]
-        cls.data["Tag"] = [o[-1] for o in out]
-        cls.data_without_1 = uf.remove_antennas(cls.data, 1)
-        cls.data_without_9 = uf.remove_antennas(cls.data, 9)
-        cls.data_without_1_9 = uf.remove_antennas(cls.data, [1, 9])
-        cls.data_without_A = uf.remove_antennas(cls.data, "A")
-
-    def test_remove_1_1(self):
-        self.assertEqual(len(self.data["Antenna"]) - 3,
-                         len(self.data_without_1["Antenna"]))
-
-    def test_remove_1_2(self):
-        self.assertEqual(len(self.data_without_1["Antenna"]),
-                         len(self.data_without_1["Tag"]))
-
-    def test_remove_1_mouse2(self):
-        self.assertEqual(self.data_without_1["Tag"].count("mouse_2"),
-                         self.data["Tag"].count("mouse_2"))
-
-    def test_remove_1_mouse2_2(self):
-        self.assertEqual(self.data_without_1["Tag"].index("mouse_2"),
-                         self.data["Tag"].index("mouse_2"))
-
-    def test_remove_1_mouse_3(self):
-        self.assertEqual(self.data_without_1["Tag"].count("mouse_3"),
-                         self.data["Tag"].count("mouse_3"))
-
-    def test_remove_1_mouse_3_2(self):
-        self.assertEqual(self.data_without_1["Tag"].index("mouse_3"),
-                         self.data["Tag"].index("mouse_3") - 2)
-
-    def test_remove_9_1(self):
-        self.assertEqual(len(self.data["Antenna"]),
-                         len(self.data_without_9["Antenna"]))
-
-    def test_remove_9_2(self):
-        self.assertEqual(len(self.data_without_9["Antenna"]),
-                         len(self.data_without_9["Tag"]))
-
-    def test_remove_9_mouse2(self):
-        self.assertEqual(self.data_without_9["Tag"].count("mouse_2"),
-                         self.data["Tag"].count("mouse_2"))
-
-    def test_remove_9_mouse2_2(self):
-        self.assertEqual(self.data_without_9["Tag"].index("mouse_2"),
-                         self.data["Tag"].index("mouse_2"))
-
-    def test_remove_9_mouse_3(self):
-        self.assertEqual(self.data_without_9["Tag"].count("mouse_3"),
-                         self.data["Tag"].count("mouse_3"))
-
-    def test_remove_9_mouse_3_2(self):
-        self.assertEqual(self.data_without_9["Tag"].index("mouse_3"),
-                         self.data["Tag"].index("mouse_3"))
-
-    def test_remove_1_9_1(self):
-        self.assertEqual(len(self.data["Antenna"]) - 3,
-                         len(self.data_without_1_9["Antenna"]))
-
-    def test_remove_1_9_2(self):
-        self.assertEqual(len(self.data_without_1_9["Antenna"]),
-                         len(self.data_without_1_9["Tag"]))
-
-    def test_remove_1_9_mouse2(self):
-        self.assertEqual(self.data_without_1_9["Tag"].count("mouse_2"),
-                         self.data["Tag"].count("mouse_2"))
-
-    def test_remove_1_9_mouse2_2(self):
-        self.assertEqual(self.data_without_1_9["Tag"].index("mouse_2"),
-                         self.data["Tag"].index("mouse_2"))
-
-    def test_remove_1_9_mouse_3(self):
-        self.assertEqual(self.data_without_1_9["Tag"].count("mouse_3"),
-                         self.data["Tag"].count("mouse_3"))
-
-    def test_remove_1_9_mouse_3_2(self):
-        self.assertEqual(self.data_without_1_9["Tag"].index("mouse_3"),
-                         self.data["Tag"].index("mouse_3") - 2)
-
-    def test_remove_A_1(self):
-        self.assertEqual(len(self.data["Antenna"]),
-                         len(self.data_without_A["Antenna"]))
-
-    def test_remove_A_2(self):
-        self.assertEqual(len(self.data_without_A["Antenna"]),
-                         len(self.data_without_A["Tag"]))
-
-    def test_remove_A_mouse2(self):
-        self.assertEqual(self.data_without_A["Tag"].count("mouse_2"),
-                         self.data["Tag"].count("mouse_2"))
-
-    def test_remove_A_mouse2_2(self):
-        self.assertEqual(self.data_without_A["Tag"].index("mouse_2"),
-                         self.data["Tag"].index("mouse_2"))
-
-    def test_remove_A_mouse_3(self):
-        self.assertEqual(self.data_without_A["Tag"].count("mouse_3"),
-                         self.data["Tag"].count("mouse_3"))
-
-    def test_remove_A_mouse_3_2(self):
-        self.assertEqual(self.data_without_A["Tag"].index("mouse_3"),
-                         self.data["Tag"].index("mouse_3"))
-
 class TestRemoveGhostTags(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -244,7 +130,7 @@ class TestRemoveGhostTags(unittest.TestCase):
 
     def test_1_app_2(self):
         out = uf.remove_ghost_tags(self.data, 2, 0)
-        line = ["15151", "20101010 11:11:06.748", "3", "204", "mouse_1"]
+        line = ["15151", "20101010 11:11:06.748","3", "204", "mouse_1"]
         self.assertTrue(line, out[32])
 
     def test_1_app_3(self):
@@ -311,7 +197,7 @@ class TestRemoveAntenna(unittest.TestCase):
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
-        cls.data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
+        cls.data = uf.from_raw_data(raw_data)
 
     def test_no_antenna(self):
         data = uf.remove_one_antenna(self.data, None)
@@ -345,7 +231,7 @@ class TestRemoveAntennas(unittest.TestCase):
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
-        cls.data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
+        cls.data = uf.from_raw_data(raw_data)
 
     def test_single_antenna_1(self):
         data = uf.remove_antennas(self.data, 1)
@@ -371,15 +257,14 @@ class TestRemoveAntennas(unittest.TestCase):
 
 class TestTransformRaw(unittest.TestCase):
     def test_date_1(self):
-        row = [1, "gugu", "2", 222, "AAA"]
-        self.assertRaises(ValueError, uf.transform_raw, row,
-                          STANDARD_ANTENNAS)
+        row = [1, "gugu", 2, 222, "AAA"]
+        self.assertRaises(ValueError, uf.transform_raw, row)
 
     def test_correct(self):
-        row = [1, "20101010 11:00:49.020", '5', '102', 'mouse_3']
+        row = [1, "20101010 11:00:49.020", 5, '102', 'mouse_3']
         time = uf.time_to_sec(row[1])
-        out = uf.transform_raw(row, STANDARD_ANTENNAS)
-        out2 = (1, time, 5, 102, "mouse_3")
+        out = uf.transform_raw(row)
+        out2 = (1, time,  5, 102, "mouse_3")
         self.assertEqual(out, out2)
 
 
@@ -388,7 +273,7 @@ class TestTransformAllData(unittest.TestCase):
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
         cls.raw_data = uf.read_single_file(path, "20101010_110000.txt")
-        cls.data = uf.from_raw_data(cls.raw_data, STANDARD_ANTENNAS)
+        cls.data = uf.from_raw_data(cls.raw_data)
 
     def test_len(self):
         self.assertEqual(len(self.raw_data), self.data.shape[0])
@@ -398,7 +283,7 @@ class TestTransformAllData(unittest.TestCase):
         self.assertEqual(width, set([len(self.data.dtype)]))
 
     def test_first_line(self):
-        line = uf.transform_raw(self.raw_data[0], STANDARD_ANTENNAS)
+        line = uf.transform_raw(self.raw_data[0])
         self.assertEqual(line, self.data[0].tolist())
 
 class TestAntennaMismatch(unittest.TestCase):
@@ -406,8 +291,9 @@ class TestAntennaMismatch(unittest.TestCase):
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
-        data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
-        cls.mismatch1 = uf.antenna_mismatch(data)
+        data = uf.from_raw_data(raw_data)
+        config = SetupConfig() 
+        cls.mismatch1 = uf.antenna_mismatch(data, config.mismatched_pairs)
 
     def test_1(self):
         self.assertEqual(2, self.mismatch1["3 6"])
@@ -422,12 +308,13 @@ class TestAntennaMismatch(unittest.TestCase):
         out = sum(list(self.mismatch1.values()))
         self.assertEqual(4, out)
 
+
 class TestCheckAntennaPresence(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
-        data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
+        data = uf.from_raw_data(raw_data)
         cls.presences = uf.check_antenna_presence(data, 24*3600)
         cls.end = data["Time"][-1]
         cls.begs = []
@@ -457,25 +344,28 @@ class TestCheckAntennaPresence(unittest.TestCase):
     def test_beg_2(self):
         self.assertEqual(len(set(self.begs)), len(self.begs))
 
+
 class TestRunDiagnostics(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        config = SetupConfig()
         path = os.path.join(data_path, "weird_short_3_mice")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
-        data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
-        cls.mismatch1 = uf.antenna_mismatch(data)
+        data = uf.from_raw_data(raw_data)
+        cls.mismatch1 = uf.antenna_mismatch(data, config.mismatched_pairs)
         cls.presences1 = uf.check_antenna_presence(data, 24*3600)
         res_path = os.path.join(path, "Results")
         files = glob.glob(os.path.join(res_path + "/diagnostics/*.csv"))
         for f in files:
             print("rm ", f)
         cls.length = len(data["Antenna"])
-        cls.str11, cls.str12 = uf.run_diagnostics(data, 24*3600, res_path)
+        cls.str11, cls.str12 = uf.run_diagnostics(data, 24*3600, res_path,
+        config.mismatched_pairs)
         
         path = os.path.join(data_path, "weird_short")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
-        data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
-        cls.mismatch2 = uf.antenna_mismatch(data)
+        data = uf.from_raw_data(raw_data)
+        cls.mismatch2 = uf.antenna_mismatch(data, config.mismatched_pairs)
         cls.presences2 = uf.check_antenna_presence(data, 24*3600)
         res_path = os.path.join(path, "Results")
         files = glob.glob(os.path.join(res_path + "/diagnostics/*.csv"))
@@ -483,7 +373,8 @@ class TestRunDiagnostics(unittest.TestCase):
         for f in files:
             os.remove(f)
 
-        cls.str21, cls.str22 = uf.run_diagnostics(data, 24*3600, res_path)
+        cls.str21, cls.str22 = uf.run_diagnostics(data, 24*3600, res_path,
+                                                  config.mismatched_pairs)
 
 
     def test_no_registration_breaks(self):
@@ -561,7 +452,7 @@ class TestTransformVisits(unittest.TestCase):
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
-        data = uf.from_raw_data(raw_data, STANDARD_ANTENNAS)
+        data = uf.from_raw_data(raw_data)
         cls.data =  utils.get_animal_position(data["Time"],
                                               data["Antenna"],
                                               "mouse_1", 2)

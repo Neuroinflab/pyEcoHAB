@@ -164,10 +164,6 @@ def remove_one_antenna(data, antenna):
     """
     Remove animal tags registered by a specified antenna from 2D data array
     """
-    if not isinstance(antenna, int):
-        return data
-    if antenna > 8 or antenna < 1:
-        return data
     where = np.where(data["Antenna"] == antenna)[0]
     if len(where) == 0:
         return data
@@ -188,7 +184,7 @@ def remove_antennas(data, antennas):
     Returns:
        data dictionary (same as data)
     """
-    if isinstance(antennas, int):
+    if not isinstance(antennas, list):
         antennas = [antennas]
     new_data = data.copy()
     if isinstance(antennas, list):
@@ -276,7 +272,7 @@ def check_antenna_presence(raw_data, max_break):
     return breaks
 
 
-def antenna_mismatch(raw_data, pairs=PAIRS):
+def antenna_mismatch(raw_data, pairs):
     t_start = raw_data['Time'][0]
     all_times = raw_data['Time']
     mice = set(raw_data['Tag'])
@@ -289,11 +285,8 @@ def antenna_mismatch(raw_data, pairs=PAIRS):
         times = all_times[mouse_idx]
         ant = raw_data['Antenna'][mouse_idx]
         for i, a in enumerate(ant[:-1]):
-            if abs(a - ant[i+1]) not in [0, 1, 7]:
-                if a < ant[i+1]:
-                    key = "%d %d" % (a, ant[i+1])
-                else:
-                    key = "%d %d" % (ant[i+1], a)
+            key = "%s %s" % (min(a, ant[i+1]), max(a, ant[i+1]))
+            if key  in pairs:
                 mismatches[key] += 1
     return mismatches
 
@@ -343,7 +336,7 @@ def run_diagnostics(raw_data, max_break, res_dir, pairs):
 
 def transform_raw(row):
     return (int(row[0]), time_to_sec(row[1]),
-            row[2], int(row[3]), row[4])
+            int(row[2]), int(row[3]), row[4])
 
 
 def from_raw_data(raw_data):
@@ -354,7 +347,7 @@ def from_raw_data(raw_data):
     new_data = []
     for row in raw_data:
         new_data.append(transform_raw(row))
-    data_type = [("Id", int), ("Time", float), ("Antenna", str),
+    data_type = [("Id", int), ("Time", float), ("Antenna", int),
                  ("Duration", int), ("Tag", "U15")]
     return np.array(new_data, dtype=data_type)
 
