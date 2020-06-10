@@ -283,3 +283,7 @@ class SetupConfig(RawConfigParser):
             if l in pairs:
                 pairs.remove(l)
         return pairs
+
+
+class ExperimentConfig(SetupConfig):
+    pass
