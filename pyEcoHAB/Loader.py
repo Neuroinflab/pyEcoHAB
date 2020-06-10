@@ -20,14 +20,13 @@ class EcoHabDataBase(object):
 
     def __init__(self, data, mask, threshold, config):
         self.readings = BaseFunctions.Data(data, mask)
-        self.config = config
         self.threshold = threshold
         self.mice = self.get_mice()
-        self.visits = self._calculate_visits()
+        self.visits = self._calculate_visits(config)
         self.session_start = sorted(self.get_times(self.mice))[0]
         self.session_end = sorted(self.get_times(self.mice))[-1]
 
-    def _calculate_animal_positions(self):
+    def _calculate_animal_positions(self, config):
         """
         Calculate timings of animal visits to Eco-HAB compartments.
         """
@@ -39,18 +38,18 @@ class EcoHabDataBase(object):
             out = utils.get_animal_position(times, antennas,
                                             mouse,
                                             self.threshold,
-                                            self.config.same_tunnel,
-                                            self.config.same_address,
-                                            self.config.opposite_tunnel,
-                                            self.config.address,
-                                            self.config.address_surrounding,
-                                            self.config.address_non_adjacent)
+                                            config.same_tunnel,
+                                            config.same_address,
+                                            config.opposite_tunnel,
+                                            config.address,
+                                            config.address_surrounding,
+                                            config.address_non_adjacent)
             tempdata.extend(out)
         tempdata.sort(key=lambda x: x[2])
         return tempdata
 
-    def _calculate_visits(self):
-        temp_data = self._calculate_animal_positions()
+    def _calculate_visits(self, config):
+        temp_data = self._calculate_animal_positions(config)
         data = ufl.transform_visits(temp_data)
         return BaseFunctions.Visits(data, None)
 
@@ -303,7 +302,8 @@ class Loader(EcoHabDataBase):
                             antennas.mismatched_pairs)
         super(Loader, self).__init__(data, self.mask,
                                      self.visit_threshold, antennas)
-        self.cages = self.get_cages()
+        self.cages = antennas.cages
+        self.directions = antennas.directions
 
     def get_cages(self):
         return sorted(list(set(self.get_visit_addresses(self.mice))))
