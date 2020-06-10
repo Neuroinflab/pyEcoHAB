@@ -583,7 +583,7 @@ def prepare_binned_data(ehs, cf, bins, mice):
     return phases, total_time, data, keys
 
 
-def extract_directions(times, antennas, last_antenna, keys=KEYS):
+def extract_directions(times, antennas, last_antenna, keys):
     direction_dict = {key:[[], []] for key in keys}
     change_indices = change_state(antennas)
     for c_idx in change_indices:
