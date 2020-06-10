@@ -353,7 +353,7 @@ def from_raw_data(raw_data):
 
 
 def transform_visits(data):
-    data_type = [("Address", "U5"), ("Tag", "U15"), ("AbsStartTimecode", float),
+    data_type = [("Address", "U30"), ("Tag", "U15"), ("AbsStartTimecode", float),
                  ("AbsEndTimecode", float), ("VisitDuration", float),
                  ("ValidVisitSolution", bool)]
     return np.array(data, dtype=data_type)
