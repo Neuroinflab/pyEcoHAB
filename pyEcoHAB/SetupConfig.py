@@ -69,7 +69,7 @@ class SetupConfig(RawConfigParser):
             cage_dict[sec] = []
             for antenna_type, val in self.items(sec):
                 if antenna_type.startswith("entrance"):
-                    cage_dict[sec].append(val)
+                    cage_dict[sec].append(int(val))
                 elif antenna_type.startswith("internal"):
                     continue
                 else:
@@ -87,7 +87,7 @@ class SetupConfig(RawConfigParser):
             tunnel_dict[sec] = []
             for antenna_type, val in self.items(sec):
                 if antenna_type.startswith("entrance"):
-                    tunnel_dict[sec].append(val)
+                    tunnel_dict[sec].append(int(val))
                 else:
                     print("Unknown antenna type %s" % antenna_type)
             if not len(tunnel_dict[sec]):
@@ -109,7 +109,7 @@ class SetupConfig(RawConfigParser):
         out = {}
         for tunnel, value in tunnel_dict.items():
             for antenna in value:
-                out[antenna] = value
+                out[int(antenna)] = [int(val) for val in value]
         return out
 
     def get_same_address(self):
@@ -117,7 +117,7 @@ class SetupConfig(RawConfigParser):
         out = {}
         for cage, value in cage_dict.items():
             for antenna in value:
-                out[antenna] = value
+                out[int(antenna)] = value
         return out
 
     @property
@@ -125,17 +125,19 @@ class SetupConfig(RawConfigParser):
         out = []
         for sec in self.sections():
             for key, value in self.items(sec):
-                if key.startswith("entrance") and value not in out:
-                    out.append(value)
+                if key.startswith("entrance") and int(value) not in out:
+                    out.append(int(value))
         return out
 
-    def other_tunnel_antenna(self, antenna):
+    def other_tunnel_antenna(self, new_antenna):
+        antenna = int(new_antenna)
         tunnel_antennas = self.same_tunnel[antenna][:]
         idx = tunnel_antennas.index(antenna)
         tunnel_antennas.pop(idx)
         return tunnel_antennas
 
-    def other_cage_antenna(self, antenna):
+    def other_cage_antenna(self, new_antenna):
+        antenna = int(new_antenna)
         cage_antennas = self.same_address[antenna][:]
         idx = cage_antennas.index(antenna)
         cage_antennas.pop(idx)
@@ -144,11 +146,11 @@ class SetupConfig(RawConfigParser):
 
     def next_tunnel_antennas(self, antenna):
         out = []
-        same_pipe = self.same_tunnel[antenna]
+        same_pipe = self.same_tunnel[int(antenna)]
         for ant in same_pipe:
-            same_cage_a = self.other_cage_antenna(ant)
+            same_cage_a = self.other_cage_antenna(int(ant))
             for a_2 in same_cage_a:
-                other_pipe = self.same_tunnel[a_2]
+                other_pipe = self.same_tunnel[int(a_2)]
                 if other_pipe != same_pipe:
                     out.extend(other_pipe)
         return sorted(out)
@@ -160,23 +162,23 @@ class SetupConfig(RawConfigParser):
         same_pipe = self.same_tunnel
         out = {}
         for a_1 in all_antennas:
-            same_cage_antennas = self.other_cage_antenna(a_1)
+            same_cage_antennas = self.other_cage_antenna(int(a_1))
 
             for a_2 in same_cage_antennas:
-                pipe_next = self.other_tunnel_antenna(a_2)
+                pipe_next = self.other_tunnel_antenna(int(a_2))
 
                 for a_3 in pipe_next:
-                    cage_plus_2 = self.other_cage_antenna(a_3)
+                    cage_plus_2 = self.other_cage_antenna(int(a_3))
 
                     for a_4 in cage_plus_2:
-                        tunnel_antennas = same_pipe[a_4]
-                        next_tunnel_antennas = self.next_tunnel_antennas(a_4)
-                        if a_1 not in tunnel_antennas and a_1 not in next_tunnel_antennas:
-                            if a_1 not in out:
-                                out[a_1] = []
+                        tunnel_antennas = same_pipe[int(a_4)]
+                        next_tunnel_antennas = self.next_tunnel_antennas(int(a_4))
+                        if int(a_1) not in tunnel_antennas and int(a_1) not in next_tunnel_antennas:
+                            if int(a_1) not in out:
+                                out[int(a_1)] = []
                             for ant in tunnel_antennas:
-                                if ant not in out[a_1]:
-                                    out[a_1].extend(ant)
+                                if int(ant) not in out[int(a_1)]:
+                                    out[int(a_1)].append(int(ant))
 
         return out
 
@@ -185,11 +187,11 @@ class SetupConfig(RawConfigParser):
         for sec in self.cages:
             for antenna_type, antenna in self.items(sec):
                 if antenna_type.startswith("entrance"):
-                    if antenna in out:
+                    if int(antenna) in out:
                         raise Exception("%s was specified as %s twice"%(antenna_type,
                                                                         antenna))
                     else:
-                        out[antenna] = sec
+                        out[int(antenna)] = sec
         return out
 
     def get_address_non_adjacent_dict(self):
@@ -200,7 +202,7 @@ class SetupConfig(RawConfigParser):
             pipe_next = self.other_tunnel_antenna(antenna)
             try:
                 cage_adjacent = cage_dict[pipe_next[0]]
-                out[antenna] = cage_adjacent
+                out[int(antenna)] = cage_adjacent
             except:
                 pass
         return out
@@ -217,7 +219,7 @@ class SetupConfig(RawConfigParser):
             except:
                 continue
             for caa in cage_adjacent_antennas:
-                key = (min(antenna, caa), max(antenna, caa))
+                key = (min(int(antenna), int(caa)), max(int(antenna), int(caa)))
                 if key not in out:
                     out[key] = cage_dict[caa]
         return out

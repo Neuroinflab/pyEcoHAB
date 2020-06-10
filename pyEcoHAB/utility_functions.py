@@ -37,34 +37,34 @@ OPPOSITE_PIPE = {1: [5, 6],
                  7: [3, 4],
                  8: [3, 4]}
 
-ADDRESS = {1: "A", #4
-           2: "B", #1,
-           3: "B", #1,
-           4: "C", #2,
-           5: "C", #2,
-           6: "D", #3,
-           7: "D", #3,
-           8: "A", #4
+ADDRESS = {1: "cage A", #4
+           2: "cage B", #1,
+           3: "cage B", #1,
+           4: "cage C", #2,
+           5: "cage C", #2,
+           6: "cage D", #3,
+           7: "cage D", #3,
+           8: "cage A", #4
 }
 
-ADDRESS_NON_ADJACENT = {1: "B", #1,
-                        2: "A", #4,
-                        3: "C", #2,
-                        4: "B", #1,
-                        5: "D", #3,
-                        6: "C", #2,
-                        7: "A", #4,
-                        8: "D", #3
+ADDRESS_NON_ADJACENT = {1: "cage B", #1,
+                        2: "cage A", #4,
+                        3: "cage C", #2,
+                        4: "cage B", #1,
+                        5: "cage D", #3,
+                        6: "cage C", #2,
+                        7: "cage A", #4,
+                        8: "cage D", #3
 }
 # Surrounding: difference between antennas only 2 or 6 -- skipped one antenna
-SURROUNDING = {(1, 3): "B", #1,
-               (1, 7): "A", #4,
-               (2, 4): "B", #1,
-               (2, 8): "A", #4,
-               (3, 5): "C", #2,
-               (4, 6): "C", #2,
-               (5, 7): "D", #3,
-               (6, 8): "D", #3
+SURROUNDING = {(1, 3): "cage B", #1,
+               (1, 7): "cage A", #4,
+               (2, 4): "cage B", #1,
+               (2, 8): "cage A", #4,
+               (3, 5): "cage C", #2,
+               (4, 6): "cage C", #2,
+               (5, 7): "cage D", #3,
+               (6, 8): "cage D", #3
 }
 KEYS = ['12', '21', '34', '43', '56', '65', '78', '87']
 

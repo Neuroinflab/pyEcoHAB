@@ -265,12 +265,12 @@ class Loader(EcoHabDataBase):
         #Read in parameters
         self.path = path
         setup_config = kwargs.pop('setup_config', None)
-        if isinstance(setup_config, SetupConfig):
+        if isinstance(setup_config, SetupConfig.SetupConfig):
             antennas = setup_config
         elif isinstance(setup_config, str):
-            antennas = SetupConfig(path=setup_config)
+            antennas = SetupConfig.SetupConfig(path=setup_config)
         else:
-            antennas = SetupConfig(path=path)
+            antennas = SetupConfig.SetupConfig(path=self.path)
         
         self.mask = kwargs.pop('mask', None)
         self.visit_threshold = kwargs.pop('visit_threshold', 2.)

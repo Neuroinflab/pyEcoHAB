@@ -7,14 +7,16 @@ import pyEcoHAB.utility_functions as utils
 from pyEcoHAB import data_path
 from pyEcoHAB.Loader import EcoHabDataBase, Loader
 from pyEcoHAB import ExperimentConfigFile
+from pyEcoHAB.SetupConfig import SetupConfig
 
 class TestSingleAntennaStats(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
-        data = uf.from_raw_data(raw_data, Loader.STANDARD_ANTENNAS)
-        cls.data = EcoHabDataBase(data, None, 2)
+        data = uf.from_raw_data(raw_data)
+        setup_config = SetupConfig()
+        cls.data = EcoHabDataBase(data, None, 2, setup_config)
         cls.config = ExperimentConfigFile(path)
 
     def test_antenna1(self):
