@@ -13,6 +13,7 @@ import pyEcoHAB.utility_functions as uf
 from pyEcoHAB import data_path
 from pyEcoHAB import Loader
 from pyEcoHAB import ExperimentConfigFile
+from pyEcoHAB import SetupConfig
 
 class TestFilter(unittest.TestCase):
     @classmethod
@@ -2055,10 +2056,11 @@ class TestExtractDirections(unittest.TestCase):
         times1 = [15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34 ]
         antennas2 = [8, 1,   2,    1,  2,  3,  4,   5, 6,   7,   8]
         times2 =   [10, 16, 19, 19.5, 22, 25,  26, 27, 28, 31, 35]
-        cls.res1 = uf.extract_directions(times1, antennas1, 3)
-        cls.res1_1 = uf.extract_directions(times1, antennas1, 1)
-        cls.res2 = uf.extract_directions(times2, antennas2, 1)
-        cls.res2_1 = uf.extract_directions(times2, antennas2, 7)
+        config = SetupConfig()
+        cls.res1 = uf.extract_directions(times1, antennas1, 3, config.directions)
+        cls.res1_1 = uf.extract_directions(times1, antennas1, 1, config.directions)
+        cls.res2 = uf.extract_directions(times2, antennas2, 1, config.directions)
+        cls.res2_1 = uf.extract_directions(times2, antennas2, 7, config.directions)
 
     def test_1(self):
         direction_dict = {key:[[], []] for key in uf.KEYS}

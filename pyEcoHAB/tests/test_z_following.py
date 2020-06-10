@@ -7,6 +7,7 @@ from pyEcoHAB import utility_functions as uf
 from pyEcoHAB import Loader
 from pyEcoHAB import ExperimentConfigFile
 from pyEcoHAB import sample_data
+from pyEcoHAB import SetupConfig
 
 try:
     basestring
@@ -21,8 +22,9 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
         times1 = [15, 16.5]
         antennas2 = [8, 1, 2, 3, 4, 5]
         times2 = [10, 16, 19, 19.5, 22, 25]
-        dir1 = uf.extract_directions(times1, antennas1, 3)
-        dir2 = uf.extract_directions(times2, antennas2, 6)
+        config = SetupConfig()
+        dir1 = uf.extract_directions(times1, antennas1, 3, config.directions)
+        dir2 = uf.extract_directions(times2, antennas2, 6, config.directions)
         res = fol.following_single_pair(dir1, dir2)
         cls.out1, cls.time_together1, cls.intervals1= res
 
@@ -30,8 +32,8 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
         times1 = [15, 16.5, 19, 20, 21]
         antennas2 = [8, 1, 2, 3, 4, 5]
         times2 = [10, 16, 19, 19.5, 22, 25]
-        dir1 = uf.extract_directions(times1, antennas1, 6)
-        dir2 = uf.extract_directions(times2, antennas2, 6)
+        dir1 = uf.extract_directions(times1, antennas1, 6, config.directions)
+        dir2 = uf.extract_directions(times2, antennas2, 6, config.directions)
         res = fol.following_single_pair(dir2, dir1)
         cls.out2, cls.time_together2, cls.intervals2 = res
 
@@ -39,8 +41,8 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
         times1 = [15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34 ]
         antennas2 = [8, 1,   2,    3,  4,  5,  6,   7, 8,   1,   2]
         times2 =   [10, 16, 19, 19.5, 22, 25,  26, 27, 28, 31, 35]
-        dir1 = uf.extract_directions(times1, antennas1, 3)
-        dir2 = uf.extract_directions(times2, antennas2, 3)
+        dir1 = uf.extract_directions(times1, antennas1, 3, config.directions)
+        dir2 = uf.extract_directions(times2, antennas2, 3, config.directions)
         res = fol.following_single_pair(dir1, dir2)
         cls.out3, cls.time_together3, cls.intervals3 = res
 
@@ -89,10 +91,13 @@ class TestFollowingMatrices(unittest.TestCase):
             "mouse2": 3,
             "mouse3": 8
         }
+        config = SetupConfig()
+ 
         for mouse in mice_list:
             directions_dict[mouse] = uf.extract_directions(ta[mouse][0],
                                                            ta[mouse][1],
-                                                           last[mouse])
+                                                           last[mouse],
+                                                           config.directions)
         out = fol.following_matrices(directions_dict,
                                     mice_list,
                                     0, 1000)
