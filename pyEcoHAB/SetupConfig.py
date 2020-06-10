@@ -29,13 +29,14 @@ class SetupConfig(RawConfigParser):
                 if os.path.isfile(os.path.join(self.path, 'setup.txt')):
                     self.fname = 'setup.txt'
                 else:
-                    
                     fnames = glob.glob(os.path.join(path, "setup*txt"))
                     if len(fnames):
                         self.fname = os.path.basename(fnames[0])
                         self.path = path
                     else:
-                       raise Exception("No config found")
+                       print("No setup config found in %s" % path)
+                       self.path = data_path
+                       self.fname = "standard_setup.txt"
 
         full_path = os.path.join(self.path, self.fname)
         self.read(full_path)
