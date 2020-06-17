@@ -1,0 +1,12 @@
+[5 light]
+startdate = 31.03.2019
+starttime = 00:00	
+enddate = 31.03.2019
+endtime = 12:00
+
+
+[ALL]
+startdate = 31.03.2019
+starttime = 00:00
+enddate = 31.03.2019 
+endtime = 12:00
