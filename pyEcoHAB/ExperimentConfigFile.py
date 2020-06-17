@@ -26,6 +26,7 @@ import matplotlib.ticker
 import matplotlib.dates as mpd
 import matplotlib.pyplot as plt
 
+from pyEcoHAB import utility_functions as uf
 
 
 class ExperimentConfigFile(RawConfigParser, matplotlib.ticker.Formatter):
@@ -58,20 +59,8 @@ class ExperimentConfigFile(RawConfigParser, matplotlib.ticker.Formatter):
         else:
             tstr1 = self.get(sec, 'startdate') + self.get(sec, 'starttime')
             tstr2 = self.get(sec, 'enddate') + self.get(sec, 'endtime')
-            if len(tstr1) == 15:
-                t1 = time.strptime(tstr1, '%d.%m.%Y%H:%M')
-            elif len(tstr1) == 18:                        
-                t1 = time.strptime(tstr1, '%d.%m.%Y%H:%M:%S')
-            else: 
-                raise Exception('Wrong date format in %s' %self.fname)
-
-            if len(tstr2) == 15:
-                t2 = time.strptime(tstr2, '%d.%m.%Y%H:%M')
-            elif len(tstr2) == 18:                        
-                t2 = time.strptime(tstr2, '%d.%m.%Y%H:%M:%S')
-            else: 
-                raise Exception('Wrong date format in %s' %self.fname)
-
+            t1 = uf.to_sec(tstr1, self.fname)
+            t2 = uf.to_sec(tstr2, self.fname)
             return time.mktime(t1), time.mktime(t2)
 
     def __call__(self, x, pos=0):

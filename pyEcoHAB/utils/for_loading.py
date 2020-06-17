@@ -97,12 +97,13 @@ def time_to_sec(tt):
     try:
         more_than_sec, less_than_sec = tt.split('.')
     except ValueError:
-        return time.mktime(time.strptime(tt,
-                                             '%Y%m%d %H:%M:%S'))
+        return time.mktime(time.strptime(tt + " UTC",
+                                             '%Y%m%d %H:%M:%S %Z'))
 
-    seconds = time.mktime(time.strptime(more_than_sec,
-                                        '%Y%m%d %H:%M:%S'))
-    return seconds + float(less_than_sec)/1000.
+    seconds = time.mktime(time.strptime(more_than_sec + " UTC",
+                                        '%Y%m%d %H:%M:%S %Z'))
+
+    return seconds + float(less_than_sec)/1000
 
 
 def reformat_date_time(date, time):

@@ -723,3 +723,12 @@ def get_shortest_phase_duration(cf):
         time = cf.gettime(phase)
         durs.append(time[1] - time[0])
     return min(durs)
+def to_sec(string, fname=""):
+    new_str = string + ' UTC'
+    try:
+        return time.strptime(new_str, '%d.%m.%Y%H:%M %Z')
+    except ValueError:
+        try:
+            return time.strptime(new_str, '%d.%m.%Y%H:%M:%S %Z')
+        except ValueError:
+            raise Exception('Wrong date format in %s' % fname)
