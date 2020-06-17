@@ -4,6 +4,8 @@ from __future__ import print_function, division, absolute_import
 import os
 import unittest
 import random
+import time
+import calendar
 from collections import OrderedDict
 import numpy as np
 
@@ -1784,29 +1786,34 @@ class TestGetEHSData(unittest.TestCase):
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short")
         cls.data = Loader(path)
-        cls.t1 = 1286701470
-        cls.t2 = 1286701580
-        print("test ehs data")
-        cls.m_1_a, cls.s1, cls.e1 = uf.get_ehs_data_with_margin(cls.data, "mouse_1",
-                                                                cls.t1, cls.t2, margin=100)
-        for a, s, e in zip(cls.m_1_a, cls.s1, cls.e1):
-            print(a, s, e)
+        cls.t1 = calendar.timegm(uf.to_struck("10.10.201011:04:30"))
+        cls.t2 = calendar.timegm(uf.to_struck("10.10.201011:06:20"))
+        cls.m_1_a, cls.s1, cls.e1 = uf.get_ehs_data_with_margin(cls.data,
+                                                                "mouse_1",
+                                                                cls.t1, cls.t2,
+                                                                margin=100)
 
     def test_get_ehs_address(self):
-        self.assertEqual(["C", "C", "D", "C", "D", "C", "B", "C", "D", "C", "D", "C", "D"], self.m_1_a)
+        self.assertEqual(["C", "C", "D", "C", "D", "C", "B", "C", "D",
+                          "C", "D", "C", "D"], self.m_1_a)
        
     def test_get_ehs_starttimes(self):
         out = sorted(self.s1)
-        starttimes = [1286701467.302, 1286701469.9, 1286701476.243, 1286701480.721,
-                      1286701549.62, 1286701568.349, 1286701583.809, 1286701600.057, 1286701604.718,
-                      1286701617.259, 1286701625.762, 1286701638.969, 1286701658.91]
+        starttimes = [1286708667.302, 1286708669.9, 1286708676.243,
+                      1286708680.721, 1286708749.62, 1286708768.349,
+                      1286708783.809, 1286708800.057, 1286708804.718,
+                      1286708817.259, 1286708825.762, 1286708838.969,
+                      1286708858.91]
+        
         self.assertEqual(out, starttimes)
 
     def test_get_ehs_endtimes(self):
         out = sorted(self.e1)
-        endtimes = [ 1286701469.65, 1286701474.28, 1286701480.125, 1286701548.484,
-                     1286701567.615, 1286701581.731, 1286701599.069, 1286701603.98, 1286701616.712,
-                     1286701625.01, 1286701638.22, 1286701658.004, 1286701760.687]
+        endtimes = [1286708669.65, 1286708674.28, 1286708680.125,
+                    1286708748.484, 1286708767.615, 1286708781.731,
+                    1286708799.069, 1286708803.98, 1286708816.712,
+                    1286708825.01, 1286708838.22, 1286708858.004,
+                    1286708960.687]
         self.assertEqual(out, endtimes)
 
 
@@ -1815,15 +1822,16 @@ class TestPrepareData(unittest.TestCase):
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short")
         cls.data = Loader(path)
-        cls.t1 = 1286701470
-        cls.t2 = 1286701580
+        cls.t1 = calendar.timegm(uf.to_struck("10.10.201011:04:30"))
+        cls.t2 = calendar.timegm(uf.to_struck("10.10.201011:06:20"))
         data1 = uf.prepare_data(cls.data, "mouse_1",
                                [cls.t1, cls.t2])
         cls.out = data1["mouse_1"]
         data2 = uf.prepare_data(cls.data, "mouse_1")
         cls.out_all = data2["mouse_1"]
-        cls.t11 = 1286701761
-        cls.t12 = 1286704555
+        cls.t11 = calendar.timegm(uf.to_struck("10.10.201011:09:21"))
+        cls.t12 = calendar.timegm(uf.to_struck("10.10.201011:55:55"))
+
         data3 = uf.prepare_data(cls.data, "mouse_1",
                                 [cls.t11, cls.t12])
         cls.out_different = data3["mouse_1"]
@@ -1843,13 +1851,13 @@ class TestPrepareData(unittest.TestCase):
         self.assertEqual(["C", "D", "C", "D", "C"], [x[0] for x in self.out])
 
     def test_get_ehs_starttimes(self):
-        starttimes = [1286701470, 1286701476.243, 1286701480.721,
-                      1286701549.62, 1286701568.349]
+        starttimes = [1286708670, 1286708676.243, 1286708680.721,
+                      1286708749.62, 1286708768.349]
         self.assertTrue([x[1] for x in self.out] == starttimes)
 
     def test_get_ehs_endtimes(self):
-        endtimes = [ 1286701474.28, 1286701480.125, 1286701548.484,
-                     1286701567.615, 1286701580]
+        endtimes = [1286708674.28, 1286708680.125, 1286708748.484,
+                    1286708767.615, 1286708780]
         self.assertTrue([x[2] for x in self.out] == endtimes)
 
     def test_get_ehs_starttimes_3(self):
@@ -2056,7 +2064,7 @@ class TestPrepareBinnedData(unittest.TestCase):
         cls.all_phases, cls.all_total_time,\
             cls.all_data, cls.all_keys = uf.prepare_binned_data(cls.data,
                                                                 cls.config,
-                                                                "ALL",
+                                                               "ALL",
                                                                 ["mouse_1"])
         cls.dark_phases, cls.dark_total_time,\
             cls.dark_data, cls.dark_keys = uf.prepare_binned_data(cls.data,
@@ -2141,15 +2149,15 @@ class TestPrepareBinnedData(unittest.TestCase):
 
     def test_bins_data_3rd_bin_last_value(self):
         data = self.data_100s_bins["1 dark"][200.]["mouse_1"][3]
-        self.assertEqual(data[-1], 1286701500)
+        self.assertEqual(data[-1], 1286708700)
 
     def test_bins_data_8th_bin_last_value(self):
         data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
-        self.assertEqual(data[-1], 1286701700)
+        self.assertEqual(data[-1], 1286708900)
 
     def test_bins_data_8th_bin_last_value(self):
         data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
-        self.assertEqual(data[1], 1286701800)
+        self.assertEqual(data[1], 1286709000)
 
     def test_bins_data_8th_address(self):
         data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
@@ -2168,11 +2176,11 @@ class TestPrepareBinnedData(unittest.TestCase):
 
     def test_data_1_bin(self):
         self.assertEqual(self.data_24h_bins["1_x"][0.0]["mouse_1"][-1],
-                         ('B', 1286704790.827, 1286704795.578))
+                         ('B', 1286711990.827, 1286711995.578))
 
     def test_data_2_bin(self):
         self.assertEqual(self.data_24h_bins["2_x"][0.0]["mouse_1"],
-                         [('C', 1286790836.218, 1286791196.218)])
+                         [('C', 1286798036.218, 1286798396.218)])
 
 
 class TestExtractDirections(unittest.TestCase):

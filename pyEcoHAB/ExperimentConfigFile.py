@@ -12,6 +12,7 @@ import os
 import numpy as np                                           
 import sys
 import time
+import calendar
 if sys.version_info < (3, 0):
     from ConfigParser import RawConfigParser, NoSectionError
 else:
@@ -59,9 +60,9 @@ class ExperimentConfigFile(RawConfigParser, matplotlib.ticker.Formatter):
         else:
             tstr1 = self.get(sec, 'startdate') + self.get(sec, 'starttime')
             tstr2 = self.get(sec, 'enddate') + self.get(sec, 'endtime')
-            t1 = uf.to_sec(tstr1, self.fname)
-            t2 = uf.to_sec(tstr2, self.fname)
-            return time.mktime(t1), time.mktime(t2)
+            t1 = uf.to_struck(tstr1, self.fname)
+            t2 = uf.to_struck(tstr2, self.fname)
+            return calendar.timegm(t1), calendar.timegm(t2)
 
     def __call__(self, x, pos=0):
         x = mpd.num2epoch(x)

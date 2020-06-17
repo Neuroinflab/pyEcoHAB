@@ -39,17 +39,17 @@ class TestParseFilename(unittest.TestCase):
 class TestPrintHumanTime(unittest.TestCase):
     def test_date(self):
         tt = 1554247067
-        self.assertEqual('Wed Apr  3 01:17:47 2019', uf.print_human_time(tt))
+        self.assertEqual('Tue Apr  2 23:17:47 2019', uf.print_human_time(tt))
 
 
 class TestTimeToSec(unittest.TestCase):
     def test_sec(self):
         string = "20190709 20:05:13.333"
-        self.assertEqual(1562695513.333, uf.time_to_sec(string))
+        self.assertEqual(1562702713.333, uf.time_to_sec(string))
 
     def test_sec_2(self):
         string = "20190709 20:05:13"
-        self.assertEqual(1562695513., uf.time_to_sec(string))
+        self.assertEqual(1562702713., uf.time_to_sec(string))
 
     def test_sec_raise_1(self):
         string = "2019070920:05:13"
