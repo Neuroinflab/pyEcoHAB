@@ -321,7 +321,8 @@ class TestChangeState(unittest.TestCase):
     def test_check_change_1(self):
         self.assertFalse(len(uf.change_state([1, 1, 1, 2])) == 0)
     def test_check_change_2(self):
-        self.assertTrue(uf.change_state([1, 1, 1, 2]), np.array([2], dtype=int))
+        self.assertEqual(uf.change_state([1, 1, 1, 2]).tolist(),
+                         np.array([2], dtype=int).tolist())
         
 class TestGetIdxPre(unittest.TestCase):
     def test_false(self):
@@ -1874,10 +1875,12 @@ class TestPrepareData(unittest.TestCase):
 
     def test_three_mice(self):
         mice_list = ["mouse_1", "mouse_2"]
-        self.assertTrue(self.data_longer.keys(), mice_list)
+        self.assertEqual(sorted(list(self.data_longer.keys())),
+                         sorted(mice_list))
 
     def test_mouse_1_all_datasets(self):
-        self.assertTrue(self.data_longer["mouse_1"], self.out_different)
+        self.assertTrue(sorted(list(self.data_longer["mouse_1"])),
+                        sorted(self.out_different))
                         
     def test_mouse_2_all_datasets_start(self):
         data_mouse2 = [x[1]< self.t11 for x in self.data_longer["mouse_2"]]
@@ -2089,8 +2092,8 @@ class TestPrepareBinnedData(unittest.TestCase):
         all_data = {"ALL": {0: data}}
 
     def test_all_keys(self):
-        keys = [["ALL"], ["0"]]
-        self.assertTrue(keys, self.all_keys)
+        keys = [["ALL"], [0]]
+        self.assertEqual(keys, self.all_keys)
     
     def test_dark_phases(self):
         self.assertEqual(self.dark_phases, ["DARK"])
@@ -2104,8 +2107,8 @@ class TestPrepareBinnedData(unittest.TestCase):
         dark_data = {"DARK": {0: data}}
 
     def test_dark_keys(self):
-        keys = [["DARK"], ["0"]]
-        self.assertTrue(keys, self.dark_keys)
+        keys = [["DARK"], [0]]
+        self.assertEqual(keys, self.dark_keys)
 
     def test_light_phases(self):
         self.assertEqual(self.light_phases, ["LIGHT"])
@@ -2119,12 +2122,12 @@ class TestPrepareBinnedData(unittest.TestCase):
         light_data = {"LIGHT": {0: data}}
 
     def test_light_keys(self):
-        keys = [["LIGHT"], ["0"]]
-        self.assertTrue(keys, self.light_keys)
+        keys = [["LIGHT"], [0]]
+        self.assertEqual(keys, self.light_keys)
 
     def test_bins_keys(self):
-        keys = [["1 dark"], [i*100/3600. for i in range(18)]]
-        self.assertTrue(keys, self.keys_100s_bins)
+        keys = [["1 dark", "1 light"], [i*100 for i in range(12*3600//100)]]
+        self.assertEqual(keys, self.keys_100s_bins)
 
     def test_bins_data_1st_bin(self):
         self.assertEqual(self.data_100s_bins["1 dark"][0]["mouse_1"], [])
