@@ -1,7 +1,6 @@
 from __future__ import division, print_function, absolute_import
 import os
 import time
-import calendar
 import sys
 from collections import OrderedDict
 import numpy as np
@@ -14,8 +13,8 @@ except NameError:
 PAIRS = ["1 3", "1 4", "1 5", "1 6", "1 7", "2 4", "2 5", "2 6", "2 7", "2 8",
          "3 5", "3 6", "3 7", "3 8", "4 6", "4 7", "4 8", "5 7", "5 8", "6 8"]
 
-def results_path(path, res_path):
-    return os.path.join(path, res_path)
+def results_path(path):
+    return os.path.join(path, 'Results')
 
 
 def make_prefix(path):
@@ -81,7 +80,7 @@ def parse_fname(fname):
             print("Unnkown filename format %s.")
             raise
     hour = hour.split(".")[0]
-    date_in_sec = calendar.timegm(time.strptime(date, '%Y%m%d'))
+    date_in_sec = time.mktime(time.strptime(date, '%Y%m%d'))
     datenext = time.strftime('%Y%m%d', time.localtime(
         date_in_sec + 24*3600.))
 
@@ -89,7 +88,7 @@ def parse_fname(fname):
 
 def print_human_time(tt):
     """convert seconds to date and time since epoch """
-    st = time.gmtime(tt)
+    st = time.localtime(tt)
     return time.asctime(st)
 
 
@@ -98,12 +97,12 @@ def time_to_sec(tt):
     try:
         more_than_sec, less_than_sec = tt.split('.')
     except ValueError:
-        return calendar.timegm(time.strptime(tt + " UTC",
-                                             '%Y%m%d %H:%M:%S %Z'))
+        return time.mktime(time.strptime(tt,
+                                             '%Y%m%d %H:%M:%S'))
 
-    seconds = calendar.timegm(time.strptime(more_than_sec + " UTC",
-                                        '%Y%m%d %H:%M:%S %Z'))
-    return seconds + float(less_than_sec)/1000
+    seconds = time.mktime(time.strptime(more_than_sec,
+                                        '%Y%m%d %H:%M:%S'))
+    return seconds + float(less_than_sec)/1000.
 
 
 def reformat_date_time(date, time):
