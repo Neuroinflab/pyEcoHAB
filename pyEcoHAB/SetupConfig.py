@@ -16,29 +16,33 @@ else:
 
 class SetupConfig(RawConfigParser):
     ALL_ANTENNAS = ["1", "2", "3", "4", "5", "6", "7", "8"]
-    def __init__(self, path=None, fname=None):    
-        RawConfigParser.__init__(self)
+    def find_path(self, path, fname, standard, expected, possible):
         if path is None:
             self.path = data_path
-            self.fname = "standard_setup.txt"
+            self.fname = standard
         else:
             self.path = path
             if fname is not None:
                 self.fname = fname
             else:
-                if os.path.isfile(os.path.join(self.path, 'setup.txt')):
-                    self.fname = 'setup.txt'
+                if os.path.isfile(os.path.join(self.path, expected)):
+                    self.fname = expected
                 else:
-                    fnames = glob.glob(os.path.join(path, "setup*txt"))
+                    fnames = glob.glob(os.path.join(path, possible))
                     if len(fnames):
                         self.fname = os.path.basename(fnames[0])
                         self.path = path
                     else:
                        print("No setup config found in %s" % path)
                        self.path = data_path
-                       self.fname = "standard_setup.txt"
+                       self.fname = standard
 
-        full_path = os.path.join(self.path, self.fname)
+        return os.path.join(self.path, self.fname)
+        
+    def __init__(self, path=None, fname=None):
+        RawConfigParser.__init__(self)
+        full_path = self.find_path(path, fname, "standard_setup.txt",
+                                   'setup.txt', "setup*.txt")
         self.read(full_path)
 
         self.cages = self.get_cages()
