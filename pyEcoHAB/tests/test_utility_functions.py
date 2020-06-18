@@ -1660,8 +1660,9 @@ class TestGetEHSData(unittest.TestCase):
 
     def test_get_ehs_address(self):
         self.assertEqual(["cage C", "cage C", "cage D", "cage C", "cage D",
-                          "cage C", "cage B", "cage C", "cage D", "cage C",
-                          "cage D", "cage C", "cage D"], self.m_1_a)
+                          "cage C", "cage B", "cage C", "cage D",
+                          "cage C", "cage D", "cage C", "cage D"],
+                         self.m_1_a)
        
     def test_get_ehs_starttimes(self):
         out = sorted(self.s1)
@@ -2042,11 +2043,11 @@ class TestPrepareBinnedData(unittest.TestCase):
 
     def test_data_1_bin(self):
         self.assertEqual(self.data_24h_bins["1_x"][0.0]["mouse_1"][-1],
-                         (u'cage B', 1286704790.827, 1286704795.578))
+                         ('cage B', 1286711990.827, 1286711995.578))
 
     def test_data_2_bin(self):
         self.assertEqual(self.data_24h_bins["2_x"][0.0]["mouse_1"],
-                         [(u'cage C', 1286790836.218, 1286791196.218)])
+                         [('cage C', 1286798036.218, 1286798396.218)])
 
 
 class TestExtractDirections(unittest.TestCase):
