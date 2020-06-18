@@ -12,6 +12,7 @@ import os
 import numpy as np                                           
 import sys
 import time
+import calendar
 if sys.version_info < (3, 0):
     from ConfigParser import RawConfigParser, NoSectionError
 else:
@@ -26,6 +27,7 @@ import matplotlib.ticker
 import matplotlib.dates as mpd
 import matplotlib.pyplot as plt
 
+from pyEcoHAB import utility_functions as uf
 
 
 class ExperimentConfigFile(RawConfigParser, matplotlib.ticker.Formatter):
@@ -58,21 +60,9 @@ class ExperimentConfigFile(RawConfigParser, matplotlib.ticker.Formatter):
         else:
             tstr1 = self.get(sec, 'startdate') + self.get(sec, 'starttime')
             tstr2 = self.get(sec, 'enddate') + self.get(sec, 'endtime')
-            if len(tstr1) == 15:
-                t1 = time.strptime(tstr1, '%d.%m.%Y%H:%M')
-            elif len(tstr1) == 18:                        
-                t1 = time.strptime(tstr1, '%d.%m.%Y%H:%M:%S')
-            else: 
-                raise Exception('Wrong date format in %s' %self.fname)
-
-            if len(tstr2) == 15:
-                t2 = time.strptime(tstr2, '%d.%m.%Y%H:%M')
-            elif len(tstr2) == 18:                        
-                t2 = time.strptime(tstr2, '%d.%m.%Y%H:%M:%S')
-            else: 
-                raise Exception('Wrong date format in %s' %self.fname)
-
-            return time.mktime(t1), time.mktime(t2)
+            t1 = uf.to_struck(tstr1, self.fname)
+            t2 = uf.to_struck(tstr2, self.fname)
+            return calendar.timegm(t1), calendar.timegm(t2)
 
     def __call__(self, x, pos=0):
         x = mpd.num2epoch(x)

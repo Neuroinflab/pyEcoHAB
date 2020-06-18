@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 import os
 import time
@@ -723,3 +723,14 @@ def get_shortest_phase_duration(cf):
         time = cf.gettime(phase)
         durs.append(time[1] - time[0])
     return min(durs)
+
+
+def to_struck(string, fname=""):
+    new_str = string + ' UTC'
+    try:
+        return time.strptime(new_str, '%d.%m.%Y%H:%M %Z')
+    except ValueError:
+        try:
+            return time.strptime(new_str, '%d.%m.%Y%H:%M:%S %Z')
+        except ValueError:
+            raise Exception('Wrong date format in %s' % fname)

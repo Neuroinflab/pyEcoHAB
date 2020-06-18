@@ -1,6 +1,7 @@
 from __future__ import division, print_function, absolute_import
 import os
 import time
+import calendar
 import sys
 from collections import OrderedDict
 import numpy as np
@@ -80,7 +81,7 @@ def parse_fname(fname):
             print("Unnkown filename format %s.")
             raise
     hour = hour.split(".")[0]
-    date_in_sec = time.mktime(time.strptime(date, '%Y%m%d'))
+    date_in_sec = calendar.timegm(time.strptime(date, '%Y%m%d'))
     datenext = time.strftime('%Y%m%d', time.localtime(
         date_in_sec + 24*3600.))
 
@@ -88,7 +89,7 @@ def parse_fname(fname):
 
 def print_human_time(tt):
     """convert seconds to date and time since epoch """
-    st = time.localtime(tt)
+    st = time.gmtime(tt)
     return time.asctime(st)
 
 
@@ -97,12 +98,12 @@ def time_to_sec(tt):
     try:
         more_than_sec, less_than_sec = tt.split('.')
     except ValueError:
-        return time.mktime(time.strptime(tt,
-                                             '%Y%m%d %H:%M:%S'))
+        return calendar.timegm(time.strptime(tt + " UTC",
+                                             '%Y%m%d %H:%M:%S %Z'))
 
-    seconds = time.mktime(time.strptime(more_than_sec,
-                                        '%Y%m%d %H:%M:%S'))
-    return seconds + float(less_than_sec)/1000.
+    seconds = calendar.timegm(time.strptime(more_than_sec + " UTC",
+                                        '%Y%m%d %H:%M:%S %Z'))
+    return seconds + float(less_than_sec)/1000
 
 
 def reformat_date_time(date, time):
