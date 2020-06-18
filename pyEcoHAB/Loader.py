@@ -266,7 +266,7 @@ class Loader(EcoHabDataBase):
         self.mask = kwargs.pop('mask', None)
         self.visit_threshold = kwargs.pop('visit_threshold', 2.)
         add_date = kwargs.pop('add_date', True)
-        res_dir = kwargs.pop("res_dir", ufl.results_path(self.path))
+        res_dir = kwargs.pop("res_dir", "Results")
         self.prefix = ufl.make_prefix(self.path)
         self.max_break = kwargs.pop("max_break", self.MAX_BREAK)
         how_many_appearances = kwargs.pop('how_many_appearances', 0)
@@ -275,9 +275,10 @@ class Loader(EcoHabDataBase):
         tags = kwargs.pop('remove_mice',[])
         if add_date:
             today = date.today().strftime("%d.%m.%y")
-            self.res_dir = "%s_%s" %(res_dir, today)
-        else:
-            self.res_dir = res_dir
+            res_dir = "%s_%s" %(res_dir, today)
+        print(res_dir)
+        self.res_dir = ufl.results_path(self.path, res_dir)
+        print(self.res_dir, self.path)
         #Read in data
         rawdata = self._read_in_raw_data(factor,
                                          how_many_appearances,
