@@ -13,50 +13,10 @@ if sys.version_info < (3, 0):
 else:
     from configparser import RawConfigParser, NoSectionError
 
-
-class SetupConfig(RawConfigParser):
-    ALL_ANTENNAS = ["1", "2", "3", "4", "5", "6", "7", "8"]
-    def find_path(self, path, fname, standard, expected, possible):
-        if path is None:
-            self.path = data_path
-            self.fname = standard
-        else:
-            self.path = path
-            if fname is not None:
-                self.fname = fname
-            else:
-                if os.path.isfile(os.path.join(self.path, expected)):
-                    self.fname = expected
-                else:
-                    fnames = glob.glob(os.path.join(path, possible))
-                    if len(fnames):
-                        self.fname = os.path.basename(fnames[0])
-                        self.path = path
-                    else:
-                       print("No setup config found in %s" % path)
-                       self.path = data_path
-                       self.fname = standard
-
-        return os.path.join(self.path, self.fname)
-        
-    def __init__(self, path=None, fname=None):
+class SetupConfigMethods(RawConfigParser):
+    
+    def __init__(self):
         RawConfigParser.__init__(self)
-        full_path = self.find_path(path, fname, "standard_setup.txt",
-                                   'setup.txt', "setup*.txt")
-        self.read(full_path)
-
-        self.cages = self.get_cages()
-        self.tunnels = self.get_tunnels()
-        self.cages_dict = self.get_cages_dict()
-        self.tunnels_dict = self.get_tunnels_dict()
-        self.same_tunnel = self.get_same_tunnel()
-        self.same_address = self.get_same_address()
-        self.opposite_tunnel = self.get_opposite_tunnel_dict()
-        self.address = self.get_cage_address_dict()
-        self.address_non_adjacent = self.get_address_non_adjacent_dict()
-        self.address_surrounding = self.get_surrounding_dict()
-        self.directions = self.get_directions_dict()
-        self.mismatched_pairs = self.get_mismatched_pairs()
 
     def get_cages(self):
         return sorted(filter(lambda x: x.startswith("cage"),
@@ -289,5 +249,88 @@ class SetupConfig(RawConfigParser):
         return pairs
 
 
-class ExperimentConfig(SetupConfig):
-    pass
+
+        
+class SetupConfig(SetupConfigMethods):
+    ALL_ANTENNAS = ["1", "2", "3", "4", "5", "6", "7", "8"]
+    def find_path(self, path, fname, standard, expected, possible):
+        if path is None:
+            self.path = data_path
+            self.fname = standard
+        else:
+            self.path = path
+            if fname is not None:
+                self.fname = fname
+            else:
+                if os.path.isfile(os.path.join(self.path, expected)):
+                    self.fname = expected
+                else:
+                    fnames = glob.glob(os.path.join(path, possible))
+                    if len(fnames):
+                        self.fname = os.path.basename(fnames[0])
+                        self.path = path
+                    else:
+                       print("No setup config found in %s" % path)
+                       self.path = data_path
+                       self.fname = standard
+
+        return os.path.join(self.path, self.fname)
+        
+    def __init__(self, path=None, fname=None):
+        SetupConfigMethods.__init__(self)
+        full_path = self.find_path(path, fname, "standard_setup.txt",
+                                   'setup.txt', "setup*.txt")
+        self.read(full_path)
+
+        self.cages = self.get_cages()
+        self.tunnels = self.get_tunnels()
+        self.cages_dict = self.get_cages_dict()
+        self.tunnels_dict = self.get_tunnels_dict()
+        self.same_tunnel = self.get_same_tunnel()
+        self.same_address = self.get_same_address()
+        self.opposite_tunnel = self.get_opposite_tunnel_dict()
+        self.address = self.get_cage_address_dict()
+        self.address_non_adjacent = self.get_address_non_adjacent_dict()
+        self.address_surrounding = self.get_surrounding_dict()
+        self.directions = self.get_directions_dict()
+        self.mismatched_pairs = self.get_mismatched_pairs()
+
+
+
+class ExperimentSetupConfig(SetupConfigMethods):
+    def __init__(self, fname_with_path, **single_configs):
+        """
+        Read in and construct geometric description of a single experiment
+        recorded using more than one EcoHAB experimental methods.
+
+        Agrs: 
+        fname_with_path: string
+           Path to the experimental setup config file, which specifies points
+           (cages/tunnels) that are shared by both experimental setup
+
+
+        single_configs: a dictionary of loaded SetupConfigs for each
+           EcoHAB setup
+
+        An example of an experimental setup config file
+        (saved in "experiment_setup.txt"):
+        [shared point 1]
+        setup_1_name = ecohab_1
+        point_1_name = cage A
+        setup_2_name = ecohab_2
+        point_2_name = cage D
+        destination_name = cage A
+        
+        Load experiment setup config from "experiment_setup.txt", with
+        config1 and config2 -- SetupConfig objects for ecohab_1 and ecohab_2:
+        config = ExperimentSetupConfig(fname_with_path="experiment_setup.txt",
+                                       ecohab_1=config1, ecohab_2=config2)
+
+        """
+        SetupConfigMethods.__init__(self)
+        if os.path.isfile(fname_with_path):
+            self.config_path = fname_with_path
+        else:
+            raise Exception("Could not find experiment config file %s",
+                            fname_with_path)
+        self.read(fname_with_path)

@@ -1,4 +1,4 @@
-[identity point 1]
+[shared point 1]
 setup_1_name = ecohab_1
 point_1_name = cage A
 setup_2_name = ecohab_2
