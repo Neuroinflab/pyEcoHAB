@@ -37,8 +37,8 @@ starttime = 12:00
 enddate = 17.02.2015
 endtime = 00:00
 
-Such a configuration file is read using a helper class ExperimentConfigFile (defined in ExperimentConfigFile.py):
-cf = ExperimentConfigFile(path_to_data),
+Such a configuration file is read using a helper class Timeline (defined in Timeline.py):
+cf = Timeline(path_to_data),
 and masking can be now achieved using eg.:
 ehs.mask_data(*cf.gettime('EMPTY 1 dark'))
 From now on all responses will be limited to sessions starting during the 'EMPTY 1 dark' phase. 

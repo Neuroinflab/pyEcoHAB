@@ -19,7 +19,7 @@ To read-in and analyze a sample data-set type:
 
 >>> import pyEcoHAB
 >>> data = pyEcoHAB.Loader(pyEcoHAB.sample_data)
->>> config = pyEcoHAB.ExperimentConfigFile(pyEcoHAB.sample_data)
+>>> config = pyEcoHAB.Timeline(pyEcoHAB.sample_data)
 >>> pyEcoHAB.get_activity(data, config, 3600)
 >>> pyEcoHAB.get_incohort_sociability(data, config, 3600)
 >>> pyEcoHAB.get_solitude(data, config)
@@ -33,7 +33,7 @@ Standart data analysis script used by the Laboratory of Neurobiology with pyEcoH
 >>> path = pyEcoHAB.sample_data
 >>> res_dir = os.path.join(path, "results")
 >>> ehd = pyEcoHAB.Loader(path, res_dir=res_dir)
->>> config = pyEcoHAB.ExperimentConfigFile(path)
+>>> config = pyEcoHAB.Timeline(path)
 >>> pyEcoHAB.get_solitude(ehd, config)
 >>> pyEcoHAB.get_incohort_sociability(ehd, config, binsize="ALL")
 >>> pyEcoHAB.get_incohort_sociability(ehd, config, binsize="dark")

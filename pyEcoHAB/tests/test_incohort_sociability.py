@@ -7,7 +7,7 @@ from pyEcoHAB import incohort_sociability as ics
 from pyEcoHAB import utility_functions as utils
 from pyEcoHAB import data_path
 from pyEcoHAB import Loader
-from pyEcoHAB import ExperimentConfigFile
+from pyEcoHAB import Timeline
 
 try:
     basestring
@@ -606,7 +606,7 @@ class TestSinglePhaseResults(unittest.TestCase):
     def setUpClass(cls):
         cls.duration = 3*3600
         path = os.path.join(data_path, "weird_3_mice")
-        cls.config = ExperimentConfigFile(path)
+        cls.config = Timeline(path)
         data = Loader(path)
         cls.phases, cls.total_time,\
             cls.data, cls.keys = utils.prepare_binned_data(data,
@@ -741,7 +741,7 @@ class TestGetIncohortSociability(unittest.TestCase):
     def test_run(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
         data = Loader(path)
-        config = ExperimentConfigFile(path)
+        config = Timeline(path)
         ics.get_incohort_sociability(data, config, 3600)
         ics.get_incohort_sociability(data, config, 24*3600)
 

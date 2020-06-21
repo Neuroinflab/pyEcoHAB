@@ -109,7 +109,7 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
     Args:
         ehs : Loader or Loader_like
            Eco-HAB dataset.
-        cf : ExperimentConfigFile
+        cf : Timeline
            timeline of the experiment.
         binsize : number (seconds)
            time bins for calculating activity.

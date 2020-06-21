@@ -12,7 +12,7 @@ import numpy as np
 import pyEcoHAB.utility_functions as uf
 from pyEcoHAB import data_path
 from pyEcoHAB import Loader
-from pyEcoHAB import ExperimentConfigFile
+from pyEcoHAB import Timeline
 from pyEcoHAB import SetupConfig
 
 class TestFilter(unittest.TestCase):
@@ -1926,7 +1926,7 @@ class TestPrepareBinnedData(unittest.TestCase):
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short")
         cls.data = Loader(path)
-        cls.config = ExperimentConfigFile(path)
+        cls.config = Timeline(path)
 
         cls.all_phases, cls.all_total_time,\
             cls.all_data, cls.all_keys = uf.prepare_binned_data(cls.data,
@@ -1951,7 +1951,7 @@ class TestPrepareBinnedData(unittest.TestCase):
 
         path = os.path.join(data_path, "weird_short_3_mice")
         cls.data2 = Loader(path)
-        cls.config2 = ExperimentConfigFile(path)
+        cls.config2 = Timeline(path)
         cls.phases_24h_bins, cls.total_time_24h_bins,\
         cls.data_24h_bins, cls.keys_24h_bins = uf.prepare_binned_data(cls.data2, cls.config2, 24*3600, ["mouse_1"])
 
@@ -2121,7 +2121,7 @@ class TestPrepareRegistrations(unittest.TestCase):
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
         data = Loader(path)
-        config = ExperimentConfigFile(path)
+        config = Timeline(path)
         times = config.gettime("1 dark")
         t_start = times[-1] - 3600/3*2
         t_end = times[-1] - 3600/3
@@ -2143,7 +2143,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
         cls.data = Loader(path)
-        cls.config = ExperimentConfigFile(path)
+        cls.config = Timeline(path)
         cls.out_all = uf.prepare_binned_registrations(cls.data,
                                                       cls.config,
                                                       "All",

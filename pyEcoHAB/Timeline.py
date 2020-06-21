@@ -2,10 +2,10 @@
 # encoding: utf-8
 from __future__ import division, absolute_import, print_function
 """
-ExperimentConfigFile.py
+Timeline.py
 
 Created by Szymon Łęski on 2013-02-19.
-Copyright (c) 2013 Laboratory of Neuroinformatics. All rights reserved.
+
 """
 
 import os    
@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 from pyEcoHAB import utility_functions as uf
 
 
-class ExperimentConfigFile(RawConfigParser, matplotlib.ticker.Formatter):
+class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
     def __init__(self, path, fname=None):    
         RawConfigParser.__init__(self)
         self.path = path               

@@ -6,7 +6,7 @@ import pyEcoHAB.utils.for_loading as uf
 import pyEcoHAB.utility_functions as utils
 from pyEcoHAB import data_path
 from pyEcoHAB.Loader import EcoHabDataBase, Loader
-from pyEcoHAB import ExperimentConfigFile
+from pyEcoHAB import Timeline
 from pyEcoHAB.SetupConfig import SetupConfig
 
 class TestSingleAntennaStats(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestSingleAntennaStats(unittest.TestCase):
         data = uf.from_raw_data(raw_data)
         setup_config = SetupConfig()
         cls.data = EcoHabDataBase(data, None, 2, setup_config)
-        cls.config = ExperimentConfigFile(path)
+        cls.config = Timeline(path)
 
     def test_antenna1(self):
         times = self.config.gettime("ALL")

@@ -187,7 +187,7 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
     Args:
         ehs : Loader or Loader_like
            Eco-HAB dataset.
-        cf : ExperimentConfigFile
+        cf : Timeline
            timeline of the experiment.
         binsize : string or number 
            time bins for calculating activity. Possible string values are:

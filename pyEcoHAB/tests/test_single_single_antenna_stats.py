@@ -5,7 +5,7 @@ import os
 from pyEcoHAB import single_antenna_registrations as sar
 from pyEcoHAB import utility_functions as uf
 from pyEcoHAB import Loader
-from pyEcoHAB import ExperimentConfigFile
+from pyEcoHAB import Timeline
 from pyEcoHAB import data_path
 
 class TestExecution(unittest.TestCase):
@@ -13,7 +13,7 @@ class TestExecution(unittest.TestCase):
     def setUpClass(cls):
         sample_data = os.path.join(data_path, "weird_short")
         cls.data = Loader(sample_data)
-        cls.config = ExperimentConfigFile(sample_data)
+        cls.config = Timeline(sample_data)
 
     def test1(self):
         sar.get_single_antenna_stats(self.data, self.config, 3600, 1)

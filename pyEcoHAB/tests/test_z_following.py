@@ -5,7 +5,7 @@ import os
 from pyEcoHAB import following as fol
 from pyEcoHAB import utility_functions as uf
 from pyEcoHAB import Loader
-from pyEcoHAB import ExperimentConfigFile
+from pyEcoHAB import Timeline
 from pyEcoHAB import sample_data
 from pyEcoHAB import SetupConfig
 
@@ -321,7 +321,7 @@ class TestExecution(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.data = Loader(sample_data)
-        cls.config = ExperimentConfigFile(sample_data)
+        cls.config = Timeline(sample_data)
 
     def test_phases(self):
         fol.get_dynamic_interactions(self.data, self.config, 1,

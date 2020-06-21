@@ -18,7 +18,7 @@ def get_single_antenna_stats(ehs, cf, binsize, antennas="ALL", res_dir="",
     Args:
         ehs : Loader or Loader_like
            Eco-HAB dataset.
-        cf : ExperimentConfigFile
+        cf : Timeline
            timeline of the experiment.
         binsize : number 
            time bins for calculating activity
