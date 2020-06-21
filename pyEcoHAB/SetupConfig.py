@@ -19,6 +19,7 @@ class SetupConfigMethods(RawConfigParser):
         RawConfigParser.__init__(self)
 
     def make_definitions(self):
+        self.all_antennas = self.get_all_antennas()
         self.cages = self.get_cages()
         self.tunnels = self.get_tunnels()
         self.cages_dict = self.get_cages_dict()
@@ -31,22 +32,24 @@ class SetupConfigMethods(RawConfigParser):
         self.address_surrounding = self.get_surrounding_dict()
         self.directions = self.get_directions_dict()
         self.mismatched_pairs = self.get_mismatched_pairs()
-        self.all_antennas = self.get_all_antennas()
+
 
     def get_all_antennas(self):
         all_antennas = []
         for sec in self.sections():
+            if sec.startswith("shared point"):
+                pass
             for key, value in self.items(sec):
                 if value not in all_antennas:
                     all_antennas.append(value)
         return sorted(all_antennas)
 
     def get_cages(self):
-        return sorted(filter(lambda x: x.startswith("cage"),
+        return sorted(filter(lambda x: "cage" in x,
                       self.sections()))
 
     def get_tunnels(self):
-        return sorted(filter(lambda x: x.startswith("tunnel"),
+        return sorted(filter(lambda x: "tunnel" in x,
                       self.sections()))
 
     def get_cages_dict(self):
@@ -344,3 +347,53 @@ class ExperimentSetupConfig(SetupConfigMethods):
             raise Exception("Could not find experiment config file %s",
                             fname_with_path)
         self.read(fname_with_path)
+
+        identity_points = self._get_identity_points()
+
+        setup_names = list(single_configs.keys())
+        #add individual sections from each of the setup configs
+        for key in setup_names:
+            this_config = single_configs[key]
+            setup_sections = this_config.sections()
+
+            for section in setup_sections:
+
+                new_section_name = "%s_%s" % (key, section)
+                if new_section_name in identity_points:
+                    new_section_name = identity_points[new_section_name]
+                try:
+                    self.add_section(new_section_name)
+                    section_items = []
+                except DuplicateSectionError:
+                    section_items = [item[0] for item in self.items(new_section_name)]
+                for antenna_type, value in this_config.items(section):
+                    new_value = "%s_%s" %(value, key)
+                    if antenna_type in section_items:
+                        starts_with = antenna_type.split("_")[0]
+                        how_many = len([item for item in section_items if item.startswith(starts_with)])
+                        new_antenna_type = "%s_antenna%d" %(starts_with, how_many+1)
+                    else:
+                        new_antenna_type = antenna_type
+                    self.set(new_section_name, new_antenna_type, new_value)
+
+        self.ALL_ANTENNAS = self.get_all_antennas()
+        #self.make_definitions()
+
+    def _get_identity_points(self):
+        field = "setup_%d_name"
+        value = "point_%d_name"
+        out = {}
+        for section in self.sections():
+            items = [item[0] for item in self.items(section)]
+            setups = (len(items) - 1)//2
+            if (len(items) - 1) % 2 != 0:
+                raise Exception("Wrong format of ExperimentSetup config section %" % section)
+            if setups < 2:
+                raise Exception("Not enough setups defined in ExperimentSetup config section %" % section)
+
+            for i in range(1, setups + 1):
+                setup = self.get(section, field % i)
+                point = self.get(section, value % i)
+                new_key = "%s_%s" % (point, setup)
+                out[new_key] = self.get(section, "destination_name")
+        return out

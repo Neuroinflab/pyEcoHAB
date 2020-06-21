@@ -6,7 +6,7 @@ sample_data = os.path.join(data_path, "BALB_VPA_data_cohort_1")
 
 from .Loader import Loader, Extender
 from .Timeline import Timeline
-from .SetupConfig import SetupConfig
+from .SetupConfig import SetupConfig, ExperimentSetupConfig
 from .incohort_sociability import get_incohort_sociability
 from .incohort_sociability import get_solitude
 from .cage_visits import get_activity

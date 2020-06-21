@@ -1,6 +1,6 @@
 [shared point 1]
-setup_1_name = ecohab_1
+setup_1_name = ecohab1
 point_1_name = cage A
-setup_2_name = ecohab_2
-point_2_name = cage D
-destination_name = cage A
+setup_2_name = ecohab2
+point_2_name = cage B
+destination_name = shared cage 1

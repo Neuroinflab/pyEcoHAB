@@ -2,7 +2,7 @@ from __future__ import print_function, division, absolute_import
 import os
 import unittest
 
-from pyEcoHAB import SetupConfig 
+from pyEcoHAB import SetupConfig, ExperimentSetupConfig
 from pyEcoHAB import data_path
 
 SAME_PIPE = { "1": ["1", "2"],
@@ -67,6 +67,8 @@ SURROUNDING = {("1", "3"): "cage B", #1,
 KEYS = ['12', '21', '34', '43', '56', '65', '78', '87']
 PAIRS = ["1 3", "1 4", "1 5", "1 6", "1 7", "2 4", "2 5", "2 6", "2 7", "2 8",
          "3 5", "3 6", "3 7", "3 8", "4 6", "4 7", "4 8", "5 7", "5 8", "6 8"]
+
+
 class TestReadingIn(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -355,6 +357,22 @@ class TestOppositePipe(unittest.TestCase):
     def test_all_antennas_default(self):
         self.assertEqual(self.default.all_antennas, ["1", "2", "3", "4",
                                                      "5", "6", "7", "8"])
+
+
+class TestExperimentSetupConfig(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path1 = os.path.join(data_path, "standard_setup.txt")
+        path2 = os.path.join(data_path, "test_setups")
+        path3 = os.path.join(data_path, "experiment_setup.txt")
+        cls.config1 = SetupConfig(path1)
+        cls.config2 = SetupConfig(path=path2, fname="setup_internal.txt")
+        cls.experiment_config = ExperimentSetupConfig(path3,
+                                                      ecohab1=cls.config1,
+                                                      ecohab2=cls.config2)
+
+    def test1(self):
+        self.experiment_config.make_definitions()
 
 if __name__ == '__main__':
     unittest.main()
