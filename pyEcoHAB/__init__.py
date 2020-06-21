@@ -4,7 +4,7 @@ data_path = os.path.join(ecohab_loc, '..', 'data')
 sample_data = os.path.join(data_path, "BALB_VPA_data_cohort_1")
 
 
-from .Loader import Loader, Merger
+from .Loader import Loader, Extender
 from .Timeline import Timeline
 from .SetupConfig import SetupConfig
 from .incohort_sociability import get_incohort_sociability

@@ -346,7 +346,7 @@ class Loader(EcoHabDataBase):
 
 
 
-class Merger(EcoHabDataBase):
+class Extender(EcoHabDataBase):
     def __init__(self, *data_sources, **kwargs):
         self._source_list = map(str, data_sources)
         self._ignore_mice_diff = kwargs.pop('ignore_mice_differences',
@@ -381,7 +381,7 @@ class Merger(EcoHabDataBase):
 
     def _append_data_source(self, new_data):
         if self.session_start is None and self.session_end is None:
-            super(Merger, self).__init__(new_data.readings.data, None,
+            super(Extender, self).__init__(new_data.readings.data, None,
                                          new_data.visit_threshold)
 
         if new_data.session_start != None:
