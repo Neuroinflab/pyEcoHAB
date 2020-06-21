@@ -69,7 +69,7 @@ def get_single_antenna_stats(ehs, cf, binsize, antennas="ALL", res_dir="",
     
     if antennas == "ALL":
         antennas = sorted(set(ehs.get_antennas(ehs.mice)))
-    if isinstance(antennas, int):
+    if antennas in ehs.all_antennas:
         antennas = [antennas]
     if not isinstance(antennas, list):
         raise Exception("Incorrect antenna format. You should either provide a list of ints, an int or 'ALL'")

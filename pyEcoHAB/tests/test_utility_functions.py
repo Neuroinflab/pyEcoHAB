@@ -417,28 +417,6 @@ class TestGetAnennas(unittest.TestCase):
         self.assertEqual(out, [1, 2, 5])
 
 
-class TestGetKeyForFrequency(unittest.TestCase):
-    def test_78(self):
-        out = uf.get_key_for_frequencies(7, 8)
-        self.assertEqual(out, "78")
-
-    def test_87(self):
-        out = uf.get_key_for_frequencies(8, 7)
-        self.assertEqual(out, "87")
-
-    def test_chamber_18(self):
-        out = uf.get_key_for_frequencies(8, 1)
-        self.assertEqual(out, None)
-
-    def test_chamber_23(self):
-        out = uf.get_key_for_frequencies(2, 3)
-        self.assertEqual(out, None)
-
-    def test_stupid_(self):
-        out = uf.get_key_for_frequencies(2, 4)
-        self.assertEqual(out, None)
-
-
 class TestIntervalOverlap(unittest.TestCase):
 
     def test_interval_overlap_1(self):
@@ -483,58 +461,6 @@ class TestIntervalOverlap(unittest.TestCase):
         inte_2 = [46, 50]
         self.assertTrue(uf.interval_overlap(inte_1, inte_2) == 2)
 
-class TestGetStatesForEhs(unittest.TestCase):
-    def test_chambers(self):
-        out = uf.get_animal_position([1, 5], [2, 3], "mouse 1", 2)
-        res = [(1, "mouse 1", 1, 5, 4, True)]
-        self.assertEqual(out, res)
-
-    def test_chambers_8(self):
-        out = uf.get_animal_position([1, 5], [1, 8], "mouse 1", 2)
-        res = [(4, "mouse 1", 1, 5, 4, True)]
-        self.assertEqual(out, res)
-
-    def test_too_fast(self):
-        out = uf.get_animal_position([1, 2], [2, 3], "mouse 1", 2)
-        self.assertEqual(out, [])
-
-    def test_pipe(self):
-        out = uf.get_animal_position([1, 5], [2, 1], "mouse 1", 2)
-        self.assertEqual(out, [])
-
-    def test_same_chamber(self):
-        out = uf.get_animal_position([1, 5], [1, 1], "mouse 1", 2)
-        res = [(4, "mouse 1", 1, 5, 4, True)]
-        self.assertEqual(out, res)
-
-    def test_skipped_antenna(self):
-        out = uf.get_animal_position([1, 5], [1, 3], "mouse 1", 2)
-        res = [(1, "mouse 1", 1, 5, 4, False)]
-        self.assertEqual(out, res)
-
-    def test_skipped_antenna_2(self):
-        out = uf.get_animal_position([1, 5], [7, 1], "mouse 1", 2)
-        res = [(4, "mouse 1", 1, 5, 4, False)]
-        self.assertEqual(out, res)
-
-    def test_opposite_pipe_1(self):
-        antenna = 2
-        out = uf.get_animal_position([1, 5], [antenna, antenna + 3],
-                                    "mouse 1", 2)
-        self.assertEqual(out, [])
-
-    def test_not_opposite_pipe_1(self):
-        out = uf.get_animal_position([1, 5], [2, 7],
-                                    "mouse 1", 2)
-        self.assertEqual(out, [(4, "mouse 1", 1, 5, 4, False)])
-
-    def test_longer(self):
-        out = uf.get_animal_position([2, 7, 23, 45, 55, 61],
-                                    [1, 2, 3, 4, 5, 6],
-                                    "mouse 1", 2)
-        res = [(1, "mouse 1", 7, 23, 16, True),
-               (2, "mouse 1", 45, 55, 10, True)]
-        self.assertEqual(out, res)
 
 
 class TestGetIntervals(unittest.TestCase):
@@ -1276,28 +1202,6 @@ class TestGetAnennas(unittest.TestCase):
         self.assertEqual(out, [1, 2, 5])
 
 
-class TestGetKeyForFrequency(unittest.TestCase):
-    def test_78(self):
-        out = uf.get_key_for_frequencies(7, 8)
-        self.assertEqual(out, "78")
-
-    def test_87(self):
-        out = uf.get_key_for_frequencies(8, 7)
-        self.assertEqual(out, "87")
-
-    def test_chamber_18(self):
-        out = uf.get_key_for_frequencies(8, 1)
-        self.assertEqual(out, None)
-
-    def test_chamber_23(self):
-        out = uf.get_key_for_frequencies(2, 3)
-        self.assertEqual(out, None)
-
-    def test_stupid_(self):
-        out = uf.get_key_for_frequencies(2, 4)
-        self.assertEqual(out, None)
-
-
 class TestIntervalOverlap(unittest.TestCase):
 
     def test_interval_overlap_1(self):
@@ -1344,52 +1248,52 @@ class TestIntervalOverlap(unittest.TestCase):
 
 class TestGetStatesForEhs(unittest.TestCase):
     def test_chambers(self):
-        out = uf.get_animal_position([1, 5], [2, 3], "mouse 1", 2)
+        out = uf.get_animal_position([1, 5], ["2", "3"], "mouse 1", 2)
         res = [("cage B", "mouse 1", 1, 5, 4, True)]
         self.assertEqual(out, res)
 
     def test_chambers_8(self):
-        out = uf.get_animal_position([1, 5], [1, 8], "mouse 1", 2)
+        out = uf.get_animal_position([1, 5], ["1", "8"], "mouse 1", 2)
         res = [("cage A", "mouse 1", 1, 5, 4, True)]
         self.assertEqual(out, res)
 
     def test_too_fast(self):
-        out = uf.get_animal_position([1, 2], [2, 3], "mouse 1", 2)
+        out = uf.get_animal_position([1, 2], ["2", "3"], "mouse 1", 2)
         self.assertEqual(out, [])
 
     def test_pipe(self):
-        out = uf.get_animal_position([1, 5], [2, 1], "mouse 1", 2)
+        out = uf.get_animal_position([1, 5], ["2", "1"], "mouse 1", 2)
         self.assertEqual(out, [])
 
     def test_same_chamber(self):
-        out = uf.get_animal_position([1, 5], [1, 1], "mouse 1", 2)
+        out = uf.get_animal_position([1, 5], ["1", "1"], "mouse 1", 2)
         res = [("cage A", "mouse 1", 1, 5, 4, True)]
         self.assertEqual(out, res)
 
     def test_skipped_antenna(self):
-        out = uf.get_animal_position([1, 5], [1, 3], "mouse 1", 2)
+        out = uf.get_animal_position([1, 5], ["1", "3"], "mouse 1", 2)
         res = [("cage B", "mouse 1", 1, 5, 4, False)]
         self.assertEqual(out, res)
 
     def test_skipped_antenna_2(self):
-        out = uf.get_animal_position([1, 5], [7, 1], "mouse 1", 2)
+        out = uf.get_animal_position([1, 5], ["7", "1"], "mouse 1", 2)
         res = [("cage A", "mouse 1", 1, 5, 4, False)]
         self.assertEqual(out, res)
 
     def test_opposite_pipe_1(self):
         antenna = 2
-        out = uf.get_animal_position([1, 5], [antenna, antenna + 3],
+        out = uf.get_animal_position([1, 5], ["2", "5"],
                                     "mouse 1", 2)
         self.assertEqual(out, [])
 
     def test_not_opposite_pipe_1(self):
-        out = uf.get_animal_position([1, 5], [2, 7],
+        out = uf.get_animal_position([1, 5], ["2", "7"],
                                     "mouse 1", 2)
         self.assertEqual(out, [("cage A", "mouse 1", 1, 5, 4, False)])
 
     def test_longer(self):
         out = uf.get_animal_position([2, 7, 23, 45, 55, 61],
-                                    [1, 2, 3, 4, 5, 6],
+                                    ["1", "2", "3", "4", "5", "6"],
                                     "mouse 1", 2)
         res = [("cage B", "mouse 1", 7, 23, 16, True),
                ("cage C", "mouse 1", 45, 55, 10, True)]
@@ -1768,55 +1672,55 @@ class TestPrepareData(unittest.TestCase):
 
 class TestGetAnimalPositions(unittest.TestCase):
     def test_threshold(self):
-        out = uf.get_animal_position([2, 3], [2, 2], "mouse_1", 2)
+        out = uf.get_animal_position([2, 3], ["2", "2"], "mouse_1", 2)
         self.assertEqual(out, [])
 
     def test_pipe_1(self):
-        out = uf.get_animal_position([2, 3], [1, 2], "mouse_1", 1)
+        out = uf.get_animal_position([2, 3], ["1", "2"], "mouse_1", 1)
         self.assertEqual(out, [])
 
     def test_pipe_2(self):
-        out = uf.get_animal_position([2, 3], [3, 4], "mouse_1", 1)
+        out = uf.get_animal_position([2, 3], ["3", "4"], "mouse_1", 1)
         self.assertEqual(out, [])
 
     def test_pipe_3(self):
-        out = uf.get_animal_position([2, 3], [5, 6], "mouse_1", 1)
+        out = uf.get_animal_position([2, 3], ["5", "6"], "mouse_1", 1)
         self.assertEqual(out, [])
         
     def test_pipe_4(self):
-        out = uf.get_animal_position([2, 3], [7, 8], "mouse_1", 1)
+        out = uf.get_animal_position([2, 3], ["7", "8"], "mouse_1", 1)
         self.assertEqual(out, [])
 
     def test_chamber_A1(self):
-        out = uf.get_animal_position([2, 6], [1, 8], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["1", "8"], "mouse_1", 2)
         self.assertEqual([("cage A", "mouse_1", 2, 6, 4, True)], out)
         
     def test_chamber_A2(self):
-        out = uf.get_animal_position([2, 6], [8, 1], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["8", "1"], "mouse_1", 2)
         self.assertEqual([("cage A", "mouse_1", 2, 6, 4, True)], out)
 
     def test_chamber_B1(self):
-        out = uf.get_animal_position([2, 6], [2, 3], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["2", "3"], "mouse_1", 2)
         self.assertEqual([("cage B", "mouse_1", 2, 6, 4, True)], out)
         
     def test_chamber_B2(self):
-        out = uf.get_animal_position([2, 6], [3, 2], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["3", "2"], "mouse_1", 2)
         self.assertEqual([("cage B", "mouse_1", 2, 6, 4, True)], out)
 
     def test_chamber_C1(self):
-        out = uf.get_animal_position([2, 6], [4, 5], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["4", "5"], "mouse_1", 2)
         self.assertEqual([("cage C", "mouse_1", 2, 6, 4, True)], out)
         
     def test_chamber_C2(self):
-        out = uf.get_animal_position([2, 6], [5, 4], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["5", "4"], "mouse_1", 2)
         self.assertEqual([("cage C", "mouse_1", 2, 6, 4, True)], out)
 
     def test_chamber_D1(self):
-        out = uf.get_animal_position([2, 6], [6, 7], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["6", "7"], "mouse_1", 2)
         self.assertEqual([("cage D", "mouse_1", 2, 6, 4, True)], out)
         
     def test_chamber_D2(self):
-        out = uf.get_animal_position([2, 6], [7, 6], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["7", "6"], "mouse_1", 2)
         self.assertEqual([("cage D", "mouse_1", 2, 6, 4, True)], out)
 
 

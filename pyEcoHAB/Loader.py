@@ -286,9 +286,9 @@ class Loader(EcoHabDataBase):
         if add_date:
             today = date.today().strftime("%d.%m.%y")
             res_dir = "%s_%s" %(res_dir, today)
-        print(res_dir)
+       
         self.res_dir = ufl.results_path(self.path, res_dir)
-        print(self.res_dir, self.path)
+       
         #Read in data
         rawdata = self._read_in_raw_data(factor,
                                          how_many_appearances,
@@ -305,6 +305,7 @@ class Loader(EcoHabDataBase):
         self.cages = antennas.cages
         self.directions = antennas.directions
         self.setup_config = antennas
+        self.all_antennas = antennas.all_antennas
 
     def get_cages(self):
         return sorted(list(set(self.get_visit_addresses(self.mice))))

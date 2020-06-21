@@ -157,7 +157,7 @@ def single_timeline_heat_map(result,
                              binsize,
                              antenna,
                              subdirectory):
-    name = 'duration_of_antenna_%d_registration_%s_%4.2f_%s' % (antenna,prefix, binsize/3600, phase)
+    name = 'duration_of_antenna_%s_registration_%s_%4.2f_%s' % (antenna, prefix, binsize/3600, phase)
     fig, ax = plt.subplots()
     vmin = 0
     vmax = 0.5*binsize
@@ -177,7 +177,7 @@ def single_timeline_heat_map(result,
     ax.get_yaxis().set_ticks([i for i,x in enumerate(yticks)])
     ax.set_yticklabels(yticks)
     ax.set_xlabel("time (h)")
-    ax.set_title("In range of antenna %d (in sec)" % antenna)
+    ax.set_title("In range of antenna %s (in sec)" % antenna)
     if subdirectory:
         subdirectory = os.path.join(subdirectory, 'figs')
     dir_name = utils.check_directory(directory, subdirectory)

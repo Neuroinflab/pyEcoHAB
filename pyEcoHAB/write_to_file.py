@@ -309,7 +309,7 @@ def write_registrations_stats(crossings, phase, mice_list,
         header +="%s%4.2f" % (delimiter, i*binsize/3600)
     f.write(delimiter)
     for antenna in antennas:
-        f.write("Antenna %d" % antenna + (n_rows)*delimiter)
+        f.write("Antenna %s" % antenna + (n_rows)*delimiter)
     f.write('\n')
     for antenna in antennas:
         f.write(header)

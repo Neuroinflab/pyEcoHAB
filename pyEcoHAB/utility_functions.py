@@ -8,63 +8,63 @@ import numpy as np
 #NamedDict class was originally written by Zbyszek Jędrzejewski-Szmek
 #and Avrama Blackwell for moose_nerp https://github.com/neurord/moose_nerp
 
-SAME_PIPE = { 1: [1, 2],
-             2: [1, 2],
-             3: [3, 4],
-             4: [3, 4],
-             5: [5, 6],
-             6: [5, 6],
-             7: [7, 8],
-             8: [7, 8]}
+SAME_PIPE = { "1": ["1", "2"],
+             "2": ["1", "2"],
+             "3": ["3", "4"],
+             "4": ["3", "4"],
+             "5": ["5", "6"],
+             "6": ["5", "6"],
+             "7": ["7", "8"],
+             "8": ["7", "8"]}
 
 SAME_ADDRESS = {
-    1: [1, 8],
-    2: [2, 3],
-    3: [2, 3],
-    4: [4, 5],
-    5: [4, 5],
-    6: [6, 7],
-    7: [6, 7],
-    8: [1, 8],
+    "1": ["1", "8"],
+    "2": ["2", "3"],
+    "3": ["2", "3"],
+    "4": ["4", "5"],
+    "5": ["4", "5"],
+    "6": ["6", "7"],
+    "7": ["6", "7"],
+    "8": ["1", "8"],
 }
 
-OPPOSITE_PIPE = {1: [5, 6],
-                 2: [5, 6],
-                 3: [7, 8],
-                 4: [7, 8],
-                 5: [1, 2],
-                 6: [1, 2],
-                 7: [3, 4],
-                 8: [3, 4]}
+OPPOSITE_PIPE = {"1": ["5", "6"],
+                 "2": ["5", "6"],
+                 "3": ["7", "8"],
+                 "4": ["7", "8"],
+                 "5": ["1", "2"],
+                 "6": ["1", "2"],
+                 "7": ["3", "4"],
+                 "8": ["3", "4"]}
 
-ADDRESS = {1: "cage A", #4
-           2: "cage B", #1,
-           3: "cage B", #1,
-           4: "cage C", #2,
-           5: "cage C", #2,
-           6: "cage D", #3,
-           7: "cage D", #3,
-           8: "cage A", #4
+ADDRESS = {"1": "cage A", #"4"
+           "2": "cage B", #1,
+           "3": "cage B", #1,
+           "4": "cage C", #2,
+           "5": "cage C", #2,
+           "6": "cage D", #"3",
+           "7": "cage D", #"3",
+           "8": "cage A", #"4"
 }
 
-ADDRESS_NON_ADJACENT = {1: "cage B", #1,
-                        2: "cage A", #4,
-                        3: "cage C", #2,
-                        4: "cage B", #1,
-                        5: "cage D", #3,
-                        6: "cage C", #2,
-                        7: "cage A", #4,
-                        8: "cage D", #3
+ADDRESS_NON_ADJACENT = {"1": "cage B", #1,
+                        "2": "cage A", #"4",
+                        "3": "cage C", #2,
+                        "4": "cage B", #1,
+                        "5": "cage D", #"3",
+                        "6": "cage C", #2,
+                        "7": "cage A", #"4",
+                        "8": "cage D", #"3"
 }
-# Surrounding: difference between antennas only 2 or 6 -- skipped one antenna
-SURROUNDING = {(1, 3): "cage B", #1,
-               (1, 7): "cage A", #4,
-               (2, 4): "cage B", #1,
-               (2, 8): "cage A", #4,
-               (3, 5): "cage C", #2,
-               (4, 6): "cage C", #2,
-               (5, 7): "cage D", #3,
-               (6, 8): "cage D", #3
+# Surrounding: difference between antennas only 2 or "6" -- skipped one antenna
+SURROUNDING = {("1", "3"): "cage B", #1,
+               ("1", "7"): "cage A", #"4",
+               ("2", "4"): "cage B", #1,
+               ("2", "8"): "cage A", #"4",
+               ("3", "5"): "cage C", #2,
+               ("4", "6"): "cage C", #2,
+               ("5", "7"): "cage D", #"3",
+               ("6", "8"): "cage D", #"3"
 }
 KEYS = ['12', '21', '34', '43', '56', '65', '78', '87']
 
@@ -248,7 +248,11 @@ def in_chamber(antenna, next_antenna):
 
 
 def change_state(antennas):
-    return np.where(abs(np.array(antennas[:-1]) - np.array(antennas[1:])) !=0)[0]
+    indx = []
+    for i, a in enumerate(antennas[:-1]):
+        if a != antennas[i+1]:
+            indx.append(i)
+    return indx
 
 def mouse_going_forward(antennas):
     assert len(antennas) > 2
@@ -345,13 +349,6 @@ def get_antennas(idxs, antennas):
 
 def get_timestamp(t_start, t_end, dt):
     return int(round((t_end - t_start)/dt))
-
-def get_key_for_frequencies(antenna, next_antenna):
-    if antenna % 2 and next_antenna == antenna + 1:
-        return "%d%d" % (antenna, next_antenna)
-    elif next_antenna % 2 and antenna == next_antenna + 1:
-        return "%d%d" % (antenna, next_antenna)
-
 
 def interval_overlap(int1, int2):
     """Return overlap between two intervals."""
@@ -590,8 +587,8 @@ def extract_directions(times, antennas, last_antenna, keys):
         if c_idx + 1 >= len(antennas):
             break
         ant, next_ant = antennas[c_idx], antennas[c_idx + 1]
-        key = get_key_for_frequencies(ant, next_ant)
-        if key is not None:
+        key = "%s%s" % (ant, next_ant)
+        if key in keys:
             try:
                 third_antenna = antennas[c_idx + 2]
             except IndexError:

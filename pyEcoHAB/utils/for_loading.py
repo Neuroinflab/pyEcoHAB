@@ -164,7 +164,10 @@ def remove_one_antenna(data, antenna):
     """
     Remove animal tags registered by a specified antenna from 2D data array
     """
-    where = np.where(data["Antenna"] == antenna)[0]
+    where = []
+    for i, a in enumerate(data["Antenna"]):
+        if a == antenna:
+            where.append(i)
     if len(where) == 0:
         return data
     return np.delete(data, where, axis=0)
@@ -252,8 +255,11 @@ def check_antenna_presence(raw_data, max_break):
     breaks = {}
     t_end = raw_data['Time'][-1]
     
-    for antenna in range(1, 9):
-        antenna_idx = np.where(raw_data['Antenna'] == antenna)[0]
+    for antenna in ["1", "2", "3", "4", "5", "6", "7", "8"]:
+        antenna_idx = []
+        for i, a in enumerate(raw_data['Antenna']):
+            if antenna == a:
+                antenna_idx.append(i)
         times = all_times[antenna_idx]
         breaks[antenna] = []
         if len(times):
@@ -292,30 +298,30 @@ def antenna_mismatch(raw_data, pairs):
 
 def run_diagnostics(raw_data, max_break, res_dir, pairs):
     mismatches = antenna_mismatch(raw_data, pairs)
-    out_f1 = "First reading, consecutive reading,  count, percentage\n"
-    print("Mismatched antenna readings")
-    print("First reading, consecutive reading,  count, percentage")
+    out_f1 = u"First reading, consecutive reading,  count, percentage\n"
+    print(u"Mismatched antenna readings")
+    print(u"First reading, consecutive reading,  count, percentage")
    
     for pair in mismatches.keys():
         exact_mis = np.round(100*mismatches[pair]/len(raw_data['Antenna']))
-        print("%s,\t%d, %3.2f per 100"% (pair, mismatches[pair], exact_mis))
-        out_f1 += "%s,\t%d, %3.2f per 100\n"% (pair, mismatches[pair],
-                                               exact_mis)
+        print(u"%s,\t%d, %3.2f per 100"% (pair, mismatches[pair], exact_mis))
+        out_f1 += u"%s,\t%d, %3.2f per 100\n"% (pair, mismatches[pair],
+                                                exact_mis)
     
     antenna_breaks = check_antenna_presence(raw_data, max_break)
     
     print('Breaks in registrations on antennas:')
-    out_f2 = 'Breaks in registrations on antennas:\n'
+    out_f2 = u'Breaks in registrations on antennas:\n'
     for antenna in antenna_breaks:
         print(antenna, ':')
-        out_f2 += "%d:\n" % antenna
+        out_f2 += u"%s:\n" % antenna
         for breaks in antenna_breaks[antenna]:
             print("%s %s, %4.2f h" % (print_human_time(breaks[0]),
                                       print_human_time(breaks[1]),
                                       (breaks[1] - breaks[0])/3600))
-            out_f2 += "%s %s, %4.2f h\n" % (print_human_time(breaks[0]),
-                                           print_human_time(breaks[1]),
-                                           (breaks[1] - breaks[0])/3600)
+            out_f2 += u"%s %s, %4.2f h\n" % (print_human_time(breaks[0]),
+                                             print_human_time(breaks[1]),
+                                             (breaks[1] - breaks[0])/3600)
 
     new_path = check_directory(res_dir, "diagnostics")
 
@@ -336,7 +342,7 @@ def run_diagnostics(raw_data, max_break, res_dir, pairs):
 
 def transform_raw(row):
     return (int(row[0]), time_to_sec(row[1]),
-            int(row[2]), int(row[3]), row[4])
+            row[2], int(row[3]), row[4])
 
 def from_raw_data(raw_data):
     """
@@ -346,7 +352,7 @@ def from_raw_data(raw_data):
     new_data = []
     for row in raw_data:
         new_data.append(transform_raw(row))
-    data_type = [("Id", int), ("Time", float), ("Antenna", int),
+    data_type = [("Id", int), ("Time", float), ("Antenna", "U15"),
                  ("Duration", int), ("Tag", "U15")]
     return np.array(new_data, dtype=data_type)
 

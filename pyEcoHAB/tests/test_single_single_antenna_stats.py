@@ -16,7 +16,7 @@ class TestExecution(unittest.TestCase):
         cls.config = Timeline(sample_data)
 
     def test1(self):
-        sar.get_single_antenna_stats(self.data, self.config, 3600, 1)
+        sar.get_single_antenna_stats(self.data, self.config, 3600, "1")
 
     def test2(self):
         sar.get_single_antenna_stats(self.data, self.config, 3600)
@@ -26,13 +26,13 @@ class TestExecution(unittest.TestCase):
                           self.data, self.config, 3600, "gugu")
 
     def test4(self):
-        sar.get_single_antenna_stats(self.data, self.config, 900, 1)
+        sar.get_single_antenna_stats(self.data, self.config, 900, "1")
 
     def test5(self):
         sar.get_single_antenna_stats(self.data, self.config, 900)
 
     def test6(self):
-        sar.get_single_antenna_stats(self.data, self.config, 1800, 1)
+        sar.get_single_antenna_stats(self.data, self.config, 1800, "1")
 
     def test7(self):
         sar.get_single_antenna_stats(self.data, self.config, 1800)

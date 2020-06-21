@@ -22,19 +22,19 @@ class TestSingleAntennaStats(unittest.TestCase):
     def test_antenna1(self):
         times = self.config.gettime("ALL")
         result = self.data.get_registration_stats("mouse_1", times[0],
-                                                  times[1], 1, 3600)
+                                                  times[1], "1", 3600)
         self.assertEqual(result, ([3], [613/1000]))
 
     def test_antenna2(self):
         times = self.config.gettime("ALL")
         result = self.data.get_registration_stats("mouse_1", times[0],
-                                                  times[1], 1, 1800)
+                                                  times[1], "1", 1800)
         self.assertEqual(result, ([2, 1], [460/1000, 153/1000]))
 
     def test_antenna8(self):
         times = self.config.gettime("ALL")
         result = self.data.get_registration_stats("mouse_1", times[0],
-                                                  times[1], 8, 900)
+                                                  times[1], "8", 900)
         self.assertEqual(result, ([0, 0, 0, 1], [0, 0, 0, 1026/1000]))
 
         
