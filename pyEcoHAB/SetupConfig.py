@@ -127,6 +127,7 @@ class SetupConfigMethods(RawConfigParser):
 
     def other_cage_antenna(self, new_antenna):
         antenna = new_antenna
+        #print(self.same_address)
         cage_antennas = self.same_address[antenna][:]
         idx = cage_antennas.index(antenna)
         cage_antennas.pop(idx)
@@ -375,7 +376,7 @@ class ExperimentSetupConfig(SetupConfigMethods):
         self.identity_points = experiment_config.identity_points
         self.make_sections(single_configs)
         self.ALL_ANTENNAS = self.get_all_antennas()
-        #self.make_definitions()
+        self.make_definitions()
 
     def make_sections(self, single_configs):
         setup_names = list(single_configs.keys())
@@ -394,6 +395,7 @@ class ExperimentSetupConfig(SetupConfigMethods):
                     section_items = []
                 except DuplicateSectionError:
                     section_items = [item[0] for item in self.items(new_section_name)]
+
                 for antenna_type, value in this_config.items(section):
                     new_value = "%s_%s" %(value, key)
                     if antenna_type in section_items:
@@ -402,8 +404,6 @@ class ExperimentSetupConfig(SetupConfigMethods):
                         new_antenna_type = "%s_antenna%d" %(starts_with, how_many+1)
                     else:
                         new_antenna_type = antenna_type
+
                     self.set(new_section_name, new_antenna_type, new_value)
-
-        self.ALL_ANTENNAS = self.get_all_antennas()
-        #self.make_definitions()
-
+                    section_items = [item[0] for item in self.items(new_section_name)]

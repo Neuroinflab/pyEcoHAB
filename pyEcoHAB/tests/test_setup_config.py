@@ -384,5 +384,24 @@ class TestExperimentSetupConfig(unittest.TestCase):
                       "ecohab2 tunnel 1"])
 
         self.assertEqual(out, sorted(self.experiment_config.sections()))
+
+    def test_all_antennas(self):
+        self.assertEqual(sorted(self.experiment_config.ALL_ANTENNAS),
+                         sorted(['1_ecohab1', '1_ecohab2', '2_ecohab1', '2_ecohab2',
+                                 '3_ecohab1', '4_ecohab1', '5_ecohab1', '6_ecohab1',
+                                 '7_ecohab1', '8_ecohab1', '8_ecohab2']))
+
+    def test_all_cages(self):
+        self.assertEqual(sorted(self.experiment_config.cages),
+                         sorted(["shared cage 1", "ecohab1 cage B", "ecohab1 cage C",
+                                 "ecohab1 cage D",  "ecohab2 cage A"]))
+
+    def test_all_tunnels(self):
+        self.assertEqual(sorted(["ecohab1 tunnel 1", "ecohab1 tunnel 2",
+                                 "ecohab1 tunnel 3", "ecohab1 tunnel 4",
+                                 "ecohab2 tunnel 1"]),
+                         sorted(self.experiment_config.tunnels))
+
+
 if __name__ == '__main__':
     unittest.main()
