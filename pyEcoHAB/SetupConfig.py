@@ -309,6 +309,35 @@ class SetupConfig(SetupConfigMethods):
         self.make_definitions()
         self.mismatched_pairs = self.get_mismatched_pairs()
 
+class IdentityConfig(RawConfigParser):
+    def __init__(self, path_to_fname):
+        if os.path.isfile(path_to_fname):
+            self.config_path = path_to_fname
+        else:
+            raise Exception("Could not find experiment config file %s for complex experiments",
+                            path_to_fname)
+        RawConfigParser.__init__(self)
+        self.read(path_to_fname)
+
+    @property
+    def identity_points(self):
+        field = "setup_%d_name"
+        value = "point_%d_name"
+        out = {}
+        for section in self.sections():
+            items = [item[0] for item in self.items(section)]
+            setups = (len(items) - 1)//2
+            if (len(items) - 1) % 2 != 0:
+                raise Exception("Wrong format of ExperimentSetup config section %" % section)
+            if setups < 2:
+                raise Exception("Not enough setups defined in ExperimentSetup config section %" % section)
+
+            for i in range(1, setups + 1):
+                setup = self.get(section, field % i)
+                point = self.get(section, value % i)
+                new_key = "%s %s" % (setup, point)
+                out[new_key] = self.get(section, "destination_name")
+        return out
 
 
 class ExperimentSetupConfig(SetupConfigMethods):
@@ -342,26 +371,24 @@ class ExperimentSetupConfig(SetupConfigMethods):
 
         """
         SetupConfigMethods.__init__(self)
-        if os.path.isfile(fname_with_path):
-            self.config_path = fname_with_path
-        else:
-            raise Exception("Could not find experiment config file %s",
-                            fname_with_path)
-        self.read(fname_with_path)
+        experiment_config = IdentityConfig(fname_with_path)
+        self.identity_points = experiment_config.identity_points
+        self.make_sections(single_configs)
+        self.ALL_ANTENNAS = self.get_all_antennas()
+        #self.make_definitions()
 
-        identity_points = self._get_identity_points()
-
+    def make_sections(self, single_configs):
         setup_names = list(single_configs.keys())
         #add individual sections from each of the setup configs
         for key in setup_names:
             this_config = single_configs[key]
-            setup_sections = this_config.sections()
+            this_config_sectionss = this_config.sections()
 
-            for section in setup_sections:
+            for section in this_config_sectionss:
 
-                new_section_name = "%s_%s" % (key, section)
-                if new_section_name in identity_points:
-                    new_section_name = identity_points[new_section_name]
+                new_section_name = "%s %s" % (key, section)
+                if new_section_name in self.identity_points:
+                    new_section_name = self.identity_points[new_section_name]
                 try:
                     self.add_section(new_section_name)
                     section_items = []
@@ -380,21 +407,3 @@ class ExperimentSetupConfig(SetupConfigMethods):
         self.ALL_ANTENNAS = self.get_all_antennas()
         #self.make_definitions()
 
-    def _get_identity_points(self):
-        field = "setup_%d_name"
-        value = "point_%d_name"
-        out = {}
-        for section in self.sections():
-            items = [item[0] for item in self.items(section)]
-            setups = (len(items) - 1)//2
-            if (len(items) - 1) % 2 != 0:
-                raise Exception("Wrong format of ExperimentSetup config section %" % section)
-            if setups < 2:
-                raise Exception("Not enough setups defined in ExperimentSetup config section %" % section)
-
-            for i in range(1, setups + 1):
-                setup = self.get(section, field % i)
-                point = self.get(section, value % i)
-                new_key = "%s_%s" % (point, setup)
-                out[new_key] = self.get(section, "destination_name")
-        return out

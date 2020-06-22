@@ -371,8 +371,18 @@ class TestExperimentSetupConfig(unittest.TestCase):
                                                       ecohab1=cls.config1,
                                                       ecohab2=cls.config2)
 
-    def test1(self):
-        self.experiment_config.make_definitions()
+    def test_indentity_points(self):
+        out = {"ecohab1 cage A": "shared cage 1",
+               "ecohab2 cage B": "shared cage 1"}
+        self.assertEqual(self.experiment_config.identity_points,
+                         out)
 
+    def test_all_section_names(self):
+        out = sorted(["shared cage 1", "ecohab1 cage B", "ecohab1 cage C",
+                      "ecohab1 cage D", "ecohab1 tunnel 1", "ecohab1 tunnel 2",
+                      "ecohab1 tunnel 3", "ecohab1 tunnel 4", "ecohab2 cage A",
+                      "ecohab2 tunnel 1"])
+
+        self.assertEqual(out, sorted(self.experiment_config.sections()))
 if __name__ == '__main__':
     unittest.main()
