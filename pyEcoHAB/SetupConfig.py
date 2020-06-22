@@ -31,7 +31,6 @@ class SetupConfigMethods(RawConfigParser):
         self.address_non_adjacent = self.get_address_non_adjacent_dict()
         self.address_surrounding = self.get_surrounding_dict()
         self.directions = self.get_directions_dict()
-        self.mismatched_pairs = self.get_mismatched_pairs()
 
 
     def get_all_antennas(self):
@@ -308,6 +307,8 @@ class SetupConfig(SetupConfigMethods):
                                    'setup.txt', "setup*.txt")
         self.read(full_path)
         self.make_definitions()
+        self.mismatched_pairs = self.get_mismatched_pairs()
+
 
 
 class ExperimentSetupConfig(SetupConfigMethods):
