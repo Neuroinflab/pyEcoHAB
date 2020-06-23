@@ -444,6 +444,59 @@ class TestExperimentSetupConfig(unittest.TestCase):
                                  "ecohab_2 tunnel 1", "ecohab_2 tunnel 2"]),
                          sorted(self.full_exp.tunnels))
 
+    def test_get_cages_dict_1(self):
+        key =  "shared cage 1"
+        out = sorted(["8_ecohab1", "1_ecohab1", "2_ecohab2"])
+        self.assertEqual(sorted(self.experiment_config.cages_dict[key]),
+                         out)
+
+    def test_get_cages_dict_2(self):
+        key =  "ecohab1 cage B"
+        out = sorted(["2_ecohab1", "3_ecohab1"])
+        self.assertEqual(sorted(self.experiment_config.cages_dict[key]),
+                         out)
+
+    def test_get_cages_dict_3(self):
+        key =  "ecohab1 cage C"
+        out = sorted(["4_ecohab1", "5_ecohab1"])
+        self.assertEqual(sorted(self.experiment_config.cages_dict[key]),
+                         out)
+
+    def test_get_cages_dict_4(self):
+        key =  "ecohab1 cage D"
+        out = sorted(["6_ecohab1", "7_ecohab1"])
+        self.assertEqual(sorted(self.experiment_config.cages_dict[key]),
+                         out)
+
+    def test_get_cages_dict_5(self):
+        key =  "ecohab2 cage A"
+        out = sorted(["1_ecohab2"])
+        self.assertEqual(sorted(self.experiment_config.cages_dict[key]),
+                         out)
+
+    def test_get_cages_dict_full_exp_1(self):
+        key =  "cage A"
+        out = sorted(["1_ecohab_1", "8_ecohab_2"])
+        self.assertEqual(sorted(self.full_exp.cages_dict[key]),
+                         out)
+
+    def test_get_cages_dict_full_exp_2(self):
+        key =  "ecohab_1 cage B"
+        out = sorted(["2_ecohab_1", "3_ecohab_1"])
+        self.assertEqual(sorted(self.full_exp.cages_dict[key]),
+                         out)
+
+    def test_get_cages_dict_full_exp_3(self):
+        key =  "ecohab_2 cage D"
+        out = sorted(["6_ecohab_2", "7_ecohab_2"])
+        self.assertEqual(sorted(self.full_exp.cages_dict[key]),
+                         out)
+
+    def test_get_cages_dict_full_exp_4(self):
+        key =  "cage C"
+        out = sorted(["4_ecohab_1", "5_ecohab_2"])
+        self.assertEqual(sorted(self.full_exp.cages_dict[key]),
+                         out)
 
 if __name__ == '__main__':
     unittest.main()
