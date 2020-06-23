@@ -474,6 +474,12 @@ class TestExperimentSetupConfig(unittest.TestCase):
         self.assertEqual(sorted(self.experiment_config.cages_dict[key]),
                          out)
 
+    def test_get_cages_dict_keys(self):
+        keys = sorted(["shared cage 1", "ecohab1 cage B", "ecohab1 cage C",
+                       "ecohab1 cage D", "ecohab2 cage A"])
+        self.assertEqual(sorted(list(self.experiment_config.cages_dict.keys())),
+                         keys)
+
     def test_get_cages_dict_full_exp_1(self):
         key =  "cage A"
         out = sorted(["1_ecohab_1", "8_ecohab_2"])
@@ -497,6 +503,13 @@ class TestExperimentSetupConfig(unittest.TestCase):
         out = sorted(["4_ecohab_1", "5_ecohab_2"])
         self.assertEqual(sorted(self.full_exp.cages_dict[key]),
                          out)
+
+    def test_get_cages_dict_full_exp_keys(self):
+        keys =  sorted(["cage A", "ecohab_1 cage B", "cage C",
+                       "ecohab_2 cage D"])
+
+        self.assertEqual(sorted(list(self.full_exp.cages_dict.keys())),
+                         keys)
 
     def test_internal_antennas(self):
         self.assertEqual(self.experiment_config.internal_antennas,

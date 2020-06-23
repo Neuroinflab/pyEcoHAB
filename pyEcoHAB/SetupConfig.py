@@ -32,12 +32,11 @@ class SetupConfigMethods(RawConfigParser):
         self.address_surrounding = self.get_surrounding_dict()
         self.directions = self.get_directions_dict()
 
-
     def get_all_antennas(self):
         all_antennas = []
         for sec in self.sections():
             if sec.startswith("shared point"):
-                pass
+                continue
             for key, value in self.items(sec):
                 if value not in all_antennas:
                     all_antennas.append(value)
