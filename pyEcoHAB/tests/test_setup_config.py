@@ -710,7 +710,120 @@ class TestExperimentSetupConfig(unittest.TestCase):
     def test_same_address_keys(self):
         self.assertEqual(sorted(self.experiment_config.all_antennas),
                          sorted(self.experiment_config.same_address.keys()))
+
+    def test_same_address_11(self):
+        key = "1_ecohab1"
+        out = sorted(["1_ecohab1", "8_ecohab2", "2_ecohab2", "8_ecohab1"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.same_address[key]))
+
+    def test_same_address_81(self):
+        key = "8_ecohab1"
+        out = sorted(["1_ecohab1", "8_ecohab2", "2_ecohab2", "8_ecohab1"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.same_address[key]))
+
+    def test_same_address_22(self):
+        key = "2_ecohab2"
+        out = sorted(["1_ecohab1", "8_ecohab2", "2_ecohab2", "8_ecohab1"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.same_address[key]))
         
+    def test_same_address_82(self):
+        key = "8_ecohab2"
+        out = sorted(["1_ecohab1", "8_ecohab2", "2_ecohab2", "8_ecohab1"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.same_address[key]))
+
+    def test_same_address_21(self):
+        key = "2_ecohab1"
+        out = sorted(["2_ecohab1", "3_ecohab1"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.same_address[key]))
+
+    def test_same_address_31(self):
+        key = "3_ecohab1"
+        out = sorted(["2_ecohab1", "3_ecohab1"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.same_address[key]))
+
+    def test_same_address_41(self):
+        key = "4_ecohab1"
+        out = sorted(["4_ecohab1", "5_ecohab1"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.same_address[key]))
+
+    def test_same_address_51(self):
+        key = "5_ecohab1"
+        out = sorted(["4_ecohab1", "5_ecohab1"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.same_address[key]))
+
+    def test_same_address_61(self):
+        key = "6_ecohab1"
+        out = sorted(["6_ecohab1", "7_ecohab1"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.same_address[key]))
+
+    def test_same_address_71(self):
+        key = "7_ecohab1"
+        out = sorted(["6_ecohab1", "7_ecohab1"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.same_address[key]))
+
+    def test_same_address_full_exp_keys(self):
+        keys = sorted(self.full_exp.all_antennas)
+        self.assertEqual(keys,
+                         sorted(self.full_exp.same_address.keys()))
+
+    def test_same_address_full_exp_82(self):
+        key = "8_ecohab_2"
+        out = sorted(["8_ecohab_2", "1_ecohab_1"])
+        self.assertEqual(out,
+                         sorted(self.full_exp.same_address[key]))
+
+    def test_same_address_full_exp_11(self):
+        key = "1_ecohab_1"
+        out = sorted(["8_ecohab_2", "1_ecohab_1"])
+        self.assertEqual(out,
+                         sorted(self.full_exp.same_address[key]))
+
+    def test_same_address_full_exp_21(self):
+        key = "2_ecohab_1"
+        out = sorted(["2_ecohab_1", "3_ecohab_1"])
+        self.assertEqual(out,
+                         sorted(self.full_exp.same_address[key]))
+
+    def test_same_address_full_exp_31(self):
+        key = "3_ecohab_1"
+        out = sorted(["2_ecohab_1", "3_ecohab_1"])
+        self.assertEqual(out,
+                         sorted(self.full_exp.same_address[key]))
+
+    def test_same_address_full_exp_41(self):
+        key = "4_ecohab_1"
+        out = sorted(["4_ecohab_1", "5_ecohab_2"])
+        self.assertEqual(out,
+                         sorted(self.full_exp.same_address[key]))
+
+    def test_same_address_full_exp_52(self):
+        key = "5_ecohab_2"
+        out = sorted(["5_ecohab_2", "4_ecohab_1"])
+        self.assertEqual(out,
+                         sorted(self.full_exp.same_address[key]))
+
+    def test_same_address_full_exp_62(self):
+        key = "6_ecohab_2"
+        out = sorted(["6_ecohab_2", "7_ecohab_2"])
+        self.assertEqual(out,
+                         sorted(self.full_exp.same_address[key]))
+
+    def test_same_address_full_exp_72(self):
+        key = "7_ecohab_2"
+        out = sorted(["6_ecohab_2", "7_ecohab_2"])
+        self.assertEqual(out,
+                         sorted(self.full_exp.same_address[key]))
     
+
 if __name__ == '__main__':
     unittest.main()
