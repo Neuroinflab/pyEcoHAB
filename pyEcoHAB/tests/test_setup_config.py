@@ -519,5 +519,73 @@ class TestExperimentSetupConfig(unittest.TestCase):
         self.assertEqual(self.full_exp.internal_antennas,
                          [])
 
+    def test_tunnels_dict_keys(self):
+        keys = sorted(["ecohab1 tunnel 1", "ecohab1 tunnel 2",
+                       "ecohab1 tunnel 3", "ecohab1 tunnel 4",
+                       "ecohab2 tunnel 1"])
+        act_keys = sorted(list(self.experiment_config.tunnels_dict.keys()))
+        self.assertEqual(keys, act_keys)
+
+    def test_tunnels_dict_1(self):
+        key = "ecohab1 tunnel 1"
+        out = sorted(["1_ecohab1", "2_ecohab1"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.tunnels_dict[key]))
+
+    def test_tunnels_dict_2(self):
+        key = "ecohab1 tunnel 2"
+        out = sorted(["3_ecohab1", "4_ecohab1"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.tunnels_dict[key]))
+
+    def test_tunnels_dict_3(self):
+        key = "ecohab1 tunnel 3"
+        out = sorted(["5_ecohab1", "6_ecohab1"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.tunnels_dict[key]))
+
+    def test_tunnels_dict_4(self):
+        key = "ecohab1 tunnel 4"
+        out = sorted(["7_ecohab1", "8_ecohab1"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.tunnels_dict[key]))
+
+    def test_tunnels_dict_5(self):
+        key = "ecohab2 tunnel 1"
+        out = sorted(["1_ecohab2", "2_ecohab2"])
+        self.assertEqual(out,
+                         sorted(self.experiment_config.tunnels_dict[key]))
+
+    def test_tunnels_dict_keys_full_exp(self):
+        keys = sorted(["ecohab_1 tunnel 1", "ecohab_1 tunnel 2",
+                       "ecohab_2 tunnel 1", "ecohab_2 tunnel 2"])
+        act_keys = sorted(list(self.full_exp.tunnels_dict.keys()))
+        self.assertEqual(keys, act_keys)
+
+    def test_tunnels_dict_full_exp_1(self):
+        key = "ecohab_1 tunnel 1"
+        out = sorted(["1_ecohab_1", "2_ecohab_1"])
+        self.assertEqual(out,
+                         sorted(self.full_exp.tunnels_dict[key]))
+
+    def test_tunnels_dict_full_exp_2(self):
+        key = "ecohab_1 tunnel 2"
+        out = sorted(["3_ecohab_1", "4_ecohab_1"])
+        self.assertEqual(out,
+                         sorted(self.full_exp.tunnels_dict[key]))
+
+    def test_tunnels_dict_full_exp_3(self):
+        key = "ecohab_2 tunnel 2"
+        out = sorted(["5_ecohab_2", "6_ecohab_2"])
+        self.assertEqual(out,
+                         sorted(self.full_exp.tunnels_dict[key]))
+
+    def test_tunnels_dict_full_exp_4(self):
+        key = "ecohab_2 tunnel 1"
+        out = sorted(["7_ecohab_2", "8_ecohab_2"])
+        self.assertEqual(out,
+                         sorted(self.full_exp.tunnels_dict[key]))
+
+
 if __name__ == '__main__':
     unittest.main()
