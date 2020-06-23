@@ -362,10 +362,9 @@ class TestOppositePipe(unittest.TestCase):
 class TestExperimentSetupConfig(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path1 = os.path.join(data_path, "standard_setup.txt")
         path2 = os.path.join(data_path, "test_setups")
         path3 = os.path.join(data_path, "experiment_setup.txt")
-        cls.config1 = SetupConfig(path1)
+        cls.config1 = SetupConfig(data_path, "standard_setup.txt")
         cls.config2 = SetupConfig(path=path2, fname="setup_internal.txt")
         cls.experiment_config = ExperimentSetupConfig(path3,
                                                       ecohab1=cls.config1,
