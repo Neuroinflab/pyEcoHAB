@@ -74,7 +74,7 @@ class SetupConfigMethods(RawConfigParser):
         for sec in tunnels:
             tunnel_dict[sec] = []
             for antenna_type, val in self.items(sec):
-                if antenna_type.startswith("entrance") or antenna_type.startswith("internal"):
+                if antenna_type.startswith("entrance"):
                     tunnel_dict[sec].append(val)
                 else:
                     print("Unknown antenna type %s" % antenna_type)
