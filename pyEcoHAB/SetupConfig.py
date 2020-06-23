@@ -126,7 +126,6 @@ class SetupConfigMethods(RawConfigParser):
 
     def other_cage_antenna(self, new_antenna):
         antenna = new_antenna
-        #print(self.same_address)
         cage_antennas = self.same_address[antenna][:]
         idx = cage_antennas.index(antenna)
         cage_antennas.pop(idx)
