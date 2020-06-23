@@ -370,10 +370,27 @@ class TestExperimentSetupConfig(unittest.TestCase):
                                                       ecohab1=cls.config1,
                                                       ecohab2=cls.config2)
 
+        path1 = os.path.join(data_path, "test_experiment_setups")
+        cls.config3 = SetupConfig(path1, "setup1.txt")
+        cls.config4 = SetupConfig(path1, "setup2.txt")
+        full_path  = os.path.join(path1, "experiment_setup.txt")
+        cls.full_exp = ExperimentSetupConfig(full_path,
+                                             ecohab_1=cls.config3,
+                                             ecohab_2=cls.config4)
+
+
     def test_indentity_points(self):
         out = {"ecohab1 cage A": "shared cage 1",
                "ecohab2 cage B": "shared cage 1"}
         self.assertEqual(self.experiment_config.identity_points,
+                         out)
+
+    def test_indentity_points_full_exp(self):
+        out = {"ecohab_1 cage A": "cage A",
+               "ecohab_2 cage A": "cage A",
+               "ecohab_1 cage C": "cage C",
+               "ecohab_2 cage C": "cage C",}
+        self.assertEqual(self.full_exp.identity_points,
                          out)
 
     def test_all_section_names(self):
@@ -384,22 +401,48 @@ class TestExperimentSetupConfig(unittest.TestCase):
 
         self.assertEqual(out, sorted(self.experiment_config.sections()))
 
+    def test_all_section_names_full_exp(self):
+        out = sorted(["cage A", "ecohab_1 cage B", "ecohab_2 cage D",
+                      "cage C", "ecohab_1 tunnel 1", "ecohab_1 tunnel 2",
+                      "ecohab_2 tunnel 1", "ecohab_2 tunnel 2"])
+
+        self.assertEqual(out, sorted(self.full_exp.sections()))
+
     def test_all_antennas(self):
         self.assertEqual(sorted(self.experiment_config.ALL_ANTENNAS),
-                         sorted(['1_ecohab1', '1_ecohab2', '2_ecohab1', '2_ecohab2',
-                                 '3_ecohab1', '4_ecohab1', '5_ecohab1', '6_ecohab1',
-                                 '7_ecohab1', '8_ecohab1', '8_ecohab2']))
+                         sorted(['1_ecohab1', '1_ecohab2', '2_ecohab1',
+                                 '2_ecohab2', '3_ecohab1', '4_ecohab1',
+                                 '5_ecohab1', '6_ecohab1', '7_ecohab1',
+                                 '8_ecohab1', '8_ecohab2']))
+
+    def test_all_antennas_full_exp(self):
+        self.assertEqual(sorted(self.full_exp.ALL_ANTENNAS),
+                         sorted(['1_ecohab_1', '2_ecohab_1',
+                                 '3_ecohab_1', '4_ecohab_1',
+                                 '5_ecohab_2', '6_ecohab_2',
+                                 '7_ecohab_2', '8_ecohab_2']))
 
     def test_all_cages(self):
         self.assertEqual(sorted(self.experiment_config.cages),
-                         sorted(["shared cage 1", "ecohab1 cage B", "ecohab1 cage C",
-                                 "ecohab1 cage D",  "ecohab2 cage A"]))
+                         sorted(["shared cage 1", "ecohab1 cage B",
+                                 "ecohab1 cage C", "ecohab1 cage D",
+                                 "ecohab2 cage A"]))
+
+    def test_all_cages_full_exp(self):
+        self.assertEqual(sorted(self.full_exp.cages),
+                         sorted(["cage A", "cage C",
+                                 "ecohab_1 cage B", "ecohab_2 cage D"]))
 
     def test_all_tunnels(self):
         self.assertEqual(sorted(["ecohab1 tunnel 1", "ecohab1 tunnel 2",
                                  "ecohab1 tunnel 3", "ecohab1 tunnel 4",
                                  "ecohab2 tunnel 1"]),
                          sorted(self.experiment_config.tunnels))
+
+    def test_all_tunnels_full_exp(self):
+        self.assertEqual(sorted(["ecohab_1 tunnel 1", "ecohab_1 tunnel 2",
+                                 "ecohab_2 tunnel 1", "ecohab_2 tunnel 2"]),
+                         sorted(self.full_exp.tunnels))
 
 
 if __name__ == '__main__':
