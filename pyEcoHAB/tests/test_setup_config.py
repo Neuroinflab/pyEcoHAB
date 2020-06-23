@@ -261,7 +261,7 @@ class TestOppositePipe(unittest.TestCase):
         self.assertEqual([], self.custom.other_cage_antenna("1"))
 
     def test_other_cage_antenna_c2(self):
-        self.assertEqual([], self.custom.other_cage_antenna("2"))
+        self.assertEqual(["8"], self.custom.other_cage_antenna("2"))
 
     def test_next_tunnel_antennas_c1(self):
         self.assertEqual([], self.custom.next_tunnel_antennas("1"))
@@ -306,7 +306,8 @@ class TestOppositePipe(unittest.TestCase):
 
     def test_cage_address_custom(self):
         out = {"1": "cage A",
-               "2": "cage B"}
+               "2": "cage B",
+               "8": "cage B"}
         self.assertEqual(out, self.custom.get_cage_address_dict())
 
     def test_cage_adjacent_default(self):
@@ -324,7 +325,7 @@ class TestOppositePipe(unittest.TestCase):
                          self.default.get_surrounding_dict())
 
     def test_cage_surrounding_custom(self):
-        self.assertEqual({},
+        self.assertEqual({("1", "8"): 'cage B'},
                          self.custom.get_surrounding_dict())
 
     def test_directions_custom(self):
@@ -446,7 +447,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
 
     def test_get_cages_dict_1(self):
         key =  "shared cage 1"
-        out = sorted(["8_ecohab1", "1_ecohab1", "2_ecohab2"])
+        out = sorted(["8_ecohab1", "8_ecohab2","1_ecohab1", "2_ecohab2"])
         self.assertEqual(sorted(self.experiment_config.cages_dict[key]),
                          out)
 
