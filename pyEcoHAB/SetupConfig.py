@@ -90,7 +90,7 @@ class SetupConfigMethods(RawConfigParser):
         out = []
         for sec in self.sections():
             all_items = self.items(sec)
-            out += [sec for item in all_items if item[0].startswith("int")]
+            out += [item[1] for item in all_items if item[0].startswith("int")]
         return out
 
     def get_same_tunnel(self):

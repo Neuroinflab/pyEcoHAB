@@ -155,7 +155,7 @@ class TestGetDicts(unittest.TestCase):
 
     def test_custom_internal(self):
         out = self.custom.internal_antennas
-        self.assertEqual(out, ["cage B"])
+        self.assertEqual(out, ["8"])
 
     def test_same_tunnel_default(self):
         out = {}
@@ -497,6 +497,14 @@ class TestExperimentSetupConfig(unittest.TestCase):
         out = sorted(["4_ecohab_1", "5_ecohab_2"])
         self.assertEqual(sorted(self.full_exp.cages_dict[key]),
                          out)
+
+    def test_internal_antennas(self):
+        self.assertEqual(self.experiment_config.internal_antennas,
+                         ["8_ecohab2"])
+
+    def test_internal_antennas_full_exp(self):
+        self.assertEqual(self.full_exp.internal_antennas,
+                         [])
 
 if __name__ == '__main__':
     unittest.main()
