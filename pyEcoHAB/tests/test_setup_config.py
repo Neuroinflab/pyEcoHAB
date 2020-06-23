@@ -478,7 +478,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
     def test_get_cages_dict_keys(self):
         keys = sorted(["shared cage 1", "ecohab1 cage B", "ecohab1 cage C",
                        "ecohab1 cage D", "ecohab2 cage A"])
-        self.assertEqual(sorted(list(self.experiment_config.cages_dict.keys())),
+        self.assertEqual(sorted(self.experiment_config.cages_dict.keys()),
                          keys)
 
     def test_get_cages_dict_full_exp_1(self):
@@ -509,7 +509,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
         keys =  sorted(["cage A", "ecohab_1 cage B", "cage C",
                        "ecohab_2 cage D"])
 
-        self.assertEqual(sorted(list(self.full_exp.cages_dict.keys())),
+        self.assertEqual(sorted(self.full_exp.cages_dict.keys()),
                          keys)
 
     def test_internal_antennas(self):
@@ -524,7 +524,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
         keys = sorted(["ecohab1 tunnel 1", "ecohab1 tunnel 2",
                        "ecohab1 tunnel 3", "ecohab1 tunnel 4",
                        "ecohab2 tunnel 1"])
-        act_keys = sorted(list(self.experiment_config.tunnels_dict.keys()))
+        act_keys = sorted(self.experiment_config.tunnels_dict.keys())
         self.assertEqual(keys, act_keys)
 
     def test_tunnels_dict_1(self):
@@ -560,7 +560,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
     def test_tunnels_dict_keys_full_exp(self):
         keys = sorted(["ecohab_1 tunnel 1", "ecohab_1 tunnel 2",
                        "ecohab_2 tunnel 1", "ecohab_2 tunnel 2"])
-        act_keys = sorted(list(self.full_exp.tunnels_dict.keys()))
+        act_keys = sorted(self.full_exp.tunnels_dict.keys())
         self.assertEqual(keys, act_keys)
 
     def test_tunnels_dict_full_exp_1(self):
@@ -588,125 +588,129 @@ class TestExperimentSetupConfig(unittest.TestCase):
                          sorted(self.full_exp.tunnels_dict[key]))
 
     def test_same_tunnel_keys(self):
-        keys = sorted(list(set(self.experiment_config.ALL_ANTENNAS)
-                           - set(self.experiment_config.internal_antennas)))
+        keys = sorted(set(self.experiment_config.ALL_ANTENNAS)
+                           - set(self.experiment_config.internal_antennas))
         self.assertEqual(keys,
-                         sorted(list(self.experiment_config.same_tunnel.keys())))
+                         sorted(self.experiment_config.same_tunnel.keys()))
 
     def test_same_tunnel_1(self):
         key = "1_ecohab1"
         out = sorted(["1_ecohab1", "2_ecohab1"])
         self.assertEqual(out,
-                         sorted(list(self.experiment_config.same_tunnel[key])))
+                         sorted(self.experiment_config.same_tunnel[key]))
 
     def test_same_tunnel_2(self):
         key = "2_ecohab1"
         out = sorted(["1_ecohab1", "2_ecohab1"])
         self.assertEqual(out,
-                         sorted(list(self.experiment_config.same_tunnel[key])))
+                         sorted(self.experiment_config.same_tunnel[key]))
 
     def test_same_tunnel_3(self):
         key = "3_ecohab1"
         out = sorted(["3_ecohab1", "4_ecohab1"])
         self.assertEqual(out,
-                         sorted(list(self.experiment_config.same_tunnel[key])))
+                         sorted(self.experiment_config.same_tunnel[key]))
 
     def test_same_tunnel_4(self):
         key = "4_ecohab1"
         out = sorted(["3_ecohab1", "4_ecohab1"])
         self.assertEqual(out,
-                         sorted(list(self.experiment_config.same_tunnel[key])))
+                         sorted(self.experiment_config.same_tunnel[key]))
 
     def test_same_tunnel_5(self):
         key = "5_ecohab1"
         out = sorted(["5_ecohab1", "6_ecohab1"])
         self.assertEqual(out,
-                         sorted(list(self.experiment_config.same_tunnel[key])))
+                         sorted(self.experiment_config.same_tunnel[key]))
 
     def test_same_tunnel_6(self):
         key = "6_ecohab1"
         out = sorted(["5_ecohab1", "6_ecohab1"])
         self.assertEqual(out,
-                         sorted(list(self.experiment_config.same_tunnel[key])))
+                         sorted(self.experiment_config.same_tunnel[key]))
 
     def test_same_tunnel_7(self):
         key = "7_ecohab1"
         out = sorted(["7_ecohab1", "8_ecohab1"])
         self.assertEqual(out,
-                         sorted(list(self.experiment_config.same_tunnel[key])))
+                         sorted(self.experiment_config.same_tunnel[key]))
 
     def test_same_tunnel_8(self):
         key = "8_ecohab1"
         out = sorted(["7_ecohab1", "8_ecohab1"])
         self.assertEqual(out,
-                         sorted(list(self.experiment_config.same_tunnel[key])))
+                         sorted(self.experiment_config.same_tunnel[key]))
 
     def test_same_tunnel_9(self):
         key = "1_ecohab2"
         out = sorted(["1_ecohab2", "2_ecohab2"])
         self.assertEqual(out,
-                         sorted(list(self.experiment_config.same_tunnel[key])))
+                         sorted(self.experiment_config.same_tunnel[key]))
 
     def test_same_tunnel_10(self):
         key = "2_ecohab2"
         out = sorted(["1_ecohab2", "2_ecohab2"])
         self.assertEqual(out,
-                         sorted(list(self.experiment_config.same_tunnel[key])))
+                         sorted(self.experiment_config.same_tunnel[key]))
 
     def test_same_tunnel_keys_full_exp(self):
-        keys = sorted(list(set(self.full_exp.ALL_ANTENNAS)
-                           - set(self.full_exp.internal_antennas)))
+        keys = sorted(set(self.full_exp.ALL_ANTENNAS)
+                           - set(self.full_exp.internal_antennas))
         self.assertEqual(keys,
-                         sorted(list(self.full_exp.same_tunnel.keys())))
+                         sorted(self.full_exp.same_tunnel.keys()))
 
     def test_same_tunnel_full_exp_1(self):
         key = "1_ecohab_1"
         out = sorted(["1_ecohab_1", "2_ecohab_1"])
         self.assertEqual(out,
-                         sorted(list(self.full_exp.same_tunnel[key])))
+                         sorted(self.full_exp.same_tunnel[key]))
 
     def test_same_tunnel_full_exp_2(self):
         key = "2_ecohab_1"
         out = sorted(["1_ecohab_1", "2_ecohab_1"])
         self.assertEqual(out,
-                         sorted(list(self.full_exp.same_tunnel[key])))
+                         sorted(self.full_exp.same_tunnel[key]))
 
     def test_same_tunnel_full_exp_3(self):
         key = "3_ecohab_1"
         out = sorted(["3_ecohab_1", "4_ecohab_1"])
         self.assertEqual(out,
-                         sorted(list(self.full_exp.same_tunnel[key])))
+                         sorted(self.full_exp.same_tunnel[key]))
 
     def test_same_tunnel_full_exp_4(self):
         key = "4_ecohab_1"
         out = sorted(["3_ecohab_1", "4_ecohab_1"])
         self.assertEqual(out,
-                         sorted(list(self.full_exp.same_tunnel[key])))
+                         sorted(self.full_exp.same_tunnel[key]))
 
     def test_same_tunnel_full_exp_5(self):
         key = "5_ecohab_2"
         out = sorted(["5_ecohab_2", "6_ecohab_2"])
         self.assertEqual(out,
-                         sorted(list(self.full_exp.same_tunnel[key])))
+                         sorted(self.full_exp.same_tunnel[key]))
 
     def test_same_tunnel_full_exp_6(self):
         key = "6_ecohab_2"
         out = sorted(["5_ecohab_2", "6_ecohab_2"])
         self.assertEqual(out,
-                         sorted(list(self.full_exp.same_tunnel[key])))
+                         sorted(self.full_exp.same_tunnel[key]))
 
     def test_same_tunnel_full_exp_7(self):
         key = "7_ecohab_2"
         out = sorted(["7_ecohab_2", "8_ecohab_2"])
         self.assertEqual(out,
-                         sorted(list(self.full_exp.same_tunnel[key])))
+                         sorted(self.full_exp.same_tunnel[key]))
 
     def test_same_tunnel_full_exp_8(self):
         key = "8_ecohab_2"
         out = sorted(["7_ecohab_2", "8_ecohab_2"])
         self.assertEqual(out,
-                         sorted(list(self.full_exp.same_tunnel[key])))
+                         sorted(self.full_exp.same_tunnel[key]))
 
-
+    def test_same_address_keys(self):
+        self.assertEqual(sorted(self.experiment_config.all_antennas),
+                         sorted(self.experiment_config.same_address.keys()))
+        
+    
 if __name__ == '__main__':
     unittest.main()
