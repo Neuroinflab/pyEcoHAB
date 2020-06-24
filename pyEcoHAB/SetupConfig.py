@@ -203,17 +203,14 @@ class SetupConfigMethods(RawConfigParser):
         return out
 
     def get_surrounding_dict(self):
-        all_antennas = self.entrance_antennas
         out = {}
         cage_dict = self.get_cage_address_dict()
-
-        for antenna in all_antennas:
+        for antenna in self.entrance_antennas:
             pipe_next = self.other_tunnel_antenna(antenna)
-            try:
-                cage_adjacent_antennas = self.other_cage_antenna(pipe_next[0])
-            except:
-                continue
+            cage_adjacent_antennas = self.other_cage_antenna(pipe_next[0])
             for caa in cage_adjacent_antennas:
+                if caa == antenna:
+                    continue
                 key = (min(antenna, caa), max(antenna, caa))
                 if key not in out:
                     out[key] = cage_dict[caa]
