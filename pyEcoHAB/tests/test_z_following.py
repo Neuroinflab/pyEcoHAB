@@ -18,9 +18,9 @@ except NameError:
 class TestFollowing2ndMouseInPipe(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        antennas1 = [1, 2]
+        antennas1 = ["1", "2"]
         times1 = [15, 16.5]
-        antennas2 = [8, 1, 2, 3, 4, 5]
+        antennas2 = ["8", "1", "2", "3", "4", "5"]
         times2 = [10, 16, 19, 19.5, 22, 25]
         config = SetupConfig()
         dir1 = uf.extract_directions(times1, antennas1, 3, config.directions)
@@ -28,18 +28,18 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
         res = fol.following_single_pair(dir1, dir2)
         cls.out1, cls.time_together1, cls.intervals1= res
 
-        antennas1 = [1, 2, 3, 4, 5]
+        antennas1 = ["1", "2", "3", "4", "5"]
         times1 = [15, 16.5, 19, 20, 21]
-        antennas2 = [8, 1, 2, 3, 4, 5]
+        antennas2 = ["8", "1", "2", "3", "4", "5"]
         times2 = [10, 16, 19, 19.5, 22, 25]
         dir1 = uf.extract_directions(times1, antennas1, 6, config.directions)
         dir2 = uf.extract_directions(times2, antennas2, 6, config.directions)
         res = fol.following_single_pair(dir2, dir1)
         cls.out2, cls.time_together2, cls.intervals2 = res
 
-        antennas1 = [1, 2,   3, 4,  5,  6,  7,   8,  1, 2]
+        antennas1 = ["1", "2", "3", "4", "5",  "6",  "7",   "8",  "1", "2"]
         times1 = [15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34 ]
-        antennas2 = [8, 1,   2,    3,  4,  5,  6,   7, 8,   1,   2]
+        antennas2 = ["8", "1",   "2",    "3",  "4",  "5",  "6",   "7", "8",   "1",   "2"]
         times2 =   [10, 16, 19, 19.5, 22, 25,  26, 27, 28, 31, 35]
         dir1 = uf.extract_directions(times1, antennas1, 3, config.directions)
         dir2 = uf.extract_directions(times2, antennas2, 3, config.directions)
@@ -78,18 +78,18 @@ class TestFollowingMatrices(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         ta = {"mouse1": [[15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34 ],
-                         [1, 2,   3,    4,  5,  6,  7,   8,  1, 2]],
+                         ["1", "2",  "3",    "4",  "5",  "6",  "7", "8", "1", "2"]],
               "mouse2": [[10, 16, 19, 19.5, 22, 25,  26, 27, 28, 31, 35],
-                         [8, 1,   2,    3,  4,  5,  6,   7, 8,   1,   2],],
+                         ["8", "1",  "2", "3", "4", "5", "6", "7", "8", "1",   "2"],],
               "mouse3": [[10, 16, 17, 18, 22, 25, 26, 27],
-                         [1,  2,   3, 4,  4,  3,  2, 1],]
+                         ["1", "2", "3", "4",  "4",  "3",  "2", "1"],]
         }
         mice_list = ["mouse1", "mouse2", "mouse3"]
         directions_dict = {}
         last = {
-            "mouse1": 3,
-            "mouse2": 3,
-            "mouse3": 8
+            "mouse1": "3",
+            "mouse2": "3",
+            "mouse3": "8",
         }
         config = SetupConfig()
  
