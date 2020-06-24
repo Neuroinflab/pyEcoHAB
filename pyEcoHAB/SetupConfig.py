@@ -222,7 +222,7 @@ class SetupConfigMethods(RawConfigParser):
             vals = [item[1] for item in self.items(tunnel) if item[0].startswith("entra")]
             if len(vals) > 2:
                 raise Exception("There are more than 2 antennas at the entrances to %s" % tunnel)
-            out += [vals[0]+vals[1], vals[1]+vals[0]]
+            out += [vals[0]+"_"+vals[1], vals[1]+"_"+vals[0]]
         return sorted(out)
 
     def find_unused_antennas(self):

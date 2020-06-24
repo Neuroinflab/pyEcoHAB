@@ -1962,60 +1962,61 @@ class TestExtractDirections(unittest.TestCase):
         antennas2 = [8, 1,   2,    1,  2,  3,  4,   5, 6,   7,   8]
         times2 =   [10, 16, 19, 19.5, 22, 25,  26, 27, 28, 31, 35]
         config = SetupConfig()
+        cls.keys = config.directions
         cls.res1 = uf.extract_directions(times1, antennas1, 3, config.directions)
         cls.res1_1 = uf.extract_directions(times1, antennas1, 1, config.directions)
         cls.res2 = uf.extract_directions(times2, antennas2, 1, config.directions)
         cls.res2_1 = uf.extract_directions(times2, antennas2, 7, config.directions)
 
     def test_1(self):
-        direction_dict = {key:[[], []] for key in uf.KEYS}
-        direction_dict["12"][0].append(15)
-        direction_dict["12"][1].append(16.5)
-        direction_dict["34"][0].append(19)
-        direction_dict["34"][1].append(20)
-        direction_dict["56"][0].append(21)
-        direction_dict["56"][1].append(22)
-        direction_dict["78"][0].append(24)
-        direction_dict["78"][1].append(25)
-        direction_dict["12"][0].append(29)
-        direction_dict["12"][1].append(34)
+        direction_dict = {key:[[], []] for key in self.keys}
+        direction_dict["1_2"][0].append(15)
+        direction_dict["1_2"][1].append(16.5)
+        direction_dict["3_4"][0].append(19)
+        direction_dict["3_4"][1].append(20)
+        direction_dict["5_6"][0].append(21)
+        direction_dict["5_6"][1].append(22)
+        direction_dict["7_8"][0].append(24)
+        direction_dict["7_8"][1].append(25)
+        direction_dict["1_2"][0].append(29)
+        direction_dict["1_2"][1].append(34)
 
         self.assertEqual(direction_dict, self.res1)
 
     def test_2(self):
-        direction_dict = {key:[[], []] for key in uf.KEYS}
-        direction_dict["12"][0].append(19.5)
-        direction_dict["12"][1].append(22)
-        direction_dict["34"][0].append(25)
-        direction_dict["34"][1].append(26)
-        direction_dict["56"][0].append(27)
-        direction_dict["56"][1].append(28)
-        direction_dict["78"][0].append(31)
-        direction_dict["78"][1].append(35)
+        direction_dict = {key:[[], []] for key in self.keys}
+        direction_dict["1_2"][0].append(19.5)
+        direction_dict["1_2"][1].append(22)
+        direction_dict["3_4"][0].append(25)
+        direction_dict["3_4"][1].append(26)
+        direction_dict["5_6"][0].append(27)
+        direction_dict["5_6"][1].append(28)
+        direction_dict["7_8"][0].append(31)
+        direction_dict["7_8"][1].append(35)
 
         self.assertEqual(direction_dict, self.res2)
 
     def test_1_1(self):
-        direction_dict = {key:[[], []] for key in uf.KEYS}
-        direction_dict["12"][0].append(15)
-        direction_dict["12"][1].append(16.5)
-        direction_dict["34"][0].append(19)
-        direction_dict["34"][1].append(20)
-        direction_dict["56"][0].append(21)
-        direction_dict["56"][1].append(22)
-        direction_dict["78"][0].append(24)
-        direction_dict["78"][1].append(25)
+        direction_dict = {key:[[], []] for key in self.keys}
+        direction_dict["1_2"][0].append(15)
+        direction_dict["1_2"][1].append(16.5)
+        direction_dict["3_4"][0].append(19)
+        direction_dict["3_4"][1].append(20)
+        direction_dict["5_6"][0].append(21)
+        direction_dict["5_6"][1].append(22)
+        direction_dict["7_8"][0].append(24)
+        direction_dict["7_8"][1].append(25)
 
         self.assertEqual(direction_dict, self.res1_1)
 
     def test_2_1(self):
-        direction_dict = {key:[[], []] for key in uf.KEYS}
-        direction_dict["12"][0].append(19.5)
-        direction_dict["12"][1].append(22)
-        direction_dict["34"][0].append(25)
-        direction_dict["34"][1].append(26)
-        direction_dict["56"][0].append(27)
-        direction_dict["56"][1].append(28)
+        direction_dict = {key:[[], []] for key in self.keys}
+        direction_dict["1_2"][0].append(19.5)
+        direction_dict["1_2"][1].append(22)
+        direction_dict["3_4"][0].append(25)
+        direction_dict["3_4"][1].append(26)
+        direction_dict["5_6"][0].append(27)
+        direction_dict["5_6"][1].append(28)
 
         self.assertEqual(direction_dict, self.res2_1)
 
@@ -2035,11 +2036,11 @@ class TestPrepareRegistrations(unittest.TestCase):
         self.assertEqual(["mouse_1"], list(self.out.keys()))
 
     def test_2(self):
-        self.assertEqual(len(self.out["mouse_1"]["56"][0]), 3)
+        self.assertEqual(len(self.out["mouse_1"]["5_6"][0]), 3)
 
     def test_3(self):
         # check if last antenna is working
-        self.assertEqual(len(self.out["mouse_1"]["65"][0]), 2)
+        self.assertEqual(len(self.out["mouse_1"]["6_5"][0]), 2)
 
 
 class TestPrepareBinnedRegistrations(unittest.TestCase):

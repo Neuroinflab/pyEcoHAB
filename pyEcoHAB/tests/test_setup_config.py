@@ -64,7 +64,7 @@ SURROUNDING = {("1", "3"): "cage B", #1,
                ("6", "8"): "cage D", #3
 }
 
-KEYS = ['12', '21', '34', '43', '56', '65', '78', '87']
+KEYS = ['1_2', '2_1', '3_4', '4_3', '5_6', '6_5', '7_8', '8_7']
 PAIRS = ["1 3", "1 4", "1 5", "1 6", "1 7", "2 4", "2 5", "2 6", "2 7", "2 8",
          "3 5", "3 6", "3 7", "3 8", "4 6", "4 7", "4 8", "5 7", "5 8", "6 8"]
 
@@ -329,7 +329,7 @@ class TestOppositePipe(unittest.TestCase):
                          self.custom.get_surrounding_dict())
 
     def test_directions_custom(self):
-        self.assertEqual(["12", "21"],
+        self.assertEqual(["1_2", "2_1"],
                          self.custom.get_directions_dict())
 
     def test_directions_default(self):
@@ -1019,6 +1019,22 @@ class TestExperimentSetupConfig(unittest.TestCase):
             ("5_ecohab1", "7_ecohab1"): "ecohab1 cage D",
             ("6_ecohab1", "8_ecohab1"): "ecohab1 cage D",
             }
-        
+
+    def test_directions_full_exp(self):
+        out = sorted(['1_ecohab_1_2_ecohab_1', '2_ecohab_1_1_ecohab_1',
+                      '3_ecohab_1_4_ecohab_1', '4_ecohab_1_3_ecohab_1',
+                      '5_ecohab_2_6_ecohab_2', '6_ecohab_2_5_ecohab_2',
+                      '7_ecohab_2_8_ecohab_2', '8_ecohab_2_7_ecohab_2']
+        )
+        self.assertEqual(self.full_exp.directions, out)
+
+    def test_directions(self):
+        out = sorted(['1_ecohab1_2_ecohab1', '2_ecohab1_1_ecohab1',
+                      '1_ecohab2_2_ecohab2', '2_ecohab2_1_ecohab2',
+                      '3_ecohab1_4_ecohab1', '4_ecohab1_3_ecohab1',
+                      '5_ecohab1_6_ecohab1', '6_ecohab1_5_ecohab1',
+                      '7_ecohab1_8_ecohab1', '8_ecohab1_7_ecohab1']
+        )
+        self.assertEqual(self.experiment_config.directions, out)
 if __name__ == '__main__':
     unittest.main()
