@@ -961,6 +961,35 @@ class TestExperimentSetupConfig(unittest.TestCase):
         self.assertEqual(out,
                          self.full_exp.address)
 
+    def test_address_non_adjacent_full_exp(self):
+        out = {
+            "1_ecohab_1": "ecohab_1 cage B",
+            "2_ecohab_1": "cage A",
+            "3_ecohab_1": "cage C",
+            "4_ecohab_1": "ecohab_1 cage B",
+            "5_ecohab_2": "ecohab_2 cage D",
+            "6_ecohab_2": "cage C",
+            "7_ecohab_2": "cage A",
+            "8_ecohab_2": "ecohab_2 cage D"
+        }
+        self.assertEqual(out, self.full_exp.address_non_adjacent)
 
+    def test_address_non_adjacent(self):
+        out = {
+            "1_ecohab2": "shared cage 1",
+            "2_ecohab2": "ecohab2 cage A",
+            "1_ecohab1": "ecohab1 cage B",
+            "2_ecohab1": "shared cage 1",
+            "3_ecohab1": "ecohab1 cage C",
+            "4_ecohab1": "ecohab1 cage B",
+            "5_ecohab1": "ecohab1 cage D",
+            "6_ecohab1": "ecohab1 cage C",
+            "7_ecohab1": "shared cage 1",
+            "8_ecohab1": "ecohab1 cage D",
+        }
+        
+        self.assertEqual(out, self.experiment_config.address_non_adjacent)
+        
+        
 if __name__ == '__main__':
     unittest.main()
