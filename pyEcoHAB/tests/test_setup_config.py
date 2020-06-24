@@ -932,5 +932,35 @@ class TestExperimentSetupConfig(unittest.TestCase):
         out = sorted(["1_ecohab1", "2_ecohab1", "1_ecohab2", "2_ecohab2"])
         self.assertEqual(out, self.experiment_config.opposite_tunnel[key])
 
+
+    def test_cage_address_dict(self):
+        out = {}
+        out["1_ecohab2"] = "ecohab2 cage A"
+        out["2_ecohab2"] = "shared cage 1"
+        out["8_ecohab2"] = "shared cage 1"
+        out["1_ecohab1"] = "shared cage 1"
+        out["8_ecohab1"] = "shared cage 1"
+        out["2_ecohab1"] = "ecohab1 cage B"
+        out["3_ecohab1"] = "ecohab1 cage B"
+        out["4_ecohab1"] = "ecohab1 cage C"
+        out["5_ecohab1"] = "ecohab1 cage C"
+        out["6_ecohab1"] = "ecohab1 cage D"
+        out["7_ecohab1"] = "ecohab1 cage D"
+        self.assertEqual(out, self.experiment_config.address)
+
+    def test_cage_address_full_expdict(self):
+        out = {}
+        out["1_ecohab_1"] = "cage A"
+        out["8_ecohab_2"] = "cage A"
+        out["2_ecohab_1"] = "ecohab_1 cage B"
+        out["3_ecohab_1"] = "ecohab_1 cage B"
+        out["4_ecohab_1"] = "cage C"
+        out["5_ecohab_2"] = "cage C"
+        out["6_ecohab_2"] = "ecohab_2 cage D"
+        out["7_ecohab_2"] = "ecohab_2 cage D"
+        self.assertEqual(out,
+                         self.full_exp.address)
+
+
 if __name__ == '__main__':
     unittest.main()
