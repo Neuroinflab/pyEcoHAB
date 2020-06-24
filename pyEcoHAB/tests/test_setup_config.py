@@ -823,7 +823,114 @@ class TestExperimentSetupConfig(unittest.TestCase):
         out = sorted(["6_ecohab_2", "7_ecohab_2"])
         self.assertEqual(out,
                          sorted(self.full_exp.same_address[key]))
+
+    def test_opposite_tunnel_dict_full_exp_keys(self):
+        self.assertEqual(sorted(self.full_exp.all_antennas),
+                         sorted(self.full_exp.opposite_tunnel.keys()))
+
+    def test_opposite_tunnel_dict_keys(self):
+        keys = set(self.experiment_config.all_antennas) - set(self.experiment_config.internal_antennas)
+        self.assertEqual(sorted(keys),
+                         sorted(self.experiment_config.opposite_tunnel.keys()))
+
+    def test_opposite_tunnel_full_exp_1(self):
+        key = "1_ecohab_1"
+        out = sorted(["5_ecohab_2", "6_ecohab_2"])
+        self.assertEqual(sorted(self.full_exp.opposite_tunnel[key]),
+                         out)
+
+    def test_opposite_tunnel_full_exp_2(self):
+        key = "2_ecohab_1"
+        out = sorted(["5_ecohab_2", "6_ecohab_2"])
+        self.assertEqual(sorted(self.full_exp.opposite_tunnel[key]),
+                         out)
+
+
+    def test_opposite_tunnel_full_exp_5(self):
+        key = "5_ecohab_2"
+        out = sorted(["1_ecohab_1", "2_ecohab_1"])
+        self.assertEqual(sorted(self.full_exp.opposite_tunnel[key]),
+                         out)
+
+    def test_opposite_tunnel_full_exp_6(self):
+        key = "6_ecohab_2"
+        out = sorted(["1_ecohab_1", "2_ecohab_1"])
+        self.assertEqual(sorted(self.full_exp.opposite_tunnel[key]),
+                         out)
+
+    def test_opposite_tunnel_full_exp_3(self):
+        key = "3_ecohab_1"
+        out = sorted(["7_ecohab_2", "8_ecohab_2"])
+        self.assertEqual(sorted(self.full_exp.opposite_tunnel[key]),
+                         out)
+
+    def test_opposite_tunnel_full_exp_4(self):
+        key = "4_ecohab_1"
+        out = sorted(["7_ecohab_2", "8_ecohab_2"])
+        self.assertEqual(sorted(self.full_exp.opposite_tunnel[key]),
+                         out)
+
+    def test_opposite_tunnel_full_exp_7(self):
+        key = "7_ecohab_2"
+        out = sorted(["3_ecohab_1", "4_ecohab_1"])
+        self.assertEqual(sorted(self.full_exp.opposite_tunnel[key]),
+                         out)
+
+    def test_opposite_tunnel_full_exp_8(self):
+        key = "8_ecohab_2"
+        out = sorted(["3_ecohab_1", "4_ecohab_1"])
+        self.assertEqual(sorted(self.full_exp.opposite_tunnel[key]),
+                         out)
+
+    def test_opposite_tunnel_12(self):
+        key = "1_ecohab2"
+        out = sorted(["5_ecohab1", "6_ecohab1", "3_ecohab1", "4_ecohab1"])
+        self.assertEqual(out, self.experiment_config.opposite_tunnel[key])
+
+    def test_opposite_tunnel_22(self):
+        key = "2_ecohab2"
+        out = sorted(["5_ecohab1", "6_ecohab1", "3_ecohab1", "4_ecohab1"])
+        self.assertEqual(out, self.experiment_config.opposite_tunnel[key])
+
+    def test_opposite_tunnel_31(self):
+        key = "3_ecohab1"
+        out = sorted(["1_ecohab2", "2_ecohab2", "7_ecohab1", "8_ecohab1"])
+        self.assertEqual(out, self.experiment_config.opposite_tunnel[key])
+
+    def test_opposite_tunnel_41(self):
+        key = "4_ecohab1"
+        out = sorted(["1_ecohab2", "2_ecohab2", "7_ecohab1", "8_ecohab1"])
+        self.assertEqual(out, self.experiment_config.opposite_tunnel[key])
+
+    def test_opposite_tunnel_71(self):
+        key = "7_ecohab1"
+        out = sorted([ "3_ecohab1", "4_ecohab1"])
+        self.assertEqual(out, self.experiment_config.opposite_tunnel[key])
+
+    def test_opposite_tunnel_81(self):
+        key = "8_ecohab1"
+        out = sorted(["3_ecohab1", "4_ecohab1"])
+        self.assertEqual(out, self.experiment_config.opposite_tunnel[key])
+
+    def test_opposite_tunnel_11(self):
+        key = "1_ecohab1"
+        out = sorted(["5_ecohab1", "6_ecohab1"])
+        self.assertEqual(out, self.experiment_config.opposite_tunnel[key])
     
+    def test_opposite_tunnel_21(self):
+        key = "2_ecohab1"
+        out = sorted(["5_ecohab1", "6_ecohab1"])
+        self.assertEqual(out, self.experiment_config.opposite_tunnel[key])
+
+    def test_opposite_tunnel_51(self):
+        key = "5_ecohab1"
+        out = sorted(["1_ecohab1", "2_ecohab1", "1_ecohab2", "2_ecohab2"])
+        self.assertEqual(out, self.experiment_config.opposite_tunnel[key])
+
+    def test_opposite_tunnel_61(self):
+        key = "6_ecohab1"
+        out = sorted(["1_ecohab1", "2_ecohab1", "1_ecohab2", "2_ecohab2"])
+        self.assertEqual(out, self.experiment_config.opposite_tunnel[key])
 
 if __name__ == '__main__':
     unittest.main()

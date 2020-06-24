@@ -144,36 +144,37 @@ class SetupConfigMethods(RawConfigParser):
                     out.extend(other_pipe)
         return sorted(out)
 
+    def _go_two_steps(self, antenna):
+        out = []
+        for a_2 in self.other_cage_antenna(antenna):
+            if a_2 in self.internal_antennas:
+                continue
+            pipes_next = self.other_tunnel_antenna(a_2)
+            for a_3 in pipes_next:
+                if a_3 in self.internal_antennas:
+                    continue
+                cage_plus_2 = self.other_cage_antenna(a_3)
+                for a_4 in cage_plus_2:
+                    if a_4 in self.internal_antennas:
+                        continue
+                    tunnel_antennas = self.same_tunnel[a_4]
+                    next_tunnel_antennas = self.next_tunnel_antennas(a_4)
+                    if antenna not in tunnel_antennas and antenna not in next_tunnel_antennas:
+                        out += tunnel_antennas
+        return list(set(out))
+
     def get_opposite_tunnel_dict(self):
         # distance equal two
         all_antennas = self.entrance_antennas
-        same_cages = self.same_address
-        same_pipe = self.same_tunnel
         out = {}
         for a_1 in all_antennas:
-            same_cage_antennas = self.other_cage_antenna(a_1)
-            for a_2 in same_cage_antennas:
-                if a_2 in self.internal_antennas:
-                    continue
-                pipe_next = self.other_tunnel_antenna(a_2)
-
-                for a_3 in pipe_next:
-                    if a_3 in self.internal_antennas:
-                        continue
-                    cage_plus_2 = self.other_cage_antenna(a_3)
-
-                    for a_4 in cage_plus_2:
-                        if a_4 in self.internal_antennas:
-                            continue
-                        tunnel_antennas = same_pipe[a_4]
-                        next_tunnel_antennas = self.next_tunnel_antennas(a_4)
-                        if a_1 not in tunnel_antennas and a_1 not in next_tunnel_antennas:
-                            if a_1 not in out:
-                                out[a_1] = []
-                            for ant in tunnel_antennas:
-                                if ant not in out[a_1]:
-                                    out[a_1].append(ant)
-
+            out_this_antenna = self._go_two_steps(a_1)
+            other_tunnel_antennas = self.other_tunnel_antenna(a_1)
+            out_other_tunnel_antenna = []
+            for other_tunnel_antenna in other_tunnel_antennas:
+                out_other_tunnel_antenna += self._go_two_steps(other_tunnel_antenna)
+            if len(out_this_antenna + out_other_tunnel_antenna):
+                out[a_1] = sorted(list(set(out_this_antenna + out_other_tunnel_antenna)))
         return out
 
     def get_cage_address_dict(self):
