@@ -15,7 +15,7 @@ from .plotting_functions import make_pooled_histograms
 from .plotting_functions import make_histograms_for_every_mouse
 from .plotting_functions import make_pooled_histograms_for_every_mouse
 from .plotting_functions import single_histogram_figures
-from .utility_functions import KEYS
+
 
 
 def insert_interval(candidate_t_start, interval,
@@ -76,7 +76,7 @@ def generate_intervals(t_starts, t_stops, duration):
     return new_t_starts, new_t_stops
 
 
-def generate_directions_dict(directions_dict, duration, keys=KEYS):
+def generate_directions_dict(directions_dict, duration, keys):
     new_dict = {}
     for key in keys:
         old_intervals = directions_dict[key]
@@ -87,15 +87,15 @@ def generate_directions_dict(directions_dict, duration, keys=KEYS):
 
 
 def bootstrap_single_phase(directions_dict, mice_list,
-                           t_start, t_stop, N=1000):
+                           t_start, t_stop, keys, N=1000):
     followings = utils.make_results_dict(mice_list, tolist=True)
     times_together = utils.make_results_dict(mice_list, tolist=True)
     new_directions = {}
     for i in range(N):
         for mouse in mice_list:
-            new_directions[mouse] = generate_directions_dict(directions_dict[mouse], t_stop - t_start)
+            new_directions[mouse] = generate_directions_dict(directions_dict[mouse], t_stop - t_start, keys)
         out = following_matrices(new_directions, mice_list,
-                                 t_start, t_stop)
+                                 t_start, t_stop, keys)
         for mouse1 in mice_list:
             for mouse2 in mice_list:
                 if mouse1 != mouse2:
@@ -104,7 +104,7 @@ def bootstrap_single_phase(directions_dict, mice_list,
     return followings, times_together
 
 
-def resample_single_phase(directions_dict, mice, t_start, t_stop, N, phase,
+def resample_single_phase(directions_dict, mice, t_start, t_stop, N, phase, keys,
                           return_median=False,
                           save_figures=False,
                           save_distributions=True,
@@ -122,7 +122,7 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, N, phase,
 
     followings, times_following = bootstrap_single_phase(directions_dict,
                                                          mice,
-                                                         t_start, t_stop,
+                                                         t_start, t_stop, keys,
                                                          N=N)
     binsize = (t_stop - t_start)/3600
     hist_dir = os.path.join("other_variables",
@@ -185,7 +185,7 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, N, phase,
 
     return out_followings, out_times
 
-def following_single_pair(directions_m1, directions_m2, keys=KEYS):
+def following_single_pair(directions_m1, directions_m2, keys):
     
     followings = 0
     intervals = []
@@ -201,7 +201,7 @@ def following_single_pair(directions_m1, directions_m2, keys=KEYS):
     return followings, time_together, intervals
 
 
-def following_matrices(directions_dict, mice, t_start, t_stop):
+def following_matrices(directions_dict, mice, t_start, t_stop, keys):
     assert t_stop - t_start > 0
     durations = t_stop - t_start
     followings = utils.make_results_dict(mice)
@@ -213,7 +213,7 @@ def following_matrices(directions_dict, mice, t_start, t_stop):
             if mouse1 == mouse2:
                 continue
             out = following_single_pair(directions_dict[mouse1],
-                                        directions_dict[mouse2])
+                                        directions_dict[mouse2], keys)
             followings[mouse1][mouse2], time_in_pipe, mouse_intervals = out
             time_together[mouse1][mouse2] = time_in_pipe/durations
             key =  "%s|%s" % (mouse1, mouse2)
@@ -352,7 +352,8 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
         for i, lab in enumerate(bin_labels):
             t_start, t_stop = times[ph][lab]
             directions_dict = data[ph][lab]
-            out = following_matrices(directions_dict, mice, t_start, t_stop)
+            out = following_matrices(directions_dict, mice, t_start, t_stop,
+                                     ehd.directions)
             following[ph][lab], time_together[ph][lab], phase_intervals1  = out
             duration = t_stop - t_start
             out_expected = resample_single_phase(directions_dict,
@@ -361,6 +362,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="", prefix="",
                                                  t_stop,
                                                  N,
                                                  new_phase,
+                                                 ehd.directions,
                                                  res_dir=res_dir,
                                                  prefix=prefix,
                                                  stf=save_times_following,

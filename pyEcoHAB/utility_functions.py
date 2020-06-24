@@ -66,7 +66,6 @@ SURROUNDING = {("1", "3"): "cage B", #1,
                ("5", "7"): "cage D", #"3",
                ("6", "8"): "cage D", #"3"
 }
-KEYS = ['12', '21', '34', '43', '56', '65', '78', '87']
 
 
 def check_directory(directory, subdirectory=None):
