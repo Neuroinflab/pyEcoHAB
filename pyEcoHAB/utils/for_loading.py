@@ -364,6 +364,13 @@ def transform_visits(data):
     return np.array(data, dtype=data_type)
 
 
+def rename_antennas(name, dataset):
+    new_data = dataset.copy()
+    for row in new_data:
+        row["Antenna"] = "%s_%s" % (row["Antenna"], name)
+    return new_data
+
+
 class NamedDict(dict):
     """Creates a python dict with a name and attribute access of keys.
 

@@ -469,6 +469,35 @@ class TestTransformVisits(unittest.TestCase):
         self.assertEqual(set(self.visits["Tag"]), out)
 
 
+class TestRenameAntennas(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short")
+        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        cls.old_data = uf.from_raw_data(raw_data)
+        cls.data = uf.rename_antennas("setup1", cls.old_data)
+
+    def test_1(self):
+        out = []
+        for i, row in enumerate(self.data["Antenna"]):
+            out.append(row == self.old_data["Antenna"][i]+"_setup1")
+        self.assertEqual(set(out), set([True]))
+
+    def test_2(self):
+        self.assertEqual(self.data.dtype, self.old_data.dtype)
+
+    def test_3(self):
+        self.assertTrue(np.all(self.data["Id"] == self.old_data["Id"]))
+
+    def test_4(self):
+        self.assertTrue(np.all(self.data["Time"] == self.old_data["Time"]))
+
+    def test_5(self):
+        self.assertTrue(np.all(self.data["Duration"] == self.old_data["Duration"]))
+
+    def test_6(self):
+        self.assertTrue(np.all(self.data["Tag"] == self.old_data["Tag"]))
+
 if __name__ == '__main__':
     unittest.main()
 
