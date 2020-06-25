@@ -371,6 +371,12 @@ def rename_antennas(name, dataset):
     return new_data
 
 
+def append_data_sources(data_sets):
+    new_data = np.concatenate(data_sets)
+    new_data.sort(order="Time")
+    return new_data
+
+
 class NamedDict(dict):
     """Creates a python dict with a name and attribute access of keys.
 

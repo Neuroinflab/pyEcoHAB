@@ -498,6 +498,30 @@ class TestRenameAntennas(unittest.TestCase):
     def test_6(self):
         self.assertTrue(np.all(self.data["Tag"] == self.old_data["Tag"]))
 
+
+class TestAppendData(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_3_mice")
+        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        cls.data1 = uf.from_raw_data(raw_data)
+        cls.data2 = uf.from_raw_data(raw_data)
+        cls.data2["Time"] += 15*60
+        cls.combined_data = uf.append_data_sources([cls.data1, cls.data2])
+
+    def test1(self):
+        self.assertEqual(len(self.data1) + len(self.data2),
+                         len(self.combined_data))
+    def test2(self):
+        self.assertTrue(np.all((self.combined_data["Time"][1:] - self.combined_data["Time"][:-1]) > 0))
+
+    def test_mouse3(self):
+        indx = np.where(self.combined_data["Tag"] == "mouse_3")[0]
+        line1 = self.combined_data[indx[0]].copy()
+        line2 = self.combined_data[indx[1]].copy()
+        line1["Time"] += 15*60
+        self.assertTrue(np.all(line1==line2))
+
 if __name__ == '__main__':
     unittest.main()
 
