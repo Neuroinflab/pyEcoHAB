@@ -199,7 +199,7 @@ class EcoHabDataBase(object):
 
 
 class Loader(EcoHabDataBase):
-    """Reads in Eco-HAB data files that are located in path.
+    """Read in Eco-HAB data files that are located in path.
 
     This class reads in data collected by the Eco-HAB system, parses them
     and removes in-correct registrations. After loading the data Loader triggers
