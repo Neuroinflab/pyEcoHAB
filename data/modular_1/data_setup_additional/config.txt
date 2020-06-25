@@ -1,0 +1,37 @@
+[1 dark - sucrose]
+startdate = 16.11.2019
+starttime = 12:00
+enddate = 17.11.2019
+endtime = 00:00
+
+[1 light - sucrose]
+startdate = 17.11.2019
+starttime = 00:00
+enddate = 17.11.2019
+endtime = 12:00
+
+[2 dark - sucrose]
+startdate = 17.11.2019
+starttime = 12:00
+enddate = 18.11.2019
+endtime = 00:00
+
+[2 light - sucrose]
+startdate = 18.11.2019
+starttime = 00:00
+enddate = 18.11.2019
+endtime = 12:00
+
+[3 dark - sucrose]
+startdate = 18.11.2019
+starttime = 12:00
+enddate = 19.11.2019
+endtime = 00:00
+
+
+
+[ALL]
+startdate = 16.11.2019
+starttime = 12:00
+enddate = 19.11.2019
+endtime = 00:00
