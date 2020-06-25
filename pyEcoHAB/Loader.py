@@ -308,9 +308,6 @@ class Loader(EcoHabDataBase):
         self.all_antennas = antennas.all_antennas
         self.internal_antennas = antennas.internal_antennas
 
-    def get_cages(self):
-        return sorted(list(set(self.get_visit_addresses(self.mice))))
-
     def _read_in_raw_data(self, factor, how_many_appearances, tags):
         """Reads in data from files in self.path.
         Removes ghost tags from data"""
@@ -336,15 +333,6 @@ class Loader(EcoHabDataBase):
                    self._fnames.__str__(), self.path) 
         return mystring
 
-    def check_single_mouse_data(self, mouse):
-        antennas = self.data.get_antennas(mouse)
-        times  = self.data.get_times(mouse)
-        error_crossing_times = []
-        for i, next_antenna in enumerate(antennas[1:]):
-            if abs(next_antenna - antennas[i]) not in [0, 1]:
-                if next_antenna != 8 and antennas[i] != 8:
-                    error_crossing_times.append(times[i])
-        return error_crossing_times
 
 
 
