@@ -348,57 +348,5 @@ class Loader(EcoHabDataBase):
 
 
 
-class Extender(EcoHabDataBase):
-    def __init__(self, *data_sources, **kwargs):
-        self._source_list = map(str, data_sources)
-        self._ignore_mice_diff = kwargs.pop('ignore_mice_differences',
-                                            False)
-        self.session_start = None
-        self.session_end = None
-
-        grouped_sources = self._group_data_sources(data_sources)
-        for key in sorted(grouped_sources.keys()):
-            data_source = grouped_sources[key]
-            try:
-                self._append_data_source(data_source)
-
-            except:
-                print("ERROR processing {}".format(data_source))
-                raise
-        self.mice = self.get_mice()
-        self.session_start = sorted(self.get_times(self.mice))[0]
-        self.session_end = sorted(self.get_times(self.mice))[-1]
-        self.res_dir = kwargs.pop("results_path",
-                                  data_sources[0].res_dir  + "_merged")
-        self.prefix = kwargs.pop("results_path",
-                                 data_sources[0].prefix + "_merged")
-
-    def _group_data_sources(self, data_sources):
-        grouped = {}
-        for data_source in data_sources:
-            key = data_source.session_start
-            grouped[key] = data_source
-        return grouped
 
 
-    def _append_data_source(self, new_data):
-        if self.session_start is None and self.session_end is None:
-            super(Extender, self).__init__(new_data.readings.data, None,
-                                         new_data.visit_threshold)
-
-        if new_data.session_start != None:
-            if self.session_start != None and self.session_end != None:
-                if self.session_start < new_data.session_start\
-                   and self.session_end > new_data.session_start:
-                    print('Overlap of EcoHAB sessions detected')
-
-        if new_data.session_end != None:
-            if self.session_start != None and self.session_end != None:
-                if self.session_start < new_data.session_end\
-                   and self.session_end > new_data.session_end:
-                    print('Overlap of EcoHAN sessions detected')
-
-        for key in new_data.readings.data.keys():
-            self.readings.data[key].extend(new_data.readings.data[key])
-        for key in new_data.visits.data.keys():
-            self.visits.data[key].extend(new_data.visits.data[key])
