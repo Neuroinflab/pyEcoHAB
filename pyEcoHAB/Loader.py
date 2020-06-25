@@ -12,7 +12,7 @@ except NameError:
 import numpy as np
 
 from . import BaseFunctions
-from . import SetupConfig
+from pyEcoHAB.SetupConfig import SetupConfig, ExperimentSetupConfig
 from . import utility_functions as utils
 from .utils import for_loading as ufl
 
@@ -265,13 +265,13 @@ class Loader(EcoHabDataBase):
         #Read in parameters
         self.path = path
         setup_config = kwargs.pop('setup_config', None)
-        if isinstance(setup_config, SetupConfig.SetupConfig):
+        if isinstance(setup_config, SetupConfig):
             antennas = setup_config
         elif isinstance(setup_config, str):
-            antennas = SetupConfig.SetupConfig(path=setup_config)
+            antennas = SetupConfig(path=setup_config)
         else:
-            antennas = SetupConfig.SetupConfig(path=self.path)
-        
+            antennas = SetupConfig(path=self.path)
+
         self.mask = kwargs.pop('mask', None)
         self.visit_threshold = kwargs.pop('visit_threshold', 2.)
         add_date = kwargs.pop('add_date', True)
@@ -334,7 +334,70 @@ class Loader(EcoHabDataBase):
         return mystring
 
 
+class Merger(EcoHabDataBase):
+    """Merge datasets from one modular EcoHAB experiment. This means datasets
+    obtained from different parts of the same experimental setup. Merger will
+    rename antennas according to how specific parts of the experimental setup
+    have been named.
 
+    Merger requires a config file for the experimental setup, which
+    specifies cages or tunnels that are shared by two or more parts of
+    the experimental setup. For example, if a standard EcoHAB setup
+    (four cages, four tunnels and eight antennas numbered from 1 to 8)
+    recorded by one Eco-HAB.rfid (setup_1) is extended by adding a
+    fifth tunnel to cage A of the first setup and a fith cage at the
+    end of that tunnel with 2 antennas at the entrances to the fith
+    tunnel and an internal antenna in the fifth cage recorded by a
+    separate Eco-HAB.rfid (setup_2), the experimental setup file
+    should be similar to:
+    [shared point 1]
+    setup_1_name = setup_1
+    point_1_name = cage A
+    setup_2_name = setup_2
+    point_2_name = cage D
+    destination_name = cage A
 
+    point_1_name and point_2_name depend on the actual position of the
+    cage shared by both setups.
+    When merging data obtained by this complex (modular) experimenta setup,
+    provide path to the experimental setup config, and data (from
+    all parts of the experiment loaded by Loader) as keyworded arguments:
+    new_data = Merger(path_to_setup, setup_1=Loader(path_to_setup_1),
+    setup_2=Loader(path_to_setup2))
+    The names of the keyworded arguments need to match the names specified
+    in the experiment setup config file.
 
+    Merger will rename all antennas to antenna_setup_name, and
+    recalculate visits and provide all the necessary functionality for
+    performing analysis of EcoHAB data.
 
+    Args:
+    experiment_config: str or IdentityConfig object
+        path to experimental setup config or experimental setup config
+    res_dir: str
+        full path to results
+
+    loaders_dict:
+        provide EcoHAB datasets
+    """
+    def __init__(self, experiment_config, res_dir, **loaders_dict):
+        datasets = []
+        configs = {}
+        for setup_name in loaders_dict:
+            configs[setup_name] = loaders_dict[setup_name].setup_config
+            datasets.append(ufl.rename_antennas(setup_name, loaders_dict[setup_name].data))
+
+        data = ufl.append_data_sources(datasets)
+        mask = None
+        self.visit_threshold = max([d.visit_threshold for key, d in loaders_dict.items()])
+        self.prefix = "merged"
+        today = date.today().strftime("%d.%m.%y")
+        self.res_dir = "%s_%s" % (res_dir, today)
+        antennas = ExperimentConfigSetup(experiment_config, configs)
+        super(Merger, self).__init__(data, mask,
+                                     self.visit_threshold, antennas)
+        self.cages = antennas.cages
+        self.directions = antennas.directions
+        self.setup_config = antennas
+        self.all_antennas = antennas.all_antennas
+        self.internal_antennas = antennas.internal_antennas
