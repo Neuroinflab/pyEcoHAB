@@ -350,7 +350,7 @@ class ExperimentSetupConfig(SetupConfigMethods):
         recorded using more than one EcoHAB experimental methods.
 
         Agrs: 
-        fname_with_path: string
+        fname_with_path: string or IdentityConfig object
            Path to the experimental setup config file, which specifies points
            (cages/tunnels) that are shared by both experimental setup
 
@@ -374,7 +374,12 @@ class ExperimentSetupConfig(SetupConfigMethods):
 
         """
         SetupConfigMethods.__init__(self)
-        experiment_config = IdentityConfig(fname_with_path)
+        if isinstance(fname_with_path, IdentityConfig):
+            experiment_config = fname_with_path
+        elif isinstance(fname_with_path, str):
+            experiment_config = IdentityConfig(fname_with_path)
+        else:
+            raise Exception("Provide a path to experiment config file or an IdentityConfig object")
         self.identity_points = experiment_config.identity_points
         self.make_sections(single_configs)
         self.ALL_ANTENNAS = self.get_all_antennas()
