@@ -326,6 +326,8 @@ class IdentityConfig(RawConfigParser):
         value = "point_%d_name"
         out = {}
         for section in self.sections():
+            if not section.startswith("shared"):
+                continue
             items = [item[0] for item in self.items(section)]
             setups = (len(items) - 1)//2
             if (len(items) - 1) % 2 != 0:
@@ -338,6 +340,21 @@ class IdentityConfig(RawConfigParser):
                 point = self.get(section, value % i)
                 new_key = "%s %s" % (setup, point)
                 out[new_key] = self.get(section, "destination_name")
+        return out
+
+    @property
+    def renames(self):
+        out = {}
+        for section in self.sections():
+            if not section.startswith("rename"):
+                continue
+            items = [item[0] for item in self.items(section)]
+            if len(items) != 3:
+                raise Exception("A rename point should have 3 attributes: setup_name, point_name and destination name")
+            setup = self.get(section, "setup_name")
+            point = self.get(section, "point_name")
+            key = "%s %s" % (setup, point)
+            out[key] = self.get(section, "destination_name")
         return out
 
 
@@ -379,6 +396,7 @@ class ExperimentSetupConfig(SetupConfigMethods):
         else:
             raise Exception("Provide a path to experiment config file or an IdentityConfig object")
         self.identity_points = experiment_config.identity_points
+        self.renames = experiment_config.renames
         self.make_sections(single_configs)
         self.ALL_ANTENNAS = self.get_all_antennas()
         self.make_definitions()
@@ -395,6 +413,8 @@ class ExperimentSetupConfig(SetupConfigMethods):
                 new_section_name = "%s %s" % (key, section)
                 if new_section_name in self.identity_points:
                     new_section_name = self.identity_points[new_section_name]
+                if new_section_name in self.renames:
+                    new_section_name = self.renames[new_section_name]
                 try:
                     self.add_section(new_section_name)
                     section_items = []

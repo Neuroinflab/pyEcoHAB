@@ -364,13 +364,12 @@ class TestExperimentSetupConfig(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path2 = os.path.join(data_path, "test_setups")
-        path3 = os.path.join(data_path, "experiment_setup.txt")
+        path3 = os.path.join(data_path, "experiment_setup_renaming.txt")
         cls.config1 = SetupConfig(data_path, "standard_setup.txt")
         cls.config2 = SetupConfig(path=path2, fname="setup_internal.txt")
         cls.experiment_config = ExperimentSetupConfig(path3,
                                                       ecohab1=cls.config1,
                                                       ecohab2=cls.config2)
-
         path1 = os.path.join(data_path, "test_experiment_setups")
         cls.config3 = SetupConfig(path1, "setup1.txt")
         cls.config4 = SetupConfig(path1, "setup2.txt")
@@ -386,6 +385,14 @@ class TestExperimentSetupConfig(unittest.TestCase):
         self.assertEqual(self.experiment_config.identity_points,
                          out)
 
+    def test_renames(self):
+        out = {"ecohab1 cage C": "cage C"}
+        self.assertEqual(self.experiment_config.renames,
+                         out)
+
+    def test_renames_full_exp(self):
+        self.assertEqual(self.full_exp.renames, {})
+
     def test_indentity_points_full_exp(self):
         out = {"ecohab_1 cage A": "cage A",
                "ecohab_2 cage A": "cage A",
@@ -395,7 +402,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
                          out)
 
     def test_all_section_names(self):
-        out = sorted(["shared cage 1", "ecohab1 cage B", "ecohab1 cage C",
+        out = sorted(["shared cage 1", "ecohab1 cage B", "cage C",
                       "ecohab1 cage D", "ecohab1 tunnel 1", "ecohab1 tunnel 2",
                       "ecohab1 tunnel 3", "ecohab1 tunnel 4", "ecohab2 cage A",
                       "ecohab2 tunnel 1"])
@@ -426,7 +433,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
     def test_all_cages(self):
         self.assertEqual(sorted(self.experiment_config.cages),
                          sorted(["shared cage 1", "ecohab1 cage B",
-                                 "ecohab1 cage C", "ecohab1 cage D",
+                                 "cage C", "ecohab1 cage D",
                                  "ecohab2 cage A"]))
 
     def test_all_cages_full_exp(self):
@@ -458,7 +465,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
                          out)
 
     def test_get_cages_dict_3(self):
-        key =  "ecohab1 cage C"
+        key =  "cage C"
         out = sorted(["4_ecohab1", "5_ecohab1"])
         self.assertEqual(sorted(self.experiment_config.cages_dict[key]),
                          out)
@@ -476,7 +483,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
                          out)
 
     def test_get_cages_dict_keys(self):
-        keys = sorted(["shared cage 1", "ecohab1 cage B", "ecohab1 cage C",
+        keys = sorted(["shared cage 1", "ecohab1 cage B", "cage C",
                        "ecohab1 cage D", "ecohab2 cage A"])
         self.assertEqual(sorted(self.experiment_config.cages_dict.keys()),
                          keys)
@@ -942,8 +949,8 @@ class TestExperimentSetupConfig(unittest.TestCase):
         out["8_ecohab1"] = "shared cage 1"
         out["2_ecohab1"] = "ecohab1 cage B"
         out["3_ecohab1"] = "ecohab1 cage B"
-        out["4_ecohab1"] = "ecohab1 cage C"
-        out["5_ecohab1"] = "ecohab1 cage C"
+        out["4_ecohab1"] = "cage C"
+        out["5_ecohab1"] = "cage C"
         out["6_ecohab1"] = "ecohab1 cage D"
         out["7_ecohab1"] = "ecohab1 cage D"
         self.assertEqual(out, self.experiment_config.address)
@@ -980,10 +987,10 @@ class TestExperimentSetupConfig(unittest.TestCase):
             "2_ecohab2": "ecohab2 cage A",
             "1_ecohab1": "ecohab1 cage B",
             "2_ecohab1": "shared cage 1",
-            "3_ecohab1": "ecohab1 cage C",
+            "3_ecohab1": "cage C",
             "4_ecohab1": "ecohab1 cage B",
             "5_ecohab1": "ecohab1 cage D",
-            "6_ecohab1": "ecohab1 cage C",
+            "6_ecohab1": "cage C",
             "7_ecohab1": "shared cage 1",
             "8_ecohab1": "ecohab1 cage D",
         }
@@ -1014,8 +1021,8 @@ class TestExperimentSetupConfig(unittest.TestCase):
             ("2_ecohab1", "2_ecohab2"): "shared cage 1",
             ("2_ecohab1", "8_ecohab1"): "shared cage 1",
             ("2_ecohab1", "4_ecohab1"): "ecohab1 cage B",
-            ("3_ecohab1", "5_ecohab1"): "ecohab1 cage C",
-            ("4_ecohab1", "6_ecohab1"): "ecohab1 cage C",
+            ("3_ecohab1", "5_ecohab1"): "cage C",
+            ("4_ecohab1", "6_ecohab1"): "cage C",
             ("5_ecohab1", "7_ecohab1"): "ecohab1 cage D",
             ("6_ecohab1", "8_ecohab1"): "ecohab1 cage D",
             }
