@@ -386,7 +386,8 @@ class Merger(EcoHabDataBase):
         configs = {}
         for setup_name in loaders_dict:
             configs[setup_name] = loaders_dict[setup_name].setup_config
-            datasets.append(ufl.rename_antennas(setup_name, loaders_dict[setup_name].data))
+            datasets.append(ufl.rename_antennas(setup_name,
+                                                loaders_dict[setup_name].readings.data))
 
         data = ufl.append_data_sources(datasets)
         mask = None
@@ -394,7 +395,7 @@ class Merger(EcoHabDataBase):
         self.prefix = "merged"
         today = date.today().strftime("%d.%m.%y")
         self.res_dir = "%s_%s" % (res_dir, today)
-        antennas = ExperimentConfigSetup(experiment_config, configs)
+        antennas = ExperimentSetupConfig(experiment_config, **configs)
         super(Merger, self).__init__(data, mask,
                                      self.visit_threshold, antennas)
         self.cages = antennas.cages
