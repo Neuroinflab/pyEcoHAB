@@ -27,14 +27,13 @@ def make_prefix(path):
     """
     key_list = [
         'genotype',
-        "Strain",
+        "strain",
         'sex',
         'gender', 
-        'Experimentator',
+        'experimentator',
         'type of experiment',
-        "Type of Experiment",
         'date of experiment',
-        "Start date and hour",
+        "start date and hour",
         'social odor',
         'no social odor',
     ]
@@ -51,9 +50,10 @@ def make_prefix(path):
             key, info = line.split(':')
         except ValueError:
             continue
+        new_key = key.strip().lower()
         info = info.strip()
         info = info.replace(' ', '_')
-        info_dict[key] = info
+        info_dict[new_key] = info
     prefix = ''
     for key in key_list:
         if key not in info_dict:
