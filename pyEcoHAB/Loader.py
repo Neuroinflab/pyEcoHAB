@@ -277,7 +277,7 @@ class Loader(EcoHabDataBase):
         self.visit_threshold = kwargs.pop('visit_threshold', 2.)
         add_date = kwargs.pop('add_date', True)
         res_dir = kwargs.pop("res_dir", "Results")
-        self.prefix = ufl.make_prefix(self.path)
+        self.prefix = kwargs.pop("prefix", ufl.make_prefix(self.path))
         self.max_break = kwargs.pop("max_break", self.MAX_BREAK)
 
         how_many_appearances = kwargs.pop('how_many_appearances', 0)
