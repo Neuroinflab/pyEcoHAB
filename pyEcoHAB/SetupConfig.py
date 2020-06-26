@@ -20,8 +20,6 @@ class SetupConfigMethods(RawConfigParser):
 
     def make_definitions(self):
         self.all_antennas = self.get_all_antennas()
-        self.cages = self.get_cages()
-        self.tunnels = self.get_tunnels()
         self.cages_dict = self.get_cages_dict()
         self.tunnels_dict = self.get_tunnels_dict()
         self.same_tunnel = self.get_same_tunnel()
@@ -42,18 +40,19 @@ class SetupConfigMethods(RawConfigParser):
                     all_antennas.append(value)
         return sorted(all_antennas)
 
-    def get_cages(self):
+    @property
+    def cages(self):
         return sorted(filter(lambda x: "cage" in x,
                       self.sections()))
 
-    def get_tunnels(self):
+    @property
+    def tunnels(self):
         return sorted(filter(lambda x: "tunnel" in x,
                       self.sections()))
 
     def get_cages_dict(self):
         cage_dict = {}
-        cages = self.get_cages()
-        for sec in cages:
+        for sec in self.cages:
             cage_dict[sec] = []
             for antenna_type, val in self.items(sec):
                 if antenna_type.startswith("entrance"):
@@ -70,8 +69,7 @@ class SetupConfigMethods(RawConfigParser):
 
     def get_tunnels_dict(self):
         tunnel_dict = {}
-        tunnels = self.get_tunnels()
-        for sec in tunnels:
+        for sec in self.tunnels:
             tunnel_dict[sec] = []
             for antenna_type, val in self.items(sec):
                 if antenna_type.startswith("entrance"):

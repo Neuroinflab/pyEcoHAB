@@ -114,12 +114,12 @@ class TestGetCagesTunnels(unittest.TestCase):
 
     def test_standard_cages(self):
         out = sorted(["cage A", "cage B", "cage C", "cage D"])
-        res = sorted(self.default.get_cages())
+        res = sorted(self.default.cages)
         self.assertEqual(out, res)
    
     def test_standard_tunnels(self):
         out = sorted(["tunnel 1", "tunnel 2", "tunnel 3", "tunnel 4"])
-        res = sorted(self.default.get_tunnels())
+        res = sorted(self.default.tunnels)
         self.assertEqual(out, res)
 
 
