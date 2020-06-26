@@ -43,7 +43,8 @@ class EcoHabDataBase(object):
                                             config.opposite_tunnel,
                                             config.address,
                                             config.address_surrounding,
-                                            config.address_non_adjacent)
+                                            config.address_non_adjacent,
+                                            config.internal_antennas)
             tempdata.extend(out)
         tempdata.sort(key=lambda x: x[2])
         return tempdata

@@ -437,7 +437,8 @@ def get_animal_position(times, antennas, mouse, threshold, same_pipe=SAME_PIPE,
                         same_address=SAME_ADDRESS,
                         opposite_pipe=OPPOSITE_PIPE,
                         address=ADDRESS, surrounding=SURROUNDING,
-                        address_not_adjacent=ADDRESS_NON_ADJACENT ):
+                        address_not_adjacent=ADDRESS_NON_ADJACENT,
+                        internal_antennas=[] ):
     out = []
     for t_start, t_end, an_start, an_end in zip(times[:-1], times[1:],
                                                 antennas[:-1],
@@ -449,7 +450,7 @@ def get_animal_position(times, antennas, mouse, threshold, same_pipe=SAME_PIPE,
         if an_end == an_start:
             out.append((address[an_start], mouse,
                         t_start, t_end, delta_t, True))
-        elif an_end in same_pipe[an_start]:
+        elif an_start not in internal_antennas and an_end in same_pipe[an_start]:
             continue
         elif an_end in same_address[an_start]:
             out.append((address[an_start], mouse,
@@ -458,7 +459,7 @@ def get_animal_position(times, antennas, mouse, threshold, same_pipe=SAME_PIPE,
             out.append((surrounding[(min(an_start, an_end),
                                      max(an_start, an_end))],
                         mouse, t_start, t_end, delta_t, False))
-        elif an_end in opposite_pipe[an_start]:
+        elif an_start not in internal_antennas and an_end in opposite_pipe[an_start]:
             continue
         else:
             out.append((address_not_adjacent[an_start],
