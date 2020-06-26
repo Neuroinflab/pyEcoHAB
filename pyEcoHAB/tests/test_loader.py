@@ -48,6 +48,10 @@ class TestMerger(unittest.TestCase):
         self.assertEqual(self.data.res_dir,
                          "%s_%s"%(self.res_dir,
                                   date.today().strftime("%d.%m.%y")))
+    def test_cages(self):
+        out = sorted(["cage A", "cage B", "cage C", "cage D"])
+        self.assertEqual(sorted(self.data.cages), out)
+
 if __name__ == '__main__':
     unittest.main()
 
