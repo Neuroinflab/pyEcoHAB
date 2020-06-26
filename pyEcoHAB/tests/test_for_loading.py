@@ -4,7 +4,6 @@ from __future__ import print_function, division, absolute_import
 import os
 import glob
 import unittest
-import random
 import numpy as np
 
 import pyEcoHAB.utils.for_loading as uf
