@@ -5,7 +5,7 @@ import numpy as np
 
 from pyEcoHAB import incohort_sociability as ics
 from pyEcoHAB import utility_functions as utils
-from pyEcoHAB import data_path
+from pyEcoHAB import data_path, sample_data
 from pyEcoHAB import Loader
 from pyEcoHAB import Timeline
 
@@ -739,9 +739,8 @@ class TestSinglePhaseResults(unittest.TestCase):
 
 class TestGetIncohortSociability(unittest.TestCase):
     def test_run(cls):
-        path = os.path.join(data_path, "weird_short_3_mice")
-        data = Loader(path)
-        config = Timeline(path)
+        data = Loader(sample_data)
+        config = Timeline(sample_data)
         ics.get_incohort_sociability(data, config, 3600)
         ics.get_incohort_sociability(data, config, 24*3600)
 

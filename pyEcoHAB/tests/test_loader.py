@@ -5,9 +5,10 @@ from datetime import date
 import numpy as np
 import pyEcoHAB.utils.for_loading as uf
 import pyEcoHAB.utility_functions as utils
-from pyEcoHAB import data_path
+from pyEcoHAB import data_path, sample_data
 from pyEcoHAB.SetupConfig import SetupConfig
-from pyEcoHAB import Loader, Merger
+from pyEcoHAB import Loader, Merger, Timeline
+from pyEcoHAB import get_incohort_sociability
 
 class TestLoader(unittest.TestCase):
     @classmethod
@@ -43,14 +44,47 @@ class TestMerger(unittest.TestCase):
         config = os.path.join(path, "experiment_setup.txt")
         cls.data = Merger(config, cls.res_dir, ecohab_1=cls.data1,
                           ecohab_2=cls.data2)
+        cls.original_data = Loader(sample_data)
 
     def test_1(self):
         self.assertEqual(self.data.res_dir,
                          "%s_%s"%(self.res_dir,
                                   date.today().strftime("%d.%m.%y")))
+
     def test_cages(self):
         out = sorted(["cage A", "cage B", "cage C", "cage D"])
         self.assertEqual(sorted(self.data.cages), out)
+
+    def test_incohort_sociability_1(self):
+        config = Timeline(sample_data)
+        out_1 = incohort_sociability(self.data, config, 3600)
+        out_2 = incohort_sociability(self.original_data, config, 3600)
+        self.assertEqual(out_1, out_2)
+
+    def test_incohort_sociability_2(self):
+        config = Timeline(sample_data)
+        out_1 = get_incohort_sociability(self.data, config, 24*3600)
+        out_2 = get_incohort_sociability(self.original_data, config, 24*3600)
+        self.assertEqual(out_1, out_2)
+
+    def test_solitude(self):
+        config = Timeline(sample_data)
+        out_1 = get_solitude(self.data, config)
+        out_2 = get_solitude(self.original_data, config)
+        self.assertEqual(out_1, out_2)
+
+    def test_activity_1(self):
+        config = Timeline(sample_data)
+        out_1 =get_activity(self.data, config, 3600)
+        out_2 =get_activity(self.original_data, config, 3600)
+        self.assertEqual(out_1, out_2)
+
+    def test_activity_2(self):
+        config = Timeline(sample_data)
+        out_1 = get_activity(self.data, config, 24*3600)
+        out_2 = get_activity(self.original_data, config, 24*3600)
+        self.assertEqual(out_1, out_2)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -97,7 +97,7 @@ def get_solitude(ehs, cf, res_dir="", prefix="", delimiter=";"):
         res_dir = ehs.res_dir
     phases = utils.filter_dark_light(cf.sections())
     output = make_solitude_output(ehs.cages, ehs.mice)
-
+    
     for phase in phases:
         times = cf.gettime(phase)
         data = utils.prepare_data(ehs, ehs.mice, times)
@@ -106,7 +106,7 @@ def get_solitude(ehs, cf, res_dir="", prefix="", delimiter=";"):
             for mouse in ehs.mice:
                 output[address][mouse][phase] = alone[mouse]
     write_csv_alone(output, phases, res_dir, prefix, delimiter=delimiter)
-
+    return output
 
 def mice_overlap(ints1, ints2):
     """Return time overlap of mice m1 and m2 in cage <address>."""
@@ -387,3 +387,5 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                             vmax=1,
                             title="Excess in-cohort sociability",
                             symmetric=True)
+
+    return full_results, full_results_exp
