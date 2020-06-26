@@ -9,6 +9,9 @@ from pyEcoHAB import data_path, sample_data
 from pyEcoHAB.SetupConfig import SetupConfig
 from pyEcoHAB import Loader, Merger, Timeline
 from pyEcoHAB import get_incohort_sociability
+from pyEcoHAB import get_solitude
+from pyEcoHAB import get_activity
+from pyEcoHAB import get_dynamic_interactions
 
 class TestLoader(unittest.TestCase):
     @classmethod
@@ -57,8 +60,8 @@ class TestMerger(unittest.TestCase):
 
     def test_incohort_sociability_1(self):
         config = Timeline(sample_data)
-        out_1 = incohort_sociability(self.data, config, 3600)
-        out_2 = incohort_sociability(self.original_data, config, 3600)
+        out_1 = get_incohort_sociability(self.data, config, 3600)
+        out_2 = get_incohort_sociability(self.original_data, config, 3600)
         self.assertEqual(out_1, out_2)
 
     def test_incohort_sociability_2(self):
@@ -85,7 +88,13 @@ class TestMerger(unittest.TestCase):
         out_2 = get_activity(self.original_data, config, 24*3600)
         self.assertEqual(out_1, out_2)
 
-
+    def get_dynamic_interactions(self):
+        config = Timeline(sample_data)
+        out_1 = get_dynamic_interactions(self.data, config, N=1, seed=1)
+        out_2 = get_dynamic_interactions(self.original_data, config, N=1,
+                                         seed=1)
+        self.assertEqual(out_1, out_2)
+            
 if __name__ == '__main__':
     unittest.main()
 
