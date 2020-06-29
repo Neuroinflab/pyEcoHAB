@@ -11,6 +11,66 @@ import pyEcoHAB.utility_functions as utils
 from pyEcoHAB import data_path
 from pyEcoHAB.SetupConfig import SetupConfig
 
+SAME_PIPE = { "1": ["1", "2"],
+             "2": ["1", "2"],
+             "3": ["3", "4"],
+             "4": ["3", "4"],
+             "5": ["5", "6"],
+             "6": ["5", "6"],
+             "7": ["7", "8"],
+             "8": ["7", "8"]}
+
+SAME_ADDRESS = {
+    "1": ["1", "8"],
+    "2": ["2", "3"],
+    "3": ["2", "3"],
+    "4": ["4", "5"],
+    "5": ["4", "5"],
+    "6": ["6", "7"],
+    "7": ["6", "7"],
+    "8": ["1", "8"],
+}
+
+OPPOSITE_PIPE = {"1": ["5", "6"],
+                 "2": ["5", "6"],
+                 "3": ["7", "8"],
+                 "4": ["7", "8"],
+                 "5": ["1", "2"],
+                 "6": ["1", "2"],
+                 "7": ["3", "4"],
+                 "8": ["3", "4"]}
+
+ADDRESS = {"1": "cage A", #"4"
+           "2": "cage B", #1,
+           "3": "cage B", #1,
+           "4": "cage C", #2,
+           "5": "cage C", #2,
+           "6": "cage D", #"3",
+           "7": "cage D", #"3",
+           "8": "cage A", #"4"
+}
+
+ADDRESS_NON_ADJACENT = {"1": "cage B", #1,
+                        "2": "cage A", #"4",
+                        "3": "cage C", #2,
+                        "4": "cage B", #1,
+                        "5": "cage D", #"3",
+                        "6": "cage C", #2,
+                        "7": "cage A", #"4",
+                        "8": "cage D", #"3"
+}
+# Surrounding: difference between antennas only 2 or "6" -- skipped one antenna
+SURROUNDING = {("1", "3"): "cage B", #1,
+               ("1", "7"): "cage A", #"4",
+               ("2", "4"): "cage B", #1,
+               ("2", "8"): "cage A", #"4",
+               ("3", "5"): "cage C", #2,
+               ("4", "6"): "cage C", #2,
+               ("5", "7"): "cage D", #"3",
+               ("6", "8"): "cage D", #"3"
+}
+
+
 class TestParseFilename(unittest.TestCase):
     def test_normal(self):
         fname = "20190403_120000.txt"
@@ -454,7 +514,13 @@ class TestTransformVisits(unittest.TestCase):
         data = uf.from_raw_data(raw_data)
         cls.data =  utils.get_animal_position(data["Time"],
                                               data["Antenna"],
-                                              "mouse_1", 2)
+                                              "mouse_1", 2,
+                                              same_pipe=SAME_PIPE,
+                                              same_address=SAME_ADDRESS,
+                                              opposite_pipe=OPPOSITE_PIPE,
+                                              address=ADDRESS, surrounding=SURROUNDING,
+                                              address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                              internal_antennas=[])
         cls.visits = uf.transform_visits(cls.data)
 
     def test1(self):

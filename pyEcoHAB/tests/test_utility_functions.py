@@ -15,6 +15,66 @@ from pyEcoHAB import Loader
 from pyEcoHAB import Timeline
 from pyEcoHAB import SetupConfig
 
+SAME_PIPE = { "1": ["1", "2"],
+             "2": ["1", "2"],
+             "3": ["3", "4"],
+             "4": ["3", "4"],
+             "5": ["5", "6"],
+             "6": ["5", "6"],
+             "7": ["7", "8"],
+             "8": ["7", "8"]}
+
+SAME_ADDRESS = {
+    "1": ["1", "8"],
+    "2": ["2", "3"],
+    "3": ["2", "3"],
+    "4": ["4", "5"],
+    "5": ["4", "5"],
+    "6": ["6", "7"],
+    "7": ["6", "7"],
+    "8": ["1", "8"],
+}
+
+OPPOSITE_PIPE = {"1": ["5", "6"],
+                 "2": ["5", "6"],
+                 "3": ["7", "8"],
+                 "4": ["7", "8"],
+                 "5": ["1", "2"],
+                 "6": ["1", "2"],
+                 "7": ["3", "4"],
+                 "8": ["3", "4"]}
+
+ADDRESS = {"1": "cage A", #"4"
+           "2": "cage B", #1,
+           "3": "cage B", #1,
+           "4": "cage C", #2,
+           "5": "cage C", #2,
+           "6": "cage D", #"3",
+           "7": "cage D", #"3",
+           "8": "cage A", #"4"
+}
+
+ADDRESS_NON_ADJACENT = {"1": "cage B", #1,
+                        "2": "cage A", #"4",
+                        "3": "cage C", #2,
+                        "4": "cage B", #1,
+                        "5": "cage D", #"3",
+                        "6": "cage C", #2,
+                        "7": "cage A", #"4",
+                        "8": "cage D", #"3"
+}
+# Surrounding: difference between antennas only 2 or "6" -- skipped one antenna
+SURROUNDING = {("1", "3"): "cage B", #1,
+               ("1", "7"): "cage A", #"4",
+               ("2", "4"): "cage B", #1,
+               ("2", "8"): "cage A", #"4",
+               ("3", "5"): "cage C", #2,
+               ("4", "6"): "cage C", #2,
+               ("5", "7"): "cage D", #"3",
+               ("6", "8"): "cage D", #"3"
+}
+
+
 class TestFilter(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -1246,59 +1306,6 @@ class TestIntervalOverlap(unittest.TestCase):
         inte_2 = [46, 50]
         self.assertTrue(uf.interval_overlap(inte_1, inte_2) == 2)
 
-class TestGetStatesForEhs(unittest.TestCase):
-    def test_chambers(self):
-        out = uf.get_animal_position([1, 5], ["2", "3"], "mouse 1", 2)
-        res = [("cage B", "mouse 1", 1, 5, 4, True)]
-        self.assertEqual(out, res)
-
-    def test_chambers_8(self):
-        out = uf.get_animal_position([1, 5], ["1", "8"], "mouse 1", 2)
-        res = [("cage A", "mouse 1", 1, 5, 4, True)]
-        self.assertEqual(out, res)
-
-    def test_too_fast(self):
-        out = uf.get_animal_position([1, 2], ["2", "3"], "mouse 1", 2)
-        self.assertEqual(out, [])
-
-    def test_pipe(self):
-        out = uf.get_animal_position([1, 5], ["2", "1"], "mouse 1", 2)
-        self.assertEqual(out, [])
-
-    def test_same_chamber(self):
-        out = uf.get_animal_position([1, 5], ["1", "1"], "mouse 1", 2)
-        res = [("cage A", "mouse 1", 1, 5, 4, True)]
-        self.assertEqual(out, res)
-
-    def test_skipped_antenna(self):
-        out = uf.get_animal_position([1, 5], ["1", "3"], "mouse 1", 2)
-        res = [("cage B", "mouse 1", 1, 5, 4, False)]
-        self.assertEqual(out, res)
-
-    def test_skipped_antenna_2(self):
-        out = uf.get_animal_position([1, 5], ["7", "1"], "mouse 1", 2)
-        res = [("cage A", "mouse 1", 1, 5, 4, False)]
-        self.assertEqual(out, res)
-
-    def test_opposite_pipe_1(self):
-        antenna = 2
-        out = uf.get_animal_position([1, 5], ["2", "5"],
-                                    "mouse 1", 2)
-        self.assertEqual(out, [])
-
-    def test_not_opposite_pipe_1(self):
-        out = uf.get_animal_position([1, 5], ["2", "7"],
-                                    "mouse 1", 2)
-        self.assertEqual(out, [("cage A", "mouse 1", 1, 5, 4, False)])
-
-    def test_longer(self):
-        out = uf.get_animal_position([2, 7, 23, 45, 55, 61],
-                                    ["1", "2", "3", "4", "5", "6"],
-                                    "mouse 1", 2)
-        res = [("cage B", "mouse 1", 7, 23, 16, True),
-               ("cage C", "mouse 1", 45, 55, 10, True)]
-        self.assertEqual(out, res)
-
 
 class TestGetIntervals(unittest.TestCase):
 
@@ -1672,55 +1679,133 @@ class TestPrepareData(unittest.TestCase):
 
 class TestGetAnimalPositions(unittest.TestCase):
     def test_threshold(self):
-        out = uf.get_animal_position([2, 3], ["2", "2"], "mouse_1", 2)
+        out = uf.get_animal_position([2, 3], ["2", "2"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual(out, [])
 
     def test_pipe_1(self):
-        out = uf.get_animal_position([2, 3], ["1", "2"], "mouse_1", 1)
+        out = uf.get_animal_position([2, 3], ["1", "2"], "mouse_1", 1,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual(out, [])
 
     def test_pipe_2(self):
-        out = uf.get_animal_position([2, 3], ["3", "4"], "mouse_1", 1)
+        out = uf.get_animal_position([2, 3], ["3", "4"], "mouse_1", 1,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual(out, [])
 
     def test_pipe_3(self):
-        out = uf.get_animal_position([2, 3], ["5", "6"], "mouse_1", 1)
+        out = uf.get_animal_position([2, 3], ["5", "6"], "mouse_1", 1,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual(out, [])
         
     def test_pipe_4(self):
-        out = uf.get_animal_position([2, 3], ["7", "8"], "mouse_1", 1)
+        out = uf.get_animal_position([2, 3], ["7", "8"], "mouse_1", 1,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual(out, [])
 
     def test_chamber_A1(self):
-        out = uf.get_animal_position([2, 6], ["1", "8"], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["1", "8"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual([("cage A", "mouse_1", 2, 6, 4, True)], out)
         
     def test_chamber_A2(self):
-        out = uf.get_animal_position([2, 6], ["8", "1"], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["8", "1"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual([("cage A", "mouse_1", 2, 6, 4, True)], out)
 
     def test_chamber_B1(self):
-        out = uf.get_animal_position([2, 6], ["2", "3"], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["2", "3"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual([("cage B", "mouse_1", 2, 6, 4, True)], out)
         
     def test_chamber_B2(self):
-        out = uf.get_animal_position([2, 6], ["3", "2"], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["3", "2"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual([("cage B", "mouse_1", 2, 6, 4, True)], out)
 
     def test_chamber_C1(self):
-        out = uf.get_animal_position([2, 6], ["4", "5"], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["4", "5"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual([("cage C", "mouse_1", 2, 6, 4, True)], out)
         
     def test_chamber_C2(self):
-        out = uf.get_animal_position([2, 6], ["5", "4"], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["5", "4"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual([("cage C", "mouse_1", 2, 6, 4, True)], out)
 
     def test_chamber_D1(self):
-        out = uf.get_animal_position([2, 6], ["6", "7"], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["6", "7"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual([("cage D", "mouse_1", 2, 6, 4, True)], out)
         
     def test_chamber_D2(self):
-        out = uf.get_animal_position([2, 6], ["7", "6"], "mouse_1", 2)
+        out = uf.get_animal_position([2, 6], ["7", "6"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual([("cage D", "mouse_1", 2, 6, 4, True)], out)
 
 

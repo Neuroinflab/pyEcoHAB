@@ -8,64 +8,6 @@ import numpy as np
 #NamedDict class was originally written by Zbyszek Jędrzejewski-Szmek
 #and Avrama Blackwell for moose_nerp https://github.com/neurord/moose_nerp
 
-SAME_PIPE = { "1": ["1", "2"],
-             "2": ["1", "2"],
-             "3": ["3", "4"],
-             "4": ["3", "4"],
-             "5": ["5", "6"],
-             "6": ["5", "6"],
-             "7": ["7", "8"],
-             "8": ["7", "8"]}
-
-SAME_ADDRESS = {
-    "1": ["1", "8"],
-    "2": ["2", "3"],
-    "3": ["2", "3"],
-    "4": ["4", "5"],
-    "5": ["4", "5"],
-    "6": ["6", "7"],
-    "7": ["6", "7"],
-    "8": ["1", "8"],
-}
-
-OPPOSITE_PIPE = {"1": ["5", "6"],
-                 "2": ["5", "6"],
-                 "3": ["7", "8"],
-                 "4": ["7", "8"],
-                 "5": ["1", "2"],
-                 "6": ["1", "2"],
-                 "7": ["3", "4"],
-                 "8": ["3", "4"]}
-
-ADDRESS = {"1": "cage A", #"4"
-           "2": "cage B", #1,
-           "3": "cage B", #1,
-           "4": "cage C", #2,
-           "5": "cage C", #2,
-           "6": "cage D", #"3",
-           "7": "cage D", #"3",
-           "8": "cage A", #"4"
-}
-
-ADDRESS_NON_ADJACENT = {"1": "cage B", #1,
-                        "2": "cage A", #"4",
-                        "3": "cage C", #2,
-                        "4": "cage B", #1,
-                        "5": "cage D", #"3",
-                        "6": "cage C", #2,
-                        "7": "cage A", #"4",
-                        "8": "cage D", #"3"
-}
-# Surrounding: difference between antennas only 2 or "6" -- skipped one antenna
-SURROUNDING = {("1", "3"): "cage B", #1,
-               ("1", "7"): "cage A", #"4",
-               ("2", "4"): "cage B", #1,
-               ("2", "8"): "cage A", #"4",
-               ("3", "5"): "cage C", #2,
-               ("4", "6"): "cage C", #2,
-               ("5", "7"): "cage D", #"3",
-               ("6", "8"): "cage D", #"3"
-}
 
 
 def check_directory(directory, subdirectory=None):
@@ -433,12 +375,9 @@ def prepare_data(ehs, mice, times=None):
     return data
 
 
-def get_animal_position(times, antennas, mouse, threshold, same_pipe=SAME_PIPE,
-                        same_address=SAME_ADDRESS,
-                        opposite_pipe=OPPOSITE_PIPE,
-                        address=ADDRESS, surrounding=SURROUNDING,
-                        address_not_adjacent=ADDRESS_NON_ADJACENT,
-                        internal_antennas=[] ):
+def get_animal_position(times, antennas, mouse, threshold, same_pipe,
+                        same_address, opposite_pipe, address, surrounding,
+                        address_not_adjacent, internal_antennas):
     out = []
     for t_start, t_end, an_start, an_end in zip(times[:-1], times[1:],
                                                 antennas[:-1],
