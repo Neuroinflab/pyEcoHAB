@@ -1808,6 +1808,56 @@ class TestGetAnimalPositions(unittest.TestCase):
                                      internal_antennas=[])
         self.assertEqual([("cage D", "mouse_1", 2, 6, 4, True)], out)
 
+    def test_chambers_with_internal_antennas(self):
+        positions = ["2", "8", "2", "1", "1", "1", "2", "8",
+                     "8", "8", "8", "8", "2", "1"]
+        times = [49.819, 54.198, 54.902, 65.126, 77.904,
+                 92.234, 93.380, 114.173, 114.623,
+                 115.214, 116.625, 121.984, 122.934, 123.571]
+        positions2 = ["2", "2", "1", "1", "1", "2",  "2", "1"]
+        times2 = [49.819,  54.902, 65.126, 77.904, 92.234, 93.380,
+                  122.934, 123.571]
+        SAME_PIPE = {
+            "1": ["1", "2"],
+            "2": ["1", "2"]
+        }
+
+        SAME_ADDRESS = {
+            "1": ["1"],
+            "2": ["2", "8"],
+            "8": ["2", "8"]
+        }
+
+        OPPOSITE_PIPE = {}
+
+        ADDRESS = {
+            "1": "cage A", #"4"
+            "2": "cage B", #1,
+            "8": "cage B", #1,
+        }
+
+        ADDRESS_NON_ADJACENT = {"1": "cage B", #1,
+                                "2": "cage A", #"4",
+        }
+
+        
+        SURROUNDING = {}
+        out1 = uf.get_animal_position(times, positions, "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                      internal_antennas=["8"])
+        out2 = uf.get_animal_position(times2, positions2, "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
+        self.assertEqual(out1, out2)
+
 
 class TestDictToArray2D(unittest.TestCase):
     @classmethod
