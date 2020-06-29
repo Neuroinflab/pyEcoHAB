@@ -380,10 +380,11 @@ def get_animal_position(times, antennas, mouse, threshold, same_pipe,
                         address_not_adjacent, internal_antennas):
     out = []
     i = 0
+    if len(times) < 2:
+        return []
 
     t_start, an_start = times[0], antennas[0]
     t_end, an_end = times[1], antennas[1]
-
     if an_start in internal_antennas:
         while an_end in internal_antennas:
             i = i + 1
@@ -391,16 +392,16 @@ def get_animal_position(times, antennas, mouse, threshold, same_pipe,
                 t_end, an_end = times[i+1], antennas[i+1]
             except IndexError:
                 out.append((address[an_start], mouse,
-                            t_start, t_end, delta_t, True))
+                            t_start, t_end, t_end-t_start, True))
                 return out
         if an_end in same_address[an_start]:
             out.append((address[an_start], mouse,
-                        t_start, t_end, delta_t, True))
+                        t_start, t_end, t_end-t_start, True))
         elif (min(an_start, an_end),
                   max(an_start, an_end)) in surrounding:
                 out.append((surrounding[(min(an_start, an_end),
                                          max(an_start, an_end))],
-                            mouse, t_start, t_end, delta_t, False))
+                            mouse, t_start, t_end, t_end-t_start, False))
         an_start = an_end
         t_start = t_end
         try:
