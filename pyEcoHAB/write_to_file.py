@@ -192,7 +192,7 @@ def write_csv_tables(results, phases, mice, main_directory,
     f.close()
 
 def write_csv_alone(alone, phases, main_directory, prefix,
-                    header='Mice alone in chamber %s\n',
+                    header='Mice alone in %s\n',
                     fname='mouse_alone_%s.csv',
                     directory="solitude",
                     delimiter=";"):
@@ -256,7 +256,7 @@ def save_visit_duration(results, time, phase, mice,
         print(new_name)
         f = open(new_name, "w")
         for address in results.keys():
-            f.write("Visit durations to chamber %s " % address)
+            f.write("Visit durations to %s " % address)
             f.write("time%s durations\n" % delimiter)
             for j, out in enumerate(results[address][mouse]):
                 f.write("%2.2f" % time[j])
