@@ -14,11 +14,20 @@ else:
     from configparser import RawConfigParser, NoSectionError, DuplicateSectionError
 
 class SetupConfigMethods(RawConfigParser):
-    
+    """
+    Methods for finding parameters describing compartments
+    (cages and tunnels) of the experimental setup and possible animal
+    tracjectories.  These paramteres are stored in dictionaries and
+    used for calculating visits of animals to EcoHAB cages.
+
+    """
     def __init__(self):
         RawConfigParser.__init__(self)
 
     def make_definitions(self):
+        """
+        Find all necessary parameters.
+        """
         self.all_antennas = self.get_all_antennas()
         self.cages_dict = self.get_cages_dict()
         self.tunnels_dict = self.get_tunnels_dict()
@@ -31,6 +40,9 @@ class SetupConfigMethods(RawConfigParser):
         self.directions = self.get_directions_dict()
 
     def get_all_antennas(self):
+        """
+        Return a list of all antennas provided by experimental setup files.
+        """
         all_antennas = []
         for sec in self.sections():
             if sec.startswith("shared point"):
@@ -42,15 +54,28 @@ class SetupConfigMethods(RawConfigParser):
 
     @property
     def cages(self):
+        """
+        Return an alphabetically sorted list of all the cages
+        in the experimental setup.
+        """
         return sorted(filter(lambda x: "cage" in x,
                       self.sections()))
 
     @property
     def tunnels(self):
+        """
+        Return an alphabetically sorted list of all the tunnels
+        in the experimental setup.
+        """
+
         return sorted(filter(lambda x: "tunnel" in x,
                       self.sections()))
 
     def get_cages_dict(self):
+        """
+        Return a dictionary of all the cages of the experimental setup
+        and their entrance and internal antennas.
+        """
         cage_dict = {}
         for sec in self.cages:
             cage_dict[sec] = []
@@ -68,6 +93,10 @@ class SetupConfigMethods(RawConfigParser):
         return cage_dict
 
     def get_tunnels_dict(self):
+        """
+        Return a dictionary of all the tunnels of the experimental setup
+        and their entrance antennas.
+        """
         tunnel_dict = {}
         for sec in self.tunnels:
             tunnel_dict[sec] = []
@@ -84,13 +113,20 @@ class SetupConfigMethods(RawConfigParser):
 
     @property
     def internal_antennas(self):
+        """
+        Return an alphabetically sorted list of internal antennas.
+        """
         out = []
         for sec in self.sections():
             all_items = self.items(sec)
             out += [item[1] for item in all_items if item[0].startswith("int")]
-        return out
+        return sorted(out)
 
     def get_same_tunnel(self):
+        """
+        Return a dictionary listing for every entrance antenna to a tunnel
+        all the entrance antennas to that tunnel.
+        """
         tunnel_dict = self.get_tunnels_dict()
         out = {}
         for tunnel, value in tunnel_dict.items():
@@ -99,6 +135,10 @@ class SetupConfigMethods(RawConfigParser):
         return out
 
     def get_same_address(self):
+        """
+        Return a dictionary listing for every entrance antenna to a cage
+        all the entrance antennas to that cage.
+        """
         cage_dict = self.get_cages_dict()
         out = {}
         for cage, value in cage_dict.items():
@@ -108,14 +148,21 @@ class SetupConfigMethods(RawConfigParser):
 
     @property
     def entrance_antennas(self):
+        """
+        Return an alphabetically sorted list of all entrance antennas
+        in the experimental setup.
+        """
         out = []
         for sec in self.sections():
             for key, value in self.items(sec):
                 if key.startswith("entrance") and value not in out:
                     out.append(value)
-        return out
+        return sorted(out)
 
     def other_tunnel_antenna(self, new_antenna):
+        """
+        Return other entrance antennas to the same tunnel.
+        """
         antenna = new_antenna
         tunnel_antennas = self.same_tunnel[antenna][:]
         idx = tunnel_antennas.index(antenna)
@@ -123,6 +170,9 @@ class SetupConfigMethods(RawConfigParser):
         return tunnel_antennas
 
     def other_cage_antenna(self, new_antenna):
+        """
+        Return other entrance antennas to the same cage.
+        """
         antenna = new_antenna
         cage_antennas = self.same_address[antenna][:]
         idx = cage_antennas.index(antenna)
@@ -130,6 +180,10 @@ class SetupConfigMethods(RawConfigParser):
         return cage_antennas
 
     def next_tunnel_antennas(self, antenna):
+        """
+        Find entrance antennas to tunnels connected to the same cage
+        (specified by its entrance antenna).
+        """
         out = []
         same_pipe = self.same_tunnel[antenna]
         for ant in same_pipe:
@@ -143,6 +197,9 @@ class SetupConfigMethods(RawConfigParser):
         return sorted(out)
 
     def _go_two_steps(self, antenna):
+        """
+        Return antennas in tunnels that are two cages away to the right.
+        """
         out = []
         for a_2 in self.other_cage_antenna(antenna):
             if a_2 in self.internal_antennas:
@@ -162,6 +219,9 @@ class SetupConfigMethods(RawConfigParser):
         return list(set(out))
 
     def get_opposite_tunnel_dict(self):
+        """
+        Find antennas in tunnels that are two cages away from current entrance antenna.
+        """
         # distance equal two
         all_antennas = self.entrance_antennas
         out = {}
@@ -176,6 +236,10 @@ class SetupConfigMethods(RawConfigParser):
         return out
 
     def get_cage_address_dict(self):
+        """
+        Return a dictionary specifing which antenna is at the entrance to which cage
+        or alternatively which antennas is inside which cage.
+        """
         out = {}
         for sec in self.cages:
             for antenna_type, antenna in self.items(sec):
@@ -188,6 +252,10 @@ class SetupConfigMethods(RawConfigParser):
         return out
 
     def get_address_non_adjacent_dict(self):
+        """
+        Return a dictionary specifing which cage is at the other side of the tunnel
+        with specified entrance antenna.
+        """
         all_antennas = self.entrance_antennas
         out = {}
         cage_dict = self.get_cage_address_dict()
@@ -201,6 +269,10 @@ class SetupConfigMethods(RawConfigParser):
         return out
 
     def get_surrounding_dict(self):
+        """
+        Return a dictionary of possible locations, when an animal is registered by
+        two non-consecutive antennas.
+        """
         out = {}
         cage_dict = self.get_cage_address_dict()
         for antenna in self.entrance_antennas:
@@ -215,6 +287,11 @@ class SetupConfigMethods(RawConfigParser):
         return out
 
     def get_directions_dict(self):
+        """
+        Return a list of pairs of possible antenna readings, when an animal is crossing
+        a tunnel in any direction, for all tunnels and directions in the experimental
+        setup.
+        """
         out = []
         for tunnel in self.tunnels:
             vals = [item[1] for item in self.items(tunnel) if item[0].startswith("entra")]
@@ -224,6 +301,9 @@ class SetupConfigMethods(RawConfigParser):
         return sorted(out)
 
     def find_unused_antennas(self):
+        """
+        Return a list of antennas that are not included in the experimental setup.
+        """
         out_l = []
         for sec in self.sections():
             ants = [item[1] for item in self.items(sec)]
@@ -231,6 +311,11 @@ class SetupConfigMethods(RawConfigParser):
         return sorted(set(self.ALL_ANTENNAS) - set(out_l))
 
     def get_mismatched_pairs(self):
+        """
+        Return a list of possible pairs of non-consecutive antennas that could register
+        a tag. Pairs are coded as a string with both antenna codes separated by white
+        space.
+        """
         pairs = []
         for i in range(1, 9):
             for j in range(i+1, 9):
@@ -275,9 +360,31 @@ class SetupConfigMethods(RawConfigParser):
         return pairs
 
 
-
-        
 class SetupConfig(SetupConfigMethods):
+    """Load config file for a single EcoHAB setup.
+
+    A config file should specify compartments: cages, their entrance
+    and internal antennas, and tunnels, which connect cages, and their
+    entrance antennas. Sections describing cage configuration should
+    include word cage in section name, whereas sections describing
+    tunnel configuration should include word tunnel in section name.
+
+    SetupConfig provides dictionaries describing setup configuration that are later
+    used for calculating animal visits to cages during the experiment.
+
+    Args:
+        path: str
+           directory containing setup file
+        fname: str
+           setup filename
+
+    If no filename is provided, SetupConfing will load a setup.txt file from provided path
+    or any txt file with filename starting with setup.
+
+    If no filename or path is provided ConfigSetup will load a standard_setup.txt file from
+    pyEcoHAB/data, which contains standard config for an EcoHAB experiment.
+
+    """
     ALL_ANTENNAS = ["1", "2", "3", "4", "5", "6", "7", "8"]
     def find_path(self, path, fname, standard, expected, possible):
         if path is None:
@@ -311,6 +418,40 @@ class SetupConfig(SetupConfigMethods):
         self.mismatched_pairs = self.get_mismatched_pairs()
 
 class IdentityConfig(RawConfigParser):
+
+    """Load a config file specifing how EcoHAB setups are combined
+    together in a modular experiment.
+
+    Experiment setup config should specify, which compartments in
+    EcoHAB setups are shared (section name should start with "shared
+    point"), what is their name in each setup and, how this
+    compartment should be named in further analysis (destination
+    name), e.g.:
+
+    [shared point 1]
+    setup_1_name = ecohab1
+    point_1_name = cage A
+    setup_2_name = ecohab2
+    point_2_name = cage B
+    destination_name = shared cage
+
+    If the shared point is a cage, destination_name has to include
+    word cage. If the shared point is a tunnel, destination_name has
+    to include word tunnel.
+
+    For modular experiments pyEcoHAB will add setup name to
+    compartment name. To avoid weird sounding compartment names
+    one can also specify rename points:
+    [rename point 1]
+    setup_name = ecohab1
+    point_name = cage C
+    destination_name = cage C
+
+    IdentityConfig provides dictionaries for renaming compartments:
+    self.identity_points for renaming shared compartments
+    and self.renames for renaming compartments that are parts of only
+    one setup.
+    """
     def __init__(self, path_to_fname):
         if os.path.isfile(path_to_fname):
             self.config_path = path_to_fname
@@ -361,15 +502,14 @@ class IdentityConfig(RawConfigParser):
 class ExperimentSetupConfig(SetupConfigMethods):
     def __init__(self, fname_with_path, **single_configs):
         """
-        Read in and construct geometric description of a single experiment
-        recorded using more than one EcoHAB experimental methods.
+        Read in and find finding parameters describing compartments of a
+        single experiment recorded using more than one EcoHAB
+        experimental methods (modular EcoHAB experiment).
 
         Agrs: 
         fname_with_path: string or IdentityConfig object
            Path to the experimental setup config file, which specifies points
            (cages/tunnels) that are shared by both experimental setup
-
-
         single_configs: a dictionary of loaded SetupConfigs for each
            EcoHAB setup
 
