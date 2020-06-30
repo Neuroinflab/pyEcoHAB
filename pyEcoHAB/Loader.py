@@ -152,7 +152,7 @@ class EcoHabDataBase(object):
             addresses = self.get_visit_addresses(mouse)
             start_times = self.get_starttimes(mouse)
             end_times = self.get_endtimes(mouse)
-            durations = self.get_durations(mouse)
+            durations = self.get_visit_durations(mouse)
             for i, a in enumerate(addresses):
                 if a in cage:
                     visit = ufl.NamedDict("Visit_%s_%d" % (mouse, i),

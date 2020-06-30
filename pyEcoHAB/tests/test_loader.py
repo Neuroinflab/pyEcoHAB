@@ -49,6 +49,14 @@ class TestLoader(unittest.TestCase):
         out = self.dataset2.get_visits(cage="cage A")
         self.assertEqual(out[0].address, "cage A")
 
+    def test_visits_cage_A_address(self):
+        out = self.dataset2.get_visits(cage="cage A")
+        self.assertEqual(out[0].address, "cage A")
+
+    def test_visits_cage_A_duration(self):
+        out = self.dataset2.get_visits(cage="cage A")
+        self.assertTrue(np.isclose(out[0].duration, (out[0].t_end - out[0].t_start)))
+
     def test_visits_cage_A2(self):
         out = self.dataset2.get_visits(cage="cage A", t_end=1286708960.687)
         self.assertEqual(out, [])
