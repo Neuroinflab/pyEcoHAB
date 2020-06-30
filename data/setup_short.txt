@@ -1,0 +1,11 @@
+#standard setup
+[cage A]
+entrance_antenna1 = 1
+
+[cage dostawka]
+entrance_antenna1 = 2
+
+[tunnel 1]
+entrance_antenna1 = 1
+entrance_antenna2 = 2
+
