@@ -23,6 +23,9 @@ class TestLoader(unittest.TestCase):
         cls.dataset1_standard = Loader(cls.path1)
         cls.path2 = os.path.join(data_path, "weird_very_short")
         cls.dataset2 = Loader(cls.path2, visit_threshold=2)
+        cls.setup3 = SetupConfig(path=data_path, fname="setup_short.txt")
+        cls.dataset3 = Loader(cls.path1, visit_threshold=1.5,
+                              setup_config=cls.setup3, remove_antennas=["8"])
 
     def test_path(self):
         self.assertEqual(self.path1, self.dataset1.path)
@@ -83,6 +86,11 @@ class TestLoader(unittest.TestCase):
         out = self.dataset2.get_visits(t_start=1286708669.65,
                                        t_end=1286708768.349, cage="cage D")
         self.assertEqual(len(out), 2)
+
+    def test_visits_internal_antennas(self):
+        out = self.dataset1.get_visits()
+        out2 = self.dataset3.get_visits()
+        self.assertEqual(out, out2)
 
 class TestMerger(unittest.TestCase):
     @classmethod
