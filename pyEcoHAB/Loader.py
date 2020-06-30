@@ -122,10 +122,10 @@ class EcoHabDataBase(object):
             antennas.append(self.get_antennas(mouse)[0])
         return max(set(antennas), key=antennas.count)
 
-    def get_visits(self, mice=None, t_start=None, t_end=None):
+    def get_visits(self, mice=None, cage=None, t_start=None, t_end=None):
         """
         Return a list of visits to Eco-HAB compartments. Each visit is 
-        a named dictionary with following fields: t_start, t_end, tag
+        a named dictionary with following fields: t_start, t_end, cage, tag
         """
         if isinstance(mice, str):
             if mice in self.mice:
@@ -139,6 +139,12 @@ class EcoHabDataBase(object):
             t_start = self.session_start
         if t_end is None:
             t_end = self.session_end
+        if cage is None:
+            cage = self.cages
+        elif isinstance(cage, str):
+            if cage not in self.cages:
+                return []
+            cage = [cage]
 
         self.visits.mask_data([t_start, t_end])
         out = []
@@ -148,12 +154,13 @@ class EcoHabDataBase(object):
             end_times = self.get_endtimes(mouse)
             durations = self.get_durations(mouse)
             for i, a in enumerate(addresses):
-                visit = ufl.NamedDict("Visit_%s_%d" % (mouse, i),
-                                      tag=mouse, address=a,
-                                      t_start=start_times[i],
-                                      t_end=end_times[i],
-                                      duration=durations[i])
-                out.append(visit)
+                if a in cage:
+                    visit = ufl.NamedDict("Visit_%s_%d" % (mouse, i),
+                                          tag=mouse, address=a,
+                                          t_start=start_times[i],
+                                          t_end=end_times[i],
+                                          duration=durations[i])
+                    out.append(visit)
         return sorted(out, key = lambda o: o["t_start"])
 
     def get_registration_stats(self, tag, t_start,

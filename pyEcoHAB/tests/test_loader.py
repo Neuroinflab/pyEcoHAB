@@ -21,6 +21,8 @@ class TestLoader(unittest.TestCase):
         cls.dataset1 = Loader(cls.path1, visit_threshold=1.5, prefix="gugu")
         cls.setup1 = SetupConfig(cls.path1)
         cls.dataset1_standard = Loader(cls.path1)
+        cls.path2 = os.path.join(data_path, "weird_very_short")
+        cls.dataset2 = Loader(cls.path2, visit_threshold=2)
 
     def test_path(self):
         self.assertEqual(self.path1, self.dataset1.path)
@@ -34,6 +36,45 @@ class TestLoader(unittest.TestCase):
     def test_prefix_2(self):
         self.assertEqual(self.dataset1.prefix, "gugu")
 
+    def test_visits_1(self):
+        out = self.dataset2.get_visits()
+        out2 = self.dataset2.visits.data
+        self.assertEqual(len(out), len(out2))
+
+    def test_visits_cage_A(self):
+        out = self.dataset2.get_visits(cage="cage A")
+        self.assertEqual(len(out), 1)
+
+    def test_visits_cage_AA(self):
+        out = self.dataset2.get_visits(cage="cage A")
+        self.assertEqual(out[0].address, "cage A")
+
+    def test_visits_cage_A2(self):
+        out = self.dataset2.get_visits(cage="cage A", t_end=1286708960.687)
+        self.assertEqual(out, [])
+
+    def test_visits_cage_A3(self):
+        out = self.dataset2.get_visits(cage="cage A", t_start=1286708960.687)
+        self.assertEqual(len(out), 1)
+
+    def test_visits_cage_no_mice(self):
+        out = self.dataset2.get_visits(mice="mouse 2")
+        self.assertEqual([], out)
+
+    def test_visits_different_cages(self):
+        out = self.dataset2.get_visits(t_start=1286708669.65,
+                                       t_end=1286708768.349)
+        self.assertEqual(len(out), 4)
+
+    def test_visits_different_cages_2(self):
+        out = self.dataset2.get_visits(t_start=1286708669.65,
+                                       t_end=1286708768.349, cage="cage C")
+        self.assertEqual(len(out), 2)
+
+    def test_visits_different_cages_3(self):
+        out = self.dataset2.get_visits(t_start=1286708669.65,
+                                       t_end=1286708768.349, cage="cage D")
+        self.assertEqual(len(out), 2)
 
 class TestMerger(unittest.TestCase):
     @classmethod
