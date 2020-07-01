@@ -46,6 +46,8 @@ Standart data analysis script used by the Laboratory of Neurobiology with pyEcoH
 
 Results of the data analysis can be found in pyEcoHAB/data/BALB_VPA_data_cohort_1/results/
 
+If you are using a non-standard EcoHAB setup or a modular experimental setup utilizing more than one EcoHAB setup.
+
 
 This library is available under `GPL3 license
 <http://www.gnu.org/licenses/gpl-3.0>`_.
