@@ -379,10 +379,10 @@ class TestExperimentSetupConfig(unittest.TestCase):
                                              ecohab_2=cls.config4)
 
 
-    def test_indentity_points(self):
+    def test_indentity_compartments(self):
         out = {"ecohab1 cage A": "shared cage 1",
                "ecohab2 cage B": "shared cage 1"}
-        self.assertEqual(self.experiment_config.identity_points,
+        self.assertEqual(self.experiment_config.identity_compartments,
                          out)
 
     def test_renames(self):
@@ -393,12 +393,12 @@ class TestExperimentSetupConfig(unittest.TestCase):
     def test_renames_full_exp(self):
         self.assertEqual(self.full_exp.renames, {})
 
-    def test_indentity_points_full_exp(self):
+    def test_indentity_compartments_full_exp(self):
         out = {"ecohab_1 cage A": "cage A",
                "ecohab_2 cage A": "cage A",
                "ecohab_1 cage C": "cage C",
                "ecohab_2 cage C": "cage C",}
-        self.assertEqual(self.full_exp.identity_points,
+        self.assertEqual(self.full_exp.identity_compartments,
                          out)
 
     def test_all_section_names(self):

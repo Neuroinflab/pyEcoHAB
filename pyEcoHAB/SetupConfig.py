@@ -45,7 +45,7 @@ class SetupConfigMethods(RawConfigParser):
         """
         all_antennas = []
         for sec in self.sections():
-            if sec.startswith("shared point"):
+            if sec.startswith("shared compartment"):
                 continue
             for key, value in self.items(sec):
                 if value not in all_antennas:
@@ -424,31 +424,31 @@ class IdentityConfig(RawConfigParser):
 
     Experiment setup config should specify, which compartments in
     EcoHAB setups are shared (section name should start with "shared
-    point"), what is their name in each setup and, how this
+    compartment"), what is their name in each setup and, how this
     compartment should be named in further analysis (destination
     name), e.g.:
 
-    [shared point 1]
+    [shared compartment 1]
     setup_1_name = ecohab1
-    point_1_name = cage A
+    compartment_1_name = cage A
     setup_2_name = ecohab2
-    point_2_name = cage B
+    compartment_2_name = cage B
     destination_name = shared cage
 
-    If the shared point is a cage, destination_name has to include
-    word cage. If the shared point is a tunnel, destination_name has
+    If the shared compartment is a cage, destination_name has to include
+    word cage. If the shared compartment is a tunnel, destination_name has
     to include word tunnel.
 
     For modular experiments pyEcoHAB will add setup name to
     compartment name. To avoid weird sounding compartment names
-    one can also specify rename points:
-    [rename point 1]
+    one can also specify rename compartments:
+    [rename compartment 1]
     setup_name = ecohab1
-    point_name = cage C
+    compartment_name = cage C
     destination_name = cage C
 
     IdentityConfig provides dictionaries for renaming compartments:
-    self.identity_points for renaming shared compartments
+    self.identity_compartments for renaming shared compartments
     and self.renames for renaming compartments that are parts of only
     one setup.
     """
@@ -462,9 +462,9 @@ class IdentityConfig(RawConfigParser):
         self.read(path_to_fname)
 
     @property
-    def identity_points(self):
+    def identity_compartments(self):
         field = "setup_%d_name"
-        value = "point_%d_name"
+        value = "compartment_%d_name"
         out = {}
         for section in self.sections():
             if not section.startswith("shared"):
@@ -478,8 +478,8 @@ class IdentityConfig(RawConfigParser):
 
             for i in range(1, setups + 1):
                 setup = self.get(section, field % i)
-                point = self.get(section, value % i)
-                new_key = "%s %s" % (setup, point)
+                compartment = self.get(section, value % i)
+                new_key = "%s %s" % (setup, compartment)
                 out[new_key] = self.get(section, "destination_name")
         return out
 
@@ -491,10 +491,10 @@ class IdentityConfig(RawConfigParser):
                 continue
             items = [item[0] for item in self.items(section)]
             if len(items) != 3:
-                raise Exception("A rename point should have 3 attributes: setup_name, point_name and destination name")
+                raise Exception("A rename compartment should have 3 attributes: setup_name, compartment_name and destination name")
             setup = self.get(section, "setup_name")
-            point = self.get(section, "point_name")
-            key = "%s %s" % (setup, point)
+            compartment = self.get(section, "compartment_name")
+            key = "%s %s" % (setup, compartment)
             out[key] = self.get(section, "destination_name")
         return out
 
@@ -508,18 +508,18 @@ class ExperimentSetupConfig(SetupConfigMethods):
 
         Agrs: 
         fname_with_path: string or IdentityConfig object
-           Path to the experimental setup config file, which specifies points
+           Path to the experimental setup config file, which specifies compartments
            (cages/tunnels) that are shared by both experimental setup
         single_configs: a dictionary of loaded SetupConfigs for each
            EcoHAB setup
 
         An example of an experimental setup config file
         (saved in "experiment_setup.txt"):
-        [shared point 1]
+        [shared compartment 1]
         setup_1_name = ecohab_1
-        point_1_name = cage A
+        compartment_1_name = cage A
         setup_2_name = ecohab_2
-        point_2_name = cage D
+        compartment_2_name = cage D
         destination_name = cage A
         
         Load experiment setup config from "experiment_setup.txt", with
@@ -535,7 +535,7 @@ class ExperimentSetupConfig(SetupConfigMethods):
             experiment_config = IdentityConfig(fname_with_path)
         else:
             raise Exception("Provide a path to experiment config file or an IdentityConfig object")
-        self.identity_points = experiment_config.identity_points
+        self.identity_compartments = experiment_config.identity_compartments
         self.renames = experiment_config.renames
         self.make_sections(single_configs)
         self.ALL_ANTENNAS = self.get_all_antennas()
@@ -551,8 +551,8 @@ class ExperimentSetupConfig(SetupConfigMethods):
             for section in this_config_sectionss:
 
                 new_section_name = "%s %s" % (key, section)
-                if new_section_name in self.identity_points:
-                    new_section_name = self.identity_points[new_section_name]
+                if new_section_name in self.identity_compartments:
+                    new_section_name = self.identity_compartments[new_section_name]
                 if new_section_name in self.renames:
                     new_section_name = self.renames[new_section_name]
                 try:

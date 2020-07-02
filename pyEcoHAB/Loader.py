@@ -358,14 +358,14 @@ class Merger(EcoHabDataBase):
     tunnel and an internal antenna in the fifth cage recorded by a
     separate Eco-HAB.rfid (setup_2), the experimental setup file
     should be similar to:
-    [shared point 1]
+    [shared compartment 1]
     setup_1_name = setup_1
-    point_1_name = cage A
+    compartment_1_name = cage A
     setup_2_name = setup_2
-    point_2_name = cage D
+    compartment_2_name = cage D
     destination_name = cage A
 
-    point_1_name and point_2_name depend on the actual position of the
+    compartment_1_name and compartment_2_name depend on the actual position of the
     cage shared by both setups.
     When merging data obtained by this complex (modular) experimenta setup,
     provide path to the experimental setup config, and data (from

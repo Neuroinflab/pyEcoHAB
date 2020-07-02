@@ -1,23 +1,23 @@
-[shared point 1]
+[shared compartment 1]
 setup_1_name = ecohab_1
-point_1_name = cage A
+compartment_1_name = cage A
 setup_2_name = ecohab_2
-point_2_name = cage A
+compartment_2_name = cage A
 destination_name = cage A
 
-[shared point 2]
+[shared compartment 2]
 setup_1_name = ecohab_1
-point_1_name = cage C
+compartment_1_name = cage C
 setup_2_name = ecohab_2
-point_2_name = cage C
+compartment_2_name = cage C
 destination_name = cage C
 
-[rename point 1]
+[rename compartment 1]
 setup_name = ecohab_1
-point_name = cage B
+compartment_name = cage B
 destination_name = cage B
 
-[rename point 2]
+[rename compartment 2]
 setup_name = ecohab_2
-point_name = cage D
+compartment_name = cage D
 destination_name = cage D
