@@ -47,6 +47,10 @@ class SetupConfigMethods(RawConfigParser):
         for sec in self.sections():
             if sec.startswith("shared compartment"):
                 continue
+            elif sec.lower().startswith("setup"):
+                continue
+            elif sec.lower().endswith("setup"):
+                continue
             for key, value in self.items(sec):
                 if value not in all_antennas:
                     all_antennas.append(value)
@@ -417,6 +421,11 @@ class SetupConfig(SetupConfigMethods):
         self.make_definitions()
         self.mismatched_pairs = self.get_mismatched_pairs()
 
+    @property
+    def name(self):
+        return self.items("setup")[0][1]
+
+
 class IdentityConfig(RawConfigParser):
 
     """Load a config file specifing how EcoHAB setups are combined
@@ -549,7 +558,8 @@ class ExperimentSetupConfig(SetupConfigMethods):
             this_config_sectionss = this_config.sections()
 
             for section in this_config_sectionss:
-
+                if section.lower().startswith("setup"):
+                    continue
                 new_section_name = "%s %s" % (key, section)
                 if new_section_name in self.identity_compartments:
                     new_section_name = self.identity_compartments[new_section_name]

@@ -1,3 +1,6 @@
+[setup]
+name = ecohab_2
+
 [cage A]
 entrance_antenna1 = 8
 

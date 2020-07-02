@@ -102,8 +102,7 @@ class TestMerger(unittest.TestCase):
         cls.data2 = Loader(cls.path2)
         cls.res_dir = os.path.join(path, "results")
         config = os.path.join(path, "experiment_setup.txt")
-        cls.data = Merger(config, cls.res_dir, ecohab_1=cls.data1,
-                          ecohab_2=cls.data2)
+        cls.data = Merger(config, cls.res_dir, cls.data1, cls.data2)
         cls.original_data = Loader(sample_data)
 
     def test_1(self):

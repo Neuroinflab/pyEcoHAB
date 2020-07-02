@@ -1,4 +1,7 @@
 #standard setup
+[setup]
+name = default
+
 [cage B]
 entrance_antenna1 = 2
 entrance_antenna2 = 3

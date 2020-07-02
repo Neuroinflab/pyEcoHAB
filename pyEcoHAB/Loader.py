@@ -315,6 +315,7 @@ class Loader(EcoHabDataBase):
         self.setup_config = antennas
         self.all_antennas = antennas.all_antennas
         self.internal_antennas = antennas.internal_antennas
+        self.setup_name = antennas.name
 
     def _read_in_raw_data(self, factor, how_many_appearances, tags):
         """Reads in data from files in self.path.
@@ -385,20 +386,23 @@ class Merger(EcoHabDataBase):
     res_dir: str
         full path to results
 
-    loaders_dict:
-        provide EcoHAB datasets
+    loaders:
+        EcoHAB datasets
     """
-    def __init__(self, experiment_config, res_dir, **loaders_dict):
+    def __init__(self, experiment_config, res_dir, *loaders):
         datasets = []
         configs = {}
-        for setup_name in loaders_dict:
-            configs[setup_name] = loaders_dict[setup_name].setup_config
+
+        for loader in loaders:
+            print(loader)
+            setup_name = loader.setup_name
+            configs[setup_name] = loader.setup_config
             datasets.append(ufl.rename_antennas(setup_name,
-                                                loaders_dict[setup_name].readings.data))
+                                                loader.readings.data))
 
         data = ufl.append_data_sources(datasets)
         mask = None
-        self.visit_threshold = max([d.visit_threshold for key, d in loaders_dict.items()])
+        self.visit_threshold = max([d.visit_threshold for  d in loaders])
         self.prefix = "merged"
         today = date.today().strftime("%d.%m.%y")
         self.res_dir = "%s_%s" % (res_dir, today)
