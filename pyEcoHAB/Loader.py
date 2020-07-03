@@ -392,9 +392,7 @@ class Merger(EcoHabDataBase):
     def __init__(self, experiment_config, res_dir, *loaders):
         datasets = []
         configs = {}
-
         for loader in loaders:
-            print(loader)
             setup_name = loader.setup_name
             configs[setup_name] = loader.setup_config
             datasets.append(ufl.rename_antennas(setup_name,
