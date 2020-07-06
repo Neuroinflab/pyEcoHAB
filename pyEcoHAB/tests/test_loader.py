@@ -87,10 +87,15 @@ class TestLoader(unittest.TestCase):
                                        t_end=1286708768.349, cage="cage D")
         self.assertEqual(len(out), 2)
 
-    def test_visits_internal_antennas(self):
-        out = self.dataset1.get_visits()
-        out2 = self.dataset3.get_visits()
+    def test_visits_internal_antennas_mouse1(self):
+        out = self.dataset1.get_visits("mouse_1")
+        out2 = self.dataset3.get_visits("mouse_1")
         self.assertEqual(out, out2)
+
+    def test_visits_internal_antennas_mouse2(self):
+        out = self.dataset1.get_visits("mouse_2")
+        out2 = self.dataset3.get_visits("mouse_2")
+        self.assertEqual(len(out)-1, len(out2))
 
 class TestMerger(unittest.TestCase):
     @classmethod
@@ -150,7 +155,8 @@ class TestMerger(unittest.TestCase):
         out_2 = get_dynamic_interactions(self.original_data, config, N=1,
                                          seed=1)
         self.assertEqual(out_1, out_2)
-            
+
+
 if __name__ == '__main__':
     unittest.main()
 
