@@ -82,8 +82,8 @@ def calculate_visits_and_durations(data, mice, address, t_start, t_end, binsize)
 
 def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
                  save_histogram=False, delimiter=";",
-                 headers=['Number of visits to box',
-                          'Total time (sec) in box']):
+                 headers=['Number of visits to',
+                          'Total time (sec) in']):
     """
     Calculate activity of each mouse in time bins across the phases
     of the experiment.
