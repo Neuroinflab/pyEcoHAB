@@ -387,7 +387,7 @@ def get_animal_position(times, antennas, mouse, threshold, same_pipe,
     while i < len(times) - 1:
         delta_t = t_end - t_start
         if an_start in internal_antennas:
-            while an_end in internal_antennas:
+            while an_end == an_start:
                 i = i + 1
                 try:
                     t_end, an_end = times[i+1], antennas[i+1]
@@ -395,29 +395,34 @@ def get_animal_position(times, antennas, mouse, threshold, same_pipe,
                     out.append((address[an_start], mouse,
                                 t_start, t_end, t_end-t_start, True))
                     return out
-            if an_end in same_address[an_start]:
-                out.append((address[an_start], mouse,
-                            t_start, t_end, t_end-t_start, True))
-            elif (min(an_start, an_end),
-                  max(an_start, an_end)) in surrounding:
-                out.append((surrounding[(min(an_start, an_end),
-                                         max(an_start, an_end))],
-                            mouse, t_start, t_end, t_end-t_start, False))
-                an_start = an_end
-                t_start = t_end
+            out.append((address[an_start], mouse,
+                        t_start, t_end, t_end-t_start, True))
+
             try:
-                an_end = antennas[i+1]
-                t_end = times[i+1]
+                t_start, t_end = times[i], times[i+1]
+                an_start, an_end = antennas[i], antennas[i+1]
             except IndexError:
                 return out
-        elif an_end in internal_antennas and an_end in same_address[an_start]:
-            i = i+1
-            an_end = antennas[i+1]
-            t_end = times[i+1]
-            continue
-            # Workflow as agreed on 14 May 2014
-            # Modified by Asia 29/06/2020 to take into account internal
-            # antennas,  which are placed inside cages
+
+        elif an_end in internal_antennas:
+            an_old_end = an_end
+            while an_end == an_old_end:
+                i = i + 1
+                try:
+                    an_end = antennas[i+1]
+                    t_end = times[i+1]
+                except IndexError:
+                    out.append((address[an_old_end], mouse,
+                        t_start, t_end, t_end-t_start, True))
+                    return out
+
+            out.append((address[an_old_end], mouse,
+                        t_start, t_end, t_end-t_start, True))
+            try:
+                t_start, t_end = times[i], times[i+1]
+                an_start, an_end = antennas[i], antennas[i+1]
+            except IndexError:
+                return out
         elif delta_t < threshold:
             pass
         elif an_end == an_start:
