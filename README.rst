@@ -89,11 +89,11 @@ a. Your setups name in section [setup]. This is very important for modular EcoHA
 b. Chambers of the setup and their entrance antennas and internal antennas (if there are any internal antennas). You add each chamber specification as a separate section (in square brackets). Every chamber name needs to be unique and contain the word cage (lower case). In the section specifying each chamber list entrance antennas and internal antennas and their numbers. If there is more than one  antenna of a certain type you need to number them e.g. external_antenna1 = 6, external_antenna2 = 7.
 c. tunnels connecting chambers.  You add each tunnel specification as a separate section (in square brackets). Every tunnel name needs to be unique and contain the word tunnel (lower case). In the section specifying each tunnel list entrance antennas and internal antennas and their numbers.  If there is more than one  antenna of a certain type you need to number them e.g. external_antenna1 = 7, external_antenna2 = 8.
 
-A configuration file for a custom setup with two chambers connected with a tunnel with an additional internal antenna in cage A:
-::
-   [setup]
-   name = my_experiment
+A configuration file for a custom setup with two chambers connected with a tunnel with an additional internal antenna in cage A: 
 
+   [setup] 
+   name = my_experiment
+      
    [cage A]
    external_antenna = 1
    internal_antenna = 3
