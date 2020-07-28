@@ -7,6 +7,14 @@ pyEcoHAB supports both Python2 and Python3.
 
 pyEcoHAB allows for easy access to antenna readings. It implements a heuristic calculating timing and duration of animal visists to EcoHAB compartments. It also provides methods for determining mouse activity (number of visits and time spent in each chamber), in-cohort sociability, solitude (time mouse spent alone in EcoHAB chambers) and following.
 
+Installation
+====================
+1. Download pyEcoHAB by clicking on the green "Code" button. If you download a zip file, remember to unzip it. We add new functionality to pyEcoHAB frequently, so it is probably better to clone the repository and fetch changes every couple of weeks.
+2. Add path to pyEcoHAB to your PYTHONPATH. If you are using pyCharm or Spyder, you can add it via its graphic interphase. 
+
+
+Analyze data
+===================
 To read-in and analyze a sample data-set type:
 
 >>> import pyEcoHAB
