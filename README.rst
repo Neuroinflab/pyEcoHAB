@@ -125,7 +125,6 @@ A configuration file for a custom setup with two chambers connected with a tunne
    [cage A]
 
    external_antenna = 1
-
    internal_antenna = 3
 
 
@@ -137,7 +136,6 @@ A configuration file for a custom setup with two chambers connected with a tunne
    [tunnel 1]
 
    external_antenna1 = 1
-
    external_antenna2 = 2
 
 Config file for a modular Eco-HAB setup
