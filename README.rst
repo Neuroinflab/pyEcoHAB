@@ -142,7 +142,132 @@ A configuration file for a custom setup with two chambers connected with a tunne
 
 Config file for a modular Eco-HAB setup
 ------------
-If your experimental setup consists of 
+If your experimental setup consists of more then one Eco-HAB experimental setups, you need to provide a setup config file for every setup and a master configuration setup file describing the whole setups and mainly what chambers/tunnels were parts of at least two setups.
+
+Example 1
+~~~~~~~~~
+An experiment consisiting of a standard Eco-HAB setup with additional internal antennas in cage A (antenna 1) and cage C (antenna 8):
+1. Standard Eco-Hab setup can be provided by pyEcoHAB:
+   [setup]
+
+   name = default
+
+   
+   [cage B]
+
+   entrance_antenna1 = 2
+
+   entrance_antenna2 = 3
+
+   
+   [cage C]
+
+   entrance_antenna1 = 4
+
+   entrance_antenna2 = 5
+
+   
+   [cage D]
+
+   entrance_antenna1 = 6
+
+   entrance_antenna2 = 7
+
+   
+   [cage A]
+
+   entrance_antenna1 = 8
+
+   entrance_antenna2 = 1
+
+
+   [tunnel 1]
+
+   entrance_antenna1 = 1
+
+   entrance_antenna2 = 2
+
+
+   [tunnel 2]
+
+   entrance_antenna1 = 3
+
+   entrance_antenna2 = 4
+
+
+   [tunnel 3]
+
+   entrance_antenna1 = 5
+
+   entrance_antenna2 = 6
+
+
+   [tunnel 4]
+
+   entrance_antenna1 = 7
+
+   entrance_antenna2 = 8
+
+2. setup.txt file for the setup with internal antennas only. This file should be placed in the data directory with registrations of Eco-HAB setup with internal antennas.
+   
+   [setup]
+
+   name = internal
+
+   [cage A]
+
+   internal_antenna = 1
+
+   [cage C]
+
+   internal_antenna = 8
+
+3. Setup config file for the entire experiment:
+
+   [shared compartment 1]
+
+   setup_1_name = default
+   
+   compartment_1_name = cage A
+
+   setup_2_name = internal
+   
+   compartment_2_name = cage A
+   
+   destination_name = cage A
+
+   [shared compartment 2]
+
+   setup_1_name = default
+   
+   compartment_1_name = cage C
+   
+   setup_2_name = internal
+   
+   compartment_2_name = cage C
+   
+   destination_name = cage C
+ 
+
+   [rename compartment 1]
+
+   setup_name = default
+   
+   compartment_name = cage B
+   
+   destination_name = cage B
+
+   
+   [rename compartment 2]
+   
+   setup_name = default
+   
+   compartment_name = cage D
+   
+   destination_name = cage D
+
+This config file consists of two parts. The first part consisting of sections [shared compartment 1] and [shared compartment 2] specifies parts of the experimental setups that are shared by both submodules. In this case it is cage A, which has two entrance antennas, which are part of the setup named default, and an entrance antenna, which is a part of the setup named internal, and cage C. In this sections we specify locations and set the name that will be used in results files (in this case cage A and cage C). For clarity pyEcoHAB, when merging different setups into one modular dataset, adds setup names to names of the cages and tunnels that are not shared by different setups. One can rename these locations for easier further data analysis.
+
 
 This library is available under `GPL3 license
 <http://www.gnu.org/licenses/gpl-3.0>`_.
