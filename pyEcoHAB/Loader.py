@@ -210,9 +210,16 @@ class Loader(EcoHabDataBase):
     """Read in Eco-HAB data files that are located in path.
 
     This class reads in data collected by the Eco-HAB system, parses them
-    and removes in-correct registrations. After loading the data Loader triggers
-    calculation of timings of animal visits to Eco-HAB compartments. Currently
-    Loader assumes that there are 4 Eco-HAB compartments denoted by A, B, C, D).
+    and removes in-correct registrations. After loading the data Loader
+    triggers calculation of timings of animal visits to Eco-HAB compartments.
+    EcoHAB compartments are specified in a setup configuration file setup.txt,
+    which should be provided in the data directory. If no setup.txt file exists
+    Loader loades a standard EcoHAB setup config file (can be found in
+    pyEcoHAB.data_path/standard_setup.txt). If your EcoHAB experiment uses a
+    non-standard setup, provide it with your data set. If your experimental
+    setup is a modular EcoHAB setup (consisting of more than one EcoHAB
+    setups), load data from all your setups separately and merge loaded data
+    with Merger.
 
     Loader converts date and time of registration to float using
     time.localtime()
@@ -223,9 +230,9 @@ class Loader(EcoHabDataBase):
 
     Keyword Args:
         setup_config: str or an instance of SetupConfig
-           directory path to config file with antenna setup. If no "setup.txt" file 
-           can be found in path a standard setup is going to be loaded
-           (pyEcoHAB/data/standard_setup.txt). You need to provide a 
+           directory path to config file with antenna setup. If no "setup.txt"
+           file can be found in path a standard setup is going to be loaded
+           (pyEcoHAB/data/standard_setup.txt). You need to provide a
            separate setup.txt file or a path to a file with a configuration
            of your experiment, if you are using a non-standard EcoHAB
            experimental setup.
