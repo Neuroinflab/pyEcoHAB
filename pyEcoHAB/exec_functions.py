@@ -20,7 +20,7 @@ def evaluate_whole_experiment(ehd, cf, main_directory,
     result = np.zeros((len(phases), len(mice), len(mice)))
     fname_ = '%s_%s%s.csv' % (fname, prefix, add_info_mice)
     hist_dir = os.path.join("other_variables", fname, 'histograms')
-    rast_dir = fname + '/raster_plots'
+    rast_dir = os.path.join("other_variables", fname, 'raster_plots')
     for i, phase in enumerate(phases):
         if len(args):
             result[i] = func(ehd, cf, phase, *args)
