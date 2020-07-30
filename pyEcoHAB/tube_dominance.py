@@ -138,7 +138,7 @@ def get_tube_dominance(ehd, cf, prefix="", res_dir="", normalization=None,
     if res_dir is "":
         res_dir = ehd.res_dir
 
-    if ehd.how_many_antennas == 2:
+    if len(ehd.setup_config.tunnels) == 1:
         dom2.get_tube_dominance_2_cages(ehd, cf, res_dir, prefix)
         dom2.get_subversion_evaluation(ehd, cf, res_dir, prefix)
         dom2.get_visits_to_stimulus_cage(ehd, cf, res_dir, prefix)
