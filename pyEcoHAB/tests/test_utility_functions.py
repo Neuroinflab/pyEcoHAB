@@ -412,87 +412,6 @@ class TestGetIdxBetween(unittest.TestCase):
         self.assertEqual(len(uf.get_idx_between(0, 2, [])), 0)
 
 
-class TestMouseGoingForward(unittest.TestCase):
-    def test_going_forward(self):
-        self.assertTrue(uf.mouse_going_forward([1, 2, 3]))
-
-    def test_not_going_forward(self):
-        self.assertFalse(uf.mouse_going_forward([1, 2, 1, 8]))
-
-    def test_going_forward_other_pipe(self):
-        self.assertTrue(uf.mouse_going_forward([7, 8, 1]))
-
-    def test_not_going_forward_other_pipe(self):
-        self.assertFalse(uf.mouse_going_forward([8, 7, 8, 1]))
-
-    def test_going_forward_other_from_data(self):
-        self.assertTrue(uf.mouse_going_forward([3, 4, 4, 3, 3, 4, 4, 5]))
-
-    def test_not_going_forward_from_data(self):
-        self.assertFalse(uf.mouse_going_forward([5, 6, 6, 5, 4]))
-
-
-class TestMouseBacking(unittest.TestCase):
-    def test_going_forward(self):
-        self.assertFalse(uf.mouse_backing_off([1, 2, 3]))
-
-    def test_not_going_forward(self):
-        self.assertTrue(uf.mouse_backing_off([1, 2, 1, 8]))
-
-    def test_going_forward_other_pipe(self):
-        self.assertFalse(uf.mouse_backing_off([7, 8, 1]))
-
-    def test_not_going_forward_other_pipe(self):
-        self.assertTrue(uf.mouse_backing_off([8, 7, 8, 1]))
-
-    def test_going_forward_other_from_data(self):
-        self.assertFalse(uf.mouse_backing_off([3, 4, 4, 3, 3, 4, 4, 5]))
-
-    def test_not_going_forward_from_data(self):
-        self.assertTrue(uf.mouse_backing_off([5, 6, 6, 5, 4]))
-
-    def test_two_same_reading(self):
-        self.assertFalse(uf.mouse_backing_off([1, 1]))
-
-    def test_two_different_readings(self):
-        self.assertFalse(uf.mouse_backing_off([1, 2]))
-
-    def test_only_two_antennas_True(self):
-        self.assertTrue(uf.mouse_backing_off([1, 2, 1]))
-
-    def test_only_two_antennas_False(self):
-        self.assertFalse(uf.mouse_backing_off([1, 2, 1, 2]))
-
-    def test_one_reading(self):
-        self.assertFalse(uf.mouse_backing_off([1]))
-
-
-class TestSkipAntennas(unittest.TestCase):
-    def test_no_skipped_antennas_short(self):
-        out = uf.skipped_antennas([1, 2])
-        self.assertFalse(out)
-
-    def test_skipped_antennas_short(self):
-        out = uf.skipped_antennas([4, 2])
-        self.assertTrue(out)
-
-    def test_no_skipped_antennas_long(self):
-        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 5])
-        self.assertFalse(out)
-
-    def test_skipped_antennas_long(self):
-        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 6])
-        self.assertTrue(out)
-
-    def test_no_skipped_antennas_long_with_8(self):
-        out = uf.skipped_antennas([8, 1, 2, 2, 3, 4, 4, 5])
-        self.assertFalse(out)
-
-    def test_skipped_antennas_long_with_8(self):
-        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 6])
-        self.assertTrue(out)
-
-
 class TestGetTimestamp(unittest.TestCase):
     def test_up(self):
         self.assertEqual(uf.get_timestamp(42.2, 45.76, 0.1), 36)
@@ -1139,32 +1058,6 @@ class TestGetMoreStates(unittest.TestCase):
         self.assertEqual(len(states), len(readouts))
 
 
-class TestInChambers(unittest.TestCase):
-    def test_pipe_1_2_clockwise(self):
-        self.assertFalse(uf.in_chamber(1, 2))
-
-    def test_pipe_2_1_counterclockwise(self):
-        self.assertFalse(uf.in_chamber(2, 1))
-
-    def test_pipe_2_3_clockwise(self):
-        self.assertTrue(uf.in_chamber(2, 3))
-
-    def test_pipe_3_2_counterclockwise(self):
-        self.assertTrue(uf.in_chamber(3, 2))
-
-    def test_pipe_7_8_clockwise(self):
-        self.assertFalse(uf.in_chamber(7, 8))
-
-    def test_pipe_8_7_counterclockwise(self):
-        self.assertFalse(uf.in_chamber(8, 7))
-
-    def test_pipe_1_8_clockwise(self):
-        self.assertTrue(uf.in_chamber(1, 8))
-
-    def test_pipe_8_1_counterclockwise(self):
-        self.assertTrue(uf.in_chamber(8, 1))
-
-
 class TestChangeState(unittest.TestCase):
     def test_check_no_change(self):
         self.assertEqual(len(uf.change_state([1, 1, 1, 1])), 0)
@@ -1216,87 +1109,6 @@ class TestGetIdxBetween(unittest.TestCase):
 
     def test_empty(self):
         self.assertEqual(len(uf.get_idx_between(0, 2, [])), 0)
-
-
-class TestMouseGoingForward(unittest.TestCase):
-    def test_going_forward(self):
-        self.assertTrue(uf.mouse_going_forward([1, 2, 3]))
-
-    def test_not_going_forward(self):
-        self.assertFalse(uf.mouse_going_forward([1, 2, 1, 8]))
-
-    def test_going_forward_other_pipe(self):
-        self.assertTrue(uf.mouse_going_forward([7, 8, 1]))
-
-    def test_not_going_forward_other_pipe(self):
-        self.assertFalse(uf.mouse_going_forward([8, 7, 8, 1]))
-
-    def test_going_forward_other_from_data(self):
-        self.assertTrue(uf.mouse_going_forward([3, 4, 4, 3, 3, 4, 4, 5]))
-
-    def test_not_going_forward_from_data(self):
-        self.assertFalse(uf.mouse_going_forward([5, 6, 6, 5, 4]))
-
-
-class TestMouseBacking(unittest.TestCase):
-    def test_going_forward(self):
-        self.assertFalse(uf.mouse_backing_off([1, 2, 3]))
-
-    def test_not_going_forward(self):
-        self.assertTrue(uf.mouse_backing_off([1, 2, 1, 8]))
-
-    def test_going_forward_other_pipe(self):
-        self.assertFalse(uf.mouse_backing_off([7, 8, 1]))
-
-    def test_not_going_forward_other_pipe(self):
-        self.assertTrue(uf.mouse_backing_off([8, 7, 8, 1]))
-
-    def test_going_forward_other_from_data(self):
-        self.assertFalse(uf.mouse_backing_off([3, 4, 4, 3, 3, 4, 4, 5]))
-
-    def test_not_going_forward_from_data(self):
-        self.assertTrue(uf.mouse_backing_off([5, 6, 6, 5, 4]))
-
-    def test_two_same_reading(self):
-        self.assertFalse(uf.mouse_backing_off([1, 1]))
-
-    def test_two_different_readings(self):
-        self.assertFalse(uf.mouse_backing_off([1, 2]))
-
-    def test_only_two_antennas_True(self):
-        self.assertTrue(uf.mouse_backing_off([1, 2, 1]))
-
-    def test_only_two_antennas_False(self):
-        self.assertFalse(uf.mouse_backing_off([1, 2, 1, 2]))
-
-    def test_one_reading(self):
-        self.assertFalse(uf.mouse_backing_off([1]))
-
-
-class TestSkipAntennas(unittest.TestCase):
-    def test_no_skipped_antennas_short(self):
-        out = uf.skipped_antennas([1, 2])
-        self.assertFalse(out)
-
-    def test_skipped_antennas_short(self):
-        out = uf.skipped_antennas([4, 2])
-        self.assertTrue(out)
-
-    def test_no_skipped_antennas_long(self):
-        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 5])
-        self.assertFalse(out)
-
-    def test_skipped_antennas_long(self):
-        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 6])
-        self.assertTrue(out)
-
-    def test_no_skipped_antennas_long_with_8(self):
-        out = uf.skipped_antennas([8, 1, 2, 2, 3, 4, 4, 5])
-        self.assertFalse(out)
-
-    def test_skipped_antennas_long_with_8(self):
-        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 6])
-        self.assertTrue(out)
 
 
 class TestGetTimestamp(unittest.TestCase):

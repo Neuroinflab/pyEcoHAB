@@ -61,5 +61,4 @@ def evaluate_whole_experiment(ehd, cf, main_directory,
                     phases,
                     fname_,
                     mice,
-                    title=title,
-                    delimiter=delimiter)
+                    title=title)

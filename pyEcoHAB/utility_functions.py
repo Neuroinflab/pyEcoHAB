@@ -168,57 +168,12 @@ def get_idx_post(t1, times):
     return None
 
 
-def in_chamber(antenna, next_antenna):
-    antenna = antenna % 8
-    next_antenna = next_antenna % 8
-    if antenna % 2:
-        if next_antenna == antenna - 1:
-            return True
-    else:
-        if next_antenna == antenna + 1:
-            return True
-    return False
-
-
 def change_state(antennas):
     indx = []
     for i, a in enumerate(antennas[:-1]):
         if a != antennas[i+1]:
             indx.append(i)
     return indx
-
-
-def mouse_going_forward(antennas):
-    assert len(antennas) > 2
-    first_antenna, last_antenna = antennas[0], antennas[-1]
-    if first_antenna % 2 and last_antenna % 2:
-        return True
-    if not first_antenna % 2 and not last_antenna % 2:
-        return True
-    return False
-
-
-def mouse_backing_off(antennas):
-    first_antenna, last_antenna = antennas[0], antennas[-1]
-    how_many = len(set(antennas))
-    if how_many == 3:
-        if first_antenna % 2 and not last_antenna % 2:
-            return True
-        if not first_antenna % 2 and last_antenna % 2:
-            return True
-        return False
-
-    if first_antenna == last_antenna and len(antennas) > 2:
-        return True
-    return False
-
-
-def skipped_antennas(antennas):
-    change = abs(np.array(antennas[:-1]) - np.array(antennas[1:]))
-    if len(np.intersect1d(np.where(change >= 2)[0],
-                          np.where(change <= 6)[0])):
-        return True
-    return False
 
 
 def get_times_antennas(ehd, mouse, t_1, t_2):
