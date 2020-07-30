@@ -9,11 +9,6 @@ from . import exec_functions as dispatch
 from . import dominance_in_2_cages as dom2
 
 
-how_many_antennas = 3
-mas = 10  # sec
-nbins = 10
-
-
 def mice_in_different_spots(states1, states2):
     for s1 in states1:
         if s1 in states2:
