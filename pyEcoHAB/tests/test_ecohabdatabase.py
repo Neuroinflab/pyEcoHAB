@@ -9,6 +9,7 @@ from pyEcoHAB.Loader import EcoHabDataBase, Loader
 from pyEcoHAB import Timeline
 from pyEcoHAB.SetupConfig import SetupConfig
 
+
 class TestSingleAntennaStats(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -37,6 +38,6 @@ class TestSingleAntennaStats(unittest.TestCase):
                                                   times[1], "8", 900)
         self.assertEqual(result, ([0, 0, 0, 1], [0, 0, 0, 1026/1000]))
 
-        
+
 if __name__ == '__main__':
     unittest.main()

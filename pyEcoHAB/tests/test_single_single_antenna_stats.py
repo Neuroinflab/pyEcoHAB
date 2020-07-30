@@ -8,6 +8,7 @@ from pyEcoHAB import Loader
 from pyEcoHAB import Timeline
 from pyEcoHAB import data_path
 
+
 class TestExecution(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -36,6 +37,7 @@ class TestExecution(unittest.TestCase):
 
     def test7(self):
         sar.get_single_antenna_stats(self.data, self.config, 1800)
-    
+
+
 if __name__ == '__main__':
     unittest.main()

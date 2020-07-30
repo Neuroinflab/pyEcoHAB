@@ -9,9 +9,10 @@ import sys
 from pyEcoHAB import data_path
 
 if sys.version_info < (3, 0):
-    from ConfigParser import RawConfigParser, NoSectionError, DuplicateSectionError
+    from ConfigParser import RawConfigParser, DuplicateSectionError
 else:
-    from configparser import RawConfigParser, NoSectionError, DuplicateSectionError
+    from configparser import RawConfigParser, DuplicateSectionError
+
 
 class SetupConfigMethods(RawConfigParser):
     """
@@ -218,13 +219,15 @@ class SetupConfigMethods(RawConfigParser):
                         continue
                     tunnel_antennas = self.same_tunnel[a_4]
                     next_tunnel_antennas = self.next_tunnel_antennas(a_4)
-                    if antenna not in tunnel_antennas and antenna not in next_tunnel_antennas:
+                    if antenna not in tunnel_antennas\
+                       and antenna not in next_tunnel_antennas:
                         out += tunnel_antennas
         return list(set(out))
 
     def get_opposite_tunnel_dict(self):
         """
-        Find antennas in tunnels that are two cages away from current entrance antenna.
+        Find antennas in tunnels that are two cages away
+        from current entrance antenna.
         """
         # distance equal two
         all_antennas = self.entrance_antennas
@@ -236,29 +239,31 @@ class SetupConfigMethods(RawConfigParser):
             for other_tunnel_antenna in other_tunnel_antennas:
                 out_other_tunnel_antenna += self._go_two_steps(other_tunnel_antenna)
             if len(out_this_antenna + out_other_tunnel_antenna):
-                out[a_1] = sorted(list(set(out_this_antenna + out_other_tunnel_antenna)))
+                out[a_1] = sorted(list(set(out_this_antenna
+                                           + out_other_tunnel_antenna)))
         return out
 
     def get_cage_address_dict(self):
         """
-        Return a dictionary specifing which antenna is at the entrance to which cage
-        or alternatively which antennas is inside which cage.
+        Return a dictionary specifing which antenna is at the entrance
+        to which cage or alternatively which antennas is inside which cage.
         """
         out = {}
         for sec in self.cages:
             for antenna_type, antenna in self.items(sec):
-                if antenna_type.startswith("entrance") or antenna_type.startswith("internal"):
+                if antenna_type.startswith("entrance")\
+                   or antenna_type.startswith("internal"):
                     if antenna in out:
-                        raise Exception("%s was specified as %s twice"%(antenna_type,
-                                                                        antenna))
+                        raise Exception("%s was specified as %s twice" %
+                                        (antenna_type, antenna))
                     else:
                         out[antenna] = sec
         return out
 
     def get_address_non_adjacent_dict(self):
         """
-        Return a dictionary specifing which cage is at the other side of the tunnel
-        with specified entrance antenna.
+        Return a dictionary specifing which cage is at the other
+        side of the tunnel with specified entrance antenna.
         """
         all_antennas = self.entrance_antennas
         out = {}
@@ -274,8 +279,8 @@ class SetupConfigMethods(RawConfigParser):
 
     def get_surrounding_dict(self):
         """
-        Return a dictionary of possible locations, when an animal is registered by
-        two non-consecutive antennas.
+        Return a dictionary of possible locations, when an animal
+        is registered by two non-consecutive antennas.
         """
         out = {}
         cage_dict = self.get_cage_address_dict()
@@ -292,21 +297,23 @@ class SetupConfigMethods(RawConfigParser):
 
     def get_directions_dict(self):
         """
-        Return a list of pairs of possible antenna readings, when an animal is crossing
-        a tunnel in any direction, for all tunnels and directions in the experimental
-        setup.
+        Return a list of pairs of possible antenna readings, when an animal
+        is crossing a tunnel in any direction, for all tunnels and directions
+        in the experimental setup.
         """
         out = []
         for tunnel in self.tunnels:
-            vals = [item[1] for item in self.items(tunnel) if item[0].startswith("entra")]
+            vals = [item[1] for item in self.items(tunnel)
+                    if item[0].startswith("entra")]
             if len(vals) > 2:
                 raise Exception("There are more than 2 antennas at the entrances to %s" % tunnel)
-            out += [vals[0]+"_"+vals[1], vals[1]+"_"+vals[0]]
+            out += [vals[0] + "_" + vals[1], vals[1] + "_" + vals[0]]
         return sorted(out)
 
     def find_unused_antennas(self):
         """
-        Return a list of antennas that are not included in the experimental setup.
+        Return a list of antennas that are not included in the experimental
+        setup.
         """
         out_l = []
         for sec in self.sections():
@@ -316,9 +323,9 @@ class SetupConfigMethods(RawConfigParser):
 
     def get_mismatched_pairs(self):
         """
-        Return a list of possible pairs of non-consecutive antennas that could register
-        a tag. Pairs are coded as a string with both antenna codes separated by white
-        space.
+        Return a list of possible pairs of non-consecutive antennas
+        that could register a tag. Pairs are coded as a string with both
+        antenna codes separated by white space.
         """
         pairs = []
         for i in range(1, 9):
@@ -338,9 +345,9 @@ class SetupConfigMethods(RawConfigParser):
         for sec in self.sections():
             values = [item[1] for item in self.items(sec)]
             for i, val in enumerate(values):
-                for val2 in values[i+1:]:
-                    key = "%s %s" %(min(val, val2),
-                                          max(val, val2))
+                for val2 in values[i + 1:]:
+                    key = "%s %s" % (min(val, val2),
+                                     max(val, val2))
                     if key not in legal:
                         legal.append(key)
 
@@ -354,8 +361,8 @@ class SetupConfigMethods(RawConfigParser):
                         for cage_val in values:
                             if cage_val == tunnel_val:
                                 continue
-                            key = "%s %s" %(min(cage_val, tunnel_val),
-                                          max(cage_val, tunnel_val))
+                            key = "%s %s" % (min(cage_val, tunnel_val),
+                                             max(cage_val, tunnel_val))
                             if key not in legal:
                                 legal.append(key)
         for l in legal:
@@ -373,8 +380,9 @@ class SetupConfig(SetupConfigMethods):
     include word cage in section name, whereas sections describing
     tunnel configuration should include word tunnel in section name.
 
-    SetupConfig provides dictionaries describing setup configuration that are later
-    used for calculating animal visits to cages during the experiment.
+    SetupConfig provides dictionaries describing setup configuration
+    that are later used for calculating animal visits to cages during
+    the experiment.
 
     Args:
         path: str
@@ -382,14 +390,16 @@ class SetupConfig(SetupConfigMethods):
         fname: str
            setup filename
 
-    If no filename is provided, SetupConfing will load a setup.txt file from provided path
-    or any txt file with filename starting with setup.
+    If no filename is provided, SetupConfing will load a setup.txt file
+    from provided path or any txt file with filename starting with setup.
 
-    If no filename or path is provided ConfigSetup will load a standard_setup.txt file from
-    pyEcoHAB/data, which contains standard config for an EcoHAB experiment.
+    If no filename or path is provided ConfigSetup will load
+    a standard_setup.txt file from pyEcoHAB/data, which contains standard
+    config for an EcoHAB experiment.
 
     """
     ALL_ANTENNAS = ["1", "2", "3", "4", "5", "6", "7", "8"]
+
     def find_path(self, path, fname, standard, expected, possible):
         if path is None:
             self.path = data_path
@@ -407,12 +417,12 @@ class SetupConfig(SetupConfigMethods):
                         self.fname = os.path.basename(fnames[0])
                         self.path = path
                     else:
-                       print("No setup config found in %s" % path)
-                       self.path = data_path
-                       self.fname = standard
+                        print("No setup config found in %s" % path)
+                        self.path = data_path
+                        self.fname = standard
 
         return os.path.join(self.path, self.fname)
-        
+
     def __init__(self, path=None, fname=None):
         SetupConfigMethods.__init__(self)
         full_path = self.find_path(path, fname, "standard_setup.txt",
@@ -465,7 +475,7 @@ class IdentityConfig(RawConfigParser):
         if os.path.isfile(path_to_fname):
             self.config_path = path_to_fname
         else:
-            raise Exception("Could not find experiment config file %s for complex experiments",
+            raise Exception("Could not find experiment config file %s for modular experiments",
                             path_to_fname)
         RawConfigParser.__init__(self)
         self.read(path_to_fname)
@@ -515,10 +525,11 @@ class ExperimentSetupConfig(SetupConfigMethods):
         single experiment recorded using more than one EcoHAB
         experimental methods (modular EcoHAB experiment).
 
-        Agrs: 
+        Agrs:
         fname_with_path: string or IdentityConfig object
-           Path to the experimental setup config file, which specifies compartments
-           (cages/tunnels) that are shared by both experimental setup
+           Path to the experimental setup config file, which specifies
+           compartments (cages/tunnels) that are shared by at least two
+           experimental setups
         single_configs: a dictionary of loaded SetupConfigs for each
            EcoHAB setup
 
@@ -530,7 +541,7 @@ class ExperimentSetupConfig(SetupConfigMethods):
         setup_2_name = ecohab_2
         compartment_2_name = cage D
         destination_name = cage A
-        
+
         Load experiment setup config from "experiment_setup.txt", with
         config1 and config2 -- SetupConfig objects for ecohab_1 and ecohab_2:
         config = ExperimentSetupConfig(fname_with_path="experiment_setup.txt",
@@ -552,7 +563,7 @@ class ExperimentSetupConfig(SetupConfigMethods):
 
     def make_sections(self, single_configs):
         setup_names = list(single_configs.keys())
-        #add individual sections from each of the setup configs
+        # add individual sections from each of the setup configs
         for key in setup_names:
             this_config = single_configs[key]
             this_config_sectionss = this_config.sections()
@@ -569,16 +580,20 @@ class ExperimentSetupConfig(SetupConfigMethods):
                     self.add_section(new_section_name)
                     section_items = []
                 except DuplicateSectionError:
-                    section_items = [item[0] for item in self.items(new_section_name)]
+                    section_items = [item[0] for item in
+                                     self.items(new_section_name)]
 
                 for antenna_type, value in this_config.items(section):
-                    new_value = "%s_%s" %(value, key)
+                    new_value = "%s_%s" % (value, key)
                     if antenna_type in section_items:
                         starts_with = antenna_type.split("_")[0]
-                        how_many = len([item for item in section_items if item.startswith(starts_with)])
-                        new_antenna_type = "%s_antenna%d" %(starts_with, how_many+1)
+                        how_many = len([item for item in section_items
+                                        if item.startswith(starts_with)])
+                        new_antenna_type = "%s_antenna%d" % (starts_with,
+                                                             how_many + 1)
                     else:
                         new_antenna_type = antenna_type
 
                     self.set(new_section_name, new_antenna_type, new_value)
-                    section_items = [item[0] for item in self.items(new_section_name)]
+                    section_items = [item[0] for item
+                                     in self.items(new_section_name)]

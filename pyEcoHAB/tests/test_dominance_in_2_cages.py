@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 from __future__ import print_function, division, absolute_import
-from pyEcoHAB import dominance_in_2_cages as dom
 import unittest
 import numpy as np
+from pyEcoHAB import dominance_in_2_cages as dom
+
 
 class TestGetStates(unittest.TestCase):
     @classmethod
@@ -14,23 +15,23 @@ class TestGetStates(unittest.TestCase):
         cls.home_antenna_2 = 4
 
         cls.antennas = [3, 4, 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 3]
-        cls.times = [641.083, #3 #0
-                      642.135, #4 #1
-                      675.134, #4 #2
-                      675.869, #3 #3
-                      681.127, #3 #4
-                      681.734, #4 #5
-                      692.744, #4 #6
-                      693.207, #3 #7
-                      701.82,  #3 #8
-                      702.603, #4 #9
-                      703.499, #4 #10
-                      703.961, #3 #11
-                      723.136, #3 #12
-                      725.633, #4 #13
-                      734.133, #4 #14
-                      734.945, #3 #15
-                      783.411] #3 #16
+        cls.times = [641.083,  # 3  # 0
+                     642.135,  # 4  # 1
+                     675.134,  # 4  # 2
+                     675.869,  # 3  # 3
+                     681.127,  # 3  # 4
+                     681.734,  # 4  # 5
+                     692.744,  # 4  # 6
+                     693.207,  # 3  # 7
+                     701.82,   # 3  # 8
+                     702.603,  # 4  # 9
+                     703.499,  # 4  # 10
+                     703.961,  # 3  # 11
+                     723.136,  # 3  # 12
+                     725.633,  # 4  # 13
+                     734.133,  # 4  # 14
+                     734.945,  # 3  # 15
+                     783.411]  # 3  # 16
         cls.out_1 = dom.get_states_mouse(cls.antennas,
                                          cls.times,
                                          cls.t_start,
@@ -43,12 +44,11 @@ class TestGetStates(unittest.TestCase):
                                          cls.t_end,
                                          cls.home_antenna_2,
                                          cls.dt)
-        # for i, x in enumerate(cls.out_2):
-        #     print(i, x)
+
     def test_same_length(self):
         self.assertEqual(len(self.out_1),
                          len(self.out_2))
-    
+
     def test_different_results_for_different_home_antenna(self):
         for i, x in enumerate(self.out_1):
             if x != 1:
@@ -64,7 +64,7 @@ class TestGetStates(unittest.TestCase):
         for i, x in enumerate(self.out_1):
             if x == 1:
                 self.assertEqual(x, self.out_2[i])
-                
+
     def test_different_home_for_home_antenna_1(self):
         self.assertTrue(np.any(self.out_1 == 0))
 
@@ -100,7 +100,7 @@ class TestFindStimulusCageMice(unittest.TestCase):
 
     def test_1(self):
         t_start = 4.2
-        t_stop = 6.05 
+        t_stop = 6.05
         beginning = 2.1
         out = dom.find_stimulus_cage_mice(self.data,
                                           t_start, t_stop,
@@ -116,7 +116,6 @@ class TestFindStimulusCageMice(unittest.TestCase):
                                           beginning, self.dt)
         self.assertEqual(out, ['mouse 2'])
 
-
     def test_3(self):
         t_start = 6.2
         t_stop = 8
@@ -125,7 +124,7 @@ class TestFindStimulusCageMice(unittest.TestCase):
                                           t_start, t_stop,
                                           beginning, self.dt)
         self.assertTrue('mouse 1' in out)
-    
+
     def test_4(self):
         t_start = 6.2
         t_stop = 8
@@ -162,37 +161,40 @@ class TestCheckMouse1NotValid(unittest.TestCase):
 class TestCheckMouse2NotValid(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.antennas = [3,  4,   4,   3,   3,]
-        cls.times =    [11., 12., 13., 14., 21.]
+        cls.antennas = [3,  4,   4,   3,   3, ]
+        cls.times = [11., 12., 13., 14., 21.]
 
     def test_no_pre(self):
         self.assertTrue(dom.check_mouse2_not_valid(10, 20,
-                                               [3, 4],
-                                               [11., 12.],
-                                               3))
+                                                   [3, 4],
+                                                   [11., 12.],
+                                                   3))
 
     def test_no_between(self):
         self.assertTrue(dom.check_mouse2_not_valid(15, 20,
-                                               self.antennas,
-                                               self.times,
-                                               3))
+                                                   self.antennas,
+                                                   self.times,
+                                                   3))
 
     def test_not_home_antenna(self):
         self.assertTrue(dom.check_mouse2_not_valid(11.5, 20,
-                                               self.antennas,
-                                               self.times,
-                                               4))
+                                                   self.antennas,
+                                                   self.times,
+                                                   4))
+
     def test_return_False(self):
         self.assertFalse(dom.check_mouse2_not_valid(11.5, 20,
-                                               self.antennas,
-                                               self.times,
-                                               3))
+                                                    self.antennas,
+                                                    self.times,
+                                                    3))
+
 
 class TestCountAttempts(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.antennas = [3,  4,   4,   4,   3,   3,    3,   4,   3,   3,   3,  3,   4]
-        cls.times =    [5., 12., 13., 14., 21., 22., 24., 25., 26., 28., 35., 41., 44. ]
+        cls.antennas = [3, 4, 4, 4, 3, 3, 3, 4, 3, 3, 3, 3, 4]
+        cls.times = [5., 12., 13., 14., 21., 22., 24., 25.,
+                     26., 28., 35., 41., 44.]
 
     def test_check_1_true(self):
         out = dom.count_attempts(12.5, 13.5, self.times, self.antennas, 4)
@@ -228,16 +230,19 @@ class TestMouseDefending(unittest.TestCase):
         cls.home_antenna = 4
         cls.antennas1 = [3, 3, 3, 3]
         cls.times1 = [4, 12.5, 21.5, 45]
-        cls.antennas2 = [3,  4,   4,   4,   3,   3,    3,   4,   3,   3,   3,  3,   4]
-        cls.times2 =    [5., 12., 13., 14., 21., 22., 24., 25., 26., 28., 35., 41., 44. ]
+        cls.antennas2 = [3, 4, 4, 4, 3, 3, 3, 4, 3, 3, 3, 3, 4]
+        cls.times2 = [5., 12., 13., 14., 21., 22., 24., 25., 26., 28.,
+                      35., 41., 44.]
 
     def test_mouse_1_in_sugar_cage(self):
-        out = dom.check_mouse1_defending(self.antennas1, self.times1, self.antennas2, self.times2, 4)
+        out = dom.check_mouse1_defending(self.antennas1, self.times1,
+                                         self.antennas2, self.times2, 4)
         self.assertEqual(out, 1)
 
     def test_mouse_2_more_attempst(self):
         antennas1 = [4, 4, 4, 4]
-        out = dom.check_mouse1_defending(antennas1, self.times1, self.antennas2, self.times2, 3)
+        out = dom.check_mouse1_defending(antennas1, self.times1,
+                                         self.antennas2, self.times2, 3)
         self.assertEqual(out, 3)
 
 

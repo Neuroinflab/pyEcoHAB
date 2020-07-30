@@ -1,18 +1,20 @@
 from __future__ import print_function, division, absolute_import
 import os
 import unittest
-
 from pyEcoHAB import SetupConfig, ExperimentSetupConfig
 from pyEcoHAB import data_path
 
-SAME_PIPE = { "1": ["1", "2"],
-             "2": ["1", "2"],
-             "3": ["3", "4"],
-             "4": ["3", "4"],
-             "5": ["5", "6"],
-             "6": ["5", "6"],
-             "7": ["7", "8"],
-             "8": ["7", "8"]}
+
+SAME_PIPE = {
+    "1": ["1", "2"],
+    "2": ["1", "2"],
+    "3": ["3", "4"],
+    "4": ["3", "4"],
+    "5": ["5", "6"],
+    "6": ["5", "6"],
+    "7": ["7", "8"],
+    "8": ["7", "8"]
+}
 
 SAME_ADDRESS = {
     "1": ["1", "8"],
@@ -25,43 +27,48 @@ SAME_ADDRESS = {
     "8": ["1", "8"],
 }
 
-OPPOSITE_PIPE = {"1": ["5", "6"],
-                 "2": ["5", "6"],
-                 "3": ["7", "8"],
-                 "4": ["7", "8"],
-                 "5": ["1", "2"],
-                 "6": ["1", "2"],
-                 "7": ["3", "4"],
-                 "8": ["3", "4"]}
-
-ADDRESS = {"1": "cage A", #4
-           "2": "cage B", #1,
-           "3": "cage B", #1,
-           "4": "cage C", #2,
-           "5": "cage C", #2,
-           "6": "cage D", #3,
-           "7": "cage D", #3,
-           "8": "cage A", #4
+OPPOSITE_PIPE = {
+    "1": ["5", "6"],
+    "2": ["5", "6"],
+    "3": ["7", "8"],
+    "4": ["7", "8"],
+    "5": ["1", "2"],
+    "6": ["1", "2"],
+    "7": ["3", "4"],
+    "8": ["3", "4"]
 }
 
-ADDRESS_NON_ADJACENT = {"1": "cage B", #1,
-                        "2": "cage A", #4,
-                        "3": "cage C", #2,
-                        "4": "cage B", #1,
-                        "5": "cage D", #3,
-                        "6": "cage C", #2,
-                        "7": "cage A", #4,
-                        "8": "cage D", #3
+ADDRESS = {
+    "1": "cage A",  # 4
+    "2": "cage B",  # 1,
+    "3": "cage B",  # 1,
+    "4": "cage C",  # 2,
+    "5": "cage C",  # 2,
+    "6": "cage D",  # 3,
+    "7": "cage D",  # 3,
+    "8": "cage A",  # 4
+}
+
+ADDRESS_NON_ADJACENT = {
+    "1": "cage B",  # 1,
+    "2": "cage A",  # 4,
+    "3": "cage C",  # 2,
+    "4": "cage B",  # 1,
+    "5": "cage D",  # 3,
+    "6": "cage C",  # 2,
+    "7": "cage A",  # 4,
+    "8": "cage D",  # 3
 }
 # Surrounding: difference between antennas only 2 or 6 -- skipped one antenna
-SURROUNDING = {("1", "3"): "cage B", #1,
-               ("1", "7"): "cage A", #4,
-               ("2", "4"): "cage B", #1,
-               ("2", "8"): "cage A", #4,
-               ("3", "5"): "cage C", #2,
-               ("4", "6"): "cage C", #2,
-               ("5", "7"): "cage D", #3,
-               ("6", "8"): "cage D", #3
+SURROUNDING = {
+    ("1", "3"): "cage B",  # 1,
+    ("1", "7"): "cage A",  # 4,
+    ("2", "4"): "cage B",  # 1,
+    ("2", "8"): "cage A",  # 4,
+    ("3", "5"): "cage C",  # 2,
+    ("4", "6"): "cage C",  # 2,
+    ("5", "7"): "cage D",  # 3,
+    ("6", "8"): "cage D",  # 3
 }
 
 KEYS = ['1_2', '2_1', '3_4', '4_3', '5_6', '6_5', '7_8', '8_7']
@@ -89,7 +96,7 @@ class TestReadingIn(unittest.TestCase):
         self.assertEqual(self.d.fname, "standard_setup.txt")
 
     def test_read_in_path(self):
-        path =  os.path.join(data_path, "test_setups")
+        path = os.path.join(data_path, "test_setups")
         self.assertEqual(self.d_path.path, path)
 
     def test_read_in_path_fname(self):
@@ -99,7 +106,7 @@ class TestReadingIn(unittest.TestCase):
         self.assertEqual(self.d_path.name, "default1")
 
     def test_read_in_path2(self):
-        path =  os.path.join(data_path, "test_setups_2")
+        path = os.path.join(data_path, "test_setups_2")
         self.assertEqual(self.d_2.path, path)
 
     def test_read_in_path_fname2(self):
@@ -109,7 +116,7 @@ class TestReadingIn(unittest.TestCase):
         self.assertEqual(self.d_2.name, "default2")
 
     def test_read_in_custom_path(self):
-        path =  os.path.join(data_path, "test_setups_2")
+        path = os.path.join(data_path, "test_setups_2")
         self.assertEqual(self.c.path, path)
 
     def test_read_in_custom_fname(self):
@@ -128,7 +135,7 @@ class TestGetCagesTunnels(unittest.TestCase):
         out = sorted(["cage A", "cage B", "cage C", "cage D"])
         res = sorted(self.default.cages)
         self.assertEqual(out, res)
-   
+
     def test_standard_tunnels(self):
         out = sorted(["tunnel 1", "tunnel 2", "tunnel 3", "tunnel 4"])
         res = sorted(self.default.tunnels)
@@ -150,7 +157,6 @@ class TestGetDicts(unittest.TestCase):
         correct["cage D"] = ["6", "7"]
         correct["cage A"] = ["8", "1"]
         self.assertEqual(out, correct)
-
 
     def test_default_tunnels(self):
         out = self.default.get_tunnels_dict()
@@ -385,11 +391,10 @@ class TestExperimentSetupConfig(unittest.TestCase):
         path1 = os.path.join(data_path, "test_experiment_setups")
         cls.config3 = SetupConfig(path1, "setup1.txt")
         cls.config4 = SetupConfig(path1, "setup2.txt")
-        full_path  = os.path.join(path1, "experiment_setup.txt")
+        full_path = os.path.join(path1, "experiment_setup.txt")
         cls.full_exp = ExperimentSetupConfig(full_path,
                                              ecohab_1=cls.config3,
                                              ecohab_2=cls.config4)
-
 
     def test_indentity_compartments(self):
         out = {"ecohab1 cage A": "shared cage 1",
@@ -406,10 +411,12 @@ class TestExperimentSetupConfig(unittest.TestCase):
         self.assertEqual(self.full_exp.renames, {})
 
     def test_indentity_compartments_full_exp(self):
-        out = {"ecohab_1 cage A": "cage A",
-               "ecohab_2 cage A": "cage A",
-               "ecohab_1 cage C": "cage C",
-               "ecohab_2 cage C": "cage C",}
+        out = {
+            "ecohab_1 cage A": "cage A",
+            "ecohab_2 cage A": "cage A",
+            "ecohab_1 cage C": "cage C",
+            "ecohab_2 cage C": "cage C",
+        }
         self.assertEqual(self.full_exp.identity_compartments,
                          out)
 
@@ -465,31 +472,31 @@ class TestExperimentSetupConfig(unittest.TestCase):
                          sorted(self.full_exp.tunnels))
 
     def test_get_cages_dict_1(self):
-        key =  "shared cage 1"
-        out = sorted(["8_ecohab1", "8_ecohab2","1_ecohab1", "2_ecohab2"])
+        key = "shared cage 1"
+        out = sorted(["8_ecohab1", "8_ecohab2", "1_ecohab1", "2_ecohab2"])
         self.assertEqual(sorted(self.experiment_config.cages_dict[key]),
                          out)
 
     def test_get_cages_dict_2(self):
-        key =  "ecohab1 cage B"
+        key = "ecohab1 cage B"
         out = sorted(["2_ecohab1", "3_ecohab1"])
         self.assertEqual(sorted(self.experiment_config.cages_dict[key]),
                          out)
 
     def test_get_cages_dict_3(self):
-        key =  "cage C"
+        key = "cage C"
         out = sorted(["4_ecohab1", "5_ecohab1"])
         self.assertEqual(sorted(self.experiment_config.cages_dict[key]),
                          out)
 
     def test_get_cages_dict_4(self):
-        key =  "ecohab1 cage D"
+        key = "ecohab1 cage D"
         out = sorted(["6_ecohab1", "7_ecohab1"])
         self.assertEqual(sorted(self.experiment_config.cages_dict[key]),
                          out)
 
     def test_get_cages_dict_5(self):
-        key =  "ecohab2 cage A"
+        key = "ecohab2 cage A"
         out = sorted(["1_ecohab2"])
         self.assertEqual(sorted(self.experiment_config.cages_dict[key]),
                          out)
@@ -501,31 +508,31 @@ class TestExperimentSetupConfig(unittest.TestCase):
                          keys)
 
     def test_get_cages_dict_full_exp_1(self):
-        key =  "cage A"
+        key = "cage A"
         out = sorted(["1_ecohab_1", "8_ecohab_2"])
         self.assertEqual(sorted(self.full_exp.cages_dict[key]),
                          out)
 
     def test_get_cages_dict_full_exp_2(self):
-        key =  "ecohab_1 cage B"
+        key = "ecohab_1 cage B"
         out = sorted(["2_ecohab_1", "3_ecohab_1"])
         self.assertEqual(sorted(self.full_exp.cages_dict[key]),
                          out)
 
     def test_get_cages_dict_full_exp_3(self):
-        key =  "ecohab_2 cage D"
+        key = "ecohab_2 cage D"
         out = sorted(["6_ecohab_2", "7_ecohab_2"])
         self.assertEqual(sorted(self.full_exp.cages_dict[key]),
                          out)
 
     def test_get_cages_dict_full_exp_4(self):
-        key =  "cage C"
+        key = "cage C"
         out = sorted(["4_ecohab_1", "5_ecohab_2"])
         self.assertEqual(sorted(self.full_exp.cages_dict[key]),
                          out)
 
     def test_get_cages_dict_full_exp_keys(self):
-        keys =  sorted(["cage A", "ecohab_1 cage B", "cage C",
+        keys = sorted(["cage A", "ecohab_1 cage B", "cage C",
                        "ecohab_2 cage D"])
 
         self.assertEqual(sorted(self.full_exp.cages_dict.keys()),
@@ -608,7 +615,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
 
     def test_same_tunnel_keys(self):
         keys = sorted(set(self.experiment_config.ALL_ANTENNAS)
-                           - set(self.experiment_config.internal_antennas))
+                      - set(self.experiment_config.internal_antennas))
         self.assertEqual(keys,
                          sorted(self.experiment_config.same_tunnel.keys()))
 
@@ -674,7 +681,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
 
     def test_same_tunnel_keys_full_exp(self):
         keys = sorted(set(self.full_exp.ALL_ANTENNAS)
-                           - set(self.full_exp.internal_antennas))
+                      - set(self.full_exp.internal_antennas))
         self.assertEqual(keys,
                          sorted(self.full_exp.same_tunnel.keys()))
 
@@ -747,7 +754,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
         out = sorted(["1_ecohab1", "8_ecohab2", "2_ecohab2", "8_ecohab1"])
         self.assertEqual(out,
                          sorted(self.experiment_config.same_address[key]))
-        
+
     def test_same_address_82(self):
         key = "8_ecohab2"
         out = sorted(["1_ecohab1", "8_ecohab2", "2_ecohab2", "8_ecohab1"])
@@ -848,7 +855,8 @@ class TestExperimentSetupConfig(unittest.TestCase):
                          sorted(self.full_exp.opposite_tunnel.keys()))
 
     def test_opposite_tunnel_dict_keys(self):
-        keys = set(self.experiment_config.all_antennas) - set(self.experiment_config.internal_antennas)
+        keys = set(self.experiment_config.all_antennas)\
+               - set(self.experiment_config.internal_antennas)
         self.assertEqual(sorted(keys),
                          sorted(self.experiment_config.opposite_tunnel.keys()))
 
@@ -863,7 +871,6 @@ class TestExperimentSetupConfig(unittest.TestCase):
         out = sorted(["5_ecohab_2", "6_ecohab_2"])
         self.assertEqual(sorted(self.full_exp.opposite_tunnel[key]),
                          out)
-
 
     def test_opposite_tunnel_full_exp_5(self):
         key = "5_ecohab_2"
@@ -923,7 +930,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
 
     def test_opposite_tunnel_71(self):
         key = "7_ecohab1"
-        out = sorted([ "3_ecohab1", "4_ecohab1"])
+        out = sorted(["3_ecohab1", "4_ecohab1"])
         self.assertEqual(out, self.experiment_config.opposite_tunnel[key])
 
     def test_opposite_tunnel_81(self):
@@ -935,7 +942,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
         key = "1_ecohab1"
         out = sorted(["5_ecohab1", "6_ecohab1"])
         self.assertEqual(out, self.experiment_config.opposite_tunnel[key])
-    
+
     def test_opposite_tunnel_21(self):
         key = "2_ecohab1"
         out = sorted(["5_ecohab1", "6_ecohab1"])
@@ -950,7 +957,6 @@ class TestExperimentSetupConfig(unittest.TestCase):
         key = "6_ecohab1"
         out = sorted(["1_ecohab1", "2_ecohab1", "1_ecohab2", "2_ecohab2"])
         self.assertEqual(out, self.experiment_config.opposite_tunnel[key])
-
 
     def test_cage_address_dict(self):
         out = {}
@@ -1006,9 +1012,8 @@ class TestExperimentSetupConfig(unittest.TestCase):
             "7_ecohab1": "shared cage 1",
             "8_ecohab1": "ecohab1 cage D",
         }
-        
         self.assertEqual(out, self.experiment_config.address_non_adjacent)
-        
+
     def test_address_surrounding_full_exp(self):
         out = {
             ("1_ecohab_1", "3_ecohab_1"): "ecohab_1 cage B",
@@ -1040,20 +1045,24 @@ class TestExperimentSetupConfig(unittest.TestCase):
             }
 
     def test_directions_full_exp(self):
-        out = sorted(['1_ecohab_1_2_ecohab_1', '2_ecohab_1_1_ecohab_1',
-                      '3_ecohab_1_4_ecohab_1', '4_ecohab_1_3_ecohab_1',
-                      '5_ecohab_2_6_ecohab_2', '6_ecohab_2_5_ecohab_2',
-                      '7_ecohab_2_8_ecohab_2', '8_ecohab_2_7_ecohab_2']
+        out = sorted(
+            ['1_ecohab_1_2_ecohab_1', '2_ecohab_1_1_ecohab_1',
+             '3_ecohab_1_4_ecohab_1', '4_ecohab_1_3_ecohab_1',
+             '5_ecohab_2_6_ecohab_2', '6_ecohab_2_5_ecohab_2',
+             '7_ecohab_2_8_ecohab_2', '8_ecohab_2_7_ecohab_2']
         )
         self.assertEqual(self.full_exp.directions, out)
 
     def test_directions(self):
-        out = sorted(['1_ecohab1_2_ecohab1', '2_ecohab1_1_ecohab1',
-                      '1_ecohab2_2_ecohab2', '2_ecohab2_1_ecohab2',
-                      '3_ecohab1_4_ecohab1', '4_ecohab1_3_ecohab1',
-                      '5_ecohab1_6_ecohab1', '6_ecohab1_5_ecohab1',
-                      '7_ecohab1_8_ecohab1', '8_ecohab1_7_ecohab1']
+        out = sorted(
+            ['1_ecohab1_2_ecohab1', '2_ecohab1_1_ecohab1',
+             '1_ecohab2_2_ecohab2', '2_ecohab2_1_ecohab2',
+             '3_ecohab1_4_ecohab1', '4_ecohab1_3_ecohab1',
+             '5_ecohab1_6_ecohab1', '6_ecohab1_5_ecohab1',
+             '7_ecohab1_8_ecohab1', '8_ecohab1_7_ecohab1']
         )
         self.assertEqual(self.experiment_config.directions, out)
+
+
 if __name__ == '__main__':
     unittest.main()

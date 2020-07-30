@@ -16,6 +16,7 @@ from pyEcoHAB.SetupConfig import SetupConfig, ExperimentSetupConfig
 from . import utility_functions as utils
 from .utils import for_loading as ufl
 
+
 class EcoHabDataBase(object):
 
     def __init__(self, data, mask, threshold, config):
@@ -73,16 +74,18 @@ class EcoHabDataBase(object):
         return self.readings.getproperty(mice,
                                          'Time',
                                          'float')
+
     def get_durations(self, mice):
         """Return duration of registration
         by antenna"""
         return self.readings.getproperty(mice,
                                          'Duration',
                                          'float')
-    #add get_visits, get_readings
+
     def get_visit_addresses(self, mice):
         return self.visits.getproperty(mice,
                                        'Address')
+
     def get_starttimes(self, mice):
         return self.visits.getproperty(mice,
                                        'AbsStartTimecode',
@@ -97,17 +100,18 @@ class EcoHabDataBase(object):
         return self.visits.getproperty(mice,
                                        'VisitDuration',
                                        'float')
+
     def how_many_antennas(self):
         all_antennas = set(self.get_antennas(self.mice))
         return len(all_antennas)
 
     def get_mice(self):
         mouse_list = list(set(self.readings.data["Tag"]))
-        #new EcoHAB has a different tag nameing convention
-        #last five digits are the same whereas in previous version
-        #there was a prefix and first digits where the same
+        # new EcoHAB has a different tag naming convention
+        # last five digits are the same whereas in previous version
+        # there was a prefix and first digits where the same
         if len(set([mouse[-4:] for mouse in mouse_list])) == len(mouse_list):
-            mouse_dict = {mouse[-6:]:mouse for mouse in mouse_list}
+            mouse_dict = {mouse[-6:]: mouse for mouse in mouse_list}
             mouse_keys = sorted(mouse_dict.keys())
             return [mouse_dict[mouse] for mouse in mouse_keys]
         return sorted(mouse_list)
@@ -115,7 +119,7 @@ class EcoHabDataBase(object):
     def get_home_cage_antenna(self):
         """
         Finds home antenna. This is a function used to calculate one
-        of the measures of dominance in two cage experiments. 
+        of the measures of dominance in two cage experiments.
         """
         antennas = []
         for mouse in self.mice:
@@ -124,7 +128,7 @@ class EcoHabDataBase(object):
 
     def get_visits(self, mice=None, cage=None, t_start=None, t_end=None):
         """
-        Return a list of visits to Eco-HAB compartments. Each visit is 
+        Return a list of visits to Eco-HAB compartments. Each visit is
         a named dictionary with following fields: t_start, t_end, cage, tag
         """
         if isinstance(mice, str):
@@ -161,7 +165,7 @@ class EcoHabDataBase(object):
                                           t_end=end_times[i],
                                           duration=durations[i])
                     out.append(visit)
-        return sorted(out, key = lambda o: o["t_start"])
+        return sorted(out, key=lambda o: o["t_start"])
 
     def get_registration_stats(self, tag, t_start,
                                t_end, antenna, binsize):
@@ -194,7 +198,7 @@ class EcoHabDataBase(object):
             t_e = t_s + binsize
             self.mask_data(t_s, t_e)
             antennas = self.get_antennas(tag)
-            indices = np.where(np.array(antennas) == antenna )[0]
+            indices = np.where(np.array(antennas) == antenna)[0]
             count_in_bins.append(len(indices))
             durations = self.get_durations(tag)
             sum_time = 0
@@ -262,7 +266,8 @@ class Loader(EcoHabDataBase):
         min_appearance_factor: float of value less than 1
            Animal tags that are registered in fraction of the experiment
            duration lower than min_appearance_factor will be removed
-           from loaded data. By default no animal tag registrations are removed.
+           from loaded data. By default no animal tag registrations are
+           removed.
         remove_antennas: list
            Registrations by antenna ids in remove_antennas will be removed from
            loaded data. By default Loader keeps all the registrations.
@@ -273,11 +278,11 @@ class Loader(EcoHabDataBase):
            Add analysis date to results directory filename.
            As a default current date will be added.
     """
-    
     MAX_BREAK = 3600
     internal_antennas = []
+
     def __init__(self, path, **kwargs):
-        #Read in parameters
+        # Read in parameters
         self.path = path
         setup_config = kwargs.pop('setup_config', None)
         if isinstance(setup_config, SetupConfig):
@@ -297,22 +302,18 @@ class Loader(EcoHabDataBase):
         how_many_appearances = kwargs.pop('how_many_appearances', 0)
         factor = kwargs.pop('min_appearance_factor', 0)
         remove_antennas = kwargs.pop('remove_antennas', [])
-        tags = kwargs.pop('remove_mice',[])
+        tags = kwargs.pop('remove_mice', [])
         if add_date:
             today = date.today().strftime("%d.%m.%y")
-            res_dir = "%s_%s" %(res_dir, today)
-       
+            res_dir = "%s_%s" % (res_dir, today)
         self.res_dir = ufl.results_path(self.path, res_dir)
-       
-        #Read in data
+        # Read in data
         rawdata = self._read_in_raw_data(factor,
                                          how_many_appearances,
                                          tags)
         data = ufl.from_raw_data(rawdata)
-                                 
         data = ufl.remove_antennas(data, remove_antennas)
-        #As in antenna readings
-        
+        # As in antenna readings
         ufl.run_diagnostics(data, self.max_break, self.res_dir,
                             antennas.mismatched_pairs)
         super(Loader, self).__init__(data, self.mask,
@@ -330,8 +331,8 @@ class Loader(EcoHabDataBase):
         raw_data = []
         days = set()
         self._fnames = ufl.get_filenames(self.path)
-        if not len(self._fnames ):
-            sys.exit("%s is empty"% self.path)
+        if not len(self._fnames):
+            sys.exit("%s is empty" % self.path)
         for f_name in self._fnames:
             raw_data += ufl.read_single_file(self.path, f_name)
             days.add(f_name.split('_')[0])
@@ -342,11 +343,11 @@ class Loader(EcoHabDataBase):
                                      tags=tags)
         data.sort(key=lambda x: ufl.time_to_sec(x[1]))
         return data
-                         
-    def __repr__ (self):
+
+    def __repr__(self):
         """Nice string representation for prtinting this class."""
-        mystring = 'Eco-HAB data loaded from:\n%s\nin the folder%s\n' %(
-                   self._fnames.__str__(), self.path) 
+        mystring = 'Eco-HAB data loaded from:\n%s\nin the folder%s\n' % (
+                   self._fnames.__str__(), self.path)
         return mystring
 
 
@@ -373,8 +374,8 @@ class Merger(EcoHabDataBase):
     compartment_2_name = cage D
     destination_name = cage A
 
-    compartment_1_name and compartment_2_name depend on the actual position of the
-    cage shared by both setups.
+    compartment_1_name and compartment_2_name depend on the actual position
+    of the cage shared by both setups.
     When merging data obtained by this complex (modular) experimenta setup,
     provide path to the experimental setup config, and data (from
     all parts of the experiment loaded by Loader) as keyworded arguments:
@@ -404,10 +405,9 @@ class Merger(EcoHabDataBase):
             configs[setup_name] = loader.setup_config
             datasets.append(ufl.rename_antennas(setup_name,
                                                 loader.readings.data))
-
         data = ufl.append_data_sources(datasets)
         mask = None
-        self.visit_threshold = max([d.visit_threshold for  d in loaders])
+        self.visit_threshold = max([d.visit_threshold for d in loaders])
         self.prefix = "merged"
         today = date.today().strftime("%d.%m.%y")
         self.res_dir = "%s_%s" % (res_dir, today)

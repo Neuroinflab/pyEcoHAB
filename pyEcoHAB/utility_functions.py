@@ -1,13 +1,12 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 import os
 import time
 import sys
 from collections import OrderedDict
 import numpy as np
-#NamedDict class was originally written by Zbyszek Jędrzejewski-Szmek
-#and Avrama Blackwell for moose_nerp https://github.com/neurord/moose_nerp
-
+# NamedDict class was originally written by Zbyszek Jędrzejewski-Szmek
+# and Avrama Blackwell for moose_nerp https://github.com/neurord/moose_nerp
 
 
 def check_directory(directory, subdirectory=None):
@@ -21,9 +20,9 @@ def check_directory(directory, subdirectory=None):
 
 
 def make_figure(title):
-    fig = plt.figure(figsize=(12,12))
+    fig = plt.figure(figsize=(12, 12))
     ax = fig.add_subplot(111, aspect='equal')
-    fig.suptitle('%s'%(title), fontsize=14, fontweight='bold')
+    fig.suptitle('%s' % (title), fontsize=14, fontweight='bold')
     return fig, ax
 
 
@@ -31,8 +30,9 @@ def list_of_pairs(mice):
     pair_labels = []
     for j, mouse in enumerate(mice):
         for k in range(j+1, len(mice)):
-            pair_labels.append(mice[j]+'|'+mice[k])
+            pair_labels.append(mice[j] + '|' + mice[k])
     return pair_labels
+
 
 def all_pairs(mice, reverse_order=False):
     pair_labels = []
@@ -52,13 +52,14 @@ def make_table_of_pairs(FAM, phases, mice):
     output = np.zeros(new_shape)
     pair_labels = list_of_pairs(mice)
     for i in range(len(phases)):
-        l = 0
+        count = 0
         for j in range(len(mice)):
             for k in range(j + 1, len(mice)):
-                output[l, i] = FAM[i, j, k]
-                l += 1
+                output[count, i] = FAM[i, j, k]
+                count += 1
 
     return output, pair_labels
+
 
 def make_table_of_all_pairs(FAM, phases, mice, reverse_order=False):
     new_shape = (len(mice)*(len(mice)-1), len(phases))
@@ -66,16 +67,16 @@ def make_table_of_all_pairs(FAM, phases, mice, reverse_order=False):
     pair_labels = all_pairs(mice,
                             reverse_order=reverse_order)
     for i, phase in enumerate(phases):
-        l = 0
+        count = 0
         for j in range(len(mice)):
             for k in range(len(mice)):
                 if j == k:
                     continue
                 if reverse_order is True:
-                    output[l, i] = FAM[i, k, j]
+                    output[count, i] = FAM[i, k, j]
                 else:
-                    output[l, i] = FAM[i, j, k]
-                l += 1
+                    output[count, i] = FAM[i, j, k]
+                count += 1
     return output, pair_labels
 
 
@@ -145,7 +146,7 @@ def add_info_mice_filename(remove_mouse):
     if isinstance(remove_mouse, list):
         add_info_mice = 'remove'
         for mouse in remove_mouse:
-            add_info_mice += '_' + mouse 
+            add_info_mice += '_' + mouse
     return add_info_mice
 
 
@@ -155,8 +156,9 @@ def get_idx_pre(t0, times):
         return idxs[-1]
     return None
 
+
 def get_idx_between(t0, t1, times):
-    return  np.where((np.array(times) >= t0) & (np.array(times) < t1))[0]
+    return np.where((np.array(times) >= t0) & (np.array(times) < t1))[0]
 
 
 def get_idx_post(t1, times):
@@ -166,21 +168,11 @@ def get_idx_post(t1, times):
     return None
 
 
-def in_tube(antenna, next_antenna):
-    if antenna % 2:
-        if next_antenna  == antenna  + 1:
-            return True
-    else:
-        if next_antenna == antenna - 1:
-            return True
-    return False
-
-
 def in_chamber(antenna, next_antenna):
     antenna = antenna % 8
     next_antenna = next_antenna % 8
     if antenna % 2:
-        if next_antenna  == antenna - 1:
+        if next_antenna == antenna - 1:
             return True
     else:
         if next_antenna == antenna + 1:
@@ -195,6 +187,7 @@ def change_state(antennas):
             indx.append(i)
     return indx
 
+
 def mouse_going_forward(antennas):
     assert len(antennas) > 2
     first_antenna, last_antenna = antennas[0], antennas[-1]
@@ -203,7 +196,8 @@ def mouse_going_forward(antennas):
     if not first_antenna % 2 and not last_antenna % 2:
         return True
     return False
-    
+
+
 def mouse_backing_off(antennas):
     first_antenna, last_antenna = antennas[0], antennas[-1]
     how_many = len(set(antennas))
@@ -218,13 +212,15 @@ def mouse_backing_off(antennas):
         return True
     return False
 
+
 def skipped_antennas(antennas):
     change = abs(np.array(antennas[:-1]) - np.array(antennas[1:]))
-    if len(np.intersect1d(np.where(change>=2)[0], np.where(change<=6)[0])):
+    if len(np.intersect1d(np.where(change >= 2)[0],
+                          np.where(change <= 6)[0])):
         return True
     return False
 
-    
+
 def get_times_antennas(ehd, mouse, t_1, t_2):
     if t_1 == 0 and t_2 == -1:
         ehd.unmask_data()
@@ -254,7 +250,7 @@ def get_states_and_readouts(antennas, times, t1, t2):
 def get_more_states(antennas, times, midx,
                     mouse_attention_span,
                     how_many_antennas):
-    #save first antenna
+    # save first antenna
     states = [antennas[midx]]
     readouts = [times[midx]]
     midx += 1
@@ -262,10 +258,10 @@ def get_more_states(antennas, times, midx,
     while True:
         if midx >= len(antennas):
             break
-        #read in next antenna
+        # read in next antenna
         new_antenna = antennas[midx]
         new_readout = times[midx]
-        #if pause too long break
+        # if pause too long break
         if new_readout > readouts[idx - 1] + mouse_attention_span:
             break
 
@@ -273,13 +269,14 @@ def get_more_states(antennas, times, midx,
         readouts.append(new_readout)
 
         idx += 1
-        #if more than 2 antennas, break
+        # if more than 2 antennas, break
         if len(set(states)) == how_many_antennas:
-            # go back to the last readout of the opposite antenna not to loose it
+            # go back to the last readout of the opposite antenna not
+            # to loose it
             break
         midx += 1
-        
     return states, readouts, midx
+
 
 def get_antennas(idxs, antennas):
     antenna_slice = []
@@ -290,6 +287,7 @@ def get_antennas(idxs, antennas):
 
 def get_timestamp(t_start, t_end, dt):
     return int(round((t_end - t_start)/dt))
+
 
 def interval_overlap(int1, int2):
     """Return overlap between two intervals."""
@@ -336,7 +334,7 @@ def intervals2lists(data, address):
 def get_indices(t_start, t_end, starts, ends):
     idx_start = get_idx_between(t_start, t_end, starts).tolist()
     idx_end = get_idx_between(t_start, t_end, ends).tolist()
-    return sorted(list(set(idx_start +  idx_end)))
+    return sorted(list(set(idx_start + idx_end)))
 
 
 def get_ehs_data_with_margin(ehs, mouse, t_start, t_end,
@@ -345,8 +343,7 @@ def get_ehs_data_with_margin(ehs, mouse, t_start, t_end,
         return ehs.get_visit_addresses(mouse),\
             ehs.get_starttimes(mouse),\
             ehs.get_endtimes(mouse)
-
-    ehs.mask_data(t_start - margin, t_end +  margin)
+    ehs.mask_data(t_start - margin, t_end + margin)
     adresses = ehs.get_visit_addresses(mouse)
     starts = ehs.get_starttimes(mouse)
     ends = ehs.get_endtimes(mouse)
@@ -406,7 +403,7 @@ def get_animal_position(times, antennas, mouse, threshold, same_pipe,
                     t_end = times[i+1]
                 except IndexError:
                     out.append((address[an_old_end], mouse,
-                        t_start, t_end, t_end-t_start, True))
+                                t_start, t_end, t_end-t_start, True))
                     return out
             out.append((address[an_old_end], mouse,
                         t_start, t_end, t_end-t_start, True))
@@ -429,7 +426,7 @@ def get_animal_position(times, antennas, mouse, threshold, same_pipe,
             pass
         else:
             out.append((address_not_adjacent[an_start],
-                            mouse, t_start, t_end, delta_t, False))
+                        mouse, t_start, t_end, delta_t, False))
 
         i = i + 1
         try:
@@ -442,6 +439,7 @@ def get_animal_position(times, antennas, mouse, threshold, same_pipe,
 
 def get_length(time_start, time_end, binsize):
     return int(np.ceil((time_end - time_start)/binsize))
+
 
 def get_times(binsize, time_start=None, time_end=None):
     if time_start is None:
@@ -461,6 +459,7 @@ def dict_to_array_2D(dictionary, keys1, keys2):
             out[i, j] = dictionary[key1][key2]
     return out
 
+
 def dict_to_array_3D(dictionary, keys1, keys2, keys3):
     shape = (len(keys1), len(keys2), len(keys3))
     out = np.zeros(shape)
@@ -478,18 +477,18 @@ def calc_excess(res, exp_res):
         for key2 in res[key1].keys():
             excess[key1][key2] = OrderedDict()
             for key3 in res[key1][key2].keys():
-                excess[key1][key2][key3] = res[key1][key2][key3] - exp_res[key1][key2][key3]
+                excess[key1][key2][key3] = res[key1][key2][key3]\
+                                           - exp_res[key1][key2][key3]
     return excess
 
 
 def get_dark_light_data(phase, cf, ehs, mice):
-
     if phase == "dark" or phase == "DARK" or phase == "Dark":
         phases = filter_dark(cf.sections())
     elif phase == "light" or phase == "LIGHT" or phase == "Light":
         phases = filter_light(cf.sections())
     out_phases = [phase]
-    data = {mouse:[] for mouse in mice}
+    data = {mouse: [] for mouse in mice}
     total_time = 0
     for i, ph in enumerate(phases):
         time = cf.gettime(ph)
@@ -507,8 +506,8 @@ def prepare_binned_data(ehs, cf, bins, mice):
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
         time = cf.gettime("ALL")
-        total_time["ALL"] =  {0: (time[1] - time[0])}
-        data["ALL"] =  {0: prepare_data(ehs, mice, time)}
+        total_time["ALL"] = {0: (time[1] - time[0])}
+        data["ALL"] = {0: prepare_data(ehs, mice, time)}
         keys = [["ALL"], [0]]
     elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
         phases, total_time, data = get_dark_light_data(bins, cf, ehs, mice)
@@ -554,7 +553,7 @@ def prepare_binned_data(ehs, cf, bins, mice):
 
 
 def extract_directions(times, antennas, last_antenna, keys):
-    direction_dict = {key:[[], []] for key in keys}
+    direction_dict = {key: [[], []] for key in keys}
     change_indices = change_state(antennas)
     for c_idx in change_indices:
         if c_idx + 1 >= len(antennas):
@@ -565,7 +564,7 @@ def extract_directions(times, antennas, last_antenna, keys):
             try:
                 third_antenna = antennas[c_idx + 2]
             except IndexError:
-               third_antenna = last_antenna
+                third_antenna = last_antenna
             if third_antenna == ant:
                 continue
             direction_dict[key][0].append(times[c_idx])
@@ -604,8 +603,7 @@ def prepare_binned_registrations(ehs, cf, bins, mice):
         time = cf.gettime("ALL")
         data["ALL"] = {0: prepare_registrations(ehs, mice, *time)}
         data_keys = [["ALL"], [0.0]]
-        total_time["ALL"] =  {0: time}
-
+        total_time["ALL"] = {0: time}
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
         all_phases = filter_dark_light(cf.sections())

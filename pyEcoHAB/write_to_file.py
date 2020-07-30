@@ -18,13 +18,13 @@ def write_single_chamber(f, header, phases, mice, time, data_stim,
     for i, mouse in enumerate(mice):
         longest = 0
         for phase in phases:
-            if len(data_stim[phase][mouse])> longest:
+            if len(data_stim[phase][mouse]) > longest:
                 longest = len(data_stim[phase][mouse])
         lines = [mouse for i in range(longest)]
         for phase in phases:
             for k, t in enumerate(time[phase]):
                 if phase == phases[0]:
-                    lines[k] += '%s%3.2f'%(delimiter, t/3600)
+                    lines[k] += '%s%3.2f' % (delimiter, t/3600)
                 try:
                     if floats:
                         lines[k] += "%s%7.3f" % (delimiter,
@@ -38,10 +38,10 @@ def write_single_chamber(f, header, phases, mice, time, data_stim,
         for line in lines:
             f.write(line + '\n')
 
+
 def save_data_cvs(data, phases, mice, bin_labels, fname,
                   path, which, headers, target_dir="activity",
                   delimiter=";"):
-    
     new_path = os.path.join(path, target_dir)
     if not os.path.exists(new_path):
         os.makedirs(new_path)
@@ -51,17 +51,16 @@ def save_data_cvs(data, phases, mice, bin_labels, fname,
     head = make_header_for_activity(phases, delimiter)
     for stim in which:
         for j, h in enumerate(headers):
-            f.write("%s %s\n" %(h, stim))
+            f.write("%s %s\n" % (h, stim))
             write_single_chamber(f, head, phases, mice, bin_labels,
                                  data[stim][j], delimiter, floats=j)
-        
 
 
 def write_binned_data(data_stim, fname, mice, bin_labels, phase,
                       path, target_dir, prefix, additional_info="",
                       delimiter=";"):
     new_path = os.path.join(path, target_dir, "data")
-    fname =  os.path.join(new_path, '%s_%s_%s_%s.csv'% (fname,
+    fname = os.path.join(new_path, '%s_%s_%s_%s.csv' % (fname,
                                                         prefix,
                                                         phase,
                                                         additional_info))
@@ -79,7 +78,7 @@ def write_binned_data(data_stim, fname, mice, bin_labels, phase,
         for j, mouse2 in enumerate(mice):
             for k, t in enumerate(bin_labels):
                 if not j:
-                    lines[k] += '%s%3.2f'%(delimiter, t/3600)
+                    lines[k] += '%s%3.2f' % (delimiter, t/3600)
                 lines[k] += delimiter + str(data_stim[t][mouse1][mouse2])
         for line in lines:
             f.write(line + '\n')
@@ -91,7 +90,7 @@ def save_single_histograms(result, fname, mice, phase, main_directory,
                            delimiter=";"):
     new_name = os.path.join(directory, 'data')
     directory = utils.check_directory(main_directory, new_name)
-    fname =  os.path.join(directory, '%s_%s_%s_%s.csv'% (fname,
+    fname = os.path.join(directory, '%s_%s_%s_%s.csv' % (fname,
                                                          prefix,
                                                          phase,
                                                          additional_info))
@@ -122,11 +121,9 @@ def write_csv_rasters(mice, phases, output, directory,
         f = open(fname, 'w')
     except IOError:
         print('Could not write to file', fname)
-   
     header = 'mouse pair'
     for phase in phases:
-        header += delimiter + str(phase)+ " h"
-        
+        header += delimiter + str(phase) + " h"
     header += '\n'
     f.write(header)
     if symmetric:
@@ -137,28 +134,28 @@ def write_csv_rasters(mice, phases, output, directory,
     for i, pair in enumerate(pairs):
         f.write(pair)
         for j in range(len(phases)):
-            f.write(delimiter + str(new_output[i,j]))
+            f.write(delimiter + str(new_output[i, j]))
         f.write('\n')
     f.close()
+
 
 def write_csv_tables(results, phases, mice, main_directory,
                      dirname, fname, prefix,
                      delimiter=";"):
     new_name = os.path.join(dirname, 'data')
     directory = utils.check_directory(main_directory, new_name)
-    fname =  os.path.join(directory, '%s_%s.csv' % (fname, prefix))
+    fname = os.path.join(directory, '%s_%s.csv' % (fname, prefix))
     print(fname)
     try:
         f = open(fname, 'w')
     except IOError:
         print('Could not write to ', fname)
         return
-    
-    phase_pairs = [phases[2*i]+(len(mice)+2)*delimiter\
-                   + phases[2*i+1]+'\n' for i in range(len(phases)//2)]
+
+    phase_pairs = [phases[2*i] + (len(mice) + 2)*delimiter
+                   + phases[2*i + 1]+'\n' for i in range(len(phases)//2)]
     new_results = [(results[2*i],
-                    results[2*i+1])for i in range(len(phases)//2)]
-    
+                    results[2*i + 1])for i in range(len(phases)//2)]
     mice_header = ""
     mice_len = 2
     if len(phases) == 1:
@@ -169,7 +166,7 @@ def write_csv_tables(results, phases, mice, main_directory,
         if not i:
             mice_header += 2*delimiter
     mice_header += '\n'
-   
+
     if len(phases) % 2:
         phase_pairs.append((phases[-1]+'\n'))
         new_results.append((results[-1],))
@@ -191,13 +188,14 @@ def write_csv_tables(results, phases, mice, main_directory,
         f.write('\n')
     f.close()
 
+
 def write_csv_alone(alone, phases, main_directory, prefix,
                     header='Mice alone in %s\n',
                     fname='mouse_alone_%s.csv',
                     directory="solitude",
                     delimiter=";"):
     directory = utils.check_directory(main_directory, directory)
-    fname =  os.path.join(directory, fname % prefix)
+    fname = os.path.join(directory, fname % prefix)
     try:
         f = open(fname, 'w')
     except IOError:
@@ -217,13 +215,14 @@ def write_csv_alone(alone, phases, main_directory, prefix,
             f.write('\n')
     f.close()
 
+
 def write_interpair_intervals(results, main_directory,
                               directory, fname, prefix,
                               additional_info="",
                               delimiter=";"):
     new_name = os.path.join(main_directory, 'data')
     directory = utils.check_directory(directory, new_name)
-    fname =  os.path.join(directory, '%s_%s_%s.csv'% (fname,
+    fname = os.path.join(directory, '%s_%s_%s.csv' % (fname,
                                                       prefix,
                                                       additional_info))
     try:
@@ -242,17 +241,18 @@ def write_interpair_intervals(results, main_directory,
             f.write("%f%s" % (interval, delimiter))
         f.write("\n")
 
+
 def save_visit_duration(results, time, phase, mice,
                         fname, main_directory, directory,
                         prefix, add_info="", delimiter=";"):
     new_dir = os.path.join(main_directory, directory)
     new_dir = utils.check_directory(new_dir, "data")
     for mouse in mice:
-        new_name =  os.path.join(new_dir, '%s_%s_%s_%s_%s.csv'%(fname,
-                                                                mouse,
-                                                                phase,
-                                                                prefix,
-                                                                add_info))
+        new_name = os.path.join(new_dir, '%s_%s_%s_%s_%s.csv' % (fname,
+                                                                 mouse,
+                                                                 phase,
+                                                                 prefix,
+                                                                 add_info))
         print(new_name)
         f = open(new_name, "w")
         for address in results.keys():
@@ -265,21 +265,21 @@ def save_visit_duration(results, time, phase, mice,
                 f.write("\n")
         f.close()
 
+
 def write_bootstrap_results(results, phase, mice_list,
                             fname, main_directory,
                             directory, prefix,
                             add_info="", delimiter=";"):
     new_dir = os.path.join(main_directory, directory)
     new_dir = utils.check_directory(new_dir, "data")
-    new_name =  os.path.join(new_dir, '%s_%s_%s_%s.csv'%(fname,
-                                                         phase.replace(' ',
-                                                                       '_'),
-                                                         prefix,
-                                                         add_info))
+    new_name = os.path.join(new_dir, '%s_%s_%s_%s.csv' % (fname,
+                                                          phase.replace(' ',
+                                                                        '_'),
+                                                          prefix, add_info))
 
     f = open(new_name, "w")
     for mouse1 in mice_list:
-        for  mouse2 in mice_list:
+        for mouse2 in mice_list:
             if mouse1 != mouse2:
                 key = "%s|%s" % (mouse1, mouse2)
                 f.write(key)
@@ -288,6 +288,7 @@ def write_bootstrap_results(results, phase, mice_list,
                 f.write("\n")
     f.close()
 
+
 def write_registrations_stats(crossings, phase, mice_list,
                               binsize, fname, main_directory,
                               directory, prefix,
@@ -295,18 +296,17 @@ def write_registrations_stats(crossings, phase, mice_list,
     header = ""
     new_dir = os.path.join(main_directory, directory)
     new_dir = utils.check_directory(new_dir, "data")
-    new_name =  os.path.join(new_dir, '%s_%s_%s_%s.csv'%(fname,
-                                                         phase.replace(' ',
-                                                                       '_'),
-                                                         prefix,
-                                                         add_info))
+    new_name = os.path.join(new_dir, '%s_%s_%s_%s.csv' % (fname,
+                                                          phase.replace(' ',
+                                                                        '_'),
+                                                          prefix, add_info))
 
     antennas = sorted(crossings.keys())
     n_rows = len(crossings[antennas[0]][mice_list[0]])
 
     f = open(new_name, "w")
     for i in range(n_rows):
-        header +="%s%4.2f" % (delimiter, i*binsize/3600)
+        header += "%s%4.2f" % (delimiter, i*binsize/3600)
     f.write(delimiter)
     for antenna in antennas:
         f.write("Antenna %s" % antenna + (n_rows)*delimiter)

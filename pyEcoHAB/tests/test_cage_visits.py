@@ -1,13 +1,15 @@
 from __future__ import print_function, division, absolute_import
-from pyEcoHAB import cage_visits as cv
-import numpy as np
 import unittest
+import numpy as np
+from pyEcoHAB import cage_visits as cv
+
 
 class TestGetVisits(unittest.TestCase):
     def test_intervals_only_in_the_bin(self):
         t_start = 10
         t_stop = 100
-        intervals = [[1, 5], [12, 15], [18, 20], [40, 70], [80, 90], [110, 130]]
+        intervals = [[1, 5], [12, 15], [18, 20], [40, 70], [80, 90],
+                     [110, 130]]
         v = cv.get_visits(intervals, t_start, t_stop)
         self.assertEqual(v, ([3, 2, 30, 10], False))
 
@@ -50,14 +52,16 @@ class TestVisitsDurationsPhase(unittest.TestCase):
     def test_one_bin_test_intervals_only_in_the_bin(self):
         t_start = 10
         t_stop = 100
-        intervals = [[1, 5], [12, 15], [18, 20], [40, 70], [80, 90], [110, 130]]
+        intervals = [[1, 5], [12, 15], [18, 20], [40, 70], [80, 90],
+                     [110, 130]]
         v, a = cv.get_visits_in_bins(intervals, t_start, t_stop, 90)
         self.assertEqual(v, [[3, 2, 30, 10]])
 
     def test_one_bin_test_intervals_only_in_the_bin_b(self):
         t_start = 10
         t_stop = 100
-        intervals = [[1, 5], [12, 15], [18, 20], [40, 70], [80, 90], [110, 130]]
+        intervals = [[1, 5], [12, 15], [18, 20], [40, 70], [80, 90],
+                     [110, 130]]
         v, a = cv.get_visits_in_bins(intervals, t_start, t_stop, 90)
         self.assertEqual(a, [False])
 
@@ -78,7 +82,6 @@ class TestVisitsDurationsPhase(unittest.TestCase):
                      [80, 90], [110, 130]]
         v, a = cv.get_visits_in_bins(intervals, t_start, t_stop, 90)
         self.assertEqual(a, [True])
-
 
     def test_one_bin_test_intervals_ending_after_the_bin(self):
         t_start = 10
@@ -119,9 +122,11 @@ class TestVisitsDurationsPhase(unittest.TestCase):
     def test_more_bin_test_intervals_only_in_the_bin(self):
         t_start = 0
         t_stop = 100
-        intervals = [[1, 5], [12, 15], [18, 20], [40, 70], [80, 90], [110, 130]]
+        intervals = [[1, 5], [12, 15], [18, 20], [40, 70], [80, 90],
+                     [110, 130]]
         v, a = cv.get_visits_in_bins(intervals, t_start, t_stop, 10)
-        self.assertEqual(v, [[4], [3, 2], [], [], [10], [10], [10], [], [10], []])
+        self.assertEqual(v, [[4], [3, 2], [], [], [10], [10], [10],
+                             [], [10], []])
 
     def test_more_bin_test_intervals_only_in_the_bin_b(self):
         t_start = 0
@@ -160,8 +165,8 @@ class TestCalcVisitsPerMouse(unittest.TestCase):
         t_start = 0
         t_stop = 100
         ints = [[1, 11], [12, 15],
-                     [18, 20], [40, 70],
-                     [80, 90], [110, 130]]
+                [18, 20], [40, 70],
+                [80, 90], [110, 130]]
         binsize = 10
         cls.vis, cls.dur, cls.all_v = cv.calc_visit_per_mouse(ints,
                                                               t_start,
@@ -215,12 +220,11 @@ class TestCalculateVisitsDurations(unittest.TestCase):
                                                                         t_stop,
                                                                         binsize)
         cls.visB, cls.durB, cls.all_vB = cv.calculate_visits_and_durations(data,
-                                                                        cls.mice,
-                                                                        "B",
-                                                                        t_start,
-                                                                        t_stop,
-                                                                        binsize)
-
+                                                                           cls.mice,
+                                                                           "B",
+                                                                           t_start,
+                                                                           t_stop,
+                                                                           binsize)
 
     def test_keys_1(self):
         self.assertEqual(sorted(self.vis.keys()), sorted(self.mice))

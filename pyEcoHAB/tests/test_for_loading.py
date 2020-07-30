@@ -5,21 +5,22 @@ import os
 import glob
 import unittest
 import numpy as np
-
 import pyEcoHAB.utils.for_loading as uf
 import pyEcoHAB.utility_functions as utils
 from pyEcoHAB import data_path
 from pyEcoHAB.SetupConfig import SetupConfig
 
-SAME_PIPE = { "1": ["1", "2"],
-             "2": ["1", "2"],
-             "3": ["3", "4"],
-             "4": ["3", "4"],
-             "5": ["5", "6"],
-             "6": ["5", "6"],
-             "7": ["7", "8"],
-             "8": ["7", "8"]}
 
+SAME_PIPE = {
+    "1": ["1", "2"],
+    "2": ["1", "2"],
+    "3": ["3", "4"],
+    "4": ["3", "4"],
+    "5": ["5", "6"],
+    "6": ["5", "6"],
+    "7": ["7", "8"],
+    "8": ["7", "8"]
+}
 SAME_ADDRESS = {
     "1": ["1", "8"],
     "2": ["2", "3"],
@@ -31,43 +32,48 @@ SAME_ADDRESS = {
     "8": ["1", "8"],
 }
 
-OPPOSITE_PIPE = {"1": ["5", "6"],
-                 "2": ["5", "6"],
-                 "3": ["7", "8"],
-                 "4": ["7", "8"],
-                 "5": ["1", "2"],
-                 "6": ["1", "2"],
-                 "7": ["3", "4"],
-                 "8": ["3", "4"]}
-
-ADDRESS = {"1": "cage A", #"4"
-           "2": "cage B", #1,
-           "3": "cage B", #1,
-           "4": "cage C", #2,
-           "5": "cage C", #2,
-           "6": "cage D", #"3",
-           "7": "cage D", #"3",
-           "8": "cage A", #"4"
+OPPOSITE_PIPE = {
+    "1": ["5", "6"],
+    "2": ["5", "6"],
+    "3": ["7", "8"],
+    "4": ["7", "8"],
+    "5": ["1", "2"],
+    "6": ["1", "2"],
+    "7": ["3", "4"],
+    "8": ["3", "4"]
 }
 
-ADDRESS_NON_ADJACENT = {"1": "cage B", #1,
-                        "2": "cage A", #"4",
-                        "3": "cage C", #2,
-                        "4": "cage B", #1,
-                        "5": "cage D", #"3",
-                        "6": "cage C", #2,
-                        "7": "cage A", #"4",
-                        "8": "cage D", #"3"
+ADDRESS = {
+    "1": "cage A",  # "4"
+    "2": "cage B",  # 1,
+    "3": "cage B",  # 1,
+    "4": "cage C",  # 2,
+    "5": "cage C",  # 2,
+    "6": "cage D",  # "3",
+    "7": "cage D",  # "3",
+    "8": "cage A",  # "4"
+}
+
+ADDRESS_NON_ADJACENT = {
+    "1": "cage B",  # 1,
+    "2": "cage A",  # "4",
+    "3": "cage C",  # 2,
+    "4": "cage B",  # 1,
+    "5": "cage D",  # "3",
+    "6": "cage C",  # 2,
+    "7": "cage A",  # "4",
+    "8": "cage D",  # "3"
 }
 # Surrounding: difference between antennas only 2 or "6" -- skipped one antenna
-SURROUNDING = {("1", "3"): "cage B", #1,
-               ("1", "7"): "cage A", #"4",
-               ("2", "4"): "cage B", #1,
-               ("2", "8"): "cage A", #"4",
-               ("3", "5"): "cage C", #2,
-               ("4", "6"): "cage C", #2,
-               ("5", "7"): "cage D", #"3",
-               ("6", "8"): "cage D", #"3"
+SURROUNDING = {
+    ("1", "3"): "cage B",  # 1,
+    ("1", "7"): "cage A",  # "4",
+    ("2", "4"): "cage B",  # 1,
+    ("2", "8"): "cage A",  # "4",
+    ("3", "5"): "cage C",  # 2,
+    ("4", "6"): "cage C",  # 2,
+    ("5", "7"): "cage D",  # "3",
+    ("6", "8"): "cage D",  # "3"
 }
 
 
@@ -130,7 +136,7 @@ class TestProcessProcessLineMore(unittest.TestCase):
         out = ["6406", "20180727 16:00:29.329",
                "7", "797", "0065-0161980646"]
         self.assertEqual(uf.process_line_more_elements(line),
-                                                       out)
+                         out)
 
     def test_2(self):
         line = ["6406",	"2018.07.27", "16:00:29.329",
@@ -138,7 +144,7 @@ class TestProcessProcessLineMore(unittest.TestCase):
         out = ["6406", "20180727 16:00:29.329",
                "7", "0065-0161980646"]
         self.assertEqual(uf.process_line_more_elements(line),
-                                                       out)
+                         out)
 
 
 class TestProcessLine5(unittest.TestCase):
@@ -169,8 +175,10 @@ class TestReadInSingleFile(unittest.TestCase):
         self.assertEqual(mice, set(["mouse_1"]))
 
     def test_last_line(self):
-        last_line= ["15894", "20101010 11:59:56.218", "4", "307", "mouse_1"]
+        last_line = ["15894", "20101010 11:59:56.218", "4",
+                     "307", "mouse_1"]
         self.assertEqual(last_line, self.out[-1])
+
 
 class TestRemoveGhostTags(unittest.TestCase):
     @classmethod
@@ -189,7 +197,7 @@ class TestRemoveGhostTags(unittest.TestCase):
 
     def test_1_app_2(self):
         out = uf.remove_ghost_tags(self.data, 2, 0)
-        line = ["15151", "20101010 11:11:06.748","3", "204", "mouse_1"]
+        line = ["15151", "20101010 11:11:06.748", "3", "204", "mouse_1"]
         self.assertTrue(line, out[32])
 
     def test_1_app_3(self):
@@ -221,22 +229,22 @@ class TestRemoveGhostTags(unittest.TestCase):
         self.assertEqual(out, [])
 
     def test_removing_tags(self):
-         out = uf.remove_ghost_tags(self.data, 0, 0, "mouse_1")
-         lines = [
-             ["15040", "20101010 11:06:08.349", "5", "307", "mouse_2"],
-             ["15043", "20101010 11:06:21.731", "4", "259", "mouse_2"],
-             ["15123", "20101010 11:09:39.065", "2", "256", "mouse_3"],
-         ]
-         self.assertEqual(out, lines)
+        out = uf.remove_ghost_tags(self.data, 0, 0, "mouse_1")
+        lines = [
+            ["15040", "20101010 11:06:08.349", "5", "307", "mouse_2"],
+            ["15043", "20101010 11:06:21.731", "4", "259", "mouse_2"],
+            ["15123", "20101010 11:09:39.065", "2", "256", "mouse_3"],
+        ]
+        self.assertEqual(out, lines)
 
     def test_removing_tags_2(self):
-         out = uf.remove_ghost_tags(self.data, 0, 0, ["mouse_1"])
-         lines = [
-             ["15040", "20101010 11:06:08.349", "5", "307", "mouse_2"],
-             ["15043", "20101010 11:06:21.731", "4", "259", "mouse_2"],
-             ["15123", "20101010 11:09:39.065", "2", "256", "mouse_3"],
-         ]
-         self.assertEqual(out, lines)
+        out = uf.remove_ghost_tags(self.data, 0, 0, ["mouse_1"])
+        lines = [
+            ["15040", "20101010 11:06:08.349", "5", "307", "mouse_2"],
+            ["15043", "20101010 11:06:21.731", "4", "259", "mouse_2"],
+            ["15123", "20101010 11:09:39.065", "2", "256", "mouse_3"],
+        ]
+        self.assertEqual(out, lines)
 
     def test_days_1(self):
         out = uf.remove_ghost_tags(self.data, 0, 1, ["mouse_1"])
@@ -251,6 +259,7 @@ class TestRemoveGhostTags(unittest.TestCase):
         line = ["15894", "20101011 11:59:56.218", "4", "307", "mouse_1"]
         self.assertEqual(out[-1], line)
 
+
 class TestRemoveAntenna(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -260,11 +269,11 @@ class TestRemoveAntenna(unittest.TestCase):
 
     def test_no_antenna(self):
         data = uf.remove_one_antenna(self.data, None)
-        self.assertTrue((data==self.data).all())
+        self.assertTrue((data == self.data).all())
 
     def test_single_antenna_1(self):
         data = uf.remove_one_antenna(self.data, "1")
-        self.assertEqual(data.shape[0], self.data.shape[0]-3)
+        self.assertEqual(data.shape[0], self.data.shape[0] - 3)
 
     def test_single_antenna_2(self):
         data = uf.remove_one_antenna(self.data, "1")
@@ -278,11 +287,11 @@ class TestRemoveAntenna(unittest.TestCase):
 
     def test_nonexistent_antenna(self):
         data = uf.remove_one_antenna(self.data, "9")
-        self.assertTrue((data==self.data).all())
+        self.assertTrue((data == self.data).all())
 
     def test_not_antenna(self):
         data = uf.remove_one_antenna(self.data, "gugu")
-        self.assertTrue((data==self.data).all())
+        self.assertTrue((data == self.data).all())
 
 
 class TestRemoveAntennas(unittest.TestCase):
@@ -345,13 +354,14 @@ class TestTransformAllData(unittest.TestCase):
         line = uf.transform_raw(self.raw_data[0])
         self.assertEqual(line, self.data[0].tolist())
 
+
 class TestAntennaMismatch(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
-        config = SetupConfig() 
+        config = SetupConfig()
         cls.mismatch1 = uf.antenna_mismatch(data, config.mismatched_pairs)
 
     def test_1(self):
@@ -384,7 +394,7 @@ class TestCheckAntennaPresence(unittest.TestCase):
         for antenna in ["1", "2", "3", "4", "5", "6", "7", "8"]:
             if antenna == "4":
                 continue
-            idx = np.where(data["Antenna"]==antenna)[0][-1]
+            idx = np.where(data["Antenna"] == antenna)[0][-1]
             cls.begs_data.append(np.round(data["Time"][idx]))
 
     def test_1(self):
@@ -419,8 +429,7 @@ class TestRunDiagnostics(unittest.TestCase):
             print("rm ", f)
         cls.length = len(data["Antenna"])
         cls.str11, cls.str12 = uf.run_diagnostics(data, 24*3600, res_path,
-        config.mismatched_pairs)
-        
+                                                  config.mismatched_pairs)
         path = os.path.join(data_path, "weird_short")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
@@ -434,13 +443,6 @@ class TestRunDiagnostics(unittest.TestCase):
 
         cls.str21, cls.str22 = uf.run_diagnostics(data, 24*3600, res_path,
                                                   config.mismatched_pairs)
-
-
-    # def test_no_registration_breaks(self):
-    #     all_antennas_registered = "Breaks in registrations on antennas:\n"
-    #     for antenna in range(1, 9):
-    #         all_antennas_registered += "%d:\n" % antenna
-    #     self.assertEqual(all_antennas_registered, self.str22)
 
     def test_no_registration_breaks_file(self):
         path = os.path.join(data_path, "weird_short")
@@ -481,7 +483,7 @@ class TestRunDiagnostics(unittest.TestCase):
     def test_no_mismatch_string(self):
         out = "First reading, consecutive reading,  count, percentage\n"
         for pair in uf.PAIRS:
-            out+= "%s,\t%d, %3.2f per 100\n"% (pair, 0, 0.00)
+            out += "%s,\t%d, %3.2f per 100\n" % (pair, 0, 0.00)
         self.assertEqual(self.str21, out)
 
     def test_mismatch_string(self):
@@ -489,10 +491,11 @@ class TestRunDiagnostics(unittest.TestCase):
         for pair in uf.PAIRS:
             if pair in ["3 6", "1 3", "4 6"]:
                 exact_mis = np.round(100*self.mismatch1[pair]/self.length)
-                out+= "%s,\t%d, %3.2f per 100\n" % (pair, self.mismatch1[pair],
-                                                    exact_mis)
+                out += "%s,\t%d, %3.2f per 100\n" % (pair,
+                                                     self.mismatch1[pair],
+                                                     exact_mis)
             else:
-                out+= "%s,\t%d, %3.2f per 100\n" % (pair, 0, 0.00)
+                out += "%s,\t%d, %3.2f per 100\n" % (pair, 0, 0.00)
         self.assertEqual(out, self.str11)
 
     # def test_presence_string(self):
@@ -512,15 +515,16 @@ class TestTransformVisits(unittest.TestCase):
         path = os.path.join(data_path, "weird_short")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
-        cls.data =  utils.get_animal_position(data["Time"],
-                                              data["Antenna"],
-                                              "mouse_1", 2,
-                                              same_pipe=SAME_PIPE,
-                                              same_address=SAME_ADDRESS,
-                                              opposite_pipe=OPPOSITE_PIPE,
-                                              address=ADDRESS, surrounding=SURROUNDING,
-                                              address_not_adjacent=ADDRESS_NON_ADJACENT,
-                                              internal_antennas=[])
+        cls.data = utils.get_animal_position(data["Time"],
+                                             data["Antenna"],
+                                             "mouse_1", 2,
+                                             same_pipe=SAME_PIPE,
+                                             same_address=SAME_ADDRESS,
+                                             opposite_pipe=OPPOSITE_PIPE,
+                                             address=ADDRESS,
+                                             surrounding=SURROUNDING,
+                                             address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                             internal_antennas=[])
         cls.visits = uf.transform_visits(cls.data)
 
     def test1(self):
@@ -558,7 +562,8 @@ class TestRenameAntennas(unittest.TestCase):
         self.assertTrue(np.all(self.data["Time"] == self.old_data["Time"]))
 
     def test_5(self):
-        self.assertTrue(np.all(self.data["Duration"] == self.old_data["Duration"]))
+        self.assertTrue(np.all(self.data["Duration"] ==
+                               self.old_data["Duration"]))
 
     def test_6(self):
         self.assertTrue(np.all(self.data["Tag"] == self.old_data["Tag"]))
@@ -577,16 +582,18 @@ class TestAppendData(unittest.TestCase):
     def test1(self):
         self.assertEqual(len(self.data1) + len(self.data2),
                          len(self.combined_data))
+
     def test2(self):
-        self.assertTrue(np.all((self.combined_data["Time"][1:] - self.combined_data["Time"][:-1]) > 0))
+        self.assertTrue(np.all((self.combined_data["Time"][1:]
+                                - self.combined_data["Time"][:-1]) > 0))
 
     def test_mouse3(self):
         indx = np.where(self.combined_data["Tag"] == "mouse_3")[0]
         line1 = self.combined_data[indx[0]].copy()
         line2 = self.combined_data[indx[1]].copy()
         line1["Time"] += 15*60
-        self.assertTrue(np.all(line1==line2))
+        self.assertTrue(np.all(line1 == line2))
+
 
 if __name__ == '__main__':
     unittest.main()
-

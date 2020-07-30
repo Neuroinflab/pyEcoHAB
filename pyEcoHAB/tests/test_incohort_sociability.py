@@ -9,10 +9,12 @@ from pyEcoHAB import data_path, sample_data
 from pyEcoHAB import Loader
 from pyEcoHAB import Timeline
 
+
 try:
     basestring
 except NameError:
     basestring = str
+
 
 class TestPrepareMouseIntervals(unittest.TestCase):
     @classmethod
@@ -41,57 +43,58 @@ class TestPrepareMouseIntervals(unittest.TestCase):
         cls.out2 = ics.prepare_mice_intervals(data, "cage C")
         cls.out3 = ics.prepare_mice_intervals(data, "cage D")
         cls.out4 = ics.prepare_mice_intervals(data, "cage A")
-        
+
     def test_check_mouse1(self):
         out = {
             'mouse1': [
                 [2, 14],
-                [3, 20],       
+                [3, 20],
             ],
             'mouse2': [
                 [0, 13],
                 [3, 18]]
-            }
+        }
         self.assertEqual(self.out1, out)
-    
+
     def test_check_mouse2(self):
         out = {
             'mouse1': [
                 [10, 21],
-                [12, 28],       
+                [12, 28],
             ],
             'mouse2': [
                 [5],
                 [6]
             ]
-            }
+        }
         self.assertEqual(self.out2, out)
 
     def test_check_mouse3(self):
         out = {
             'mouse1': [
                 [8, 31],
-                [9, 35],       
+                [9, 35],
             ],
             'mouse2': [
                 [8],
                 [9]
             ]
-            }
+        }
         self.assertEqual(self.out3, out)
 
     def test_check_mouse4(self):
         out = {
             'mouse1': [
                 [5, 40],
-                [6, 45],       
+                [6, 45],
             ],
             'mouse2': [
                 [10, 22],
                 [12, 50]]
-            }
+        }
         self.assertEqual(self.out4, out)
-        
+
+
 class TestCheckInterval(unittest.TestCase):
     def setUp(self):
         mouse1 = [["cage B", 2, 3],
@@ -193,6 +196,7 @@ class TestCheckInterval(unittest.TestCase):
         im1 = self.out1['mouse2'][:]
         out = ics.check_interval(im1, im2, 0, 0)
         self.assertEqual(im1, [[0, 2.5, 13], [2, 3, 18]])
+
 
 class TestRemoveOverlappingIntervals(unittest.TestCase):
     def setUp(self):
@@ -483,27 +487,30 @@ class TestTimeTogether(unittest.TestCase):
     def test_mouse1_mouse2_address_1(self):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage B")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage B")
-        out1 = ics.time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.time_fraction_together_one_cage(ints1, ints2,
+                                                   self. duration)
         self.assertEqual(out1, 5/self.duration)
 
     def test_mouse1_mouse2_address_2(self):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage C")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage C")
-        out1 = ics.time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.time_fraction_together_one_cage(ints1, ints2,
+                                                   self. duration)
         self.assertEqual(out1, 0)
 
     def test_mouse1_mouse2_address_3(self):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage D")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage D")
-        out1 = ics.time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.time_fraction_together_one_cage(ints1, ints2,
+                                                   self. duration)
         self.assertEqual(out1, 1/self.duration)
 
     def test_mouse1_mouse2_address_4(self):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage A")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage A")
-        out1 = ics.time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.time_fraction_together_one_cage(ints1, ints2,
+                                                   self. duration)
         self.assertEqual(out1, 5/self.duration)
-
 
 
 class TestExpectedTimeTogether(unittest.TestCase):
@@ -535,28 +542,32 @@ class TestExpectedTimeTogether(unittest.TestCase):
     def test_mouse1_mouse2_address_1(self):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage B")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage B")
-        out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2,
+                                                            self. duration)
         res = np.isclose(out1, 56/self.duration2)
         self.assertTrue(res)
 
     def test_mouse1_mouse2_address_2(self):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage C")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage C")
-        out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2,
+                                                            self. duration)
         res = np.isclose(out1, 9/self.duration2)
         self.assertTrue(res)
 
     def test_mouse1_mouse2_address_3(self):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage D")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage D")
-        out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2,
+                                                            self. duration)
         res = np.isclose(out1, 5/self.duration2)
         self.assertTrue(res)
 
     def test_mouse1_mouse2_address_4(self):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage A")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage A")
-        out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2, self. duration)
+        out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2,
+                                                            self. duration)
         res = np.isclose(out1, 6*30/self.duration2)
         self.assertTrue(res)
 
@@ -586,8 +597,8 @@ class TestExpectedTimeTogether(unittest.TestCase):
             }
         cls.duration = 100
         cls.out1, cls.out2 = ics.mice_together(cls.data, "mouse1", "mouse2",
-                                              ["A", "B", "C", "D"], cls.duration)
-
+                                               ["A", "B", "C", "D"],
+                                               cls.duration)
 
     def test_mouse1_mouse2_exp(self):
         dur2 = self.duration**2
@@ -597,8 +608,6 @@ class TestExpectedTimeTogether(unittest.TestCase):
     def test_mouse1_mouse2_measured(self):
         res = np.isclose(self.out1, 11/self.duration)
         self.assertTrue(res)
-
-
 
 
 class TestSinglePhaseResults(unittest.TestCase):
@@ -640,34 +649,33 @@ class TestSinglePhaseResults(unittest.TestCase):
         }
 
         cls.out, cls.exp = ics.single_phase_results(cls.data["1 dark"][0],
-                                                   ["mouse_1", "mouse_2"],
-                                                   ["cage A", "cage D"],
-                                                   cls.duration)
+                                                    ["mouse_1", "mouse_2"],
+                                                    ["cage A", "cage D"],
+                                                    cls.duration)
         cls.out_A, cls.exp_A = ics.single_phase_results(cls.data["1 dark"][0],
-                                                       ["mouse_1", "mouse_2"],
-                                                       ["cage A"],
-                                                       cls.duration)
-        cls.correct_res_A= {
+                                                        ["mouse_1", "mouse_2"],
+                                                        ["cage A"],
+                                                        cls.duration)
+        cls.correct_res_A = {
             "mouse_1": {
                 "mouse_1": 0,
                 "mouse_2": A/cls.duration,
             },
-            "mouse_2":{
+            "mouse_2": {
                 "mouse_1": 0,
                 "mouse_2": 0,
             }
         }
-        cls.correct_exp_res_A= {
+        cls.correct_exp_res_A = {
             "mouse_1": {
                 "mouse_1": 0,
                 "mouse_2": AA/cls.duration/cls.duration,
             },
-            "mouse_2":{
+            "mouse_2": {
                 "mouse_1": 0,
                 "mouse_2": 0,
             }
         }
-
 
     def test_keys(self):
         self.assertEqual(sorted(self.out.keys()), ["mouse_1", "mouse_2"])
@@ -682,11 +690,11 @@ class TestSinglePhaseResults(unittest.TestCase):
 
     def test_exp_A_2_1(self):
         self.assertEqual(self.correct_exp_res_A["mouse_2"]["mouse_1"],
-        self.exp_A["mouse_2"]["mouse_1"])
+                         self.exp_A["mouse_2"]["mouse_1"])
 
     def test_exp_A_2_2(self):
         self.assertEqual(self.correct_exp_res_A["mouse_2"]["mouse_2"],
-        self.exp_A["mouse_2"]["mouse_2"])
+                         self.exp_A["mouse_2"]["mouse_2"])
 
     def test_A_1_1(self):
         self.assertEqual(self.correct_res_A["mouse_1"]["mouse_1"],
@@ -698,11 +706,11 @@ class TestSinglePhaseResults(unittest.TestCase):
 
     def test_A_2_1(self):
         self.assertEqual(self.correct_res_A["mouse_2"]["mouse_1"],
-        self.out_A["mouse_2"]["mouse_1"])
+                         self.out_A["mouse_2"]["mouse_1"])
 
     def test_A_2_2(self):
         self.assertEqual(self.correct_res_A["mouse_2"]["mouse_2"],
-        self.out_A["mouse_2"]["mouse_2"])
+                         self.out_A["mouse_2"]["mouse_2"])
 
     def test_exp_1_1(self):
         self.assertEqual(self.correct_exp_res["mouse_1"]["mouse_1"],
@@ -714,11 +722,11 @@ class TestSinglePhaseResults(unittest.TestCase):
 
     def test_exp_2_1(self):
         self.assertEqual(self.correct_exp_res["mouse_2"]["mouse_1"],
-        self.exp_A["mouse_2"]["mouse_1"])
+                         self.exp_A["mouse_2"]["mouse_1"])
 
     def test_exp_A_2_2(self):
         self.assertEqual(self.correct_exp_res_A["mouse_2"]["mouse_2"],
-        self.exp["mouse_2"]["mouse_2"])
+                         self.exp["mouse_2"]["mouse_2"])
 
     def test_1_1(self):
         self.assertEqual(self.correct_res["mouse_1"]["mouse_1"],
@@ -730,11 +738,11 @@ class TestSinglePhaseResults(unittest.TestCase):
 
     def test_2_1(self):
         self.assertEqual(self.correct_res["mouse_2"]["mouse_1"],
-        self.out["mouse_2"]["mouse_1"])
+                         self.out["mouse_2"]["mouse_1"])
 
     def test_2_2(self):
         self.assertEqual(self.correct_res["mouse_2"]["mouse_2"],
-        self.out["mouse_2"]["mouse_2"])
+                         self.out["mouse_2"]["mouse_2"])
 
 
 class TestGetIncohortSociability(unittest.TestCase):

@@ -13,6 +13,7 @@ from pyEcoHAB import get_solitude
 from pyEcoHAB import get_activity
 from pyEcoHAB import get_dynamic_interactions
 
+
 class TestLoader(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -32,7 +33,7 @@ class TestLoader(unittest.TestCase):
 
     def test_visit_threshold(self):
         self.assertEqual(self.dataset1.visit_threshold, 1.5)
-    
+
     def test_prefix(self):
         self.assertEqual(self.dataset1_standard.prefix, "WT_F_test_1_")
 
@@ -58,7 +59,8 @@ class TestLoader(unittest.TestCase):
 
     def test_visits_cage_A_duration(self):
         out = self.dataset2.get_visits(cage="cage A")
-        self.assertTrue(np.isclose(out[0].duration, (out[0].t_end - out[0].t_start)))
+        self.assertTrue(np.isclose(out[0].duration,
+                                   (out[0].t_end - out[0].t_start)))
 
     def test_visits_cage_A2(self):
         out = self.dataset2.get_visits(cage="cage A", t_end=1286708960.687)
@@ -97,6 +99,7 @@ class TestLoader(unittest.TestCase):
         out2 = self.dataset3.get_visits("mouse_2")
         self.assertEqual(len(out)-1, len(out2))
 
+
 class TestMerger(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -112,8 +115,8 @@ class TestMerger(unittest.TestCase):
 
     def test_1(self):
         self.assertEqual(self.data.res_dir,
-                         "%s_%s"%(self.res_dir,
-                                  date.today().strftime("%d.%m.%y")))
+                         "%s_%s" % (self.res_dir,
+                                    date.today().strftime("%d.%m.%y")))
 
     def test_cages(self):
         out = sorted(["cage A", "cage B", "cage C", "cage D"])
@@ -139,8 +142,8 @@ class TestMerger(unittest.TestCase):
 
     def test_activity_1(self):
         config = Timeline(sample_data)
-        out_1 =get_activity(self.data, config, 3600)
-        out_2 =get_activity(self.original_data, config, 3600)
+        out_1 = get_activity(self.data, config, 3600)
+        out_2 = get_activity(self.original_data, config, 3600)
         self.assertEqual(out_1, out_2)
 
     def test_activity_2(self):
@@ -159,4 +162,3 @@ class TestMerger(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

@@ -55,6 +55,7 @@ def get_visits_in_bins(intervals, time_start,
         added_visit.append(outs)
     return visits, added_visit
 
+
 def calc_visit_per_mouse(intervals, t_start, t_end, binsize):
     visits_in_bins, added_visit = get_visits_in_bins(intervals,
                                                      t_start,
@@ -67,7 +68,8 @@ def calc_visit_per_mouse(intervals, t_start, t_end, binsize):
     return visits, durations, visits_in_bins
 
 
-def calculate_visits_and_durations(data, mice, address, t_start, t_end, binsize):
+def calculate_visits_and_durations(data, mice, address, t_start, t_end,
+                                   binsize):
     visits = OrderedDict()
     durations = OrderedDict()
     all_visits = OrderedDict()
@@ -138,14 +140,13 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
         prefix = ehs.prefix
     if res_dir == "":
         res_dir = ehs.res_dir
-    
     phases = utils.filter_dark_light(cf.sections())
-    fname = '%sactivity_bin_%3.2f_h.csv'%(prefix,
-                                          binsize/3600)
+    fname = '%sactivity_bin_%3.2f_h.csv' % (prefix,
+                                            binsize/3600)
     histogram_fname = 'activity_histograms_bin_%3.1f_h' % (binsize/3600)
     mice = utils.get_mice(ehs.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    
+
     if binsize > 12*3600:
         t_start = cf.gettime(phases[0])[0]
         t_end = cf.gettime(phases[-1])[-1]
@@ -159,7 +160,7 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
             t_start += binsize
     else:
         times = [cf.gettime(phase) for phase in phases]
-    data = {c:{0:{},1:{}} for c in ehs.cages}
+    data = {c: {0: {}, 1: {}} for c in ehs.cages}
     ehs_data = utils.prepare_data(ehs, mice)
     bin_labels = {}
     for idx_phase, phase in enumerate(phases):
@@ -176,7 +177,6 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
             data[address][1][phase] = visit_data[1]
             bin_labels[phase] = utils.get_times(binsize)
             visits_in_cages[address] = visit_data[2]
-            
         if save_histogram:
             make_visit_duration_histogram(visits_in_cages,
                                           bin_labels[phase],

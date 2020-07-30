@@ -6,7 +6,8 @@ from collections import OrderedDict
 
 from . import utility_functions as utils
 from .write_to_file import write_registrations_stats
-from .plotting_functions import  single_timeline_heat_map
+from .plotting_functions import single_timeline_heat_map
+
 
 def get_single_antenna_stats(ehs, cf, binsize, antennas="ALL", res_dir="",
                              prefix="", remove_mouse="", delimiter=";"):
@@ -20,12 +21,12 @@ def get_single_antenna_stats(ehs, cf, binsize, antennas="ALL", res_dir="",
            Eco-HAB dataset.
         cf : Timeline
            timeline of the experiment.
-        binsize : number 
+        binsize : number
            time bins for calculating activity
            A number value specifies number of seconds in each bin, e.g. binsize
            equal 3600 results in 1 h bins.
         antennas: string, int or list of ints
-           Ids of registering antennas. 
+           Ids of registering antennas.
            Default value is all antennas
         res_dir : string
            destination directory
@@ -48,10 +49,8 @@ def get_single_antenna_stats(ehs, cf, binsize, antennas="ALL", res_dir="",
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     out_dir = os.path.join("other_variables", "registration_stats")
     bin_ = binsize/3600
-    fname_durations = "registration_duration_%4.2fh" %bin_
-    fname_count = "registration_count_%4.2fh" %bin_
-    
-
+    fname_durations = "registration_duration_%4.2fh" % bin_
+    fname_count = "registration_count_%4.2fh" % bin_
     shortest_phase = utils.get_shortest_phase_duration(cf)
     if binsize <= shortest_phase:
         phases = cf.sections()
@@ -66,14 +65,14 @@ def get_single_antenna_stats(ehs, cf, binsize, antennas="ALL", res_dir="",
             times.append((t_start, t_start+binsize))
             t_start += binsize
             i += 1
-    
     if antennas == "ALL":
         antennas = sorted(set(ehs.get_antennas(ehs.mice)))
     if antennas in ehs.all_antennas:
         antennas = [antennas]
     if not isinstance(antennas, list):
-        raise Exception("Incorrect antenna format. You should either provide a list of ints, an int or 'ALL'")
-    
+        raise Exception("""Incorrect antenna format.
+        You should either provide a list of ints, an int or 'ALL'""")
+
     for i, phase in enumerate(phases):
         t_start, t_end = times[i]
         count = OrderedDict()
@@ -98,12 +97,10 @@ def get_single_antenna_stats(ehs, cf, binsize, antennas="ALL", res_dir="",
                                      antenna,
                                      out_dir)
         write_registrations_stats(count, phase, mice, binsize,
-                                 fname_count, res_dir,
-                                 out_dir, prefix,
-                                 add_info=add_info_mice, delimiter=";")
+                                  fname_count, res_dir,
+                                  out_dir, prefix,
+                                  add_info=add_info_mice, delimiter=";")
         write_registrations_stats(durations, phase, mice, binsize,
-                                 fname_durations, res_dir,
-                                 out_dir, prefix,
-                                 add_info=add_info_mice, delimiter=";")
-        
-
+                                  fname_durations, res_dir,
+                                  out_dir, prefix,
+                                  add_info=add_info_mice, delimiter=";")

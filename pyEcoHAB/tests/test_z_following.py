@@ -9,6 +9,7 @@ from pyEcoHAB import Timeline
 from pyEcoHAB import sample_data
 from pyEcoHAB import SetupConfig
 
+
 try:
     basestring
 except NameError:
@@ -26,7 +27,7 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
         dir1 = uf.extract_directions(times1, antennas1, 3, config.directions)
         dir2 = uf.extract_directions(times2, antennas2, 6, config.directions)
         res = fol.following_single_pair(dir1, dir2, config.directions)
-        cls.out1, cls.time_together1, cls.intervals1= res
+        cls.out1, cls.time_together1, cls.intervals1 = res
 
         antennas1 = ["1", "2", "3", "4", "5"]
         times1 = [15, 16.5, 19, 20, 21]
@@ -37,10 +38,11 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
         res = fol.following_single_pair(dir2, dir1, config.directions)
         cls.out2, cls.time_together2, cls.intervals2 = res
 
-        antennas1 = ["1", "2", "3", "4", "5",  "6",  "7",   "8",  "1", "2"]
-        times1 = [15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34 ]
-        antennas2 = ["8", "1",   "2",    "3",  "4",  "5",  "6",   "7", "8",   "1",   "2"]
-        times2 =   [10, 16, 19, 19.5, 22, 25,  26, 27, 28, 31, 35]
+        antennas1 = ["1", "2", "3", "4", "5",  "6", "7",  "8", "1", "2"]
+        times1 = [15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34]
+        antennas2 = ["8", "1", "2", "3", "4", "5", "6",
+                     "7", "8", "1", "2"]
+        times2 = [10, 16, 19, 19.5, 22, 25, 26, 27, 28, 31, 35]
         dir1 = uf.extract_directions(times1, antennas1, 3, config.directions)
         dir2 = uf.extract_directions(times2, antennas2, 3, config.directions)
         res = fol.following_single_pair(dir1, dir2, config.directions)
@@ -77,12 +79,15 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
 class TestFollowingMatrices(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        ta = {"mouse1": [[15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34 ],
-                         ["1", "2",  "3",    "4",  "5",  "6",  "7", "8", "1", "2"]],
-              "mouse2": [[10, 16, 19, 19.5, 22, 25,  26, 27, 28, 31, 35],
-                         ["8", "1",  "2", "3", "4", "5", "6", "7", "8", "1",   "2"],],
-              "mouse3": [[10, 16, 17, 18, 22, 25, 26, 27],
-                         ["1", "2", "3", "4",  "4",  "3",  "2", "1"],]
+        ta = {
+            "mouse1": [[15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34],
+                       ["1", "2",  "3",    "4",  "5",  "6",  "7",
+                        "8", "1", "2"]],
+            "mouse2": [[10, 16, 19, 19.5, 22, 25,  26, 27, 28, 31, 35],
+                       ["8", "1",  "2", "3", "4", "5", "6", "7", "8", "1",
+                        "2"], ],
+            "mouse3": [[10, 16, 17, 18, 22, 25, 26, 27],
+                       ["1", "2", "3", "4",  "4",  "3",  "2", "1"], ]
         }
         mice_list = ["mouse1", "mouse2", "mouse3"]
         directions_dict = {}
@@ -92,14 +97,14 @@ class TestFollowingMatrices(unittest.TestCase):
             "mouse3": "8",
         }
         config = SetupConfig()
- 
+
         for mouse in mice_list:
             directions_dict[mouse] = uf.extract_directions(ta[mouse][0],
                                                            ta[mouse][1],
                                                            last[mouse],
                                                            config.directions)
         out = fol.following_matrices(directions_dict,
-                                    mice_list,
+                                     mice_list,
                                      0, 1000, config.directions)
         cls.following = out[0]
         cls.time_together = out[1]
@@ -130,7 +135,7 @@ class TestFollowingMatrices(unittest.TestCase):
         self.assertEqual(self.following["mouse3"]["mouse1"], 1)
 
     def test_following_2_1(self):
-        self.assertEqual(self.following["mouse3"]["mouse2"] , 0)
+        self.assertEqual(self.following["mouse3"]["mouse2"], 0)
 
     def test_time_together_diag_0(self):
         self.assertEqual(self.time_together["mouse1"]["mouse1"], 0)
@@ -236,7 +241,6 @@ class TestInsertInterval(unittest.TestCase):
         out = fol.insert_interval(12, 2, t_starts, t_ends, 20)
         self.assertEqual(t_ends, [4, 8, 11, 14])
 
-
     def test_does_not_fit_1(self):
         t_starts = [3, 5, 10]
         t_ends = [4, 8, 11]
@@ -337,7 +341,8 @@ class TestExecution(unittest.TestCase):
         fol.get_dynamic_interactions(self.data, self.config, 1, binsize=3600)
 
     def test_long_bin(self):
-        fol.get_dynamic_interactions(self.data, self.config, 1, binsize=24*3600)
+        fol.get_dynamic_interactions(self.data, self.config, 1,
+                                     binsize=24*3600)
 
 
 if __name__ == '__main__':

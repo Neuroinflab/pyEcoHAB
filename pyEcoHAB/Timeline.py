@@ -7,48 +7,46 @@ Timeline.py
 Created by Szymon Łęski on 2013-02-19.
 
 """
-
-import os    
-import numpy as np                                           
+import os
+import numpy as np
 import sys
 import time
 import calendar
+import matplotlib as mpl
+import matplotlib.ticker
+import matplotlib.dates as mpd
+import matplotlib.pyplot as plt
+from pyEcoHAB import utility_functions as uf
+
+
 if sys.version_info < (3, 0):
     from ConfigParser import RawConfigParser, NoSectionError
 else:
     from configparser import RawConfigParser, NoSectionError
 
-import matplotlib as mpl
-if os.environ.get('DISPLAY','') == '':
+if os.environ.get('DISPLAY', '') == '':
     print('no display found. Using non-interactive Agg backend')
     mpl.use('Agg')
 
-import matplotlib.ticker
-import matplotlib.dates as mpd
-import matplotlib.pyplot as plt
-
-from pyEcoHAB import utility_functions as uf
-
 
 class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
-    def __init__(self, path, fname=None):    
+    def __init__(self, path, fname=None):
         RawConfigParser.__init__(self)
-        self.path = path               
+        self.path = path
         if fname is None:
             if os.path.isfile(os.path.join(path, 'config.txt')):
                 self.fname = 'config.txt'
             else:
-                self.fname = filter(lambda x: x.startswith('config') 
-                        and x.endswith('.txt'), os.listdir(path))[0]
-        else:                  
+                self.fname = filter(lambda x: x.startswith('config')
+                                    and x.endswith('.txt'),
+                                    os.listdir(path))[0]
+        else:
             self.fname = fname
-        self.read(os.path.join(path, self.fname)) 
-   
-    def gettime(self, sec): 
+        self.read(os.path.join(path, self.fname))
+
+    def gettime(self, sec):
         """Convert start and end time and date read from section sec
-        (might be a list)
-        of the config file 
-        to a tuple of times from epoch."""
+        (might be a list) of the config file to a tuple of times from epoch."""
         if type(sec) == list:
             starts = []
             ends = []
@@ -70,47 +68,47 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
             t1, t2 = self.gettime(sec)
             if t1 <= x and x < t2:
                 return sec
-        return 'Unknown'    
-    
+        return 'Unknown'
+
     def mark(self, sec, ax=None):
         """Mark given phases on the plot"""
         if ax is None:
             ax = plt.gca()
         ylims = ax.get_ylim()
         for tt in self.gettime(sec):
-            ax.plot([mpd.epoch2num(tt),] * 2, ylims, 'k:')
+            ax.plot([mpd.epoch2num(tt), ] * 2, ylims, 'k:')
         plt.draw()
-    
+
     def plot_nights(self, sections, ax=None):
         """Plot night from sections"""
         if ax is None:
             ax = plt.gca()
-        ylims = ax.get_ylim()  
+        ylims = ax.get_ylim()
         xlims = ax.get_xlim()
         if type(sections) == str:
-            sections = [sections]  
+            sections = [sections]
         for sec in sections:
-            t1, t2 = self.gettime(sec)        
-            plt.bar(mpd.epoch2num(t1), ylims[1] - ylims[0], 
-                    width=mpd.epoch2num(t2) - mpd.epoch2num(t1), 
+            t1, t2 = self.gettime(sec)
+            plt.bar(mpd.epoch2num(t1), ylims[1] - ylims[0],
+                    width=mpd.epoch2num(t2) - mpd.epoch2num(t1),
                     bottom=ylims[0], color='0.8', alpha=0.5, zorder=-10)
         ax.set_xlim(xlims)
         plt.draw()
-    
+
     def plot_sections(self):
         """Diagnostic plot of sections defined in the config file."""
-        figg = plt.figure()                         
+        figg = plt.figure()
         for idx, sec in enumerate(self.sections()):
-            t1, t2 = mpd.epoch2num(self.gettime(sec)) #cf2time(cf, sec)
-            plt.plot([t1, t2], [idx, idx], 'ko-') 
+            t1, t2 = mpd.epoch2num(self.gettime(sec))  # cf2time(cf, sec)
+            plt.plot([t1, t2], [idx, idx], 'ko-')
             plt.plot([t2], [idx], 'bo')
             plt.text(t2 + 0.5, idx, sec)
         ax = plt.gca()
-        ax.xaxis.set_major_locator(mpd.HourLocator(np.array([00]), 
-                                                   tz=tzone)) 
-        ax.xaxis.set_major_formatter(mpd.DateFormatter('%d.%m %H:%M', tz=tzone))
+        ax.xaxis.set_major_locator(mpd.HourLocator(np.array([00]),
+                                                   tz=tzone))
+        ax.xaxis.set_major_formatter(mpd.DateFormatter('%d.%m %H:%M',
+                                                       tz=tzone))
         ax.autoscale_view()
         ax.get_figure().autofmt_xdate()
-        plt.title(self.path) 
+        plt.title(self.path)
         plt.draw()
-        

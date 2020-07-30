@@ -6,6 +6,8 @@ import sys
 from collections import OrderedDict
 import numpy as np
 from pyEcoHAB.utility_functions import check_directory
+
+
 try:
     basestring
 except NameError:
@@ -13,6 +15,7 @@ except NameError:
 
 PAIRS = ["1 3", "1 4", "1 5", "1 6", "1 7", "2 4", "2 5", "2 6", "2 7", "2 8",
          "3 5", "3 6", "3 7", "3 8", "4 6", "4 7", "4 8", "5 7", "5 8", "6 8"]
+
 
 def results_path(path, res_dir):
     return os.path.join(path, res_dir)
@@ -29,7 +32,7 @@ def make_prefix(path):
         'genotype',
         "strain",
         'sex',
-        'gender', 
+        'gender',
         'experimentator',
         'type of experiment',
         'date of experiment',
@@ -87,6 +90,7 @@ def parse_fname(fname):
 
     return hour, date, datenext
 
+
 def print_human_time(tt):
     """convert seconds to date and time since epoch """
     st = time.gmtime(tt)
@@ -102,12 +106,12 @@ def time_to_sec(tt):
                                              '%Y%m%d %H:%M:%S %Z'))
 
     seconds = calendar.timegm(time.strptime(more_than_sec + " UTC",
-                                        '%Y%m%d %H:%M:%S %Z'))
+                                            '%Y%m%d %H:%M:%S %Z'))
     return seconds + float(less_than_sec)/1000
 
 
 def reformat_date_time(date, time):
-    return "%s %s" %(date.replace('.',''), time)
+    return "%s %s" % (date.replace('.', ''), time)
 
 
 def process_line_more_elements(elements):
@@ -144,7 +148,7 @@ def read_single_file(dir_path, fname):
     """Reads in a single data file"""
     hour, date, datenext = parse_fname(fname)
     raw_data = []
-    f = open(os.path.join(dir_path, fname),'r')
+    f = open(os.path.join(dir_path, fname), 'r')
     for line in f:
         elements = line.split()
         if len(elements) == 5:
@@ -155,7 +159,7 @@ def read_single_file(dir_path, fname):
         elif len(elements) > 5:
             line = process_line_more_elements(elements)
         else:
-            raise(IOError('Unknown data format in file %s' %f))
+            raise(IOError('Unknown data format in file %s' % f))
         raw_data += [line]
     return raw_data
 
@@ -238,7 +242,8 @@ def remove_ghost_tags(raw_data, how_many_appearances,
         dates[mouse].add(d[1].split()[0])
 
     for mouse in counters:
-        if counters[mouse] < how_many_appearances or len(dates[mouse]) <= how_many_days:
+        if counters[mouse] < how_many_appearances\
+           or len(dates[mouse]) <= how_many_days:
             if mouse not in ghost_mice:
                 ghost_mice.append(mouse)
     for d in raw_data:
@@ -254,7 +259,6 @@ def check_antenna_presence(raw_data, max_break):
     all_times = raw_data['Time']
     breaks = {}
     t_end = raw_data['Time'][-1]
-    
     for antenna in ["1", "2", "3", "4", "5", "6", "7", "8"]:
         antenna_idx = []
         for i, a in enumerate(raw_data['Antenna']):
@@ -269,7 +273,8 @@ def check_antenna_presence(raw_data, max_break):
             where_breaks = np.where(intervals > max_break)[0]
             if len(where_breaks):
                 for i in where_breaks:
-                    breaks[antenna].append([np.round(times[i]), np.round(times[i+1])])
+                    breaks[antenna].append([np.round(times[i]),
+                                            np.round(times[i+1])])
             if t_end - times[-1] > max_break:
                 breaks[antenna].append([np.round(times[-1]), t_end])
         else:
@@ -285,31 +290,29 @@ def antenna_mismatch(raw_data, pairs):
     mismatches = OrderedDict()
     for pair in pairs:
         mismatches[pair] = 0
-
     for mouse in mice:
         mouse_idx = np.where(np.array(raw_data['Tag']) == mouse)[0]
         times = all_times[mouse_idx]
         ant = raw_data['Antenna'][mouse_idx]
         for i, a in enumerate(ant[:-1]):
             key = "%s %s" % (min(a, ant[i+1]), max(a, ant[i+1]))
-            if key  in pairs:
+            if key in pairs:
                 mismatches[key] += 1
     return mismatches
+
 
 def run_diagnostics(raw_data, max_break, res_dir, pairs):
     mismatches = antenna_mismatch(raw_data, pairs)
     out_f1 = u"First reading, consecutive reading,  count, percentage\n"
     print(u"Mismatched antenna readings")
     print(u"First reading, consecutive reading,  count, percentage")
-   
     for pair in mismatches.keys():
         exact_mis = np.round(100*mismatches[pair]/len(raw_data['Antenna']))
-        print(u"%s,\t%d, %3.2f per 100"% (pair, mismatches[pair], exact_mis))
-        out_f1 += u"%s,\t%d, %3.2f per 100\n"% (pair, mismatches[pair],
-                                                exact_mis)
-    
+        print(u"%s,\t%d, %3.2f per 100" % (pair, mismatches[pair],
+                                           exact_mis))
+        out_f1 += u"%s,\t%d, %3.2f per 100\n" % (pair, mismatches[pair],
+                                                 exact_mis)
     antenna_breaks = check_antenna_presence(raw_data, max_break)
-    
     print('Breaks in registrations on antennas:')
     out_f2 = u'Breaks in registrations on antennas:\n'
     for antenna in antenna_breaks:
@@ -336,7 +339,6 @@ def run_diagnostics(raw_data, max_break, res_dir, pairs):
     f2.write(out_f2)
     f1.close()
     f2.close()
-             
     return out_f1, out_f2
 
 
@@ -352,14 +354,20 @@ def from_raw_data(raw_data):
     new_data = []
     for row in raw_data:
         new_data.append(transform_raw(row))
-    data_type = [("Id", int), ("Time", float), ("Antenna", "U15"),
-                 ("Duration", int), ("Tag", "U15")]
+    data_type = [("Id", int),
+                 ("Time", float),
+                 ("Antenna", "U15"),
+                 ("Duration", int),
+                 ("Tag", "U15")]
     return np.array(new_data, dtype=data_type)
 
 
 def transform_visits(data):
-    data_type = [("Address", "U30"), ("Tag", "U15"), ("AbsStartTimecode", float),
-                 ("AbsEndTimecode", float), ("VisitDuration", float),
+    data_type = [("Address", "U30"),
+                 ("Tag", "U15"),
+                 ("AbsStartTimecode", float),
+                 ("AbsEndTimecode", float),
+                 ("VisitDuration", float),
                  ("ValidVisitSolution", bool)]
     return np.array(data, dtype=data_type)
 
@@ -407,14 +415,14 @@ class NamedDict(dict):
         self.__name__ = name
 
     def __repr__(self):
-        items = ('{}={}'.format(k,v) for (k,v) in self.items())
-        l = len(self.__name__) + 1
-        sep = ',\n' + ' '*l
+        items = ('{}={}'.format(k, v) for (k, v) in self.items())
+        length = len(self.__name__) + 1
+        sep = ',\n' + ' '*length
         return '{}({})'.format(self.__name__, sep.join(items))
 
     def __setitem__(self, k, v):
-        super(NamedDict, self).__setitem__(k,v)
-        setattr(self,k,v)
+        super(NamedDict, self).__setitem__(k, v)
+        setattr(self, k, v)
 
     def __getattribute__(self, k):
         # attributes have higher priority
@@ -424,9 +432,9 @@ class NamedDict(dict):
             return super(NamedDict, self).__getitem__(k)
 
     def __setattr__(self, k, v):
-        super(NamedDict, self).__setattr__(k,v)
+        super(NamedDict, self).__setattr__(k, v)
         if not k.startswith('_'):
-            super(NamedDict, self).__setitem__(k,v)
+            super(NamedDict, self).__setitem__(k, v)
 
     def __dir__(self):
         dirlist = super(NamedDict, self).__dir__()
