@@ -148,6 +148,20 @@ class TestGetDicts(unittest.TestCase):
         cls.default = SetupConfig()
         path = os.path.join(data_path, "test_setups")
         cls.custom = SetupConfig(path=path, fname="setup_internal.txt")
+        cls.custom_dom = SetupConfig(path=path,
+                                     fname="setup_internal_dominance.txt")
+
+    def test_homecage_antenna(self):
+        self.assertEqual(self.custom_dom.homecage_antenna, "2")
+
+    def test_homecage_internals(self):
+        out = self.custom_dom.homecage_internal_antennas
+        self.assertEqual(out, ["8"])
+
+    def test_stimulus_internals(self):
+        out = self.custom_dom.stimulus_cage_internal_antennas
+        self.assertEqual(out, ["7"])
+
 
     def test_default_cages(self):
         out = self.default.get_cages_dict()
@@ -198,14 +212,6 @@ class TestGetDicts(unittest.TestCase):
         out["7"] = ["6", "7"]
         out["8"] = ["8", "1"]
         self.assertEqual(out, self.default.same_address)
-
-
-class TestOppositePipe(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.default = SetupConfig()
-        path = os.path.join(data_path, "test_setups")
-        cls.custom = SetupConfig(path=path, fname="setup_internal.txt")
 
     def test(self):
         self.assertEqual(self.default.opposite_tunnel, OPPOSITE_PIPE)
@@ -396,6 +402,13 @@ class TestExperimentSetupConfig(unittest.TestCase):
                                              ecohab_1=cls.config3,
                                              ecohab_2=cls.config4)
 
+        path2 = os.path.join(data_path, "test_setups")
+        path3 = os.path.join(data_path, "experiment_setup_renaming.txt")
+        cls.config5 = SetupConfig(path=path2,
+                                  fname="setup_internal_dominance.txt")
+        cls.experiment_dom = ExperimentSetupConfig(path3,
+                                                   ecohab1=cls.config1,
+                                                   custom2=cls.config5)
     def test_indentity_compartments(self):
         out = {"ecohab1 cage A": "shared cage 1",
                "ecohab2 cage B": "shared cage 1"}
@@ -1062,6 +1075,17 @@ class TestExperimentSetupConfig(unittest.TestCase):
              '7_ecohab1_8_ecohab1', '8_ecohab1_7_ecohab1']
         )
         self.assertEqual(self.experiment_config.directions, out)
+
+    def test_homecage_antenna(self):
+        self.assertEqual(self.experiment_dom.homecage_antenna, "2_custom2")
+
+    def test_homecage_internals(self):
+        out = self.experiment_dom.homecage_internal_antennas
+        self.assertEqual(out, ["8_custom2"])
+
+    def test_stimulus_internals(self):
+        out = self.experiment_dom.stimulus_cage_internal_antennas
+        self.assertEqual(out, ["7_custom2"])
 
 
 if __name__ == '__main__':

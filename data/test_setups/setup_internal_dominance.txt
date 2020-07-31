@@ -1,0 +1,22 @@
+#standard setup
+[setup]
+name = custom2
+
+[cage A]
+entrance_antenna1 = 1
+internal_antenna1 = 7
+
+[cage B]
+entrance_antenna1 = 2
+internal_antenna1 = 8
+
+[tunnel 1]
+entrance_antenna1 = 1
+entrance_antenna2 = 2
+
+[other]
+homecage_entrance_antenna = 2
+homecage_internal_antenna = 8
+stimulus_cage_internal_antenna = 7
+
+

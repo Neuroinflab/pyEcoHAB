@@ -370,6 +370,38 @@ class SetupConfigMethods(RawConfigParser):
                 pairs.remove(l)
         return pairs
 
+    @property
+    def homecage_antenna(self):
+        """
+        Finds home antenna. This is a function used to calculate one
+        of the measures of dominance in two cage experiments.
+        """
+        if self.has_section("other"):
+            other_items = self.items("other")
+            for it, val in other_items:
+                if it.startswith("homecage_entrance"):
+                    return val
+
+    @property
+    def homecage_internal_antennas(self):
+        out = []
+        if self.has_section("other"):
+            other_items = self.items("other")
+            for it, val in other_items:
+                if it.startswith("homecage_internal"):
+                    out.append(val)
+        return sorted(out)
+
+    @property
+    def stimulus_cage_internal_antennas(self):
+        out = []
+        if self.has_section("other"):
+            other_items = self.items("other")
+            for it, val in other_items:
+                if it.startswith("stimulus_cage_internal"):
+                    out.append(val)
+        return sorted(out)
+
 
 class SetupConfig(SetupConfigMethods):
     """Load config file for a single EcoHAB setup.
@@ -571,7 +603,11 @@ class ExperimentSetupConfig(SetupConfigMethods):
             for section in this_config_sectionss:
                 if section.lower().startswith("setup"):
                     continue
-                new_section_name = "%s %s" % (key, section)
+                if section == "other":
+                    new_section_name = section
+                else:
+                    new_section_name = "%s %s" % (key, section)
+
                 if new_section_name in self.identity_compartments:
                     new_section_name = self.identity_compartments[new_section_name]
                 if new_section_name in self.renames:
