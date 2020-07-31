@@ -32,7 +32,7 @@ def get_states_mouse(antennas, times, t_start, t_end,
        antennas[0] not in home_cage_internal_antennas :
         timestamp = utils.get_timestamp(t_start, times[i], dt)
         states[:timestamp] = 3
-        previous = 2
+        previous = 3
     else:
         previous = 1
 
@@ -43,18 +43,23 @@ def get_states_mouse(antennas, times, t_start, t_end,
         next_t = times[i+1]
         timestamp = utils.get_timestamp(t_start, t_now, dt)
         next_timestamp = utils.get_timestamp(t_start, next_t, dt)
+        print(a_now, next_a)
         if next_a in stimulus_cage_internal_antennas:
             states[timestamp:next_timestamp] = 3
-        elif config.same_tunnel[a_now] == config.same_tunnel[next_a]:
-            # easy, the mouse is crossing the pipe
-            states[timestamp:next_timestamp] = 1
-        elif a == next_a:
+        elif a_now != next_a:
+            if config.same_tunnel[a_now] == config.same_tunnel[next_a]:
+                print(timestamp, next_timestamp, "tunnel")
+                # easy, the mouse is crossing the pipe
+                states[timestamp:next_timestamp] = 1
+        else:
             if previous == 1:
-                if a != home_antenna and a not in home_cage_internal_antennas:
+                if a_now != home_antenna and\
+                   a_now not in home_cage_internal_antennas:
                     states[timestamp:next_timestamp] = 3
             else:
-                if times[i+1] - times[i] > 2:
-                    if a != home_antenna and a not in home_cage_internal_antennas:
+                if next_t - t_now > 2:
+                    if a_now != home_antenna\
+                       and a_now not in home_cage_internal_antennas:
                         states[timestamp:next_timestamp] = 3
                 else:
                     states[timestamp:next_timestamp] = 1
