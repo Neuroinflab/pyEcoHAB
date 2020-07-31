@@ -3,6 +3,7 @@ from __future__ import print_function, division, absolute_import
 import unittest
 import numpy as np
 from pyEcoHAB import dominance_in_2_cages as dom
+from pyEcoHAB import SetupConfig, data_path
 
 
 class TestGetStates(unittest.TestCase):
@@ -11,10 +12,13 @@ class TestGetStates(unittest.TestCase):
         cls.dt = 0.1
         cls.t_start = 600.0
         cls.t_end = 800.0
-        cls.home_antenna_1 = 3
-        cls.home_antenna_2 = 4
-
-        cls.antennas = [3, 4, 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 3, 4, 4, 3, 3]
+      
+        cls.config1 = SetupConfig(path=data_path,
+                                  fname="setup_short_2.txt")
+        cls.config2 = SetupConfig(path=data_path,
+                                  fname="setup_short_3.txt")
+        cls.antennas = ["3", "4", "4", "3", "3", "4", "4", "3", "3", "4",
+                        "4", "3", "3", "4", "4", "3", "3"]
         cls.times = [641.083,  # 3  # 0
                      642.135,  # 4  # 1
                      675.134,  # 4  # 2
@@ -36,14 +40,15 @@ class TestGetStates(unittest.TestCase):
                                          cls.times,
                                          cls.t_start,
                                          cls.t_end,
-                                         cls.home_antenna_1,
+                                         cls.config1,
                                          cls.dt)
         cls.out_2 = dom.get_states_mouse(cls.antennas,
                                          cls.times,
                                          cls.t_start,
                                          cls.t_end,
-                                         cls.home_antenna_2,
+                                         cls.config2,
                                          cls.dt)
+
 
     def test_same_length(self):
         self.assertEqual(len(self.out_1),
@@ -146,78 +151,87 @@ class TestFindStimulusCageMice(unittest.TestCase):
 
 class TestCheckMouse1NotValid(unittest.TestCase):
     def test_home_antenna(self):
-        out = dom.check_mouse1_not_valid(4, 4, 4)
+        out = dom.check_mouse1_not_valid("4", "4", "4")
         self.assertTrue(out)
 
     def test_pipe(self):
-        out = dom.check_mouse1_not_valid(4, 3, 4)
+        out = dom.check_mouse1_not_valid("4", "3", "4")
         self.assertTrue(out)
 
     def test_True(self):
-        out = dom.check_mouse1_not_valid(4, 4, 3)
+        out = dom.check_mouse1_not_valid("4", "4", "3")
         self.assertFalse(out)
 
 
 class TestCheckMouse2NotValid(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.antennas = [3,  4,   4,   3,   3, ]
+        cls.antennas = ["3",  "4",   "4",   "3",   "3"]
         cls.times = [11., 12., 13., 14., 21.]
 
     def test_no_pre(self):
         self.assertTrue(dom.check_mouse2_not_valid(10, 20,
-                                                   [3, 4],
+                                                   ["3", "4"],
                                                    [11., 12.],
-                                                   3))
+                                                   "3"))
 
     def test_no_between(self):
         self.assertTrue(dom.check_mouse2_not_valid(15, 20,
                                                    self.antennas,
                                                    self.times,
-                                                   3))
+                                                   "3"))
 
     def test_not_home_antenna(self):
         self.assertTrue(dom.check_mouse2_not_valid(11.5, 20,
                                                    self.antennas,
                                                    self.times,
-                                                   4))
+                                                   "4"))
 
     def test_return_False(self):
         self.assertFalse(dom.check_mouse2_not_valid(11.5, 20,
                                                     self.antennas,
                                                     self.times,
-                                                    3))
+                                                    "3"))
 
 
 class TestCountAttempts(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.antennas = [3, 4, 4, 4, 3, 3, 3, 4, 3, 3, 3, 3, 4]
+        cls.antennas = ["3", "4", "4", "4", "3", "3", "3", "4", "3", "3",
+                        "3", "3", "4"]
         cls.times = [5., 12., 13., 14., 21., 22., 24., 25.,
                      26., 28., 35., 41., 44.]
+        cls.config = SetupConfig(path=data_path,
+                                 fname="setup_short_2.txt")
 
     def test_check_1_true(self):
-        out = dom.count_attempts(12.5, 13.5, self.times, self.antennas, 4)
+        out = dom.count_attempts(12.5, 13.5, self.times, self.antennas, "4",
+                                 self.config)
         self.assertEqual(out, 1)
 
     def test_check_1_false(self):
-        out = dom.count_attempts(11.5, 12.5, self.times, self.antennas, 3)
+        out = dom.count_attempts(11.5, 12.5, self.times, self.antennas, "3",
+                                 self.config)
         self.assertEqual(out, 0)
 
     def test_check_2_false(self):
-        out = dom.count_attempts(11.5, 14.5, self.times, self.antennas, 3)
+        out = dom.count_attempts(11.5, 14.5, self.times, self.antennas, "3",
+                                 self.config)
         self.assertEqual(out, 0)
 
     def test_check_2_true(self):
-        out = dom.count_attempts(11.5, 13.5, self.times, self.antennas, 4)
+        out = dom.count_attempts(11.5, 13.5, self.times, self.antennas, "4",
+                                 self.config)
         self.assertEqual(out, 1)
 
     def test_check_more(self):
-        out = dom.count_attempts(11.5, 41.5, self.times, self.antennas, 4)
+        out = dom.count_attempts(11.5, 41.5, self.times, self.antennas, "4",
+                                 self.config)
         self.assertEqual(out, 1)
 
     def test_check_more_opposite_antenna(self):
-        out = dom.count_attempts(12.5, 41.5, self.times, self.antennas, 3)
+        out = dom.count_attempts(12.5, 41.5, self.times, self.antennas, "3",
+                                 self.config)
         self.assertEqual(out, 3)
 
 
@@ -228,55 +242,27 @@ class TestMouseDefending(unittest.TestCase):
         cls.timestamp_2 = 20
         cls.timestamp_3 = 40
         cls.home_antenna = 4
-        cls.antennas1 = [3, 3, 3, 3]
+        cls.antennas1 = ["3", "3", "3", "3"]
         cls.times1 = [4, 12.5, 21.5, 45]
-        cls.antennas2 = [3, 4, 4, 4, 3, 3, 3, 4, 3, 3, 3, 3, 4]
+        cls.antennas2 = ["3", "4", "4", "4", "3", "3", "3", "4", "3", "3",
+                         "3", "3", "4"]
         cls.times2 = [5., 12., 13., 14., 21., 22., 24., 25., 26., 28.,
                       35., 41., 44.]
+        cls.config = SetupConfig(path=data_path,
+                                 fname="setup_short_2.txt")
 
     def test_mouse_1_in_sugar_cage(self):
         out = dom.check_mouse1_defending(self.antennas1, self.times1,
-                                         self.antennas2, self.times2, 4)
+                                         self.antennas2, self.times2, "4",
+                                         self.config)
         self.assertEqual(out, 1)
 
     def test_mouse_2_more_attempst(self):
-        antennas1 = [4, 4, 4, 4]
+        antennas1 = ["4", "4", "4", "4"]
         out = dom.check_mouse1_defending(antennas1, self.times1,
-                                         self.antennas2, self.times2, 3)
+                                         self.antennas2, self.times2, "3",
+                                         self.config)
         self.assertEqual(out, 3)
-
-
-class TestGetTimeSpent(unittest.TestCase):
-    def test_list(self):
-        array = [0, 1, 0, 4, 0, 6]
-        out = dom.get_time_spent(array, 0)
-        self.assertEqual(out, 3)
-
-    def test_array(self):
-        array = np.array([0, 1, 0, 4, 0, 6])
-        out = dom.get_time_spent(array, 0)
-        self.assertEqual(out, 3)
-
-
-class TestIfCagesAreCorrectlyAssigned(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.states_1 = {
-            'mouse_1': np.array([0, 1, 0, 3, 0, 3]),
-            'mouse_3': np.array([0, 3, 0, 1, 0, 3, 0]),
-        }
-        cls.states_3 = {
-            'mouse_1': np.array([0, 1, 0, 3, 3, 3]),
-            'mouse_3': np.array([0, 3, 0, 1, 3, 3]),
-        }
-
-    def test_correct(self):
-        out = dom.are_cages_correctly_assigned(self.states_1)
-        self.assertTrue(out)
-
-    def test_incorrect(self):
-        out = dom.are_cages_correctly_assigned(self.states_3)
-        self.assertFalse(out)
 
 
 if __name__ == '__main__':

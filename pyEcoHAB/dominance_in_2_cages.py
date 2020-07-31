@@ -7,10 +7,11 @@ from .write_to_file import write_csv_alone
 
 
 def get_states_mouse(antennas, times, t_start, t_end,
-                     config, home_antenna,
-                     home_cage_internal_antennas,
-                     stimulus_cage_internal_antennas,
-                     dt):
+                     config, dt):
+    home_cage_internal_antennas = config.homecage_internal_antennas
+    stimulus_cage_internal_antennas = config.stimulus_cage_internal_antennas
+    home_antenna = config.homecage_antenna
+    unaccounted_for = []
     if len(config.internal_antennas):
         provided = home_cage_internal_antennas\
                    + stimulus_cage_internal_antennas
@@ -19,45 +20,47 @@ def get_states_mouse(antennas, times, t_start, t_end,
     else:
         assert len(home_cage_internal_antennas) == 0
         assert len(stimulus_cage_internal_antennas) == 0
+
     length = utils.get_timestamp(t_start, t_end, dt)
     states = np.zeros((length), dtype=int)
     i = 0
     while antennas[i] in unaccounted_for:
         i = i+1
-    if antennas[i] != home_antenna:
+    a_now = antennas[i]
+    t_now = times[i]
+    if a_now != home_antenna and\
+       antennas[0] not in home_cage_internal_antennas :
         timestamp = utils.get_timestamp(t_start, times[i], dt)
         states[:timestamp] = 3
         previous = 2
     else:
         previous = 1
-    a_now = antennas[i]
-    t_now = times[i]
-    i = i + 1
-    while i < len(antennas):
-        next_a = antennas[i]
-        next_t = times[i]
+
+    while i+1 < len(antennas):
+        a_now = antennas[i]
+        t_now = times[i]
+        next_a = antennas[i+1]
+        next_t = times[i+1]
         timestamp = utils.get_timestamp(t_start, t_now, dt)
         next_timestamp = utils.get_timestamp(t_start, next_t, dt)
-        if a_next in config.internal_antennas:
-            i = i + 1
-            continue
-        if config.same_tunnel[a] == config.same_tunnel[next_a]:
+        if next_a in stimulus_cage_internal_antennas:
+            states[timestamp:next_timestamp] = 3
+        elif config.same_tunnel[a_now] == config.same_tunnel[next_a]:
             # easy, the mouse is crossing the pipe
             states[timestamp:next_timestamp] = 1
-            previous = 1
         elif a == next_a:
             if previous == 1:
-                if a != home_antenna and a not in config.internal_antennas:
+                if a != home_antenna and a not in home_cage_internal_antennas:
                     states[timestamp:next_timestamp] = 3
-
             else:
                 if times[i+1] - times[i] > 2:
-                    if a != home_antenna and a not in config.internal_antennas::
+                    if a != home_antenna and a not in home_cage_internal_antennas:
                         states[timestamp:next_timestamp] = 3
                 else:
                     states[timestamp:next_timestamp] = 1
 
         previous = states[next_timestamp-1]
+        i = i + 1
 
     if previous == 1:
         if next_a != home_antenna:
@@ -72,17 +75,16 @@ def get_states_mouse(antennas, times, t_start, t_end,
     return states
 
 
-def get_states(ehd, t_start, t_end, home_cage_antenna=None, home_cage_internal_antennas=[], stimulus_cage_internal_antennas=[], dt=0.05):
+def get_states(ehd, t_start, t_end, dt=0.05):
     """
-    0 -- home cage, 1 -- pipe, 2 -- conditioning compartment
+    0 -- home cage, 1 -- pipe, 2 -- stimulus compartment
     """
     states = {}
     for mouse in ehd.mice:
         times, antennas = utils.get_times_antennas(ehd, mouse,
                                                    t_start, t_end)
         states[mouse] = get_states_mouse(antennas, times, t_start, t_end,
-                                         home_antenna, config, dt)
-
+                                         ehd.stimulus_config, dt)
     return states
 
 
@@ -96,7 +98,7 @@ def find_stimulus_cage_mice(states, t_start, t_stop, beginning, dt):
     return mice
 
 
-def get_dominating_mice(ehd, cf, phase, mouse, states, home_cage_antenna, dt):
+def get_dominating_mice(ehd, cf, phase, mouse, states, homecage_entrance, dt):
     results = np.zeros((len(ehd.mice)))
     t_start, t_end = cf.gettime(phase)
     T_START, T_END = cf.gettime('ALL')
@@ -106,8 +108,9 @@ def get_dominating_mice(ehd, cf, phase, mouse, states, home_cage_antenna, dt):
     while True:
         if idx >= len(antennas):
             break
-        if antennas[idx] == home_cage_antenna and antennas[idx-1] == home_cage_antenna:
-            mice_list = find_stimulus_cage_mice(states, time[idx-1], time[idx], T_START, dt)
+        if antennas[idx] == homecage_entrance and antennas[idx-1] == homecage_entrance:
+            mice_list = find_stimulus_cage_mice(states, time[idx-1],
+                                                time[idx], T_START, dt)
             for mouse in mice_list:
                 results[mice.index(mouse)] += 1
             idx += 2
@@ -115,15 +118,15 @@ def get_dominating_mice(ehd, cf, phase, mouse, states, home_cage_antenna, dt):
     return results
 
 
-def dominating_mice(ehd, cf, phase, states, home_cage_antenna, dt=0.05):
+def dominating_mice(ehd, cf, phase, states, homecage_entrance, dt=0.05):
     results = np.zeros((len(ehd.mice), len(ehd.mice)))
     for i, mouse in enumerate(ehd.mice):
         results[:, i] = get_dominating_mice(ehd, cf, phase, mouse, states,
-                                            home_cage_antenna, dt=dt)
+                                            homecage_entrance, dt=dt)
     return results
 
 
-def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end, home_cage_antenna):
+def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end, homecage_entrance):
     """We're checking here, how many times mouse1 dominates over mouse2
     between t_start and t_end.
 
@@ -133,12 +136,15 @@ def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end, home
                                                      t_start, t_end)
     m2_times, m2_antennas = utils.get_times_antennas(ehd, mouse2,
                                                      t_start, t_end)
-    domination_counter = check_mouse1_defending(m1_antennas, m1_times, m2_antennas, m2_times, home_cage_antenna)
+    domination_counter = check_mouse1_defending(m1_antennas, m1_times,
+                                                m2_antennas, m2_times,
+                                                ehd.homecage_antenna,
+                                                ehd.setup_config)
         
     return domination_counter
 
 
-def tube_dominance_2_cages(ehd, cf, phase, home_cage_antenna):
+def tube_dominance_2_cages(ehd, cf, phase, homecage_entrance):
     mice = ehd.mice
     st, en = cf.gettime(phase)
     dominance =  np.zeros((len(mice), len(mice)))
@@ -150,16 +156,17 @@ def tube_dominance_2_cages(ehd, cf, phase, home_cage_antenna):
                                                                      mouse2,
                                                                      st,
                                                                      en,
-                                                                     home_cage_antenna)
+                                                                     homecage_entrance)
     return dominance
 
 
-def count_attempts(tstamp1, tstamp2, times, antennas, home_cage_antenna):
+def count_attempts(tstamp1, tstamp2, times, antennas, homecage_entrance,
+                   config):
     mouse_between = utils.get_idx_between(tstamp1, tstamp2, times)
     in_between_antennas = utils.get_antennas(mouse_between, antennas)
-    opposite_antenna = opposite_antenna_dict[home_cage_antenna]
+    opposite_antenna = config.other_tunnel_antenna(homecage_entrance)[0]
     mouse_after = mouse_between[-1] + 1
-    if  len(mouse_between) == 1:
+    if len(mouse_between) == 1:
         if in_between_antennas[0] != opposite_antenna:
             if mouse_after < len(antennas):
                 if antennas[mouse_after] != opposite_antenna:
@@ -169,7 +176,8 @@ def count_attempts(tstamp1, tstamp2, times, antennas, home_cage_antenna):
     counter = 0
     i = 1
     while True:
-        if in_between_antennas[i] == home_cage_antenna and in_between_antennas[i-1] == home_cage_antenna:
+        if in_between_antennas[i] == homecage_entrance\
+           and in_between_antennas[i-1] == homecage_entrance:
             counter += 1
             i += 1
         i += 1
@@ -179,11 +187,11 @@ def count_attempts(tstamp1, tstamp2, times, antennas, home_cage_antenna):
 
 def check_mouse1_not_valid(mouse_previous_antenna,
                            mouse_antenna,
-                           home_cage_antenna):
+                           homecage_entrance):
 
     if mouse_antenna != mouse_previous_antenna:
         return True
-    if mouse_antenna == home_cage_antenna:
+    if mouse_antenna == homecage_entrance:
         return True # mouse1 is trying to enter the pipe
 
     return False
@@ -191,7 +199,7 @@ def check_mouse1_not_valid(mouse_previous_antenna,
 
 def check_mouse2_not_valid(mouse1_previous_timestamp, mouse1_timestamp,
                        antennas2, times2,
-                       home_cage_antenna):
+                       homecage_entrance):
 
     mouse2_pre = utils.get_idx_pre(mouse1_previous_timestamp, times2)
 
@@ -204,29 +212,31 @@ def check_mouse2_not_valid(mouse1_previous_timestamp, mouse1_timestamp,
 
     mouse2_after = utils.get_idx_post(mouse1_timestamp, times2)
 
-    if antennas2[mouse2_pre] != home_cage_antenna:
+    if antennas2[mouse2_pre] != homecage_entrance:
         return True #mouse 2 didn't start at the home cage
     return False
 
 
-def check_mouse1_defending(antennas1, times1, antennas2, times2, home_cage_antenna):
+def check_mouse1_defending(antennas1, times1, antennas2, times2,
+                           homecage_entrance, config):
     dominance_counter = 0
     for idx in range(1, len(antennas1)):
         mouse1_previous_antenna, mouse1_antenna = antennas1[idx-1:idx+1]
         mouse1_previous_timestamp, mouse1_timestamp = times1[idx-1:idx+1]
         if  check_mouse1_not_valid(mouse1_previous_antenna,
                                    mouse1_antenna,
-                                   home_cage_antenna):
+                                   homecage_entrance):
             continue
         if check_mouse2_not_valid(mouse1_previous_timestamp,
                                   mouse1_timestamp,
                                   antennas2, times2,
-                                  home_cage_antenna):
+                                  homecage_entrance):
             continue
         dominance_counter += count_attempts(mouse1_previous_timestamp,
                                             mouse1_timestamp, times2,
                                             antennas2,
-                                            home_cage_antenna)
+                                            homecage_entrance,
+                                            config)
     return dominance_counter
 
 
@@ -244,7 +254,7 @@ def get_tube_dominance_2_cages(ehd, cf, res_dir=None, prefix=None, dt=0.05,
                                        'dominating mouse',
                                        'pushed out mouse',
                                        '# pushes',
-                                       args=[ehd.home_cage_antenna],
+                                       args=[ehd.homecage_entrance],
                                        vmin=0, vmax=200,
                                        delimiter=delimiter)
 
@@ -262,7 +272,7 @@ def get_subversion_evaluation(ehd, cf, res_dir=None, prefix=None, dt=0.05,
                                        'dominating mouse',
                                        'subversive mouse',
                                        '# times in small cage',
-                                       args=[states, ehd.home_cage_antenna,
+                                       args=[states, ehd.homecage_entrance,
                                              dt], vmin=0, vmax=200,
                                        delimiter=delimiter)
 
