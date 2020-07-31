@@ -116,16 +116,6 @@ class EcoHabDataBase(object):
             return [mouse_dict[mouse] for mouse in mouse_keys]
         return sorted(mouse_list)
 
-    def get_home_cage_antenna(self):
-        """
-        Finds home antenna. This is a function used to calculate one
-        of the measures of dominance in two cage experiments.
-        """
-        antennas = []
-        for mouse in self.mice:
-            antennas.append(self.get_antennas(mouse)[0])
-        return max(set(antennas), key=antennas.count)
-
     def get_visits(self, mice=None, cage=None, t_start=None, t_end=None):
         """
         Return a list of visits to Eco-HAB compartments. Each visit is
@@ -268,6 +258,10 @@ class Loader(EcoHabDataBase):
            duration lower than min_appearance_factor will be removed
            from loaded data. By default no animal tag registrations are
            removed.
+        home_cage_antenna: None
+          For experiments with two cages/chambers, the larger cage. If none is
+          provided, Loader will assign as the home cage antenna the entrance
+          antenna that first registered majority of animals.
         remove_antennas: list
            Registrations by antenna ids in remove_antennas will be removed from
            loaded data. By default Loader keeps all the registrations.
@@ -324,6 +318,8 @@ class Loader(EcoHabDataBase):
         self.all_antennas = antennas.all_antennas
         self.internal_antennas = antennas.internal_antennas
         self.setup_name = antennas.name
+        self.home_cage_antenna = kwargs.pop("home_cage_antenna",
+                                            self._get_home_cage_antenna)
 
     def _read_in_raw_data(self, factor, how_many_appearances, tags):
         """Reads in data from files in self.path.
@@ -349,6 +345,20 @@ class Loader(EcoHabDataBase):
         mystring = 'Eco-HAB data loaded from:\n%s\nin the folder%s\n' % (
                    self._fnames.__str__(), self.path)
         return mystring
+
+    def _get_home_cage_antenna(self):
+        """
+        Finds home antenna. This is a function used to calculate one
+        of the measures of dominance in two cage experiments.
+        """
+        antennas = []
+        for mouse in self.mice:
+            mouse_antennas = self.get_antennas(mouse)
+            for ant in mouse_antenna:
+                if ant not in self.setup_config.internal_antennas:
+                    break
+            antennas.append(ant)
+        return max(set(antennas), key=antennas.count)
 
 
 class Merger(EcoHabDataBase):

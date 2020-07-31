@@ -136,7 +136,7 @@ class SetupConfigMethods(RawConfigParser):
         out = {}
         for tunnel, value in tunnel_dict.items():
             for antenna in value:
-                out[antenna] = [val for val in value]
+                out[antenna] = sorted([val for val in value])
         return out
 
     def get_same_address(self):
