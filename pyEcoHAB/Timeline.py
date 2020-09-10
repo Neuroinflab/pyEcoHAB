@@ -67,23 +67,29 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
             self.path = os.path.join(path, fname)
         self.read(self.path)
 
-    def get_time_from_epoch(self, sec):
+
+    def _time_from_epoch(self, phase):
+        tstr1 = "%s%s" % (self.get(phase, 'startdate'),
+                          self.get(phase, 'starttime'))
+        tstr2 = "%s%s" % (self.get(phase, 'enddate'),
+                          self.get(phase, 'endtime'))
+        t1 = uf.to_struck(tstr1, self.path)
+        t2 = uf.to_struck(tstr2, self.path)
+        return calendar.timegm(t1), calendar.timegm(t2)
+
+    def get_time_from_epoch(self, phases):
         """Convert start and end time and date read from section sec
         (might be a list) of the config file to a tuple of times from epoch."""
-        if type(sec) == list:
+        if not isinstance(phases, list):
+            phases = [phases]
+        for phase in phases:
             starts = []
             ends = []
-            for ss in sec:
-                st, et = self.get_time_from_epoch(ss)
-                starts.append(st)
-                ends.append(et)
+            for phase in phases:
+                t_start, t_end = self._time_from_epoch(phase)
+                starts.append(t_start)
+                ends.append(t_end)
             return min(starts), max(ends)
-        else:
-            tstr1 = self.get(sec, 'startdate') + self.get(sec, 'starttime')
-            tstr2 = self.get(sec, 'enddate') + self.get(sec, 'endtime')
-            t1 = uf.to_struck(tstr1, self.path)
-            t2 = uf.to_struck(tstr2, self.path)
-            return calendar.timegm(t1), calendar.timegm(t2)
 
     def __call__(self, x, pos=0):
         x = mpd.num2epoch(x)
