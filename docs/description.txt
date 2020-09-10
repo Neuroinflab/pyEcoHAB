@@ -23,11 +23,11 @@ The method described above has been implemented in Python 2.7 programming langua
 
 ehd = EcoHabData(path_to_data)
 
-The list of tag numbers is stored in ehd.mice. The data can be accesed through methods ehd.getantennas(mice), ehd.gettimes(mice), which return antenna numbers and event times, respectively, for tags listed as an argument 'mice' (can be a single tag or a list).
+The list of tag numbers is stored in ehd.mice. The data can be accesed through methods ehd.get_antennas(mice), ehd.get_times(mice), which return antenna numbers and event times, respectively, for tags listed as an argument 'mice' (can be a single tag or a list).
 
 The EcoHabSessions object is then created based on ehd:
 ehs = EcoHabSessions(ehd)
-This generates the list of sessions. The data can be acceses through methods ehs.getaddresses(mice), ehs.getstarttimes(mice), ehs.getendtimes(mice), and ehs.getdurations(mice), which return cage numbers, start times, end times, and durations of sessions, respectively. Data can be masked using ehs.mask_data(t1, t2). In that case, only sessions starting after t1 and before t2 will be considered. 
+This generates the list of sessions. The data can be acceses through methods ehs.get_addresses(mice), ehs.get_starttimes(mice), ehs.get_endtimes(mice), and ehs.get_durations(mice), which return cage numbers, start times, end times, and durations of sessions, respectively. Data can be masked using ehs.mask_data(t1, t2). In that case, only sessions starting after t1 and before t2 will be considered. 
 
 All times are internally represented as UNIX epochs (ie., time in seconds since a fixed date in history). To facilitate masking the data to relevant periods within the experiment, the experimental phases are defined in a text file config.txt in the following format:
 
