@@ -2048,7 +2048,7 @@ class TestPrepareRegistrations(unittest.TestCase):
         path = os.path.join(data_path, "weird_short_3_mice")
         data = Loader(path)
         config = Timeline(path)
-        times = config.gettime("1 dark")
+        times = config.get_time_from_epoch("1 dark")
         t_start = times[-1] - 3600/3*2
         t_end = times[-1] - 3600/3
         cls.out = uf.prepare_registrations(data, ["mouse_1"],
@@ -2089,12 +2089,12 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
 
     def test_all_total_time(self):
         out = OrderedDict()
-        out["ALL"] = {0: self.config.gettime("ALL")}
+        out["ALL"] = {0: self.config.get_time_from_epoch("ALL")}
         self.assertEqual(self.out_all[1], out)
 
     def test_all_data(self):
         out = OrderedDict()
-        time = self.config.gettime("ALL")
+        time = self.config.get_time_from_epoch("ALL")
         out["ALL"] = {0: uf.prepare_registrations(self.data,
                                                   ["mouse_1"],
                                                   *time)}
@@ -2112,7 +2112,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         phases = ["1 dark", "1 light", "2 dark"]
         out = OrderedDict()
         for phase in phases:
-            times = self.config.gettime(phase)
+            times = self.config.get_time_from_epoch(phase)
             out[phase] = OrderedDict()
             out[phase][0.0] = uf.prepare_registrations(self.data,
                                                        ["mouse_1"],
@@ -2132,7 +2132,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         phases = ["1 dark", "1 light", "2 dark"]
         for phase in phases:
             out[phase] = OrderedDict()
-            times = self.config.gettime(phase)
+            times = self.config.get_time_from_epoch(phase)
             out[phase][0.0] = (times[0], times[0] + 6*3600)
             out[phase][6*3600.0] = (times[0] + 6*3600, times[-1])
         self.assertEqual(out, self.out_6h[1])
@@ -2147,7 +2147,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
 
     def test_24h_data(self):
         phases = ["1_x", "2_x"]
-        times = self.config.gettime("ALL")
+        times = self.config.get_time_from_epoch("ALL")
         out = OrderedDict()
         for phase in phases:
             out[phase] = OrderedDict()
@@ -2168,7 +2168,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
 
     def test_24h_total(self):
         out = OrderedDict()
-        times = self.config.gettime("ALL")
+        times = self.config.get_time_from_epoch("ALL")
         phases = ["1_x", "2_x"]
         for phase in phases:
             out[phase] = OrderedDict()

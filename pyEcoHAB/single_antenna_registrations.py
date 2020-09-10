@@ -54,9 +54,9 @@ def get_single_antenna_stats(ehs, cf, binsize, antennas="ALL", res_dir="",
     shortest_phase = utils.get_shortest_phase_duration(cf)
     if binsize <= shortest_phase:
         phases = cf.sections()
-        times = [cf.gettime(phase) for phase in phases]
+        times = [cf.get_time_from_epoch(phase) for phase in phases]
     else:
-        t_start, t_end = cf.gettime("ALL")
+        t_start, t_end = cf.get_time_from_epoch("ALL")
         phases = []
         times = []
         i = 0

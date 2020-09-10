@@ -107,7 +107,7 @@ def check_mouse1_pushing(antennas1, times1, antennas2, times2,
 
 def tube_dominance_single_phase(ehd, cf, phase, normalization):
     mice = ehd.mice
-    t_start, t_end = cf.gettime(phase)
+    t_start, t_end = cf.get_time_from_epoch(phase)
     dominance = np.zeros((len(mice), len(mice)))
     for i, mouse1 in enumerate(mice):
         m1_times, m1_antennas = utils.get_times_antennas(ehd, mouse1,

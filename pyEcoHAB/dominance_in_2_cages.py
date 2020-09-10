@@ -105,8 +105,8 @@ def find_stimulus_cage_mice(states, t_start, t_stop, beginning, dt):
 
 def get_dominating_mice(ehd, cf, phase, mouse, states, homecage_entrance, dt):
     results = np.zeros((len(ehd.mice)))
-    t_start, t_end = cf.gettime(phase)
-    T_START, T_END = cf.gettime('ALL')
+    t_start, t_end = cf.get_time_from_epoch(phase)
+    T_START, T_END = cf.get_time_from_epoch('ALL')
     time, antennas = utils.get_times_antennas(ehd, mouse, t_start, t_end)
     idx = 1
     mice = ehd.mice
@@ -151,7 +151,7 @@ def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end, home
 
 def tube_dominance_2_cages(ehd, cf, phase, homecage_entrance):
     mice = ehd.mice
-    st, en = cf.gettime(phase)
+    st, en = cf.get_time_from_epoch(phase)
     dominance =  np.zeros((len(mice), len(mice)))
     for i, mouse1 in enumerate(mice):
         for j, mouse2 in enumerate(mice):
@@ -247,7 +247,7 @@ def check_mouse1_defending(antennas1, times1, antennas2, times2,
 
 def get_tube_dominance_2_cages(ehd, cf, res_dir=None, prefix=None, dt=0.05,
                                delimiter=";"):
-    t_start, t_end = cf.gettime('ALL')
+    t_start, t_end = cf.get_time_from_epoch('ALL')
     states = get_states(ehd, t_start, t_end, dt)
     if res_dir is None:
         res_dir = ehd.res_dir
@@ -303,9 +303,9 @@ def get_visits_to_stimulus_cage(ehd, cf, res_dir="", prefix="", dt=0.05,
     phases = utils.filter_dark_light(cf.sections())
     results = np.zeros((1,  len(ehd.mice), len(phases)))
     cumulative = np.zeros((1, len(ehd.mice)))
-    T_0, T_1 = cf.gettime("ALL")
+    T_0, T_1 = cf.get_time_from_epoch("ALL")
     for i, phase in enumerate(phases):
-        t_start, t_end = cf.gettime(phase)
+        t_start, t_end = cf.get_time_from_epoch(phase)
         for j, mouse in enumerate(ehd.mice):
             results[0, j, i] = how_many_visits(states[mouse], t_start, t_end, T_0, dt)
     for j, mouse in enumerate(ehd.mice):

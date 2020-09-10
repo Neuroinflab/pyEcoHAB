@@ -8,7 +8,7 @@ class TestnoDST(unittest.TestCase):
     def test_1(self):
         path = os.path.join(data_path, "time_change")
         config = Timeline(path)
-        times = config.gettime("5 light")
+        times = config.get_time_from_epoch("5 light")
         self.assertEqual(times[1]-times[0], 12*3600)
 
 

@@ -60,14 +60,14 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
             self.path = os.path.join(path, fname)
         self.read(self.path)
 
-    def gettime(self, sec):
+    def get_time_from_epoch(self, sec):
         """Convert start and end time and date read from section sec
         (might be a list) of the config file to a tuple of times from epoch."""
         if type(sec) == list:
             starts = []
             ends = []
             for ss in sec:
-                st, et = self.gettime(ss)
+                st, et = self.get_time_from_epoch(ss)
                 starts.append(st)
                 ends.append(et)
             return min(starts), max(ends)
@@ -81,7 +81,7 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
     def __call__(self, x, pos=0):
         x = mpd.num2epoch(x)
         for sec in self.sections():
-            t1, t2 = self.gettime(sec)
+            t1, t2 = self.get_time_from_epoch(sec)
             if t1 <= x and x < t2:
                 return sec
         return 'Unknown'
@@ -91,7 +91,7 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
         if ax is None:
             ax = plt.gca()
         ylims = ax.get_ylim()
-        for tt in self.gettime(sec):
+        for tt in self.get_time_from_epoch(sec):
             ax.plot([mpd.epoch2num(tt), ] * 2, ylims, 'k:')
         plt.draw()
 
@@ -104,7 +104,7 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
         if type(sections) == str:
             sections = [sections]
         for sec in sections:
-            t1, t2 = self.gettime(sec)
+            t1, t2 = self.get_time_from_epoch(sec)
             plt.bar(mpd.epoch2num(t1), ylims[1] - ylims[0],
                     width=mpd.epoch2num(t2) - mpd.epoch2num(t1),
                     bottom=ylims[0], color='0.8', alpha=0.5, zorder=-10)
@@ -115,7 +115,7 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
         """Diagnostic plot of sections defined in the config file."""
         figg = plt.figure()
         for idx, sec in enumerate(self.sections()):
-            t1, t2 = mpd.epoch2num(self.gettime(sec))  # cf2time(cf, sec)
+            t1, t2 = mpd.epoch2num(self.get_time_from_epoch(sec))  # cf2time(cf, sec)
             plt.plot([t1, t2], [idx, idx], 'ko-')
             plt.plot([t2], [idx], 'bo')
             plt.text(t2 + 0.5, idx, sec)

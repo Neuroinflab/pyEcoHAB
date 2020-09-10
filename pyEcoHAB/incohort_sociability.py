@@ -108,7 +108,7 @@ def get_solitude(ehs, cf, res_dir="", prefix="", delimiter=";"):
     phases = utils.filter_dark_light(cf.sections())
     output = make_solitude_output(ehs.cages, ehs.mice)
     for phase in phases:
-        times = cf.gettime(phase)
+        times = cf.get_time_from_epoch(phase)
         data = utils.prepare_data(ehs, ehs.mice, times)
         for address in ehs.cages:
             alone = mouse_alone(data, address)
