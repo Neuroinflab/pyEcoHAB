@@ -45,15 +45,20 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
         RawConfigParser.__init__(self)
         self.path = path
         if fname is None:
-            if os.path.isfile(os.path.join(path, 'config.txt')):
-                self.fname = 'config.txt'
+            if os.path.isfile(path):
+                self.path = path
+            elif os.path.isfile(os.path.join(path, 'config.txt')):
+                fname = 'config.txt'
+                self.path = os.path.join(path, fname)
             else:
-                self.fname = filter(lambda x: x.startswith('config')
-                                    and x.endswith('.txt'),
-                                    os.listdir(path))[0]
+                fname = filter(lambda x: x.startswith('config')
+                               and x.endswith('.txt'),
+                               os.listdir(path))[0]
+                self.path = os.path.join(path, fname)
         else:
-            self.fname = fname
-        self.read(os.path.join(path, self.fname))
+            fname = fname
+            self.path = os.path.join(path, fname)
+        self.read(self.path)
 
     def gettime(self, sec):
         """Convert start and end time and date read from section sec
@@ -69,8 +74,8 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
         else:
             tstr1 = self.get(sec, 'startdate') + self.get(sec, 'starttime')
             tstr2 = self.get(sec, 'enddate') + self.get(sec, 'endtime')
-            t1 = uf.to_struck(tstr1, self.fname)
-            t2 = uf.to_struck(tstr2, self.fname)
+            t1 = uf.to_struck(tstr1, self.path)
+            t2 = uf.to_struck(tstr2, self.path)
             return calendar.timegm(t1), calendar.timegm(t2)
 
     def __call__(self, x, pos=0):
