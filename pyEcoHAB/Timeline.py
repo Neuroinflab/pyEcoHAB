@@ -29,8 +29,7 @@ else:
 
 
 class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
-    """
-    Read in the temporal config of the experiment (timeline of the experiment).
+    """Read in the temporal config of the experiment (timeline of the experiment).
 
     As a subclass of :py:class:`matplotlib.ticker.Formatter` the class is also
     a time axis formatter in :py:mod:`matplotlib.dates` coordinates.
@@ -40,6 +39,14 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
     the same name. For each section a startdate (in a DD.MM.YYYY format),
     a startime (in a HH:MM format), an enddate (in a DD.MM.YYYY format), and
     an endtime (in a HH:MM format) needs to be specified.
+
+    Currently EcoHAB does not indicate timezone in registrations. All
+    tags are registered using the local timezone with an assumption
+    that there is no Daylight Saving Time. Both Loader and Timeline
+    class assume that all times are in GMT. While writing your
+    experiment timeline file, just assume that both tag registrations
+    and time boundaries of experiment's phases are in GMT.
+
     """
     def __init__(self, path, fname=None):
         RawConfigParser.__init__(self)
