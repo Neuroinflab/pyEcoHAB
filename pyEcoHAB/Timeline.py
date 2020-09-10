@@ -28,9 +28,19 @@ else:
     from configparser import RawConfigParser, NoSectionError
 
 
-
-
 class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
+    """
+    Read in the temporal config of the experiment (timeline of the experiment).
+
+    As a subclass of :py:class:`matplotlib.ticker.Formatter` the class is also
+    a time axis formatter in :py:mod:`matplotlib.dates` coordinates.
+
+    The temporal config file is a constrained INI format. Each section defines
+    a phase of the experiment and both the section and the phase should have
+    the same name. For each section a startdate (in a DD.MM.YYYY format),
+    a startime (in a HH:MM format), an enddate (in a DD.MM.YYYY format), and
+    an endtime (in a HH:MM format) needs to be specified.
+    """
     def __init__(self, path, fname=None):
         RawConfigParser.__init__(self)
         self.path = path
