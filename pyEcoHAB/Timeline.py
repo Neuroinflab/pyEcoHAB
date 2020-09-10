@@ -95,22 +95,6 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
             ax.plot([mpd.epoch2num(tt), ] * 2, ylims, 'k:')
         plt.draw()
 
-    def plot_nights(self, sections, ax=None):
-        """Plot night from sections"""
-        if ax is None:
-            ax = plt.gca()
-        ylims = ax.get_ylim()
-        xlims = ax.get_xlim()
-        if type(sections) == str:
-            sections = [sections]
-        for sec in sections:
-            t1, t2 = self.get_time_from_epoch(sec)
-            plt.bar(mpd.epoch2num(t1), ylims[1] - ylims[0],
-                    width=mpd.epoch2num(t2) - mpd.epoch2num(t1),
-                    bottom=ylims[0], color='0.8', alpha=0.5, zorder=-10)
-        ax.set_xlim(xlims)
-        plt.draw()
-
     def plot_sections(self):
         """Diagnostic plot of sections defined in the config file."""
         figg = plt.figure()
