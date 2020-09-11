@@ -20,6 +20,7 @@ import matplotlib.ticker
 import matplotlib.dates as mpd
 import matplotlib.pyplot as plt
 from pyEcoHAB import utility_functions as uf
+from pyEcoHAB.utils import for_loading as fl
 
 
 if sys.version_info < (3, 0):
@@ -69,12 +70,7 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
 
 
     def _time_from_epoch(self, phase):
-        tstr1 = "%s%s" % (self.get(phase, 'startdate'),
-                          self.get(phase, 'starttime'))
-        tstr2 = "%s%s" % (self.get(phase, 'enddate'),
-                          self.get(phase, 'endtime'))
-        t1 = uf.to_struck(tstr1, self.path)
-        t2 = uf.to_struck(tstr2, self.path)
+        t1, t2 = self._time(phase)
         return calendar.timegm(t1), calendar.timegm(t2)
 
     def get_time_from_epoch(self, phases):
@@ -89,7 +85,32 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
                 t_start, t_end = self._time_from_epoch(phase)
                 starts.append(t_start)
                 ends.append(t_end)
-            return min(starts), max(ends)
+
+        return min(starts), max(ends)
+
+    def _time(self, phase):
+        tstr1 = "%s%s" % (self.get(phase, 'startdate'),
+                          self.get(phase, 'starttime'))
+        tstr2 = "%s%s" % (self.get(phase, 'enddate'),
+                          self.get(phase, 'endtime'))
+        t1 = uf.to_struck(tstr1, self.path)
+        t2 = uf.to_struck(tstr2, self.path)
+        return t1, t2
+
+    def get_time(self, phases):
+        if not isinstance(phases, list):
+            phases = [phases]
+        for phase in phases:
+            starts = []
+            ends = []
+            for phase in phases:
+                t_start, t_end = self._time_from_epoch(phase)
+                starts.append(t_start)
+                ends.append(t_end)
+
+        start = min(starts)
+        end = max(ends)
+        return fl.print_human_time(start), fl.print_human_time(end)
 
     def __call__(self, x, pos=0):
         x = mpd.num2epoch(x)
