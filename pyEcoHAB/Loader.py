@@ -35,7 +35,7 @@ class EcoHabDataBase(object):
 
     def _calculate_animal_positions(self, config):
         """Calculate timings of animal visits to Eco-HAB compartments, using
-        a modified algorithm by Alicja Puścian and Szymon Łęski. Main
+        a modified algorithm by Alicja Puscian and Szymon Leski. Main
         modification -- if there are internal atennas in cages,
         readings from internal antennas override other readings
         when specifing animal location.
