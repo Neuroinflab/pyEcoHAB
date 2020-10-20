@@ -18,7 +18,11 @@ from .utils import for_loading as ufl
 
 
 class EcoHabDataBase(object):
-
+    """
+    Base class for Loader and Merger providing data structure and
+    methods for accessing antenna recordings and visits to EcoHAB
+    cages.
+    """
     def __init__(self, data, mask, threshold, config):
         self.readings = BaseFunctions.Data(data, mask)
         self.threshold = threshold
@@ -28,8 +32,11 @@ class EcoHabDataBase(object):
         self.session_end = sorted(self.get_times(self.mice))[-1]
 
     def _calculate_animal_positions(self, config):
-        """
-        Calculate timings of animal visits to Eco-HAB compartments.
+        """Calculate timings of animal visits to Eco-HAB compartments, using
+        a modified algorithm by Alicja Puścian and Szymon Łęski. Main
+        modification -- if there are internal atennas in cages,
+        readings from internal antennas override other readings
+        when specifing animal location.
         """
         tempdata = []
         for mouse in self.mice:
@@ -76,8 +83,8 @@ class EcoHabDataBase(object):
                                          'float')
 
     def get_durations(self, mice):
-        """Return duration of registration
-        by antenna"""
+        """Return duration of registration by antenna for specified a nimals.
+        """
         return self.readings.getproperty(mice,
                                          'Duration',
                                          'float')

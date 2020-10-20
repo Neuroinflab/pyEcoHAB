@@ -429,6 +429,7 @@ class SetupConfig(SetupConfigMethods):
     a standard_setup.txt file from pyEcoHAB/data, which contains standard
     config for an EcoHAB experiment.
 
+    SetupConfig is used by the Loader class.
     """
     ALL_ANTENNAS = ["1", "2", "3", "4", "5", "6", "7", "8"]
 
@@ -486,6 +487,9 @@ class IdentityConfig(RawConfigParser):
     compartment_2_name = cage B
     destination_name = shared cage
 
+    "cage A" of ecohab1 is named "cage B" in ecohab2. In all relevant result
+    files this cage is going to be called "shared cage".
+
     If the shared compartment is a cage, destination_name has to include
     word cage. If the shared compartment is a tunnel, destination_name has
     to include word tunnel.
@@ -497,6 +501,9 @@ class IdentityConfig(RawConfigParser):
     setup_name = ecohab1
     compartment_name = cage C
     destination_name = cage C
+
+    if the destitation name was not provided cage C of ecohab1 would be named
+    "ecohab1 cage C".
 
     IdentityConfig provides dictionaries for renaming compartments:
     self.identity_compartments for renaming shared compartments
@@ -573,6 +580,20 @@ class ExperimentSetupConfig(SetupConfigMethods):
         setup_2_name = ecohab_2
         compartment_2_name = cage D
         destination_name = cage A
+
+        "cage A" of ecohab1 is named "cage D" in ecohab2. In all relevant result
+        files this cage is going to be called "shared cage".
+
+        For modular experiments pyEcoHAB will add setup name to
+        compartment name. To avoid weird sounding compartment names
+        one can also specify rename compartments:
+        [rename compartment 1]
+        setup_name = ecohab1
+        compartment_name = cage C
+        destination_name = cage C
+
+        if the destitation name was not provided cage C of ecohab1 would be named
+        "ecohab1 cage C".
 
         Load experiment setup config from "experiment_setup.txt", with
         config1 and config2 -- SetupConfig objects for ecohab_1 and ecohab_2:
