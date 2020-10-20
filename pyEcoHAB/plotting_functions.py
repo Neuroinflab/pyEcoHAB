@@ -94,7 +94,7 @@ def make_RasterPlot(main_directory,
                 transparent=False,
                 bbox_inches=None,
                 pad_inches=.5,
-                frameon=None, dpi=100)
+                 dpi=100)
     plt.close(fig)
 
 
@@ -145,7 +145,7 @@ def single_heat_map(result,
     fig.subplots_adjust(left=0.25)
     fig.subplots_adjust(bottom=0.25)
     fig.savefig(new_name + ".png", transparent=False, bbox_inches=None,
-                pad_inches=0.5, frameon=None, dpi=100)
+                pad_inches=0.5,  dpi=100)
     plt.close(fig)
 
 
@@ -188,7 +188,7 @@ def single_timeline_heat_map(result,
     fig.subplots_adjust(left=0.25)
     fig.subplots_adjust(bottom=0.25)
     fig.savefig(new_name + ".png", transparent=False, bbox_inches=None,
-                pad_inches=0.5, frameon=None, dpi=100)
+                pad_inches=0.5,  dpi=100)
     plt.close(fig)
 
 
@@ -414,7 +414,7 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
     fig.savefig(fname + ".png",
                 bbox_inches=None,
                 pad_inches=.5,
-                frameon=None, dpi=100)
+                 dpi=100)
     plt.close(fig)
 
 
@@ -462,7 +462,7 @@ def single_histogram_figures(single_results, fname, main_directory,
     fig.savefig(new_fname + ".png",
                 bbox_inches=None,
                 pad_inches=.5,
-                frameon=None, dpi=100)
+                dpi=100)
     print(new_fname)
     plt.close(fig)
 
@@ -538,8 +538,7 @@ def make_fig_histogram(results, path, title):
     fig.subplots_adjust(wspace=0.15)
     fig.savefig(path + ".png", dpi=100,
                 bbox_inches=None,
-                pad_inches=.5,
-                frameon=None)
+                pad_inches=.5)
     print(path)
     plt.close(fig)
 
@@ -629,7 +628,6 @@ def make_visit_duration_histogram(results, time, phase, mice,
         fig.subplots_adjust(wspace=0.15)
         fig.savefig(new_name + ".png", dpi=100,
                     bbox_inches=None,
-                    pad_inches=.5,
-                    frameon=None)
+                    pad_inches=.5)
         print(new_name)
         plt.close(fig)
