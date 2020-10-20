@@ -1429,9 +1429,8 @@ class TestGetEHSData(unittest.TestCase):
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short")
         cls.data = Loader(path)
-        cls.t1 = 1286701470
-        cls.t2 = 1286701580
-        print("test ehs data")
+        cls.t1 = 1286701470+7200
+        cls.t2 = 1286701580+7200
         cls.m_1_a, cls.s1, cls.e1 = uf.get_ehs_data_with_margin(cls.data,
                                                                 "mouse_1",
                                                                 cls.t1,
