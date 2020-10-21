@@ -39,6 +39,9 @@ class EcoHabDataBase(object):
         modification -- if there are internal atennas in cages,
         readings from internal antennas override other readings
         when specifing animal location.
+
+        Args:
+           config: ExperimentSetupConfig or SetupConfig
         """
         tempdata = []
         for mouse in self.mice:
@@ -64,13 +67,22 @@ class EcoHabDataBase(object):
         data = ufl.transform_visits(temp_data)
         return BaseFunctions.Visits(data, None)
 
-    def mask_data(self, starttime, endtime):
-        self.mask = (starttime, endtime)
+    def mask_data(self, start_time, end_time):
+        """
+        Hide readings and visits in ranges (self.session_start, start_time)
+        and (end_time, self.session_end).
+
+        Args:
+           start_time: float
+           end_time: float
+        """
+        self.mask = (start_time, end_time)
         self.readings.mask_data(self.mask)
         self.visits.mask_data(self.mask)
 
     def unmask_data(self):
-        """Remove the mask - future queries will not be clipped"""
+        """Remove the mask - future readings and visits queries will not be
+        clipped"""
         self.mask = None
         self.readings.unmask_data()
         self.visits.unmask_data()

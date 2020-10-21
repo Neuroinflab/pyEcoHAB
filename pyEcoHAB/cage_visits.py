@@ -86,8 +86,7 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
                  save_histogram=False, delimiter=";",
                  headers=['Number of visits to',
                           'Total time (sec) in']):
-    """
-    Calculate activity of each mouse in time bins across the phases
+    """Calculate activity of each mouse in time bins across the phases
     of the experiment.
 
     This function counts both visits of every mouse to each Eco-HAB compartment
@@ -135,6 +134,11 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
         headers : list of strings
            strings that will be written above activity parameters for each
            compartment.
+
+    Returns: data: a dictionary of visits and times spent in cages.
+       first key: address, second key: 0 -- visits, 1 -- durations,
+       2 -- duration data for histograms, third key: phase
+
     """
     if prefix == "":
         prefix = ehs.prefix
