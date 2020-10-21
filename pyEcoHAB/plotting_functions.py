@@ -220,7 +220,7 @@ def single_in_cohort_soc_plot(results,
     ax = []
     for i in range(1, 5):
         ax.append(fig.add_subplot(2, 2, i))
-    plt.subplot(221)
+   
     im2 = ax[0].imshow(results, vmin=vmin, vmax=vmax,
                        interpolation='none', origin='lower')
     cbar = fig.colorbar(im2)
@@ -234,7 +234,6 @@ def single_in_cohort_soc_plot(results,
     ax[1].set_title(titles[1])
     deltas = results[results > 0] - results_exp[results > 0]
 
-    plt.subplot(223)
     try:
         if -abs(vmin1) != abs(vmax1):
             maxi = max(abs(vmax1), abs(vmin1))
@@ -286,7 +285,8 @@ def single_in_cohort_soc_plot(results,
     fig.subplots_adjust(wspace=0.25)
     fig.subplots_adjust(hspace=0.3)
     fig.savefig(fname+'.png', dpi=100,  bbox_inches=None,
-                pad_inches=0.5, frameon=None)
+                pad_inches=0.5)
+    plt.close(fig)
     print(fname+'.png')
 
 
@@ -340,7 +340,7 @@ def make_pooled_histograms(res,
     if len(phases) > 1:
         fig.subplots_adjust(wspace=0.15)
     fig.savefig(fname + '.png', dpi=100, bbox_inches=None,
-                pad_inches=0.5, frameon=None)
+                pad_inches=0.5)
     plt.close(fig)
 
 
