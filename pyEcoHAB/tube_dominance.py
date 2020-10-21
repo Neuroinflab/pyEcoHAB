@@ -133,9 +133,9 @@ def get_tube_dominance(ehd, cf, prefix="", res_dir="", normalization=None,
         fname = 'tube_dominance_no_normalization'
     else:
         fname = 'tube_dominance_%s' % normalization
-    if prefix is "":
+    if prefix == "":
         prefix = ehd.prefix
-    if res_dir is "":
+    if res_dir == "":
         res_dir = ehd.res_dir
 
     if len(ehd.setup_config.tunnels) == 1:

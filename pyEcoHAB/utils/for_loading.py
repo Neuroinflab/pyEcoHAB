@@ -161,6 +161,7 @@ def read_single_file(dir_path, fname):
         else:
             raise(IOError('Unknown data format in file %s' % f))
         raw_data += [line]
+    f.close()
     return raw_data
 
 

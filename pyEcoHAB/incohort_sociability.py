@@ -101,9 +101,9 @@ def make_solitude_output(addresses, mice):
 
 
 def get_solitude(ehs, cf, res_dir="", prefix="", delimiter=";"):
-    if prefix is "":
+    if prefix == "":
         prefix = ehs.prefix
-    if res_dir is "":
+    if res_dir == "":
         res_dir = ehs.res_dir
     phases = utils.filter_dark_light(cf.sections())
     output = make_solitude_output(ehs.cages, ehs.mice)

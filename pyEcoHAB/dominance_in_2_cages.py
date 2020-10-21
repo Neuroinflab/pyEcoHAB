@@ -295,9 +295,9 @@ def how_many_visits(states, t_start, t_end, T_0, dt):
 
 def get_visits_to_stimulus_cage(ehd, cf, res_dir="", prefix="", dt=0.05,
                                 delimiter=";"):
-    if res_dir is "":
+    if res_dir == "":
         res_dir = ehd.res_dir
-    if prefix is "":
+    if prefix == "":
         prefix = ehd.prefix
     states = get_states(ehd, cf, dt)
     phases = utils.filter_dark_light(cf.sections())

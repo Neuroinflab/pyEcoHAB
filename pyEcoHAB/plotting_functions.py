@@ -491,12 +491,12 @@ def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
         ax.set_ylabel(ylabel, fontsize=fontsize)
     if yticks:
         for tick in ax.yaxis.get_major_ticks():
-                tick.label.set_fontsize(fontsize)
+                tick.label1.set_fontsize(fontsize)
     else:
         ax.set_yticklabels([])
     if xticks:
         for tick in ax.xaxis.get_major_ticks():
-            tick.label.set_fontsize(fontsize)
+            tick.label1.set_fontsize(fontsize)
     else:
         ax.set_xticklabels([])
     ax.set_title(title, fontsize=fontsize)
