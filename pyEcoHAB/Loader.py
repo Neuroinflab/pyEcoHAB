@@ -20,14 +20,30 @@ from .utils import for_loading as ufl
 
 
 class EcoHabDataBase(object):
-    """
-    Base class for Loader and Merger providing data structure and
-    methods for accessing antenna recordings and visits to EcoHAB
-    cages.
-    """
-    def __init__(self, data, mask, threshold, config):
+    def __init__(self, data, mask, visit_threshold, config):
+        """
+        Base class for Loader and Merger providing data structure and
+        methods for accessing antenna recordings and visits to EcoHAB
+        cages. Initialization requires providing a dataset (an instance
+        of DataBase class), a mask cutting the data if necessary (specifying
+        seconds from epoch in GMT), minimum visit duration to EcoHAB
+        cage and an instance of SetupConfig, which describes geometry
+        of the EcoHAB setup used to collect data.
+
+        Args:
+           data: DataBase
+             dataset read in by Loader or Merger
+           mask: a list or tuple of floats
+             If necessary one can provide time bounds to cut the data.
+             Mask bounds have to be specified as seconds from epoch in
+             GMT. By default mask is None.
+           visit_threshold: float
+             Specify minumum duration (in sec) of visit to EcoHAB cage.
+           config: SetupConfig or ExperimentSetupConfig
+             Geometry of the EcoHab setup used to collect data.
+        """
         self.readings = BaseFunctions.Data(data, mask)
-        self.threshold = threshold
+        self.threshold = visit_threshold
         self.mice = self.get_mice()
         self.visits = self._calculate_visits(config)
         self.session_start = sorted(self.get_times(self.mice))[0]
@@ -42,6 +58,8 @@ class EcoHabDataBase(object):
 
         Args:
            config: ExperimentSetupConfig or SetupConfig
+        Returns:
+           list
         """
         tempdata = []
         for mouse in self.mice:
@@ -63,6 +81,18 @@ class EcoHabDataBase(object):
         return tempdata
 
     def _calculate_visits(self, config):
+        """Calculate EcoHabBase.visits. Calculate timings of animal visits to
+        Eco-HAB compartments, using a modified algorithm by Alicja
+        Puscian and Szymon Leski. Main modification -- if there are
+        internal atennas in cages, readings from internal antennas
+        override other readings when specifing animal location.
+
+        Args:
+           config: ExperimentSetupConfig or SetupConfig
+        Returns:
+           visits to EcoHAB cages: Visits
+
+        """
         temp_data = self._calculate_animal_positions(config)
         data = ufl.transform_visits(temp_data)
         return BaseFunctions.Visits(data, None)
