@@ -444,11 +444,14 @@ class Merger(EcoHabDataBase):
     def __init__(self, experiment_config, res_dir, *loaders):
         datasets = []
         configs = {}
+        max_breaks = []
         for loader in loaders:
             setup_name = loader.setup_name
             configs[setup_name] = loader.setup_config
             datasets.append(ufl.rename_antennas(setup_name,
                                                 loader.readings.data))
+            max_breaks.append(loader.max_break)
+
         data = ufl.append_data_sources(datasets)
         mask = None
         self.visit_threshold = max([d.visit_threshold for d in loaders])
@@ -463,3 +466,6 @@ class Merger(EcoHabDataBase):
         self.setup_config = antennas
         self.all_antennas = antennas.all_antennas
         self.internal_antennas = antennas.internal_antennas
+        self.max_break = max(max_breaks)
+        ufl.run_diagnostics(data, self.max_break, self.res_dir,
+                            antennas.mismatched_pairs)

@@ -321,16 +321,17 @@ class SetupConfigMethods(RawConfigParser):
             out_l.extend(ants)
         return sorted(set(self.ALL_ECOHAB_SETUP_ANTENNAS) - set(out_l))
 
-    def get_mismatched_pairs(self):
+    @property
+    def mismatched_pairs(self):
         """
         Return a list of possible pairs of non-consecutive antennas
         that could register a tag. Pairs are coded as a string with both
         antenna codes separated by white space.
         """
         pairs = []
-        for i in range(1, 9):
-            for j in range(i+1, 9):
-                pairs.append("%d %d" % (i, j))
+        for i, a1 in enumerate(self.all_antennas):
+            for a2 in self.all_antennas[i+1:]:
+                pairs.append("%s %s" % (min(a1, a2), max(a1, a2)))
 
         unused = sorted(list(self.find_unused_antennas()))
         legal = []
@@ -343,6 +344,8 @@ class SetupConfigMethods(RawConfigParser):
                     legal.append(key)
 
         for sec in self.sections():
+            if sec == "other":
+                continue
             values = [item[1] for item in self.items(sec)]
             for i, val in enumerate(values):
                 for val2 in values[i + 1:]:
@@ -350,7 +353,6 @@ class SetupConfigMethods(RawConfigParser):
                                      max(val, val2))
                     if key not in legal:
                         legal.append(key)
-
         for sec in self.tunnels:
             for antenna, tunnel_val in self.items(sec):
                 if antenna.startswith("entrance"):
@@ -462,7 +464,6 @@ class SetupConfig(SetupConfigMethods):
                                    'setup.txt', "setup*.txt")
         self.read(full_path)
         self.make_definitions()
-        self.mismatched_pairs = self.get_mismatched_pairs()
 
     @property
     def name(self):
@@ -612,6 +613,7 @@ class ExperimentSetupConfig(SetupConfigMethods):
         self.renames = experiment_config.renames
         self.make_sections(single_configs)
         self.all_antennas = self.get_all_antennas()
+        self.ALL_ECOHAB_SETUP_ANTENNAS = self.all_antennas
         self.make_definitions()
 
     def make_sections(self, single_configs):
@@ -654,3 +656,13 @@ class ExperimentSetupConfig(SetupConfigMethods):
                     self.set(new_section_name, new_antenna_type, new_value)
                     section_items = [item[0] for item
                                      in self.items(new_section_name)]
+
+    @property
+    def all_pairs(self):
+        pairs = []
+        for i, antenna1 in enumerate(self.all_antennas):
+            for antenna2 in self.all_antennas[i:]:
+                pairs.append("%s %s" % (min(antenna1, antenna2),
+                                        max(antenna1, antenna2)))
+        return sorted(pairs)
+               

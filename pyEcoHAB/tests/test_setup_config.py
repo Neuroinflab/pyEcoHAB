@@ -370,11 +370,11 @@ class TestGetDicts(unittest.TestCase):
 
     def test_mismatch_pairs_default(self):
         self.assertEqual(PAIRS,
-                         self.default.get_mismatched_pairs())
+                         self.default.mismatched_pairs)
 
     def test_mismatch_pairs_custom(self):
         self.assertEqual(["1 8"],
-                         self.custom.get_mismatched_pairs())
+                         self.custom.mismatched_pairs)
 
     def test_all_antennas_custom(self):
         self.assertEqual(self.custom.all_antennas, ["1", "2", "8"])
@@ -403,11 +403,11 @@ class TestExperimentSetupConfig(unittest.TestCase):
                                              ecohab_2=cls.config4)
 
         path2 = os.path.join(data_path, "test_setups")
-        path3 = os.path.join(data_path, "experiment_setup_renaming.txt")
+        path3 = os.path.join(data_path, "experiment_setup_renaming_dom.txt")
         cls.config5 = SetupConfig(path=path2,
                                   fname="setup_internal_dominance.txt")
         cls.experiment_dom = ExperimentSetupConfig(path3,
-                                                   ecohab1=cls.config1,
+                                                   default1=cls.config1,
                                                    custom2=cls.config5)
     def test_indentity_compartments(self):
         out = {"ecohab1 cage A": "shared cage 1",
@@ -1086,6 +1086,70 @@ class TestExperimentSetupConfig(unittest.TestCase):
     def test_stimulus_internals(self):
         out = self.experiment_dom.stimulus_cage_internal_antennas
         self.assertEqual(out, ["7_custom2"])
+
+    def test_all_pairs_dom(self):
+        out = set()
+        for antenna1 in self.experiment_dom.all_antennas:
+            for antenna2 in self.experiment_dom.all_antennas:
+                key = "%s %s" % (min(antenna1, antenna2),
+                                 max(antenna1, antenna2))
+                out.add(key)
+        self.assertTrue(sorted(out)==self.experiment_dom.all_pairs)
+        
+    def test_all_pairs_full(self):
+        out = set()
+        for antenna1 in self.full_exp.all_antennas:
+            for antenna2 in self.full_exp.all_antennas:
+                key = "%s %s" % (min(antenna1, antenna2),
+                                 max(antenna1, antenna2))
+                out.add(key)
+                
+        self.assertEqual(sorted(out), self.full_exp.all_pairs)
+
+    def test_mismatched_antennas_full(self):
+        out = ["1_ecohab_1 3_ecohab_1", "1_ecohab_1 4_ecohab_1",
+               "1_ecohab_1 5_ecohab_2", "1_ecohab_1 6_ecohab_2",
+               "1_ecohab_1 7_ecohab_2", "2_ecohab_1 4_ecohab_1",
+               "2_ecohab_1 5_ecohab_2", "2_ecohab_1 6_ecohab_2",
+               "2_ecohab_1 7_ecohab_2", "2_ecohab_1 8_ecohab_2",
+               "3_ecohab_1 5_ecohab_2", "3_ecohab_1 6_ecohab_2",
+               "3_ecohab_1 7_ecohab_2", "3_ecohab_1 8_ecohab_2",
+               "4_ecohab_1 6_ecohab_2", "4_ecohab_1 7_ecohab_2",
+               "4_ecohab_1 8_ecohab_2", "5_ecohab_2 7_ecohab_2",
+               "5_ecohab_2 8_ecohab_2", "6_ecohab_2 8_ecohab_2",]
+        self.assertEqual(sorted(out),
+                         self.full_exp.mismatched_pairs)
+        
+    def test_mismatched_antennas_dom(self):
+        out = ["1_custom2 8_custom2", "1_custom2 1_default1",
+               "1_custom2 2_default1", "1_custom2 3_default1",
+               "1_custom2 4_default1", "1_custom2 5_default1",
+               "1_custom2 6_default1", "1_custom2 7_default1",
+               "1_custom2 8_default1", 
+               "1_default1 3_default1", "1_default1 4_default1", 
+               "1_default1 5_default1", "1_default1 6_default1", 
+               "1_default1 7_default1", "1_default1 7_custom2",
+               "2_custom2 2_default1",
+               "2_custom2 4_default1", "2_custom2 3_default1",
+               "2_custom2 5_default1", "2_custom2 6_default1",
+               "2_custom2 7_custom2", "2_custom2 7_default1",
+               "2_default1 4_default1", "2_default1 5_default1",
+               "2_default1 6_default1", "2_default1 7_custom2",
+               "2_default1 7_default1", "2_default1 8_default1",
+               "2_default1 8_custom2",
+               "3_default1 5_default1", "3_default1 6_default1",
+               "3_default1 7_default1", "3_default1 8_default1",
+               "3_default1 7_custom2", "3_default1 8_custom2",
+               "4_default1 6_default1", "4_default1 7_default1",
+               "4_default1 8_default1", "4_default1 8_custom2",
+               "4_default1 7_custom2",  "5_default1 7_default1",
+               "5_default1 8_default1", "5_default1 8_custom2",
+               "5_default1 7_custom2",  "6_default1 8_default1",
+               "6_default1 8_custom2", "7_custom2 7_default1",
+               "7_custom2 8_custom2", "7_custom2 8_default1",
+               "6_default1 7_custom2", "7_default1 8_custom2"]
+        self.assertEqual(sorted(out),
+                         self.experiment_dom.mismatched_pairs)
 
 
 if __name__ == '__main__':
