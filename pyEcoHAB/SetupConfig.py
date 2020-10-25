@@ -319,7 +319,7 @@ class SetupConfigMethods(RawConfigParser):
         for sec in self.sections():
             ants = [item[1] for item in self.items(sec)]
             out_l.extend(ants)
-        return sorted(set(self.ALL_ANTENNAS) - set(out_l))
+        return sorted(set(self.ALL_ECOHAB_SETUP_ANTENNAS) - set(out_l))
 
     def get_mismatched_pairs(self):
         """
@@ -335,7 +335,7 @@ class SetupConfigMethods(RawConfigParser):
         unused = sorted(list(self.find_unused_antennas()))
         legal = []
         for i, u in enumerate(unused):
-            for u2 in self.ALL_ANTENNAS:
+            for u2 in self.ALL_ECOHAB_SETUP_ANTENNAS:
                 if u == u2:
                     continue
                 key = "%s %s" % (min(u, u2), max(u, u2))
@@ -431,7 +431,7 @@ class SetupConfig(SetupConfigMethods):
 
     SetupConfig is used by the Loader class.
     """
-    ALL_ANTENNAS = ["1", "2", "3", "4", "5", "6", "7", "8"]
+    ALL_ECOHAB_SETUP_ANTENNAS = ["1", "2", "3", "4", "5", "6", "7", "8"]
 
     def find_path(self, path, fname, standard, expected, possible):
         if path is None:
@@ -611,7 +611,7 @@ class ExperimentSetupConfig(SetupConfigMethods):
         self.identity_compartments = experiment_config.identity_compartments
         self.renames = experiment_config.renames
         self.make_sections(single_configs)
-        self.ALL_ANTENNAS = self.get_all_antennas()
+        self.all_antennas = self.get_all_antennas()
         self.make_definitions()
 
     def make_sections(self, single_configs):
