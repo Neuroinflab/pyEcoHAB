@@ -481,21 +481,21 @@ class TestRunDiagnostics(unittest.TestCase):
         self.assertEqual(read, self.str11)
 
     def test_no_mismatch_string(self):
-        out = "First reading, consecutive reading,  count, percentage\n"
+        out = "antenna pair,  count, percentage\n"
         for pair in uf.PAIRS:
-            out += "%s,\t%d, %3.2f per 100\n" % (pair, 0, 0.00)
+            out += "%s, %d, %3.2f per 100\n" % (pair, 0, 0.00)
         self.assertEqual(self.str21, out)
 
     def test_mismatch_string(self):
-        out = "First reading, consecutive reading,  count, percentage\n"
+        out = "antenna pair,  count, percentage\n"
         for pair in uf.PAIRS:
             if pair in ["3 6", "1 3", "4 6"]:
                 exact_mis = np.round(100*self.mismatch1[pair]/self.length)
-                out += "%s,\t%d, %3.2f per 100\n" % (pair,
+                out += "%s, %d, %3.2f per 100\n" % (pair,
                                                      self.mismatch1[pair],
                                                      exact_mis)
             else:
-                out += "%s,\t%d, %3.2f per 100\n" % (pair, 0, 0.00)
+                out += "%s, %d, %3.2f per 100\n" % (pair, 0, 0.00)
         self.assertEqual(out, self.str11)
 
     # def test_presence_string(self):

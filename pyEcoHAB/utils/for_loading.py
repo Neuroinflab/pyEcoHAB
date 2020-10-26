@@ -304,25 +304,16 @@ def antenna_mismatch(raw_data, pairs):
 
 def run_diagnostics(raw_data, max_break, res_dir, pairs):
     mismatches = antenna_mismatch(raw_data, pairs)
-    out_f1 = u"First reading, consecutive reading,  count, percentage\n"
-    print(u"Mismatched antenna readings")
-    print(u"First reading, consecutive reading,  count, percentage")
+    out_f1 = u"antenna pair,  count, percentage\n"
     for pair in mismatches.keys():
         exact_mis = np.round(100*mismatches[pair]/len(raw_data['Antenna']))
-        print(u"%s,\t%d, %3.2f per 100" % (pair, mismatches[pair],
-                                           exact_mis))
-        out_f1 += u"%s,\t%d, %3.2f per 100\n" % (pair, mismatches[pair],
+        out_f1 += u"%s, %d, %3.2f per 100\n" % (pair, mismatches[pair],
                                                  exact_mis)
     antenna_breaks = check_antenna_presence(raw_data, max_break)
-    print('Breaks in registrations on antennas:')
     out_f2 = u'Breaks in registrations on antennas:\n'
     for antenna in antenna_breaks:
-        print(antenna, ':')
         out_f2 += u"%s:\n" % antenna
         for breaks in antenna_breaks[antenna]:
-            print("%s %s, %4.2f h" % (print_human_time(breaks[0]),
-                                      print_human_time(breaks[1]),
-                                      (breaks[1] - breaks[0])/3600))
             out_f2 += u"%s %s, %4.2f h\n" % (print_human_time(breaks[0]),
                                              print_human_time(breaks[1]),
                                              (breaks[1] - breaks[0])/3600)
