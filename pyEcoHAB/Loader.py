@@ -300,21 +300,13 @@ class Loader(EcoHabDataBase):
         max_break: float
            breaks in antenna registrations longer than max_break
            will be reported, while loading Eco-HAB data.
-        how_many_appearances: int
-           Animal tags that are registered less times than how_many_appearances
-           will be removed from loaded data. By default no animal tag
-           registrations are removed.
-        min_appearance_factor: float of value less than 1
-           Animal tags that are registered in fraction of the experiment
-           duration lower than min_appearance_factor will be removed
-           from loaded data. By default no animal tag registrations are
-           removed.
         remove_antennas: list
            Registrations by antenna ids in remove_antennas will be removed from
            loaded data. By default Loader keeps all the registrations.
-        remove_mice: list
-           Animal tag registrations to be removed from loaded data. By default
-           no registrations are removed.
+        legal_tags: list
+           Animal tag registrations to be kept in loaded data (all other tag
+           registrations will be removed). By default no registrations are
+           removed.
         add_date: True or False
            Add analysis date to results directory filename.
            As a default current date will be added.
@@ -340,18 +332,14 @@ class Loader(EcoHabDataBase):
         self.prefix = kwargs.pop("prefix", ufl.make_prefix(self.path))
         self.max_break = kwargs.pop("max_break", self.MAX_BREAK)
 
-        how_many_appearances = kwargs.pop('how_many_appearances', 0)
-        factor = kwargs.pop('min_appearance_factor', 0)
         remove_antennas = kwargs.pop('remove_antennas', [])
-        tags = kwargs.pop('remove_mice', [])
+        tags = kwargs.pop('legal_tags', "ALL")
         if add_date:
             today = date.today().strftime("%d.%m.%y")
             res_dir = "%s_%s" % (res_dir, today)
         self.res_dir = ufl.results_path(self.path, res_dir)
         # Read in data
-        rawdata = self._read_in_raw_data(factor,
-                                         how_many_appearances,
-                                         tags)
+        rawdata = self._read_in_raw_data(tags)
         data = ufl.from_raw_data(rawdata)
         data = ufl.remove_antennas(data, remove_antennas)
         # As in antenna readings
@@ -369,7 +357,7 @@ class Loader(EcoHabDataBase):
         self.home_internal_antennas = antennas.homecage_internal_antennas
         self.stimuls_internal_antennas = antennas.stimulus_cage_internal_antennas
 
-    def _read_in_raw_data(self, factor, how_many_appearances, tags):
+    def _read_in_raw_data(self, tags):
         """Reads in data from files in self.path.
         Removes ghost tags from data"""
         raw_data = []
@@ -380,11 +368,8 @@ class Loader(EcoHabDataBase):
         for f_name in self._fnames:
             raw_data += ufl.read_single_file(self.path, f_name)
             days.add(f_name.split('_')[0])
-        how_many_days = len(days)*factor
         data = ufl.remove_ghost_tags(raw_data,
-                                     how_many_appearances,
-                                     how_many_days,
-                                     tags=tags)
+                                     legal_tags=tags)
         data.sort(key=lambda x: ufl.time_to_sec(x[1]))
         return data
 

@@ -201,57 +201,34 @@ def remove_antennas(data, antennas):
     return new_data
 
 
-def remove_ghost_tags(raw_data, how_many_appearances,
-                      how_many_days, tags=[]):
+def remove_ghost_tags(raw_data, legal_tags="ALL"):
     """
-    Remove animal tag registrations that are untrustworthy.
+    Leave animal tag registrations that are trustworthy.
 
-    This method removes all animal tag registration, when the Eco-HAB
-    system registered the animal tag, if:
-    1. less times than how_many days,
-    2. during less than how_many_days of the experiment,
-    3. the tag was provided in tags.
-
+    If a list of correct tags is provided this method removes all registrations
+    of incorrect  tags.
+  
     Args:
     raw_data: a list of lists or an 2D array
         raw_data read by Loader._read_in_raw_data
-    how_many_appearances: int
-        minimum number of tag registration
-    how_many_days: float
-        minimum number of days, on which the animal tag was registred
-    tags: list
-        animal tags to be removed from raw_data
+    legal_tags: list
+        animal tags to be kept in raw_data
+        Default "ALL". Keep all tags.
 
     Returns:
        a list of lists or an 2D array (the same type as raw_data)
     """
+    if legal_tags == "ALL":
+        return raw_data
+
     new_data = []
-    ghost_mice = []
-    counters = {}
-    dates = {}
-    if isinstance(tags, basestring):
-        tags = [tags]
-    for tag in tags:
-        ghost_mice.append(tag)
+    if isinstance(legal_tags, basestring):
+        legal_tags = [legal_tags]
+    
     for d in raw_data:
         mouse = d[4]
-        if mouse not in counters:
-            counters[mouse] = 0
-        if mouse not in dates:
-            dates[mouse] = set()
-        counters[mouse] += 1
-        dates[mouse].add(d[1].split()[0])
-
-    for mouse in counters:
-        if counters[mouse] < how_many_appearances\
-           or len(dates[mouse]) <= how_many_days:
-            if mouse not in ghost_mice:
-                ghost_mice.append(mouse)
-    for d in raw_data:
-        mouse = d[4]
-        if mouse not in ghost_mice:
+        if mouse in legal_tags:
             new_data.append(d)
-
     return new_data[:]
 
 
