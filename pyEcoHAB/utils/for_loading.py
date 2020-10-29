@@ -3,7 +3,7 @@ import os
 import time
 import calendar
 import sys
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 import numpy as np
 from pyEcoHAB.utility_functions import check_directory
 
@@ -302,14 +302,55 @@ def antenna_mismatch(raw_data, pairs):
     return mismatches
 
 
-def run_diagnostics(raw_data, max_break, res_dir, pairs):
-    mismatches = antenna_mismatch(raw_data, pairs)
+def total_mismatches(mismatches):
+    all_antennas = set()
+    for pair in mismatches.keys():
+        a1, a2 = pair.split()
+        all_antennas.add(a1)
+        all_antennas.add(a2)
+    all_antennas = sorted(all_antennas)
+    out = {}
+    for antenna in all_antennas:
+        out[antenna] = 0
+        for pair in mismatches:
+            if antenna in pair:
+                out[antenna] += mismatches[pair]
+    return out
+
+
+def save_mismatches(mismatches, tot_registrations, res_dir):
     out_f1 = u"antenna pair,  count, percentage\n"
     for pair in mismatches.keys():
-        exact_mis = np.round(100*mismatches[pair]/len(raw_data['Antenna']))
+        a1, a2 = pair.split(" ")
+        exact_mis = np.round(100*mismatches[pair]/tot_registrations)
         out_f1 += u"%s, %d, %3.2f per 100\n" % (pair, mismatches[pair],
                                                  exact_mis)
-    antenna_breaks = check_antenna_presence(raw_data, max_break)
+    new_path = check_directory(res_dir, "diagnostics")
+    fpath1 = os.path.join(new_path, "antenna_mismatches.csv")
+    f1 = open(fpath1, "w")
+    f1.write(out_f1)
+    f1.close()
+    return out_f1
+
+
+def save_total_mismatches(tot_mismatches, counters, res_dir):
+    out_f1 = u"antenna, incorrect transitions count, percentage of antenna recordings\n"
+    for a1 in tot_mismatches.keys():
+        if counters[a1]:
+            exact_mis = 100*tot_mismatches[a1]/counters[a1]
+        else:
+            exact_mis = 0
+        out_f1 += u"%s, %d, %3.2f per 100\n" % (a1, tot_mismatches[a1],
+                                                 exact_mis)
+    new_path = check_directory(res_dir, "diagnostics")
+    fpath1 = os.path.join(new_path, "incorrect_antenna_transitions.csv")
+    f1 = open(fpath1, "w")
+    f1.write(out_f1)
+    f1.close()
+    return out_f1
+
+
+def save_antenna_breaks(antenna_breaks, res_dir):
     out_f2 = u'Breaks in registrations on antennas:\n'
     for antenna in antenna_breaks:
         out_f2 += u"%s:\n" % antenna
@@ -319,19 +360,24 @@ def run_diagnostics(raw_data, max_break, res_dir, pairs):
                                              (breaks[1] - breaks[0])/3600)
 
     new_path = check_directory(res_dir, "diagnostics")
-
-    fpath1 = os.path.join(new_path, "antenna_mismatches.csv")
-    f1 = open(fpath1, "w")
-
     fpath2 = os.path.join(new_path, "breaks_in_registrations.csv")
     f2 = open(fpath2, "w")
-
-    f1.write(out_f1)
-
     f2.write(out_f2)
-    f1.close()
     f2.close()
-    return out_f1, out_f2
+    return out_f2
+
+def run_diagnostics(raw_data, max_break, res_dir, pairs):
+    mismatches = antenna_mismatch(raw_data, pairs)
+    out_f1 = save_mismatches(mismatches, len(raw_data["Antenna"]),
+                             res_dir)
+    
+    tot_mismatches = total_mismatches(mismatches)
+    counters = Counter(raw_data["Antenna"])
+    out_f3 = save_total_mismatches(tot_mismatches, counters, res_dir)
+
+    antenna_breaks = check_antenna_presence(raw_data, max_break)
+    out_f2 = save_antenna_breaks(antenna_breaks, res_dir)
+    return out_f1, out_f2, out_f3
 
 
 def transform_raw(row):

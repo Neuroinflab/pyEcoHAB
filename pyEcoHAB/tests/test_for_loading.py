@@ -414,6 +414,49 @@ class TestCheckAntennaPresence(unittest.TestCase):
         self.assertEqual(len(set(self.begs)), len(self.begs))
 
 
+class TestTotalMismatches(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        config = SetupConfig()
+        cls.mismatched_pairs = config.mismatched_pairs
+        path = os.path.join(data_path, "weird_short_3_mice")
+        raw_data1 = uf.read_single_file(path, "20101010_110000.txt")
+        cls.data1 = uf.from_raw_data(raw_data1)
+        cls.mismatch1 = uf.antenna_mismatch(cls.data1, config.mismatched_pairs)
+        path = os.path.join(data_path, "weird_short")
+        raw_data2 = uf.read_single_file(path, "20101010_110000.txt")
+        cls.data2 = uf.from_raw_data(raw_data2)
+        cls.mismatch2 = uf.antenna_mismatch(cls.data2, config.mismatched_pairs)
+
+    def test_no_mismatches(self):
+        res = uf.total_mismatches(self.mismatch2)
+        correct = {}
+        antennas = sorted(set(self.data2["Antenna"]))
+        for antenna in antennas:
+            correct[antenna] = 0
+        self.assertEqual(correct, res)
+
+    def test_mismatches(self):
+        res = uf.total_mismatches(self.mismatch1)
+        correct = {}
+        antennas = sorted(set(self.data1["Antenna"]))
+        print(self.mismatched_pairs)
+        for antenna in antennas:
+            correct[antenna] = 0
+        mice = sorted(set(self.data1["Tag"]))
+        all_antennas = self.data1["Antenna"]
+        for mouse in mice:
+            idxs = np.where(self.data1["Tag"]==mouse)[0]
+            for i, idx in enumerate(idxs[:-1]):
+                idx_next = idxs[i+1]
+                a1, a2 = all_antennas[idx], all_antennas[idx_next]
+                key = "%s %s" %(min(a1, a2),  max(a1, a2))
+                if key in self.mismatched_pairs:
+                    correct[a1] += 1
+                    correct[a2] += 1
+        self.assertEqual(correct, res)
+
+        
 class TestRunDiagnostics(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -428,8 +471,10 @@ class TestRunDiagnostics(unittest.TestCase):
         for f in files:
             print("rm ", f)
         cls.length = len(data["Antenna"])
-        cls.str11, cls.str12 = uf.run_diagnostics(data, 24*3600, res_path,
-                                                  config.mismatched_pairs)
+        cls.str11, cls.str12, cls.str13 = uf.run_diagnostics(data,
+                                                             24*3600,
+                                                             res_path,
+                                                             config.mismatched_pairs)
         path = os.path.join(data_path, "weird_short")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
@@ -441,8 +486,9 @@ class TestRunDiagnostics(unittest.TestCase):
         for f in files:
             os.remove(f)
 
-        cls.str21, cls.str22 = uf.run_diagnostics(data, 24*3600, res_path,
-                                                  config.mismatched_pairs)
+        cls.str21, cls.str22, cls.str23 = uf.run_diagnostics(data, 24*3600,
+                                                             res_path,
+                                                             config.mismatched_pairs)
 
     def test_no_registration_breaks_file(self):
         path = os.path.join(data_path, "weird_short")
@@ -462,6 +508,15 @@ class TestRunDiagnostics(unittest.TestCase):
         read = f.read()
         self.assertEqual(read, self.str21)
 
+    def test_total_no_mismatch_antennas_file(self):
+        path = os.path.join(data_path, "weird_short")
+        res_path = os.path.join(path, "Results")
+        f_path = os.path.join(res_path +
+                              "/diagnostics/incorrect_antenna_transitions.csv")
+        f = open(f_path)
+        read = f.read()
+        self.assertEqual(read, self.str23)
+
     def test_registration_breaks_file(self):
         path = os.path.join(data_path, "weird_short_3_mice")
         res_path = os.path.join(path, "Results")
@@ -480,6 +535,15 @@ class TestRunDiagnostics(unittest.TestCase):
         read = f.read()
         self.assertEqual(read, self.str11)
 
+    def test_total_mismatch_antennas_file(self):
+        path = os.path.join(data_path, "weird_short_3_mice")
+        res_path = os.path.join(path, "Results")
+        f_path = os.path.join(res_path +
+                              "/diagnostics/incorrect_antenna_transitions.csv")
+        f = open(f_path)
+        read = f.read()
+        self.assertEqual(read, self.str13)
+
     def test_no_mismatch_string(self):
         out = "antenna pair,  count, percentage\n"
         for pair in uf.PAIRS:
@@ -497,16 +561,6 @@ class TestRunDiagnostics(unittest.TestCase):
             else:
                 out += "%s, %d, %3.2f per 100\n" % (pair, 0, 0.00)
         self.assertEqual(out, self.str11)
-
-    # def test_presence_string(self):
-    #     out = u'Breaks in registrations on antennas:\n'
-    #     for antenna in range(1, 9):
-    #         out += u"%d:\n" % int(antenna)
-    #         for breaks in self.presences1[str(antenna)]:
-    #             out += u"%s %s, %4.2f h\n" % (uf.print_human_time(breaks[0]),
-    #                                          uf.print_human_time(breaks[1]),
-    #                                          (breaks[1] - breaks[0])/3600)
-    #     self.assertEqual(out, self.str12)
 
 
 class TestTransformVisits(unittest.TestCase):
