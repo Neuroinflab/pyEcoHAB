@@ -443,7 +443,8 @@ def pool_results_followed(res_dict, mice):
 def single_histogram_figures(single_results, fname, main_directory,
                              path, title, nbins=10,
                              xlabel=None, ylabel=None,
-                             fontsize=14,
+                             fontsize=14, xlogscale=False,
+                             ylogscale=False,
                              median_mean=False, add_text=""):
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
     new_dir = os.path.join(path, 'figs')
@@ -456,7 +457,7 @@ def single_histogram_figures(single_results, fname, main_directory,
     make_single_histogram(ax, single_results, nbins, title=title,
                           xticks=True,
                           yticks=True, xlabel=xlabel, ylabel=ylabel,
-                          xlogscale=False, ylogscale=False,
+                          xlogscale=xlogscale, ylogscale=ylogscale,
                           fontsize=fontsize,
                           median_mean=median_mean)
     fig.savefig(new_fname + ".png",
