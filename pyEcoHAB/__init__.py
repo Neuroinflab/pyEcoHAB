@@ -12,3 +12,4 @@ from .cage_visits import get_activity
 from .tube_dominance import get_tube_dominance
 from .following import get_dynamic_interactions, resample_single_phase
 from .single_antenna_registrations import get_single_antenna_stats
+from .trajectories import get_antenna_transitions

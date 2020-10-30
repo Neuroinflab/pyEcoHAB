@@ -17,7 +17,7 @@ from . import BaseFunctions
 from pyEcoHAB.SetupConfig import SetupConfig, ExperimentSetupConfig
 from . import utility_functions as utils
 from .utils import for_loading as ufl
-from pyEcoHAB.plotting_functions import single_histogram_figures
+
 
 class EcoHabDataBase(object):
     def __init__(self, data, mask, visit_threshold, config):
@@ -48,59 +48,6 @@ class EcoHabDataBase(object):
         self.visits = self._calculate_visits(config)
         self.session_start = sorted(self.get_times(self.mice))[0]
         self.session_end = sorted(self.get_times(self.mice))[-1]
-
-
-    def get_antenna_transitions(self, config):
-        transition_times = {}
-        for mouse in self.mice:
-            antennas = self.readings.get_antennas(mouse)
-            times = self.readings.get_times(mouse)
-            for i, a1 in enumerate(antennas[:-1]):
-                a2 = antennas[i+1]
-                key = "%s %s" % (a1, a2)
-                if key not in transition_times:
-                    transition_times[key] = []
-                if times[i+1]-times[i] > 0:
-                    transition_times[key].append(times[i+1]-times[i])
-        dir_correct = os.path.join("diagnostics", "correct_antenna_crossings")
-        dir_incorrect = os.path.join("diagnostics",
-                                     "incorrect_antenna_crossings")
-        title_double_a = "consecutive crossing of antenna %s entrance to %s"
-        for key in transition_times.keys():
-            first, last = key.split(" ")
-            gen_key = "%s %s" % (min(first, last), max(first, last))
-            if gen_key in config.mismatched_pairs:
-                dir_name = dir_incorrect
-            else:
-                dir_name = dir_correct
-            if first == last:
-                title = title_double_a % (first,
-                                          config.address[first])
-            else:
-                if key in config.directions:
-                    title = "%s (tunnel)" % key
-                elif gen_key in config.mismatched_pairs:
-                    title = key
-                else:
-                    title = "%s cage %s" %(key,
-                                           config.address[first])
-            fname = "transition_times_antennas_%s" % key
-            if len(transition_times[key]) > 1000:
-                if max(transition_times[key]) > 1000*min(transition_times[key]):
-                    xlogscale = True
-                else:
-                    xlogscale = False
-                nbins = 99
-            else:
-                nbins = 10
-                xlogscale = False
-            single_histogram_figures(transition_times[key], fname,
-                                     self.res_dir,
-                                     dir_name, title, nbins=nbins,
-                                     xlogscale=xlogscale,
-                                     xlabel="Transition times (s)",
-                                     ylabel="count",
-                                     fontsize=14, median_mean=True)
 
     def _calculate_animal_positions(self, config):
         """Calculate timings of animal visits to Eco-HAB compartments, using
@@ -409,7 +356,6 @@ class Loader(EcoHabDataBase):
         self.home_antenna = antennas.homecage_antenna
         self.home_internal_antennas = antennas.homecage_internal_antennas
         self.stimuls_internal_antennas = antennas.stimulus_cage_internal_antennas
-        self.get_antenna_transitions(self.setup_config)
 
     def _read_in_raw_data(self, tags):
         """Reads in data from files in self.path.
@@ -508,5 +454,3 @@ class Merger(EcoHabDataBase):
         self.max_break = max(max_breaks)
         ufl.run_diagnostics(data, self.max_break, self.res_dir,
                             antennas.mismatched_pairs)
-        self.get_antenna_transitions(self.setup_config)
-
