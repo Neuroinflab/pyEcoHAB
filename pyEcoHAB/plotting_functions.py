@@ -444,7 +444,8 @@ def single_histogram_figures(single_results, fname, main_directory,
                              path, title, nbins=10,
                              xlabel=None, ylabel=None,
                              fontsize=14, xlogscale=False,
-                             ylogscale=False,
+                             ylogscale=False, xmin=None, xmax=None,
+                             ymin=None, ymax=None,
                              median_mean=False, add_text=""):
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
     new_dir = os.path.join(path, 'figs')
@@ -454,11 +455,13 @@ def single_histogram_figures(single_results, fname, main_directory,
         nbins = int(max(single_results))
     if add_text:
         title += add_text
+
     make_single_histogram(ax, single_results, nbins, title=title,
                           xticks=True,
                           yticks=True, xlabel=xlabel, ylabel=ylabel,
                           xlogscale=xlogscale, ylogscale=ylogscale,
-                          fontsize=fontsize,
+                          fontsize=fontsize, xmin=xmin, xmax=xmax,
+                          ymin=ymin, ymax=ymax,
                           median_mean=median_mean)
     fig.savefig(new_fname + ".png",
                 bbox_inches=None,
@@ -471,6 +474,7 @@ def single_histogram_figures(single_results, fname, main_directory,
 def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
                           yticks=False, xlabel=None, ylabel=None,
                           xlogscale=False, ylogscale=False, fontsize=14,
+                          xmin=None, xmax=None, ymin=None, ymax=None,
                           median_mean=False):
     if len(single_results) == 0:
         ax.set_yticklabels([])
@@ -501,6 +505,17 @@ def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
     else:
         ax.set_xticklabels([])
     ax.set_title(title, fontsize=fontsize)
+    if xmin is None:
+        xmin = min(bins) - 0.5
+    if xmax is None:
+        xmax = max(bins) + 0.5
+    if ymin is None:
+        ymin = 0
+    if ymax is None:
+        ymax = max(n)+1
+    ax.set_xlim([xmin, xmax])
+    ax.set_ylim([ymin, ymax])
+
     if median_mean is True:
         mean = np.mean(single_results)
         median = np.median(single_results)

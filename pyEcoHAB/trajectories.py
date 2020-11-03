@@ -1,7 +1,7 @@
 from __future__ import division, print_function, absolute_import
 import os
 
-
+import numpy as np
 from pyEcoHAB.utility_functions import check_directory
 from pyEcoHAB.plotting_functions import single_histogram_figures
 directory = "antenna_transitions"
@@ -12,46 +12,79 @@ def histograms_antenna_transitions(transition_times, config, res_dir):
     dir_incorrect = os.path.join(directory,
                                  "incorrect_antenna_transition")
     title_double_a = "consecutive crossing of antenna %s entrance to %s"
+    max_count = 0
+    nbins = {}
+    title = {}
+    fname = {}
+    dir_name = {}
+    xlogscale = {}
+    xmin = 1000
+    xmax = 0
     for key in transition_times.keys():
         first, last = key.split(" ")
         gen_key = "%s %s" % (min(first, last), max(first, last))
         if gen_key in config.mismatched_pairs:
-            dir_name = dir_incorrect
+            dir_name[key] = dir_incorrect
         else:
-            dir_name = dir_correct
+            dir_name[key] = dir_correct
         if first == last:
-            title = title_double_a % (first,
+            title[key] = title_double_a % (first,
                                           config.address[first])
         else:
             if key in config.directions:
-                title = "%s (tunnel)" % key
+                title[key] = "%s (tunnel)" % key
             elif gen_key in config.mismatched_pairs:
-                title = key
+                title[key] = key
             else:
-                title = "%s cage %s" %(key,
+                title[key] = "%s cage %s" %(key,
                                            config.address[first])
-        fname = "transition_times_antennas_%s" % key
+        fname[key] = "transition_times_antennas_%s" % key
         if len(transition_times[key]) > 1000:
-            nbins = 99
+            nbins[key] = 40
             if max(transition_times[key]) > 1000*min(transition_times[key]):
-                xlogscale = True
+                xlogscale[key] = True
             else:
-                xlogscale = False
+                xlogscale[key] = False
         else:
-            nbins = 10
-            xlogscale = False
+            nbins[key] = 10
+            xlogscale[key] = False
         while True:
             if 0 in transition_times[key]:
                 transition_times[key].remove(0)
             else:
                 break
-        single_histogram_figures(transition_times[key], fname,
-                                 res_dir,
-                                 dir_name, title, nbins=nbins,
-                                 xlogscale=xlogscale,
-                                 xlabel="Transition times (s)",
-                                 ylabel="count",
-                                 fontsize=14, median_mean=True)
+        hist, bins = np.histogram(transition_times[key], nbins[key])
+        if xlogscale[key]:
+            logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]),
+                                  len(bins))
+            hist, bins = np.histogram(transition_times[key], bins=logbins)
+
+ 
+        if max(hist) > max_count:
+            max_count = max(hist) + 5
+        if xmin > min(transition_times[key]):
+            xmin =  min(transition_times[key]) - 0.5
+        if xmax < max(transition_times[key]):
+            xmax = max(transition_times[key]) + 0.5
+    for key in transition_times.keys():
+        if dir_name[key] == dir_correct:
+            single_histogram_figures(transition_times[key], fname[key],
+                                     res_dir, dir_name[key], title[key],
+                                     nbins=nbins[key],
+                                     xlogscale=xlogscale[key],
+                                     xlabel="Transition times (s)",
+                                     ylabel="count", xmin=xmin, xmax=xmax,
+                                     ymin=0, ymax=max_count,
+                                     fontsize=14, median_mean=True)
+        else:
+            single_histogram_figures(transition_times[key], fname[key],
+                                     res_dir, dir_name[key], title[key],
+                                     nbins=nbins[key],
+                                     xlogscale=xlogscale[key],
+                                     xlabel="Transition times (s)",
+                                     ylabel="count",
+                                     fontsize=14, median_mean=True)
+
 
 def save_antenna_transitions(transition_times, config, res_dir):    
     dir_correct = os.path.join(res_dir, directory)
