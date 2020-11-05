@@ -651,7 +651,12 @@ def make_visit_duration_histogram(results, time, phase, mice,
 
 def histograms_antenna_transitions(transition_times, config, res_dir,
                                    directory):
-    dir_correct = os.path.join(directory, "correct_antenna_transition")
+    dir_correct_same = os.path.join(directory, "correct_antenna_transition",
+                                    "same_antenna")
+    dir_correct_different = os.path.join(directory,
+                                         "correct_antenna_transition",
+                                         "different_antenna")
+
     dir_incorrect = os.path.join(directory,
                                  "incorrect_antenna_transition")
     title_double_a = "consecutive crossing of antenna %s entrance to %s"
@@ -664,12 +669,17 @@ def histograms_antenna_transitions(transition_times, config, res_dir,
     xmin = 1000
     xmax = 0
     for key in transition_times.keys():
+        if not len(transition_times[key]):
+            continue
         first, last = key.split(" ")
         gen_key = "%s %s" % (min(first, last), max(first, last))
         if gen_key in config.mismatched_pairs:
             dir_name[key] = dir_incorrect
         else:
-            dir_name[key] = dir_correct
+            if first == last:
+                dir_name[key] = dir_correct_same
+            else:
+                dir_name[key] = dir_correct_different
         if first == last:
             title[key] = title_double_a % (first,
                                           config.address[first])
@@ -681,16 +691,12 @@ def histograms_antenna_transitions(transition_times, config, res_dir,
             else:
                 title[key] = "%s cage %s" %(key,
                                            config.address[first])
-        fname[key] = "transition_times_antennas_%s" % key
+        xlogscale[key] = False
+        nbins[key] = 10
         if len(transition_times[key]) > 1000:
             nbins[key] = 40
             if max(transition_times[key]) > 1000*min(transition_times[key]):
                 xlogscale[key] = True
-            else:
-                xlogscale[key] = False
-        else:
-            nbins[key] = 10
-            xlogscale[key] = False
         while True:
             if 0 in transition_times[key]:
                 transition_times[key].remove(0)
@@ -702,7 +708,7 @@ def histograms_antenna_transitions(transition_times, config, res_dir,
                                   len(bins))
             hist, bins = np.histogram(transition_times[key], bins=logbins)
 
- 
+        fname[key] = "transition_times_antennas_%s" % key
         if max(hist) > max_count:
             max_count = max(hist) + 5
         if xmin > min(transition_times[key]):
@@ -710,7 +716,9 @@ def histograms_antenna_transitions(transition_times, config, res_dir,
         if xmax < max(transition_times[key]):
             xmax = max(transition_times[key]) + 0.5
     for key in transition_times.keys():
-        if dir_name[key] == dir_correct:
+        if not len(transition_times[key]):
+            continue
+        if dir_name[key] == dir_correct_same or dir_name[key] == dir_correct_different:
             single_histogram_figures(transition_times[key], fname[key],
                                      res_dir, dir_name[key], title[key],
                                      nbins=nbins[key],
