@@ -58,17 +58,18 @@ def get_registration_trains(data):
             if a == previous_antenna:
                 count += 1
             else:
-                if count >= 3:
+                if count > 2:
                     duration = times[i] - previous_t_start
                     registration_trains[previous_antenna].append(duration)
                     counts_in_trains[previous_antenna].append(count)
                 count = 1
                 previous_antenna = a
                 previous_t_start = times[i+1]
+           
     histograms_registration_trains(registration_trains, data.setup_config,
                                    fname_duration, data.res_dir, directory,
                                    title=title,
-                                   xlabel="Duration (ms)")
+                                   xlabel="Duration (s)")
     histograms_registration_trains(counts_in_trains, data.setup_config,
                                    fname_count, data.res_dir, directory,
                                    title=title,
@@ -88,6 +89,8 @@ def histograms_registration_trains(data_dict, config, fname, res_dir, directory,
     nbins = 30
     xlogscale = True
     for key in data_dict.keys():
+        if not len(data_dict[key]):
+            continue
         titles[key] = "%s %s" % (title, key)
         fnames[key] = "%s_%s" % (fname, key)
         hist, bins = np.histogram(data_dict[key], nbins)
@@ -102,6 +105,8 @@ def histograms_registration_trains(data_dict, config, fname, res_dir, directory,
             xmax = max(data_dict[key]) + 0.5
         len(data_dict[key])
     for key in data_dict.keys():
+        if not len(data_dict[key]):
+            continue
         single_histogram_figures(data_dict[key], fnames[key],
                                  res_dir, directory, titles[key],
                                  nbins=nbins, xlogscale=xlogscale,
@@ -111,3 +116,4 @@ def histograms_registration_trains(data_dict, config, fname, res_dir, directory,
                                  fontsize=14, median_mean=True)
 
 def mouse_registered_in_tunnel_by_2_antennas(ehd):
+    pass
