@@ -21,22 +21,36 @@ def save_antenna_transitions(transition_times, config, res_dir,
         f.write("\n")
     f.close()
 
+def single_mouse_antenna_transitions(ants, ts):
+    out = {}
+    for i, a1 in enumerate(ants[:-1]):
+        a2 = ants[i+1]
+        key = "%s %s" % (a1, a2)
+        if key not in out:
+            out[key] = [] 
+        out[key].append(ts[i+1]-ts[i])
+    return out
+
 
 def get_antenna_transitions(ehd):
     transition_times = {}
+    for antenna1 in ehd.setup_config.all_antennas:
+        for antenna2 in ehd.setup_config.all_antennas:
+            key = "%s %s" % (antenna1, antenna2)
+            transition_times[key] = []
+        
     for mouse in ehd.mice:
         antennas = ehd.get_antennas(mouse)
         times = ehd.get_times(mouse)
-        for i, a1 in enumerate(antennas[:-1]):
-            a2 = antennas[i+1]
-            key = "%s %s" % (a1, a2)
-            if key not in transition_times:
-                transition_times[key] = []
-            transition_times[key].append(times[i+1]-times[i])
+        out = single_mouse_antenna_transitions(antennas, times)
+        for key in out:
+            transition_times[key].extend(out[key])
     histograms_antenna_transitions(transition_times, ehd.setup_config,
                                    ehd.res_dir, directory)
     save_antenna_transitions(transition_times, ehd.setup_config, ehd.res_dir,
                              directory)
+    return transition_times
+
 def get_registration_trains(data):
     title = "Series of registrations by "
     fname_duration = "total_duration_of_registration_trains"
@@ -116,4 +130,4 @@ def histograms_registration_trains(data_dict, config, fname, res_dir, directory,
                                  fontsize=14, median_mean=True)
 
 def mouse_registered_in_tunnel_by_2_antennas(ehd):
-    pass
+    pass    
