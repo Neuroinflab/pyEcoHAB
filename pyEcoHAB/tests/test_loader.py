@@ -27,6 +27,10 @@ class TestLoader(unittest.TestCase):
         cls.setup3 = SetupConfig(path=data_path, fname="setup_short.txt")
         cls.dataset3 = Loader(cls.path1, visit_threshold=1.5,
                               setup_config=cls.setup3, remove_antennas=["8"])
+        cls.path_empty = os.path.join(data_path, "empty")
+
+    def test_load_empty(self):
+        self.assertRaises(Exception, Loader, self.path_empty) 
 
     def test_path(self):
         self.assertEqual(self.path1, self.dataset1.path)

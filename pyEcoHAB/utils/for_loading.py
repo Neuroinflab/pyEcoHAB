@@ -233,8 +233,10 @@ def remove_ghost_tags(raw_data, legal_tags="ALL"):
 
 
 def check_antenna_presence(raw_data, max_break):
-    t_start = raw_data['Time'][0]
+    if not len(raw_data):
+        raise Exception("Empty dataset")
     all_times = raw_data['Time']
+    t_start = raw_data['Time'][0]
     breaks = {}
     t_end = raw_data['Time'][-1]
     for antenna in ["1", "2", "3", "4", "5", "6", "7", "8"]:
@@ -262,7 +264,8 @@ def check_antenna_presence(raw_data, max_break):
 
 
 def antenna_mismatch(raw_data, pairs):
-    t_start = raw_data['Time'][0]
+    if not len(raw_data):
+        raise Exception("Empty dataset")
     all_times = raw_data['Time']
     mice = set(raw_data['Tag'])
     mismatches = OrderedDict()

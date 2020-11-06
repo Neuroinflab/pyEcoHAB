@@ -325,6 +325,9 @@ class TestAntennaMismatch(unittest.TestCase):
         out = sum(list(self.mismatch1.values()))
         self.assertEqual(4, out)
 
+    def test_empty(self):
+        self.assertRaises(Exception, uf.antenna_mismatch, [])
+
 
 class TestCheckAntennaPresence(unittest.TestCase):
     @classmethod
@@ -361,6 +364,9 @@ class TestCheckAntennaPresence(unittest.TestCase):
     def test_beg_2(self):
         self.assertEqual(len(set(self.begs)), len(self.begs))
 
+    def test_empty(self):
+        self.assertRaises(Exception, uf.check_antenna_presence, [], 2)
+
 
 class TestTotalMismatches(unittest.TestCase):
     @classmethod
@@ -388,7 +394,6 @@ class TestTotalMismatches(unittest.TestCase):
         res = uf.total_mismatches(self.mismatch1)
         correct = {}
         antennas = sorted(set(self.data1["Antenna"]))
-        print(self.mismatched_pairs)
         for antenna in antennas:
             correct[antenna] = 0
         mice = sorted(set(self.data1["Tag"]))

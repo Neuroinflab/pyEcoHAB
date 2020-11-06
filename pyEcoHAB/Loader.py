@@ -364,7 +364,7 @@ class Loader(EcoHabDataBase):
         days = set()
         self._fnames = ufl.get_filenames(self.path)
         if not len(self._fnames):
-            sys.exit("%s is empty" % self.path)
+            raise Exception("empty directory %s" % self.path)
         for f_name in self._fnames:
             raw_data += ufl.read_single_file(self.path, f_name)
             days.add(f_name.split('_')[0])
