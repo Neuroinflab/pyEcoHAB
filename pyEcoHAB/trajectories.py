@@ -90,6 +90,7 @@ def get_registration_trains(data):
                                    xlabel="#registrations")
     #save_registration_trains(registration_trains, data.setup_config, data.res_dir)
     #save_registration_trains(counts_in_trains, data.setup_config, data.res_dir)
+    return registration_trains, counts_in_trains
 
 
 def histograms_registration_trains(data_dict, config, fname, res_dir, directory,

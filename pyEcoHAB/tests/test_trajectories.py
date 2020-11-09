@@ -126,5 +126,41 @@ class TestAntennaTransitions(unittest.TestCase):
         self.assertEqual(self.expected["1 2"], self.calc["1 2"])
 
 
+class TestTrainsOfSingleAntennaRegistrations(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_very_short_3_mice")
+        cls.data = Loader(path)
+        cls.dur, cls.count = tr.get_registration_trains(cls.data)
+        cls.pred_dur = {}
+        cls.pred_count = {}
+        for antenna in cls.data.setup_config.all_antennas:
+            cls.pred_dur[antenna] = []
+            cls.pred_count[antenna] = []
+        cls.pred_dur["4"] = [2.598]
+        cls.pred_count["4"] = [3]
+        cls.pred_dur["6"] = [102.683]
+        cls.pred_count["6"] = [3]
+        cls.pred_count["5"] = [3]
+        cls.pred_dur["5"] = [8.503]
+
+    def test_dur_4(self):
+        line_pred = [np.round(a, decimals=3) for a in self.pred_dur["4"]]
+        line_calc = [np.round(a, decimals=3) for a in self.dur["4"]]
+        self.assertEqual(line_pred, line_calc)
+
+    def test_dur_5(self):
+        line_pred = [np.round(a, decimals=3) for a in self.pred_dur["5"]]
+        line_calc = [np.round(a, decimals=3) for a in self.dur["5"]]
+        self.assertEqual(line_pred, line_calc)
+
+    def test_dur_6(self):
+        line_pred = [np.round(a, decimals=3) for a in self.pred_dur["6"]]
+        line_calc = [np.round(a, decimals=3) for a in self.dur["6"]]
+        self.assertEqual(line_pred, line_calc)
+
+    def test_count(self):
+        self.assertEqual(self.pred_count, self.count)
+
 if __name__ == '__main__':
     unittest.main()
