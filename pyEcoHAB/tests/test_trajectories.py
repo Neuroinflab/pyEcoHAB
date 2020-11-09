@@ -26,7 +26,7 @@ class TestSingleMouseAntennaTransitions(unittest.TestCase):
         cls.calc = tr.single_mouse_antenna_transitions(antennas, times)
 
     def test_1(self):
-        self.assertEqual(self.expected.keys(), self.calc.keys())
+        self.assertEqual(sorted(self.expected.keys()), sorted(self.calc.keys()))
 
         
 class TestAntennaTransitions(unittest.TestCase):
