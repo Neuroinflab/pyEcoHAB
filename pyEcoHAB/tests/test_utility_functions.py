@@ -2057,11 +2057,11 @@ class TestPrepareRegistrations(unittest.TestCase):
         self.assertEqual(["mouse_1"], list(self.out.keys()))
 
     def test_2(self):
-        self.assertEqual(len(self.out["mouse_1"]["5_6"][0]), 3)
+        self.assertEqual(len(self.out["mouse_1"]["5 6"][0]), 3)
 
     def test_3(self):
         #  check if last antenna is working
-        self.assertEqual(len(self.out["mouse_1"]["6_5"][0]), 2)
+        self.assertEqual(len(self.out["mouse_1"]["6 5"][0]), 2)
 
 
 class TestPrepareBinnedRegistrations(unittest.TestCase):
