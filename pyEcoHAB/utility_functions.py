@@ -514,7 +514,7 @@ def extract_directions(times, antennas, last_antenna, keys):
         if c_idx + 1 >= len(antennas):
             break
         ant, next_ant = antennas[c_idx], antennas[c_idx + 1]
-        key = "%s_%s" % (ant, next_ant)
+        key = "%s %s" % (ant, next_ant)
         if key in keys:
             try:
                 third_antenna = antennas[c_idx + 2]

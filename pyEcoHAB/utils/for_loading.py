@@ -298,15 +298,23 @@ def total_mismatches(mismatches):
     return out
 
 
-def save_mismatches(mismatches, tot_registrations, res_dir):
-    out_f1 = u"antenna pair,  count, percentage\n"
+def save_mismatches(mismatches, tot_registrations, res_dir,
+                    fname="antenna_mismatches.csv",
+                    header=u"antenna pair,  count, percentage\n"):
+    out_f1 = header
     for pair in mismatches.keys():
         a1, a2 = pair.split(" ")
-        exact_mis = np.round(100*mismatches[pair]/tot_registrations)
+        if isinstance(tot_registrations, dict):
+            try:
+                exact_mis = np.round(100*mismatches[pair]/tot_registrations[pair])
+            except ZeroDivisionError:
+                exact_mis = 1
+        else:
+            exact_mis = np.round(100*mismatches[pair]/tot_registrations)
         out_f1 += u"%s, %d, %3.2f per 100\n" % (pair, mismatches[pair],
                                                  exact_mis)
     new_path = check_directory(res_dir, "diagnostics")
-    fpath1 = os.path.join(new_path, "antenna_mismatches.csv")
+    fpath1 = os.path.join(new_path, fname)
     f1 = open(fpath1, "w")
     f1.write(out_f1)
     f1.close()

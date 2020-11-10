@@ -162,5 +162,35 @@ class TestTrainsOfSingleAntennaRegistrations(unittest.TestCase):
     def test_count(self):
         self.assertEqual(self.pred_count, self.count)
 
+
+class TestTunnelErrors(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        antennas =  ["1", "2", "1", "2", "3", "4", "5", "6", "7"]
+        times =     [1,   2,  2.5,   3,  4.5, 5.5, 6.5, 7.5, 10.5]
+        durations = [3, 600,  3,    34,  55,  66, 1999, 200, 100]
+        cls.pred_out = {"1 2": 1, "3 4":0, "5 6": 1, "7 8": 0}
+        cls.out, cls.tot = tr.incorrect_tunnel_single_mouse(cls.pred_out.keys(),
+                                                            antennas,
+                                                            times, durations)
+        cls.pred_tot = {"1 2": 3, "3 4":1, "5 6": 1, "7 8": 0}
+        path = os.path.join(data_path, "weird_very_short_3_mice")
+        cls.data = Loader(path)
+        cls.out_i, cls.out_tot_i = tr.get_incorrect_tunnel_registrations(cls.data)
+        cls.pred_out_i = {"1 2": 0, "3 4": 0, "5 6":2, "7 8":0}
+        cls.pred_tot_i = {"1 2": 2, "3 4": 1, "5 6":7, "7 8":0}
+
+    def test_incorrect(self):
+        self.assertEqual(self.pred_out, self.out)
+
+    def test_total(self):
+        self.assertEqual(self.pred_tot, self.tot)
+
+    def test_data_incorrect(self):
+        self.assertEqual(self.pred_out_i, self.out_i)
+
+    def test_data_total(self):
+        self.assertEqual(self.pred_tot_i, self.out_tot_i)
+        
 if __name__ == '__main__':
     unittest.main()

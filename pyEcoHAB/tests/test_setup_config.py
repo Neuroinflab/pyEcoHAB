@@ -353,7 +353,7 @@ class TestGetDicts(unittest.TestCase):
                          self.custom.get_surrounding_dict())
 
     def test_directions_custom(self):
-        self.assertEqual(["1_2", "2_1"],
+        self.assertEqual(["1 2", "2 1"],
                          self.custom.get_directions_dict())
 
     def test_directions_default(self):
@@ -1059,20 +1059,20 @@ class TestExperimentSetupConfig(unittest.TestCase):
 
     def test_directions_full_exp(self):
         out = sorted(
-            ['1_ecohab_1_2_ecohab_1', '2_ecohab_1_1_ecohab_1',
-             '3_ecohab_1_4_ecohab_1', '4_ecohab_1_3_ecohab_1',
-             '5_ecohab_2_6_ecohab_2', '6_ecohab_2_5_ecohab_2',
-             '7_ecohab_2_8_ecohab_2', '8_ecohab_2_7_ecohab_2']
+            ['1_ecohab_1 2_ecohab_1', '2_ecohab_1 1_ecohab_1',
+             '3_ecohab_1 4_ecohab_1', '4_ecohab_1 3_ecohab_1',
+             '5_ecohab_2 6_ecohab_2', '6_ecohab_2 5_ecohab_2',
+             '7_ecohab_2 8_ecohab_2', '8_ecohab_2 7_ecohab_2']
         )
         self.assertEqual(self.full_exp.directions, out)
 
     def test_directions(self):
         out = sorted(
-            ['1_ecohab1_2_ecohab1', '2_ecohab1_1_ecohab1',
-             '1_ecohab2_2_ecohab2', '2_ecohab2_1_ecohab2',
-             '3_ecohab1_4_ecohab1', '4_ecohab1_3_ecohab1',
-             '5_ecohab1_6_ecohab1', '6_ecohab1_5_ecohab1',
-             '7_ecohab1_8_ecohab1', '8_ecohab1_7_ecohab1']
+            ['1_ecohab1 2_ecohab1', '2_ecohab1 1_ecohab1',
+             '1_ecohab2 2_ecohab2', '2_ecohab2 1_ecohab2',
+             '3_ecohab1 4_ecohab1', '4_ecohab1 3_ecohab1',
+             '5_ecohab1 6_ecohab1', '6_ecohab1 5_ecohab1',
+             '7_ecohab1 8_ecohab1', '8_ecohab1 7_ecohab1']
         )
         self.assertEqual(self.experiment_config.directions, out)
 
