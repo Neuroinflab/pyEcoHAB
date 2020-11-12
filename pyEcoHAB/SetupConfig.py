@@ -405,6 +405,15 @@ class SetupConfigMethods(RawConfigParser):
         return sorted(out)
 
 
+    @property
+    def all_unique_pairs(self):
+        pairs = []
+        for i, antenna1 in enumerate(self.all_antennas):
+            for antenna2 in self.all_antennas[i:]:
+                pairs.append("%s %s" % (min(antenna1, antenna2),
+                                        max(antenna1, antenna2)))
+        return pairs
+
 class SetupConfig(SetupConfigMethods):
     """Load config file for a single EcoHAB setup.
 
@@ -656,13 +665,3 @@ class ExperimentSetupConfig(SetupConfigMethods):
                     self.set(new_section_name, new_antenna_type, new_value)
                     section_items = [item[0] for item
                                      in self.items(new_section_name)]
-
-    @property
-    def all_pairs(self):
-        pairs = []
-        for i, antenna1 in enumerate(self.all_antennas):
-            for antenna2 in self.all_antennas[i:]:
-                pairs.append("%s %s" % (min(antenna1, antenna2),
-                                        max(antenna1, antenna2)))
-        return sorted(pairs)
-               

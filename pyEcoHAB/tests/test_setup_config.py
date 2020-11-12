@@ -1087,16 +1087,16 @@ class TestExperimentSetupConfig(unittest.TestCase):
         out = self.experiment_dom.stimulus_cage_internal_antennas
         self.assertEqual(out, ["7_custom2"])
 
-    def test_all_pairs_dom(self):
+    def test_all_unique_pairs_dom(self):
         out = set()
         for antenna1 in self.experiment_dom.all_antennas:
             for antenna2 in self.experiment_dom.all_antennas:
                 key = "%s %s" % (min(antenna1, antenna2),
                                  max(antenna1, antenna2))
                 out.add(key)
-        self.assertTrue(sorted(out)==self.experiment_dom.all_pairs)
+        self.assertTrue(sorted(out)==self.experiment_dom.all_unique_pairs)
         
-    def test_all_pairs_full(self):
+    def test_all_pairs_unique_full(self):
         out = set()
         for antenna1 in self.full_exp.all_antennas:
             for antenna2 in self.full_exp.all_antennas:
@@ -1104,7 +1104,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
                                  max(antenna1, antenna2))
                 out.add(key)
                 
-        self.assertEqual(sorted(out), self.full_exp.all_pairs)
+        self.assertEqual(sorted(out), self.full_exp.all_unique_pairs)
 
     def test_mismatched_antennas_full(self):
         out = ["1_ecohab_1 3_ecohab_1", "1_ecohab_1 4_ecohab_1",
