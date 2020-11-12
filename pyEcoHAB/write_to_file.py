@@ -129,7 +129,7 @@ def write_csv_rasters(mice, phases, output, directory,
     if symmetric:
         new_output, pairs = utils.make_table_of_pairs(output, phases, mice)
     else:
-        new_output, pairs = utils.make_table_of_all_pairs(output, phases,
+        new_output, pairs = utils.make_table_of_all_mouse_pairs(output, phases,
                                                           mice, reverse_order)
     for i, pair in enumerate(pairs):
         f.write(pair)

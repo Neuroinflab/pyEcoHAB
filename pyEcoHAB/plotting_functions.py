@@ -51,7 +51,7 @@ def make_RasterPlot(main_directory,
                                                         phases,
                                                         mice)
     else:
-        output, pair_labels = utils.make_table_of_all_pairs(FAM,
+        output, pair_labels = utils.make_table_of_all_mouse_pairs(FAM,
                                                             phases,
                                                             mice)
     fig = plt.figure(figsize=(len(phases), 0.5*FAM.shape[0]))

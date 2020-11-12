@@ -34,7 +34,7 @@ def list_of_pairs(mice):
     return pair_labels
 
 
-def all_pairs(mice, reverse_order=False):
+def all_mouse_pairs(mice, reverse_order=False):
     pair_labels = []
     for mouse1 in mice:
         for mouse2 in mice:
@@ -61,11 +61,11 @@ def make_table_of_pairs(FAM, phases, mice):
     return output, pair_labels
 
 
-def make_table_of_all_pairs(FAM, phases, mice, reverse_order=False):
+def make_table_of_all_mouse_pairs(FAM, phases, mice, reverse_order=False):
     new_shape = (len(mice)*(len(mice)-1), len(phases))
     output = np.zeros(new_shape)
-    pair_labels = all_pairs(mice,
-                            reverse_order=reverse_order)
+    pair_labels = all_mouse_pairs(mice,
+                                  reverse_order=reverse_order)
     for i, phase in enumerate(phases):
         count = 0
         for j in range(len(mice)):

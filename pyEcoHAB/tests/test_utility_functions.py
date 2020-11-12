@@ -644,7 +644,7 @@ class TestAllPairs(unittest.TestCase):
         lista = ["Zdzisio",
                  "Zbysio",
                  "Henio"]
-        out = uf.all_pairs(lista)
+        out = uf.all_mouse_pairs(lista)
         expected = ["Zdzisio|Zbysio", "Zdzisio|Henio", "Zbysio|Zdzisio",
                     "Zbysio|Henio", "Henio|Zdzisio", "Henio|Zbysio"]
         self.assertEqual(out, expected)
@@ -656,7 +656,7 @@ class TestAllPairs(unittest.TestCase):
                  ]
         expected = ["Zbysio|Zdzisio", "Henio|Zdzisio", "Zdzisio|Zbysio",
                     "Henio|Zbysio", "Zdzisio|Henio", "Zbysio|Henio"]
-        out = uf.all_pairs(lista, reverse_order="True")
+        out = uf.all_mouse_pairs(lista, reverse_order="True")
         self.assertEqual(out, expected)
 
 
@@ -731,26 +731,26 @@ class TestMakeTableOfAllPairs(unittest.TestCase):
         cls.data[0, 0, 1] = 1
         cls.data[0, 0, 2] = 2
         cls.data[0, 1, 2] = 4
-        cls.out_data, cls.out = uf.make_table_of_all_pairs(cls.data,
+        cls.out_data, cls.out = uf.make_table_of_all_mouse_pairs(cls.data,
                                                            cls.phases,
                                                            cls.lista,
                                                            reverse_order=False)
-        cls.o_d_rev, cls.o_rev = uf.make_table_of_all_pairs(cls.data,
+        cls.o_d_rev, cls.o_rev = uf.make_table_of_all_mouse_pairs(cls.data,
                                                             cls.phases,
                                                             cls.lista,
                                                             reverse_order=True)
 
     def test_shape(self):
-        out_lista = uf.all_pairs(self.lista)
+        out_lista = uf.all_mouse_pairs(self.lista)
         self.assertEqual(self.out_data.shape,
                          (len(out_lista), len(self.phases)))
 
     def test_lista(self):
-        out_lista = uf.all_pairs(self.lista)
+        out_lista = uf.all_mouse_pairs(self.lista)
         self.assertEqual(out_lista, self.out)
 
     def test_lista_rev(self):
-        out_lista = uf.all_pairs(self.lista,
+        out_lista = uf.all_mouse_pairs(self.lista,
                                  reverse_order=True)
         self.assertEqual(out_lista, self.o_rev)
 
@@ -1348,7 +1348,7 @@ class TestAllPairs(unittest.TestCase):
                  "Zbysio",
                  "Henio",
                  "Gienio"]
-        out = uf.all_pairs(lista)
+        out = uf.all_mouse_pairs(lista)
         self.assertEqual(len(out), 12)
 
 

@@ -213,7 +213,7 @@ def following_matrices(directions_dict, mice, t_start, t_stop, keys):
     durations = t_stop - t_start
     followings = utils.make_results_dict(mice)
     time_together = utils.make_results_dict(mice)
-    labels = utils.all_pairs(mice)
+    labels = utils.all_mouse_pairs(mice)
     interval_details = {label: [] for label in labels}
     for mouse1 in mice:
         for mouse2 in mice:
@@ -306,7 +306,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="",
                                            method,
                                            prefix,
                                            add_info_mice)
-    keys = utils.all_pairs(mice)
+    keys = utils.all_mouse_pairs(mice)
     interval_details = {key: [] for key in keys}
     if ehd.how_many_antennas() > 2:
         vmax = 20
