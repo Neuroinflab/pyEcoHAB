@@ -7,13 +7,13 @@ from .plotting_functions import single_heat_map
 from . import utility_functions as utils
 
 
-def evaluate_whole_experiment(ehd, cf, main_directory,
+def evaluate_whole_experiment(ehd, timeline, main_directory,
                               prefix, func, fname,
                               xlabel, ylabel, title,
                               args=[], remove_mouse=None,
                               vmin=None, vmax=None,
                               delimiter=";"):
-    phases = cf.sections()
+    phases = timeline.sections()
     phases = utils.filter_dark(phases)
     mice = [mouse[-4:] for mouse in ehd.mice]
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
@@ -23,9 +23,9 @@ def evaluate_whole_experiment(ehd, cf, main_directory,
     rast_dir = os.path.join("other_variables", fname, 'raster_plots')
     for i, phase in enumerate(phases):
         if len(args):
-            result[i] = func(ehd, cf, phase, *args)
+            result[i] = func(ehd, timeline, phase, *args)
         else:
-            result[i] = func(ehd, cf, phase)
+            result[i] = func(ehd, timeline, phase)
         save_single_histograms(result[i],
                                fname,
                                ehd.mice,

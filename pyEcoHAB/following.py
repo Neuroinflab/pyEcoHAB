@@ -252,7 +252,7 @@ def add_intervals(all_intervals, phase_intervals):
         all_intervals[mouse].extend(phase_intervals[mouse])
 
 
-def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="",
+def get_dynamic_interactions(ehd, timeline, N, binsize=12*3600, res_dir="",
                              prefix="", remove_mouse=None,
                              save_distributions=True, save_figures=False,
                              return_median=False, delimiter=";",
@@ -264,7 +264,7 @@ def get_dynamic_interactions(ehd, cf, N, binsize=12*3600, res_dir="",
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     mice = utils.get_mice(ehd.mice, remove_mouse)
     phases, times, data, data_keys = utils.prepare_binned_registrations(ehd,
-                                                                        cf,
+                                                                        timeline,
                                                                         binsize,
                                                                         mice)
     if isinstance(seed, int):

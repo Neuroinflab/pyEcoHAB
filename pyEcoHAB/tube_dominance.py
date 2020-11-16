@@ -105,9 +105,9 @@ def check_mouse1_pushing(antennas1, times1, antennas2, times2,
         return dominance_counter/len(antennas2)/len(antennas1)
 
 
-def tube_dominance_single_phase(ehd, cf, phase, normalization):
+def tube_dominance_single_phase(ehd, timeline, phase, normalization):
     mice = ehd.mice
-    t_start, t_end = cf.get_time_from_epoch(phase)
+    t_start, t_end = timeline.get_time_from_epoch(phase)
     dominance = np.zeros((len(mice), len(mice)))
     for i, mouse1 in enumerate(mice):
         m1_times, m1_antennas = utils.get_times_antennas(ehd, mouse1,
@@ -127,7 +127,7 @@ def tube_dominance_single_phase(ehd, cf, phase, normalization):
     return dominance
 
 
-def get_tube_dominance(ehd, cf, prefix="", res_dir="", normalization=None,
+def get_tube_dominance(ehd, timeline, prefix="", res_dir="", normalization=None,
                        delimiter=";"):
     if normalization is None:
         fname = 'tube_dominance_no_normalization'
@@ -139,10 +139,10 @@ def get_tube_dominance(ehd, cf, prefix="", res_dir="", normalization=None,
         res_dir = ehd.res_dir
 
     if len(ehd.setup_config.tunnels) == 1:
-        dom2.get_tube_dominance_2_cages(ehd, cf, res_dir, prefix)
-        dom2.get_subversion_evaluation(ehd, cf, res_dir, prefix)
-        dom2.get_visits_to_stimulus_cage(ehd, cf, res_dir, prefix)
-    dispatch.evaluate_whole_experiment(ehd, cf, res_dir, prefix,
+        dom2.get_tube_dominance_2_cages(ehd, timeline, res_dir, prefix)
+        dom2.get_subversion_evaluation(ehd, timeline, res_dir, prefix)
+        dom2.get_visits_to_stimulus_cage(ehd, timeline, res_dir, prefix)
+    dispatch.evaluate_whole_experiment(ehd, timeline, res_dir, prefix,
                                        tube_dominance_single_phase,
                                        fname, 'dominating mouse',
                                        'pushed out mouse',

@@ -100,15 +100,15 @@ def make_solitude_output(addresses, mice):
     return output
 
 
-def get_solitude(ehs, cf, res_dir="", prefix="", delimiter=";"):
+def get_solitude(ehs, timeline, res_dir="", prefix="", delimiter=";"):
     if prefix == "":
         prefix = ehs.prefix
     if res_dir == "":
         res_dir = ehs.res_dir
-    phases = utils.filter_dark_light(cf.sections())
+    phases = utils.filter_dark_light(timeline.sections())
     output = make_solitude_output(ehs.cages, ehs.mice)
     for phase in phases:
-        times = cf.get_time_from_epoch(phase)
+        times = timeline.get_time_from_epoch(phase)
         data = utils.prepare_data(ehs, ehs.mice, times)
         for address in ehs.cages:
             alone = mouse_alone(data, address)
@@ -169,7 +169,7 @@ def single_phase_results(data, mice, addresses, total_time):
     return res, res_exp
 
 
-def get_incohort_sociability(ehs, cf, binsize, res_dir="",
+def get_incohort_sociability(ehs, timeline, binsize, res_dir="",
                              prefix="", remove_mouse="", delimiter=";"):
 
     """
@@ -194,7 +194,7 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
     Args:
         ehs : Loader or Loader_like
            Eco-HAB dataset.
-        cf : Timeline
+        timeline : Timeline
            timeline of the experiment.
         binsize : string or number
            time bins for calculating activity. Possible string values are:
@@ -228,7 +228,7 @@ def get_incohort_sociability(ehs, cf, binsize, res_dir="",
                                                                add_info_mice)
     excess_prefix = "incohort_sociability_excess_time_%s_%s" % (prefix,
                                                                 add_info_mice)
-    phases, time, data, keys = utils.prepare_binned_data(ehs, cf, binsize,
+    phases, time, data, keys = utils.prepare_binned_data(ehs, timeline, binsize,
                                                          mice)
 
     if isinstance(binsize, int) or isinstance(binsize, float):

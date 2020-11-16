@@ -437,16 +437,16 @@ def calc_excess(res, exp_res):
     return excess
 
 
-def get_dark_light_data(phase, cf, ehs, mice):
+def get_dark_light_data(phase, timeline, ehs, mice):
     if phase == "dark" or phase == "DARK" or phase == "Dark":
-        phases = filter_dark(cf.sections())
+        phases = filter_dark(timeline.sections())
     elif phase == "light" or phase == "LIGHT" or phase == "Light":
-        phases = filter_light(cf.sections())
+        phases = filter_light(timeline.sections())
     out_phases = [phase]
     data = {mouse: [] for mouse in mice}
     total_time = 0
     for i, ph in enumerate(phases):
-        time = cf.get_time_from_epoch(ph)
+        time = timeline.get_time_from_epoch(ph)
         out = prepare_data(ehs, mice, time)
         for mouse in mice:
             data[mouse].extend(out[mouse])
@@ -455,26 +455,26 @@ def get_dark_light_data(phase, cf, ehs, mice):
     return out_phases, {phase: {0: total_time}}, {phase: {0: data}}
 
 
-def prepare_binned_data(ehs, cf, bins, mice):
+def prepare_binned_data(ehs, timeline, bins, mice):
     total_time = OrderedDict()
     data = OrderedDict()
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
-        time = cf.get_time_from_epoch("ALL")
+        time = timeline.get_time_from_epoch("ALL")
         total_time["ALL"] = {0: (time[1] - time[0])}
         data["ALL"] = {0: prepare_data(ehs, mice, time)}
         keys = [["ALL"], [0]]
     elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
-        phases, total_time, data = get_dark_light_data(bins, cf, ehs, mice)
+        phases, total_time, data = get_dark_light_data(bins, timeline, ehs, mice)
         keys = [list(data.keys()), [0]]
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
-        all_phases = filter_dark_light(cf.sections())
-        shortest_phase = get_shortest_phase_duration(cf)
+        all_phases = filter_dark_light(timeline.sections())
+        shortest_phase = get_shortest_phase_duration(timeline)
         # you can not iterate by phases, if bins are longer than phases
         if bins > shortest_phase:
-            t_start = cf.get_time_from_epoch(all_phases[0])[0]
-            t_end = cf.get_time_from_epoch(all_phases[-1])[-1]
+            t_start = timeline.get_time_from_epoch(all_phases[0])[0]
+            t_end = timeline.get_time_from_epoch(all_phases[-1])[-1]
             bin_labels = [0.0]
             all_phases = []
             times = []
@@ -485,9 +485,9 @@ def prepare_binned_data(ehs, cf, bins, mice):
                 i += 1
                 t_start += bins
         else:
-            all_phases = filter_dark_light(cf.sections())
+            all_phases = filter_dark_light(timeline.sections())
             bin_labels = get_times(bins)
-            times = [cf.get_time_from_epoch(phase) for phase in all_phases]
+            times = [timeline.get_time_from_epoch(phase) for phase in all_phases]
         for i, phase in enumerate(all_phases):
             t_start, t_end = times[i]
             phases.append("%s_%4.2fh" % (phase.replace(" ", "_"), bins/3600))
@@ -550,23 +550,23 @@ def prepare_registrations(ehd, mice, st, en):
     return directions
 
 
-def prepare_binned_registrations(ehs, cf, bins, mice):
+def prepare_binned_registrations(ehs, timeline, bins, mice):
     total_time = OrderedDict()
     data = OrderedDict()
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
-        time = cf.get_time_from_epoch("ALL")
+        time = timeline.get_time_from_epoch("ALL")
         data["ALL"] = {0: prepare_registrations(ehs, mice, *time)}
         data_keys = [["ALL"], [0.0]]
         total_time["ALL"] = {0: time}
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
-        all_phases = filter_dark_light(cf.sections())
-        min_phase = get_shortest_phase_duration(cf)
+        all_phases = filter_dark_light(timeline.sections())
+        min_phase = get_shortest_phase_duration(timeline)
         # you can not iterate by phases, if bins are longer than phases
         if bins > min_phase:
-            t_start = cf.get_time_from_epoch(all_phases[0])[0]
-            t_end = cf.get_time_from_epoch(all_phases[-1])[-1]
+            t_start = timeline.get_time_from_epoch(all_phases[0])[0]
+            t_end = timeline.get_time_from_epoch(all_phases[-1])[-1]
             bin_labels = [0.0]
             all_phases = []
             times = []
@@ -577,9 +577,9 @@ def prepare_binned_registrations(ehs, cf, bins, mice):
                 i += 1
                 t_start += bins
         else:
-            all_phases = filter_dark_light(cf.sections())
+            all_phases = filter_dark_light(timeline.sections())
             bin_labels = get_times(bins)
-            times = [cf.get_time_from_epoch(phase) for phase in all_phases]
+            times = [timeline.get_time_from_epoch(phase) for phase in all_phases]
         for i, phase in enumerate(all_phases):
             t_start, t_end = times[i]
             phases.append("%s_%4.2fh" % (phase.replace(" ", "_"),
@@ -625,10 +625,10 @@ def make_all_results_dict(phases, bins):
     return result
 
 
-def get_shortest_phase_duration(cf):
+def get_shortest_phase_duration(timeline):
     durs = []
-    for phase in cf.sections():
-        time = cf.get_time_from_epoch(phase)
+    for phase in timeline.sections():
+        time = timeline.get_time_from_epoch(phase)
         durs.append(time[1] - time[0])
     return min(durs)
 

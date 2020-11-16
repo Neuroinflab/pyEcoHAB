@@ -9,7 +9,7 @@ from .write_to_file import write_registrations_stats
 from .plotting_functions import single_timeline_heat_map
 
 
-def get_single_antenna_stats(ehs, cf, binsize, antennas="ALL", res_dir="",
+def get_single_antenna_stats(ehs, timeline, binsize, antennas="ALL", res_dir="",
                              prefix="", remove_mouse="", delimiter=";"):
     """
     Count number and combined durations of registrations of each mouse tag
@@ -19,7 +19,7 @@ def get_single_antenna_stats(ehs, cf, binsize, antennas="ALL", res_dir="",
     Args:
         ehs : Loader or Loader_like
            Eco-HAB dataset.
-        cf : Timeline
+        timeline : Timeline
            timeline of the experiment.
         binsize : number
            time bins for calculating activity
@@ -51,12 +51,12 @@ def get_single_antenna_stats(ehs, cf, binsize, antennas="ALL", res_dir="",
     bin_ = binsize/3600
     fname_durations = "registration_duration_%4.2fh" % bin_
     fname_count = "registration_count_%4.2fh" % bin_
-    shortest_phase = utils.get_shortest_phase_duration(cf)
+    shortest_phase = utils.get_shortest_phase_duration(timeline)
     if binsize <= shortest_phase:
-        phases = cf.sections()
-        times = [cf.get_time_from_epoch(phase) for phase in phases]
+        phases = timeline.sections()
+        times = [timeline.get_time_from_epoch(phase) for phase in phases]
     else:
-        t_start, t_end = cf.get_time_from_epoch("ALL")
+        t_start, t_end = timeline.get_time_from_epoch("ALL")
         phases = []
         times = []
         i = 0

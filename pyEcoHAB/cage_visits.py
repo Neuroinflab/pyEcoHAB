@@ -82,7 +82,7 @@ def calculate_visits_and_durations(data, mice, address, t_start, t_end,
     return visits, durations, all_visits
 
 
-def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
+def get_activity(ehs, timeline, binsize, res_dir="", prefix="", remove_mouse="",
                  save_histogram=False, delimiter=";",
                  headers=['Number of visits to',
                           'Total time (sec) in']):
@@ -110,7 +110,7 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
     Args:
         ehs : Loader or Loader_like
            Eco-HAB dataset.
-        cf : Timeline
+        timeline : Timeline
            timeline of the experiment.
         binsize : number (seconds)
            time bins for calculating activity.
@@ -144,7 +144,7 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
         prefix = ehs.prefix
     if res_dir == "":
         res_dir = ehs.res_dir
-    phases = utils.filter_dark_light(cf.sections())
+    phases = utils.filter_dark_light(timeline.sections())
     fname = '%sactivity_bin_%3.2f_h.csv' % (prefix,
                                             binsize/3600)
     histogram_fname = 'activity_histograms_bin_%3.1f_h' % (binsize/3600)
@@ -152,8 +152,8 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
 
     if binsize > 12*3600:
-        t_start = cf.get_time_from_epoch(phases[0])[0]
-        t_end = cf.get_time_from_epoch(phases[-1])[-1]
+        t_start = timeline.get_time_from_epoch(phases[0])[0]
+        t_end = timeline.get_time_from_epoch(phases[-1])[-1]
         phases = []
         times = []
         i = 1
@@ -163,7 +163,7 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
             i += 1
             t_start += binsize
     else:
-        times = [cf.get_time_from_epoch(phase) for phase in phases]
+        times = [timeline.get_time_from_epoch(phase) for phase in phases]
     data = {c: {0: {}, 1: {}} for c in ehs.cages}
     ehs_data = utils.prepare_data(ehs, mice)
     bin_labels = {}

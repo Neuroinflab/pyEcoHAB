@@ -103,10 +103,10 @@ def find_stimulus_cage_mice(states, t_start, t_stop, beginning, dt):
     return mice
 
 
-def get_dominating_mice(ehd, cf, phase, mouse, states, homecage_entrance, dt):
+def get_dominating_mice(ehd, timeline, phase, mouse, states, homecage_entrance, dt):
     results = np.zeros((len(ehd.mice)))
-    t_start, t_end = cf.get_time_from_epoch(phase)
-    T_START, T_END = cf.get_time_from_epoch('ALL')
+    t_start, t_end = timeline.get_time_from_epoch(phase)
+    T_START, T_END = timeline.get_time_from_epoch('ALL')
     time, antennas = utils.get_times_antennas(ehd, mouse, t_start, t_end)
     idx = 1
     mice = ehd.mice
@@ -123,10 +123,10 @@ def get_dominating_mice(ehd, cf, phase, mouse, states, homecage_entrance, dt):
     return results
 
 
-def dominating_mice(ehd, cf, phase, states, homecage_entrance, dt=0.05):
+def dominating_mice(ehd, timeline, phase, states, homecage_entrance, dt=0.05):
     results = np.zeros((len(ehd.mice), len(ehd.mice)))
     for i, mouse in enumerate(ehd.mice):
-        results[:, i] = get_dominating_mice(ehd, cf, phase, mouse, states,
+        results[:, i] = get_dominating_mice(ehd, timeline, phase, mouse, states,
                                             homecage_entrance, dt=dt)
     return results
 
@@ -149,9 +149,9 @@ def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end, home
     return domination_counter
 
 
-def tube_dominance_2_cages(ehd, cf, phase, homecage_entrance):
+def tube_dominance_2_cages(ehd, timeline, phase, homecage_entrance):
     mice = ehd.mice
-    st, en = cf.get_time_from_epoch(phase)
+    st, en = timeline.get_time_from_epoch(phase)
     dominance =  np.zeros((len(mice), len(mice)))
     for i, mouse1 in enumerate(mice):
         for j, mouse2 in enumerate(mice):
@@ -245,15 +245,15 @@ def check_mouse1_defending(antennas1, times1, antennas2, times2,
     return dominance_counter
 
 
-def get_tube_dominance_2_cages(ehd, cf, res_dir=None, prefix=None, dt=0.05,
+def get_tube_dominance_2_cages(ehd, timeline, res_dir=None, prefix=None, dt=0.05,
                                delimiter=";"):
-    t_start, t_end = cf.get_time_from_epoch('ALL')
+    t_start, t_end = timeline.get_time_from_epoch('ALL')
     states = get_states(ehd, t_start, t_end, dt)
     if res_dir is None:
         res_dir = ehd.res_dir
     if prefix is None:
         prefix = ehd.prefix
-    dispatch.evaluate_whole_experiment(ehd, cf, res_dir, prefix,
+    dispatch.evaluate_whole_experiment(ehd, timeline, res_dir, prefix,
                                        tube_dominance_2_cages,
                                        'mouse_pushing_out_conditioning_compartment',
                                        'dominating mouse',
@@ -264,14 +264,14 @@ def get_tube_dominance_2_cages(ehd, cf, res_dir=None, prefix=None, dt=0.05,
                                        delimiter=delimiter)
 
 
-def get_subversion_evaluation(ehd, cf, res_dir=None, prefix=None, dt=0.05,
+def get_subversion_evaluation(ehd, timeline, res_dir=None, prefix=None, dt=0.05,
                               delimiter=";"):
     if res_dir is None:
         res_dir = ehd.res_dir
     if prefix is None:
         prefix = ehd.prefix
-    states = get_states(ehd, cf, dt)
-    dispatch.evaluate_whole_experiment(ehd, cf, res_dir, prefix,
+    states = get_states(ehd, timeline, dt)
+    dispatch.evaluate_whole_experiment(ehd, timeline, res_dir, prefix,
                                        dominating_mice,
                                        'subversion_evaluation',
                                        'dominating mouse',
@@ -293,19 +293,19 @@ def how_many_visits(states, t_start, t_end, T_0, dt):
 
 
 
-def get_visits_to_stimulus_cage(ehd, cf, res_dir="", prefix="", dt=0.05,
+def get_visits_to_stimulus_cage(ehd, timeline, res_dir="", prefix="", dt=0.05,
                                 delimiter=";"):
     if res_dir == "":
         res_dir = ehd.res_dir
     if prefix == "":
         prefix = ehd.prefix
-    states = get_states(ehd, cf, dt)
-    phases = utils.filter_dark_light(cf.sections())
+    states = get_states(ehd, timeline, dt)
+    phases = utils.filter_dark_light(timeline.sections())
     results = np.zeros((1,  len(ehd.mice), len(phases)))
     cumulative = np.zeros((1, len(ehd.mice)))
-    T_0, T_1 = cf.get_time_from_epoch("ALL")
+    T_0, T_1 = timeline.get_time_from_epoch("ALL")
     for i, phase in enumerate(phases):
-        t_start, t_end = cf.get_time_from_epoch(phase)
+        t_start, t_end = timeline.get_time_from_epoch(phase)
         for j, mouse in enumerate(ehd.mice):
             results[0, j, i] = how_many_visits(states[mouse], t_start, t_end, T_0, dt)
     for j, mouse in enumerate(ehd.mice):
