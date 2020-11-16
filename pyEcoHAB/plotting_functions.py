@@ -656,7 +656,6 @@ def histograms_antenna_transitions(transition_times, config, res_dir,
     dir_correct_different = os.path.join(directory,
                                          "correct_antenna_transition",
                                          "different_antenna")
-
     dir_incorrect = os.path.join(directory,
                                  "incorrect_antenna_transition")
     title_double_a = "consecutive crossing of antenna %s entrance to %s"
@@ -668,70 +667,68 @@ def histograms_antenna_transitions(transition_times, config, res_dir,
     xlogscale = {}
     xmin = 1000
     xmax = 0
+    incorrect_transitions = []
+    allowed_keys = []
     for key in transition_times.keys():
         if not len(transition_times[key]):
             continue
         first, last = key.split(" ")
         gen_key = "%s %s" % (min(first, last), max(first, last))
         if gen_key in config.mismatched_pairs:
-            dir_name[key] = dir_incorrect
+            incorrect_transitions.extend(transition_times[key])
         else:
+            allowed_keys.append(key)
             if first == last:
                 dir_name[key] = dir_correct_same
+                title[key] = title_double_a % (first,
+                                          config.address[first])
             else:
                 dir_name[key] = dir_correct_different
-        if first == last:
-            title[key] = title_double_a % (first,
-                                          config.address[first])
-        else:
-            if key in config.directions:
                 title[key] = "%s (tunnel)" % key
-            elif gen_key in config.mismatched_pairs:
-                title[key] = key
-            else:
-                title[key] = "%s cage %s" %(key,
-                                           config.address[first])
-        xlogscale[key] = False
-        nbins[key] = 10
-        if len(transition_times[key]) > 1000:
-            nbins[key] = 40
-            if max(transition_times[key]) > 1000*min(transition_times[key]):
-                xlogscale[key] = True
-        while True:
-            if 0 in transition_times[key]:
-                transition_times[key].remove(0)
-            else:
-                break
-        hist, bins = np.histogram(transition_times[key], nbins[key])
-        if xlogscale[key]:
-            logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]),
-                                  len(bins))
-            hist, bins = np.histogram(transition_times[key], bins=logbins)
+            xlogscale[key] = False
+            nbins[key] = 10
+            if len(transition_times[key]) > 1000:
+                nbins[key] = 40
+                if max(transition_times[key]) > 1000*min(transition_times[key]):
+                    xlogscale[key] = True
+            while True:
+                if 0 in transition_times[key]:
+                    transition_times[key].remove(0)
+                else:
+                    break
+            hist, bins = np.histogram(transition_times[key], nbins[key])
+            if xlogscale[key]:
+                logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]),
+                                      len(bins))
+                hist, bins = np.histogram(transition_times[key], bins=logbins)
 
-        fname[key] = "transition_times_antennas_%s" % key
-        if max(hist) > max_count:
-            max_count = max(hist) + 5
-        if xmin > min(transition_times[key]):
-            xmin =  min(transition_times[key]) - 0.5
-        if xmax < max(transition_times[key]):
-            xmax = max(transition_times[key]) + 0.5
-    for key in transition_times.keys():
+            fname[key] = "transition_times_antennas_%s" % key
+            if max(hist) > max_count:
+                max_count = max(hist) + 5
+            if xmin > min(transition_times[key]):
+                xmin =  min(transition_times[key]) - 0.5
+            if xmax < max(transition_times[key]):
+                xmax = max(transition_times[key]) + 0.5
+                
+    for key in allowed_keys:
         if not len(transition_times[key]):
             continue
-        if dir_name[key] == dir_correct_same or dir_name[key] == dir_correct_different:
-            single_histogram_figures(transition_times[key], fname[key],
-                                     res_dir, dir_name[key], title[key],
-                                     nbins=nbins[key],
-                                     xlogscale=xlogscale[key],
-                                     xlabel="Transition times (s)",
-                                     ylabel="count", xmin=xmin, xmax=xmax,
-                                     ymin=0, ymax=max_count,
-                                     fontsize=14, median_mean=True)
-        else:
-            single_histogram_figures(transition_times[key], fname[key],
-                                     res_dir, dir_name[key], title[key],
-                                     nbins=nbins[key],
-                                     xlogscale=xlogscale[key],
-                                     xlabel="Transition times (s)",
-                                     ylabel="count",
-                                     fontsize=14, median_mean=True)
+            
+        single_histogram_figures(transition_times[key], fname[key],
+                                 res_dir, dir_name[key], title[key],
+                                 nbins=nbins[key],
+                                 xlogscale=xlogscale[key],
+                                 xlabel="Transition times (s)",
+                                 ylabel="count", xmin=xmin, xmax=xmax,
+                                 ymin=0, ymax=max_count,
+                                 fontsize=14, median_mean=True)
+    
+    single_histogram_figures(incorrect_transitions, "incorrect_transitions",
+                             res_dir, dir_incorrect,
+                             "Incorrect antenna transitions",
+                             nbins=30,
+                             xlogscale=True,
+                             xlabel="Transition times (s)",
+                             ylabel="count",
+                             fontsize=14, median_mean=True)
+    return incorrect_transitions
