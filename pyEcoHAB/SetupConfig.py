@@ -141,8 +141,8 @@ class SetupConfigMethods(RawConfigParser):
 
     def get_same_address(self):
         """
-        Return a dictionary listing for every entrance antenna to a cage
-        all the entrance antennas to that cage.
+        Return a dictionary listing for every antenna all the entrance
+        antennas to the same cage and internal antennas in that cage.
         """
         cage_dict = self.get_cages_dict()
         out = {}
@@ -176,7 +176,7 @@ class SetupConfigMethods(RawConfigParser):
 
     def other_cage_antenna(self, new_antenna):
         """
-        Return other entrance antennas to the same cage.
+        Return other antennas to the same cage.
         """
         antenna = new_antenna
         cage_antennas = self.same_address[antenna][:]
