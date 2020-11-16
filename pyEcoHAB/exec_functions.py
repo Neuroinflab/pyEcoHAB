@@ -7,7 +7,7 @@ from .plotting_functions import single_heat_map
 from . import utility_functions as utils
 
 
-def evaluate_whole_experiment(ehd, timeline, main_directory,
+def evaluate_whole_experiment(ecohab_data, timeline, main_directory,
                               prefix, func, fname,
                               xlabel, ylabel, title,
                               args=[], remove_mouse=None,
@@ -15,7 +15,7 @@ def evaluate_whole_experiment(ehd, timeline, main_directory,
                               delimiter=";"):
     phases = timeline.sections()
     phases = utils.filter_dark(phases)
-    mice = [mouse[-4:] for mouse in ehd.mice]
+    mice = [mouse[-4:] for mouse in ecohab_data.mice]
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     result = np.zeros((len(phases), len(mice), len(mice)))
     fname_ = '%s_%s%s.csv' % (fname, prefix, add_info_mice)
@@ -23,12 +23,12 @@ def evaluate_whole_experiment(ehd, timeline, main_directory,
     rast_dir = os.path.join("other_variables", fname, 'raster_plots')
     for i, phase in enumerate(phases):
         if len(args):
-            result[i] = func(ehd, timeline, phase, *args)
+            result[i] = func(ecohab_data, timeline, phase, *args)
         else:
-            result[i] = func(ehd, timeline, phase)
+            result[i] = func(ecohab_data, timeline, phase)
         save_single_histograms(result[i],
                                fname,
-                               ehd.mice,
+                               ecohab_data.mice,
                                phase,
                                main_directory,
                                hist_dir,
@@ -48,7 +48,7 @@ def evaluate_whole_experiment(ehd, timeline, main_directory,
                         vmin=vmax,
                         xticks=mice,
                         yticks=mice)
-    write_csv_rasters(ehd.mice,
+    write_csv_rasters(ecohab_data.mice,
                       phases,
                       result,
                       main_directory,

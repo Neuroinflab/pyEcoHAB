@@ -9,7 +9,7 @@ from .write_to_file import write_registrations_stats
 from .plotting_functions import single_timeline_heat_map
 
 
-def get_single_antenna_stats(ehs, timeline, binsize, antennas="ALL", res_dir="",
+def get_single_antenna_stats(ecohab_data, timeline, binsize, antennas="ALL", res_dir="",
                              prefix="", remove_mouse="", delimiter=";"):
     """
     Count number and combined durations of registrations of each mouse tag
@@ -17,7 +17,7 @@ def get_single_antenna_stats(ehs, timeline, binsize, antennas="ALL", res_dir="",
     registered in every phase.
 
     Args:
-        ehs : Loader or Loader_like
+        ecohab_data : Loader or Loader_like
            Eco-HAB dataset.
         timeline : Timeline
            timeline of the experiment.
@@ -30,22 +30,22 @@ def get_single_antenna_stats(ehs, timeline, binsize, antennas="ALL", res_dir="",
            Default value is all antennas
         res_dir : string
            destination directory
-           default value is the destination directory established for ehs.
+           default value is the destination directory established for ecohab_data.
         prefix : string
            string added to the name of every generated results file
-           default value is the prefix established for ehs
+           default value is the prefix established for ecohab_data
         remove_mouse : string or list
            name of mouse or mice to be removed from the results file
            As a default activity will be established for every mouse registered
-           in ehs.
+           in ecohab_data.
         delimiter : str, optional
            String or character separating columns.
     """
     if prefix == "":
-        prefix = ehs.prefix
+        prefix = ecohab_data.prefix
     if res_dir == "":
-        res_dir = ehs.res_dir
-    mice = utils.get_mice(ehs.mice, remove_mouse)
+        res_dir = ecohab_data.res_dir
+    mice = utils.get_mice(ecohab_data.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     out_dir = os.path.join("other_variables", "registration_stats")
     bin_ = binsize/3600
@@ -66,8 +66,8 @@ def get_single_antenna_stats(ehs, timeline, binsize, antennas="ALL", res_dir="",
             t_start += binsize
             i += 1
     if antennas == "ALL":
-        antennas = sorted(set(ehs.get_antennas(ehs.mice)))
-    if antennas in ehs.all_antennas:
+        antennas = sorted(set(ecohab_data.get_antennas(ecohab_data.mice)))
+    if antennas in ecohab_data.all_antennas:
         antennas = [antennas]
     if not isinstance(antennas, list):
         raise Exception("""Incorrect antenna format.
@@ -81,7 +81,7 @@ def get_single_antenna_stats(ehs, timeline, binsize, antennas="ALL", res_dir="",
             count[antenna] = OrderedDict()
             durations[antenna] = OrderedDict()
             for mouse in mice:
-                results = ehs.get_registration_stats(mouse,
+                results = ecohab_data.get_registration_stats(mouse,
                                                      t_start,
                                                      t_end,
                                                      antenna,

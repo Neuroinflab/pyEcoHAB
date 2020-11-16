@@ -32,23 +32,23 @@ def single_mouse_antenna_transitions(ants, ts):
     return out
 
 
-def get_antenna_transitions(ehd):
+def get_antenna_transitions(ecohab_data):
     transition_times = {}
-    for antenna1 in ehd.setup_config.all_antennas:
-        for antenna2 in ehd.setup_config.all_antennas:
+    for antenna1 in ecohab_data.setup_config.all_antennas:
+        for antenna2 in ecohab_data.setup_config.all_antennas:
             key = "%s %s" % (antenna1, antenna2)
             transition_times[key] = []
         
-    for mouse in ehd.mice:
-        antennas = ehd.get_antennas(mouse)
-        times = ehd.get_times(mouse)
+    for mouse in ecohab_data.mice:
+        antennas = ecohab_data.get_antennas(mouse)
+        times = ecohab_data.get_times(mouse)
         out = single_mouse_antenna_transitions(antennas, times)
         for key in out:
             transition_times[key].extend(out[key])
-    histograms_antenna_transitions(transition_times, ehd.setup_config,
-                                   ehd.res_dir, directory)
+    histograms_antenna_transitions(transition_times, ecohab_data.setup_config,
+                                   ecohab_data.res_dir, directory)
     save_antenna_transitions(transition_times, "transition_durations.csv",
-                             ehd.res_dir, directory)
+                             ecohab_data.res_dir, directory)
     return transition_times
 
 def get_registration_trains(data):
@@ -150,9 +150,9 @@ def incorrect_tunnel_single_mouse(keys, antennas, times, durations):
     return count, total_count
 
 
-def get_incorrect_tunnel_registrations(ehd):
+def get_incorrect_tunnel_registrations(ecohab_data):
     count = {}
-    directions = ehd.setup_config.directions
+    directions = ecohab_data.setup_config.directions
     total_count = {}
     for direction in directions:
         a1, a2 = direction.split(" ")
@@ -160,10 +160,10 @@ def get_incorrect_tunnel_registrations(ehd):
         count[key] = 0
         total_count[key] = 0
 
-    for mouse in ehd.mice:
-        antennas1 = ehd.get_antennas(mouse)
-        times1 = ehd.get_times(mouse)
-        durations1 = ehd.get_durations(mouse)
+    for mouse in ecohab_data.mice:
+        antennas1 = ecohab_data.get_antennas(mouse)
+        times1 = ecohab_data.get_times(mouse)
+        durations1 = ecohab_data.get_durations(mouse)
         out_count, out_tot_count = incorrect_tunnel_single_mouse(count.keys(),
                                                                  antennas1,
                                                                  times1,
@@ -174,7 +174,7 @@ def get_incorrect_tunnel_registrations(ehd):
 
     fname = "incorrect_tunnel_registrations.csv"
     header = "tunnel, count, percentage of all passings through the tunnel\n"
-    save_mismatches(count, total_count, ehd.res_dir, fname=fname, header=header)
+    save_mismatches(count, total_count, ecohab_data.res_dir, fname=fname, header=header)
     return count, total_count
                     
         

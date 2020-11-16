@@ -114,9 +114,9 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, N, phase,
     stf: save times following"""
 
     if res_dir is None:
-        res_dir = ehd.res_dir
+        res_dir = ecohab_data.res_dir
     if prefix is None:
-        prefix = ehd.prefix
+        prefix = ecohab_data.prefix
 
     followings, times_following = bootstrap_single_phase(directions_dict,
                                                          mice,
@@ -252,18 +252,18 @@ def add_intervals(all_intervals, phase_intervals):
         all_intervals[mouse].extend(phase_intervals[mouse])
 
 
-def get_dynamic_interactions(ehd, timeline, N, binsize=12*3600, res_dir="",
+def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600, res_dir="",
                              prefix="", remove_mouse=None,
                              save_distributions=True, save_figures=False,
                              return_median=False, delimiter=";",
                              save_times_following=False, seed=None):
     if res_dir == "":
-        res_dir = ehd.res_dir
+        res_dir = ecohab_data.res_dir
     if prefix == "":
-        prefix = ehd.prefix
+        prefix = ecohab_data.prefix
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    mice = utils.get_mice(ehd.mice, remove_mouse)
-    phases, times, data, data_keys = utils.prepare_binned_registrations(ehd,
+    mice = utils.get_mice(ecohab_data.mice, remove_mouse)
+    phases, times, data, data_keys = utils.prepare_binned_registrations(ecohab_data,
                                                                         timeline,
                                                                         binsize,
                                                                         mice)
@@ -308,7 +308,7 @@ def get_dynamic_interactions(ehd, timeline, N, binsize=12*3600, res_dir="",
                                            add_info_mice)
     keys = utils.all_mouse_pairs(mice)
     interval_details = {key: [] for key in keys}
-    if ehd.how_many_antennas() > 2:
+    if ecohab_data.how_many_antennas() > 2:
         vmax = 20
         vmin1 = -20
         vmax1 = 20
@@ -363,7 +363,7 @@ def get_dynamic_interactions(ehd, timeline, N, binsize=12*3600, res_dir="",
             t_start, t_stop = times[ph][lab]
             directions_dict = data[ph][lab]
             out = following_matrices(directions_dict, mice, t_start, t_stop,
-                                     ehd.directions)
+                                     ecohab_data.directions)
             following[ph][lab], time_together[ph][lab], phase_intervals1 = out
             duration = t_stop - t_start
             out_expected = resample_single_phase(directions_dict,
@@ -372,7 +372,7 @@ def get_dynamic_interactions(ehd, timeline, N, binsize=12*3600, res_dir="",
                                                  t_stop,
                                                  N,
                                                  new_phase,
-                                                 ehd.directions,
+                                                 ecohab_data.directions,
                                                  res_dir=res_dir,
                                                  prefix=prefix,
                                                  stf=save_times_following,

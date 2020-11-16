@@ -40,7 +40,7 @@ endtime = 00:00
 Such a configuration file is read using a helper class Timeline (defined in Timeline.py):
 cf = Timeline(path_to_data),
 and masking can be now achieved using eg.:
-ehs.mask_data(*cf.get_time_from_epoch('EMPTY 1 dark'))
+ecohab_data.mask_data(*cf.get_time_from_epoch('EMPTY 1 dark'))
 From now on all responses will be limited to sessions starting during the 'EMPTY 1 dark' phase. 
 
 Both scripts for data analysis and an example data set (one cohort of BALB VPA mice) are provided as supplementary online material.

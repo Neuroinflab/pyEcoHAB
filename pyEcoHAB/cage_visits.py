@@ -82,7 +82,7 @@ def calculate_visits_and_durations(data, mice, address, t_start, t_end,
     return visits, durations, all_visits
 
 
-def get_activity(ehs, timeline, binsize, res_dir="", prefix="", remove_mouse="",
+def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="", remove_mouse="",
                  save_histogram=False, delimiter=";",
                  headers=['Number of visits to',
                           'Total time (sec) in']):
@@ -108,7 +108,7 @@ def get_activity(ehs, timeline, binsize, res_dir="", prefix="", remove_mouse="",
     for 1 h bins. Visit count is an integer. Visit duration is a float.
 
     Args:
-        ehs : Loader or Loader_like
+        ecohab_data : Loader or Loader_like
            Eco-HAB dataset.
         timeline : Timeline
            timeline of the experiment.
@@ -118,14 +118,14 @@ def get_activity(ehs, timeline, binsize, res_dir="", prefix="", remove_mouse="",
            equal 3600 results in 1 h bins.
         res_dir : string
            destination directory
-           default value is the destination directory established for ehs.
+           default value is the destination directory established for ecohab_data.
         prefix : string
            string added to the name of every generated results file
-           default value is the prefix established for ehs
+           default value is the prefix established for ecohab_data
         remove_mouse : string or list
            name of mouse or mice to be removed from the results file
            As a default activity will be established for every mouse registered
-           in ehs.
+           in ecohab_data.
         save_histogram :
            if True save visit durations to every bin and generate histograms
            of vist durations
@@ -141,14 +141,14 @@ def get_activity(ehs, timeline, binsize, res_dir="", prefix="", remove_mouse="",
 
     """
     if prefix == "":
-        prefix = ehs.prefix
+        prefix = ecohab_data.prefix
     if res_dir == "":
-        res_dir = ehs.res_dir
+        res_dir = ecohab_data.res_dir
     phases = utils.filter_dark_light(timeline.sections())
     fname = '%sactivity_bin_%3.2f_h.csv' % (prefix,
                                             binsize/3600)
     histogram_fname = 'activity_histograms_bin_%3.1f_h' % (binsize/3600)
-    mice = utils.get_mice(ehs.mice, remove_mouse)
+    mice = utils.get_mice(ecohab_data.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
 
     if binsize > 12*3600:
@@ -164,14 +164,14 @@ def get_activity(ehs, timeline, binsize, res_dir="", prefix="", remove_mouse="",
             t_start += binsize
     else:
         times = [timeline.get_time_from_epoch(phase) for phase in phases]
-    data = {c: {0: {}, 1: {}} for c in ehs.cages}
-    ehs_data = utils.prepare_data(ehs, mice)
+    data = {c: {0: {}, 1: {}} for c in ecohab_data.cages}
+    ecohab_data_data = utils.prepare_data(ecohab_data, mice)
     bin_labels = {}
     for idx_phase, phase in enumerate(phases):
         t_start, t_end = times[idx_phase]
         visits_in_cages = {}
-        for address in ehs.cages:
-            visit_data = calculate_visits_and_durations(ehs_data,
+        for address in ecohab_data.cages:
+            visit_data = calculate_visits_and_durations(ecohab_data_data,
                                                         mice,
                                                         address,
                                                         t_start,
@@ -196,8 +196,8 @@ def get_activity(ehs, timeline, binsize, res_dir="", prefix="", remove_mouse="",
                                 "other_variables/visit_histograms_binsize_%3.1f"
                                 % (binsize/3600),
                                 prefix, add_info_mice)
-    save_data_cvs(data, phases, mice, bin_labels, fname, res_dir, ehs.cages,
+    save_data_cvs(data, phases, mice, bin_labels, fname, res_dir, ecohab_data.cages,
                   headers)
-    save_data_cvs(data, phases, mice, bin_labels, fname, res_dir, ehs.cages,
+    save_data_cvs(data, phases, mice, bin_labels, fname, res_dir, ecohab_data.cages,
                   headers, target_dir="social_approach")
     return data

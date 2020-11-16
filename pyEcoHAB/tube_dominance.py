@@ -105,16 +105,16 @@ def check_mouse1_pushing(antennas1, times1, antennas2, times2,
         return dominance_counter/len(antennas2)/len(antennas1)
 
 
-def tube_dominance_single_phase(ehd, timeline, phase, normalization):
-    mice = ehd.mice
+def tube_dominance_single_phase(ecohab_data, timeline, phase, normalization):
+    mice = ecohab_data.mice
     t_start, t_end = timeline.get_time_from_epoch(phase)
     dominance = np.zeros((len(mice), len(mice)))
     for i, mouse1 in enumerate(mice):
-        m1_times, m1_antennas = utils.get_times_antennas(ehd, mouse1,
+        m1_times, m1_antennas = utils.get_times_antennas(ecohab_data, mouse1,
                                                          t_start, t_end)
         for j, mouse2 in enumerate(mice):
             if i != j:
-                m2_times, m2_antennas = utils.get_times_antennas(ehd, mouse2,
+                m2_times, m2_antennas = utils.get_times_antennas(ecohab_data, mouse2,
                                                                  t_start,
                                                                  t_end)
 
@@ -122,27 +122,27 @@ def tube_dominance_single_phase(ehd, timeline, phase, normalization):
                                                        m1_times,
                                                        m2_antennas,
                                                        m2_times,
-                                                       ehd.setup_config,
+                                                       ecohab_data.setup_config,
                                                        normalization)
     return dominance
 
 
-def get_tube_dominance(ehd, timeline, prefix="", res_dir="", normalization=None,
+def get_tube_dominance(ecohab_data, timeline, prefix="", res_dir="", normalization=None,
                        delimiter=";"):
     if normalization is None:
         fname = 'tube_dominance_no_normalization'
     else:
         fname = 'tube_dominance_%s' % normalization
     if prefix == "":
-        prefix = ehd.prefix
+        prefix = ecohab_data.prefix
     if res_dir == "":
-        res_dir = ehd.res_dir
+        res_dir = ecohab_data.res_dir
 
-    if len(ehd.setup_config.tunnels) == 1:
-        dom2.get_tube_dominance_2_cages(ehd, timeline, res_dir, prefix)
-        dom2.get_subversion_evaluation(ehd, timeline, res_dir, prefix)
-        dom2.get_visits_to_stimulus_cage(ehd, timeline, res_dir, prefix)
-    dispatch.evaluate_whole_experiment(ehd, timeline, res_dir, prefix,
+    if len(ecohab_data.setup_config.tunnels) == 1:
+        dom2.get_tube_dominance_2_cages(ecohab_data, timeline, res_dir, prefix)
+        dom2.get_subversion_evaluation(ecohab_data, timeline, res_dir, prefix)
+        dom2.get_visits_to_stimulus_cage(ecohab_data, timeline, res_dir, prefix)
+    dispatch.evaluate_whole_experiment(ecohab_data, timeline, res_dir, prefix,
                                        tube_dominance_single_phase,
                                        fname, 'dominating mouse',
                                        'pushed out mouse',

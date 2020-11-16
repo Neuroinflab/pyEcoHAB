@@ -649,7 +649,7 @@ def make_visit_duration_histogram(results, time, phase, mice,
         plt.close(fig)
 
 
-def histograms_antenna_transitions(transition_times, config, res_dir,
+def histograms_antenna_transitions(transition_times, setup_config, res_dir,
                                    directory):
     dir_correct_same = os.path.join(directory, "correct_antenna_transition",
                                     "same_antenna")
@@ -674,14 +674,14 @@ def histograms_antenna_transitions(transition_times, config, res_dir,
             continue
         first, last = key.split(" ")
         gen_key = "%s %s" % (min(first, last), max(first, last))
-        if gen_key in config.mismatched_pairs:
+        if gen_key in setup_config.mismatched_pairs:
             incorrect_transitions.extend(transition_times[key])
         else:
             allowed_keys.append(key)
             if first == last:
                 dir_name[key] = dir_correct_same
                 title[key] = title_double_a % (first,
-                                          config.address[first])
+                                          setup_config.address[first])
             else:
                 dir_name[key] = dir_correct_different
                 title[key] = "%s (tunnel)" % key

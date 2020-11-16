@@ -100,19 +100,19 @@ def make_solitude_output(addresses, mice):
     return output
 
 
-def get_solitude(ehs, timeline, res_dir="", prefix="", delimiter=";"):
+def get_solitude(ecohab_data, timeline, res_dir="", prefix="", delimiter=";"):
     if prefix == "":
-        prefix = ehs.prefix
+        prefix = ecohab_data.prefix
     if res_dir == "":
-        res_dir = ehs.res_dir
+        res_dir = ecohab_data.res_dir
     phases = utils.filter_dark_light(timeline.sections())
-    output = make_solitude_output(ehs.cages, ehs.mice)
+    output = make_solitude_output(ecohab_data.cages, ecohab_data.mice)
     for phase in phases:
         times = timeline.get_time_from_epoch(phase)
-        data = utils.prepare_data(ehs, ehs.mice, times)
-        for address in ehs.cages:
+        data = utils.prepare_data(ecohab_data, ecohab_data.mice, times)
+        for address in ecohab_data.cages:
             alone = mouse_alone(data, address)
-            for mouse in ehs.mice:
+            for mouse in ecohab_data.mice:
                 output[address][mouse][phase] = alone[mouse]
     write_csv_alone(output, phases, res_dir, prefix, delimiter=delimiter)
     return output
@@ -169,7 +169,7 @@ def single_phase_results(data, mice, addresses, total_time):
     return res, res_exp
 
 
-def get_incohort_sociability(ehs, timeline, binsize, res_dir="",
+def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                              prefix="", remove_mouse="", delimiter=";"):
 
     """
@@ -192,7 +192,7 @@ def get_incohort_sociability(ehs, timeline, binsize, res_dir="",
 
 
     Args:
-        ehs : Loader or Loader_like
+        ecohab_data : Loader or Loader_like
            Eco-HAB dataset.
         timeline : Timeline
            timeline of the experiment.
@@ -205,22 +205,22 @@ def get_incohort_sociability(ehs, timeline, binsize, res_dir="",
            equal 3600 results in 1 h bins.
         res_dir : string
            destination directory
-           default value is the destination directory established for ehs.
+           default value is the destination directory established for ecohab_data.
         prefix : string
            string added to the name of every generated results file
-           default value is the prefix established for ehs
+           default value is the prefix established for ecohab_data
         remove_mouse : string or list
            name of mouse or mice to be removed from the results file
            As a default activity will be established for every mouse registered
-           in ehs.
+           in ecohab_data.
         delimiter : str, optional
            String or character separating columns.
     """
     if prefix == "":
-        prefix = ehs.prefix
+        prefix = ecohab_data.prefix
     if res_dir == "":
-        res_dir = ehs.res_dir
-    mice = utils.get_mice(ehs.mice, remove_mouse)
+        res_dir = ecohab_data.res_dir
+    mice = utils.get_mice(ecohab_data.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     meas_prefix = "incohort_sociability_measured_time_%s_%s" % (prefix,
                                                                 add_info_mice)
@@ -228,7 +228,7 @@ def get_incohort_sociability(ehs, timeline, binsize, res_dir="",
                                                                add_info_mice)
     excess_prefix = "incohort_sociability_excess_time_%s_%s" % (prefix,
                                                                 add_info_mice)
-    phases, time, data, keys = utils.prepare_binned_data(ehs, timeline, binsize,
+    phases, time, data, keys = utils.prepare_binned_data(ecohab_data, timeline, binsize,
                                                          mice)
 
     if isinstance(binsize, int) or isinstance(binsize, float):
@@ -262,7 +262,7 @@ def get_incohort_sociability(ehs, timeline, binsize, res_dir="",
             full_results[ph][lab],\
                 full_results_exp[ph][lab] = single_phase_results(data[ph][lab],
                                                                  mice,
-                                                                 ehs.cages,
+                                                                 ecohab_data.cages,
                                                                  time[ph][lab])
 
         write_binned_data(full_results[ph],

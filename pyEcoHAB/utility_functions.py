@@ -176,13 +176,13 @@ def change_state(antennas):
     return indx
 
 
-def get_times_antennas(ehd, mouse, t_1, t_2):
+def get_times_antennas(ecohab_data, mouse, t_1, t_2):
     if t_1 == 0 and t_2 == -1:
-        ehd.unmask_data()
-        return ehd.get_times(mouse), ehd.get_antennas(mouse)
-    ehd.mask_data(t_1, t_2)
-    antennas, times = ehd.get_antennas(mouse), ehd.get_times(mouse)
-    ehd.unmask_data()
+        ecohab_data.unmask_data()
+        return ecohab_data.get_times(mouse), ecohab_data.get_antennas(mouse)
+    ecohab_data.mask_data(t_1, t_2)
+    antennas, times = ecohab_data.get_antennas(mouse), ecohab_data.get_times(mouse)
+    ecohab_data.unmask_data()
     return times, antennas
 
 
@@ -292,33 +292,33 @@ def get_indices(t_start, t_end, starts, ends):
     return sorted(list(set(idx_start + idx_end)))
 
 
-def get_ehs_data_with_margin(ehs, mouse, t_start, t_end,
+def get_ecohab_data_data_with_margin(ecohab_data, mouse, t_start, t_end,
                              margin=12*3600):
     if t_start == 0 and t_end == -1:
-        return ehs.get_visit_addresses(mouse),\
-            ehs.get_starttimes(mouse),\
-            ehs.get_endtimes(mouse)
-    ehs.mask_data(t_start - margin, t_end + margin)
-    adresses = ehs.get_visit_addresses(mouse)
-    starts = ehs.get_starttimes(mouse)
-    ends = ehs.get_endtimes(mouse)
-    ehs.unmask_data()
+        return ecohab_data.get_visit_addresses(mouse),\
+            ecohab_data.get_starttimes(mouse),\
+            ecohab_data.get_endtimes(mouse)
+    ecohab_data.mask_data(t_start - margin, t_end + margin)
+    adresses = ecohab_data.get_visit_addresses(mouse)
+    starts = ecohab_data.get_starttimes(mouse)
+    ends = ecohab_data.get_endtimes(mouse)
+    ecohab_data.unmask_data()
     return adresses, starts, ends
 
 
-def prepare_data(ehs, mice, times=None):
+def prepare_data(ecohab_data, mice, times=None):
     """Prepare masked data."""
     data = {}
     if not isinstance(mice, list):
         mice = [mice]
     if times is None:
-        ehs.unmask_data()
-        times = (ehs.get_starttimes(mice)[0],
-                 ehs.get_endtimes(mice)[-1])
+        ecohab_data.unmask_data()
+        times = (ecohab_data.get_starttimes(mice)[0],
+                 ecohab_data.get_endtimes(mice)[-1])
     t_start, t_end = times
     for mouse in mice:
         data[mouse] = []
-        ads, sts, ens = get_ehs_data_with_margin(ehs, mouse, t_start, t_end)
+        ads, sts, ens = get_ecohab_data_data_with_margin(ecohab_data, mouse, t_start, t_end)
         idxs = get_indices(t_start, t_end, sts, ens)
         for i in idxs:
             data[mouse].append((ads[i],
@@ -437,7 +437,7 @@ def calc_excess(res, exp_res):
     return excess
 
 
-def get_dark_light_data(phase, timeline, ehs, mice):
+def get_dark_light_data(phase, timeline, ecohab_data, mice):
     if phase == "dark" or phase == "DARK" or phase == "Dark":
         phases = filter_dark(timeline.sections())
     elif phase == "light" or phase == "LIGHT" or phase == "Light":
@@ -447,7 +447,7 @@ def get_dark_light_data(phase, timeline, ehs, mice):
     total_time = 0
     for i, ph in enumerate(phases):
         time = timeline.get_time_from_epoch(ph)
-        out = prepare_data(ehs, mice, time)
+        out = prepare_data(ecohab_data, mice, time)
         for mouse in mice:
             data[mouse].extend(out[mouse])
         total_time += (time[1] - time[0])
@@ -455,17 +455,17 @@ def get_dark_light_data(phase, timeline, ehs, mice):
     return out_phases, {phase: {0: total_time}}, {phase: {0: data}}
 
 
-def prepare_binned_data(ehs, timeline, bins, mice):
+def prepare_binned_data(ecohab_data, timeline, bins, mice):
     total_time = OrderedDict()
     data = OrderedDict()
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
         time = timeline.get_time_from_epoch("ALL")
         total_time["ALL"] = {0: (time[1] - time[0])}
-        data["ALL"] = {0: prepare_data(ehs, mice, time)}
+        data["ALL"] = {0: prepare_data(ecohab_data, mice, time)}
         keys = [["ALL"], [0]]
     elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
-        phases, total_time, data = get_dark_light_data(bins, timeline, ehs, mice)
+        phases, total_time, data = get_dark_light_data(bins, timeline, ecohab_data, mice)
         keys = [list(data.keys()), [0]]
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
@@ -499,7 +499,7 @@ def prepare_binned_data(ehs, timeline, bins, mice):
                 if t_e > t_end:
                     t_e = t_end
                 time = [t_start, t_e]
-                data[phase][bin_labels[j]] = prepare_data(ehs, mice, time)
+                data[phase][bin_labels[j]] = prepare_data(ecohab_data, mice, time)
                 total_time[phase][bin_labels[j]] = time[1] - time[0]
                 t_start += bins
                 j += 1
@@ -527,14 +527,14 @@ def extract_directions(times, antennas, last_antenna, keys):
     return direction_dict
 
 
-def prepare_registrations(ehd, mice, st, en):
+def prepare_registrations(ecohab_data, mice, st, en):
     directions = {}
     for j, mouse1 in enumerate(mice):
-        times_antennas = get_times_antennas(ehd,
+        times_antennas = get_times_antennas(ecohab_data,
                                             mouse1,
                                             st,
                                             en)
-        last_times, last_antennas = get_times_antennas(ehd,
+        last_times, last_antennas = get_times_antennas(ecohab_data,
                                                        mouse1,
                                                        en,
                                                        en+(en-st))
@@ -546,17 +546,17 @@ def prepare_registrations(ehd, mice, st, en):
         directions[mouse1] = extract_directions(times_antennas[0],
                                                 times_antennas[1],
                                                 last_antenna,
-                                                ehd.directions)
+                                                ecohab_data.directions)
     return directions
 
 
-def prepare_binned_registrations(ehs, timeline, bins, mice):
+def prepare_binned_registrations(ecohab_data, timeline, bins, mice):
     total_time = OrderedDict()
     data = OrderedDict()
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
         time = timeline.get_time_from_epoch("ALL")
-        data["ALL"] = {0: prepare_registrations(ehs, mice, *time)}
+        data["ALL"] = {0: prepare_registrations(ecohab_data, mice, *time)}
         data_keys = [["ALL"], [0.0]]
         total_time["ALL"] = {0: time}
     elif isinstance(bins, int) or isinstance(bins, float):
@@ -592,7 +592,7 @@ def prepare_binned_registrations(ehs, timeline, bins, mice):
                 if t_e > t_end:
                     t_e = t_end
                 time = (t_start, t_e)
-                data[phase][bin_labels[j]] = prepare_registrations(ehs,
+                data[phase][bin_labels[j]] = prepare_registrations(ecohab_data,
                                                                    mice,
                                                                    *time)
                 total_time[phase][bin_labels[j]] = time

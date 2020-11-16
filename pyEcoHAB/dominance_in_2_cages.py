@@ -80,16 +80,16 @@ def get_states_mouse(antennas, times, t_start, t_end,
     return states
 
 
-def get_states(ehd, t_start, t_end, dt=0.05):
+def get_states(ecohab_data, t_start, t_end, dt=0.05):
     """
     0 -- home cage, 1 -- pipe, 2 -- stimulus compartment
     """
     states = {}
-    for mouse in ehd.mice:
-        times, antennas = utils.get_times_antennas(ehd, mouse,
+    for mouse in ecohab_data.mice:
+        times, antennas = utils.get_times_antennas(ecohab_data, mouse,
                                                    t_start, t_end)
         states[mouse] = get_states_mouse(antennas, times, t_start, t_end,
-                                         ehd.stimulus_config, dt)
+                                         ecohab_data.stimulus_config, dt)
     return states
 
 
@@ -103,13 +103,13 @@ def find_stimulus_cage_mice(states, t_start, t_stop, beginning, dt):
     return mice
 
 
-def get_dominating_mice(ehd, timeline, phase, mouse, states, homecage_entrance, dt):
-    results = np.zeros((len(ehd.mice)))
+def get_dominating_mice(ecohab_data, timeline, phase, mouse, states, homecage_entrance, dt):
+    results = np.zeros((len(ecohab_data.mice)))
     t_start, t_end = timeline.get_time_from_epoch(phase)
     T_START, T_END = timeline.get_time_from_epoch('ALL')
-    time, antennas = utils.get_times_antennas(ehd, mouse, t_start, t_end)
+    time, antennas = utils.get_times_antennas(ecohab_data, mouse, t_start, t_end)
     idx = 1
-    mice = ehd.mice
+    mice = ecohab_data.mice
     while True:
         if idx >= len(antennas):
             break
@@ -123,40 +123,40 @@ def get_dominating_mice(ehd, timeline, phase, mouse, states, homecage_entrance, 
     return results
 
 
-def dominating_mice(ehd, timeline, phase, states, homecage_entrance, dt=0.05):
-    results = np.zeros((len(ehd.mice), len(ehd.mice)))
-    for i, mouse in enumerate(ehd.mice):
-        results[:, i] = get_dominating_mice(ehd, timeline, phase, mouse, states,
+def dominating_mice(ecohab_data, timeline, phase, states, homecage_entrance, dt=0.05):
+    results = np.zeros((len(ecohab_data.mice), len(ecohab_data.mice)))
+    for i, mouse in enumerate(ecohab_data.mice):
+        results[:, i] = get_dominating_mice(ecohab_data, timeline, phase, mouse, states,
                                             homecage_entrance, dt=dt)
     return results
 
 
-def tube_dominance_2_mice_single_phase(ehd, mouse1, mouse2, t_start, t_end, homecage_entrance):
+def tube_dominance_2_mice_single_phase(ecohab_data, mouse1, mouse2, t_start, t_end, homecage_entrance):
     """We're checking here, how many times mouse1 dominates over mouse2
     between t_start and t_end.
 
     """
       
-    m1_times, m1_antennas = utils.get_times_antennas(ehd, mouse1,
+    m1_times, m1_antennas = utils.get_times_antennas(ecohab_data, mouse1,
                                                      t_start, t_end)
-    m2_times, m2_antennas = utils.get_times_antennas(ehd, mouse2,
+    m2_times, m2_antennas = utils.get_times_antennas(ecohab_data, mouse2,
                                                      t_start, t_end)
     domination_counter = check_mouse1_defending(m1_antennas, m1_times,
                                                 m2_antennas, m2_times,
-                                                ehd.homecage_antenna,
-                                                ehd.setup_config)
+                                                ecohab_data.homecage_antenna,
+                                                ecohab_data.setup_config)
         
     return domination_counter
 
 
-def tube_dominance_2_cages(ehd, timeline, phase, homecage_entrance):
-    mice = ehd.mice
+def tube_dominance_2_cages(ecohab_data, timeline, phase, homecage_entrance):
+    mice = ecohab_data.mice
     st, en = timeline.get_time_from_epoch(phase)
     dominance =  np.zeros((len(mice), len(mice)))
     for i, mouse1 in enumerate(mice):
         for j, mouse2 in enumerate(mice):
             if i != j:
-                dominance[i, j] = tube_dominance_2_mice_single_phase(ehd,
+                dominance[i, j] = tube_dominance_2_mice_single_phase(ecohab_data,
                                                                      mouse1,
                                                                      mouse2,
                                                                      st,
@@ -245,39 +245,39 @@ def check_mouse1_defending(antennas1, times1, antennas2, times2,
     return dominance_counter
 
 
-def get_tube_dominance_2_cages(ehd, timeline, res_dir=None, prefix=None, dt=0.05,
+def get_tube_dominance_2_cages(ecohab_data, timeline, res_dir=None, prefix=None, dt=0.05,
                                delimiter=";"):
     t_start, t_end = timeline.get_time_from_epoch('ALL')
-    states = get_states(ehd, t_start, t_end, dt)
+    states = get_states(ecohab_data, t_start, t_end, dt)
     if res_dir is None:
-        res_dir = ehd.res_dir
+        res_dir = ecohab_data.res_dir
     if prefix is None:
-        prefix = ehd.prefix
-    dispatch.evaluate_whole_experiment(ehd, timeline, res_dir, prefix,
+        prefix = ecohab_data.prefix
+    dispatch.evaluate_whole_experiment(ecohab_data, timeline, res_dir, prefix,
                                        tube_dominance_2_cages,
                                        'mouse_pushing_out_conditioning_compartment',
                                        'dominating mouse',
                                        'pushed out mouse',
                                        '# pushes',
-                                       args=[ehd.homecage_entrance],
+                                       args=[ecohab_data.homecage_entrance],
                                        vmin=0, vmax=200,
                                        delimiter=delimiter)
 
 
-def get_subversion_evaluation(ehd, timeline, res_dir=None, prefix=None, dt=0.05,
+def get_subversion_evaluation(ecohab_data, timeline, res_dir=None, prefix=None, dt=0.05,
                               delimiter=";"):
     if res_dir is None:
-        res_dir = ehd.res_dir
+        res_dir = ecohab_data.res_dir
     if prefix is None:
-        prefix = ehd.prefix
-    states = get_states(ehd, timeline, dt)
-    dispatch.evaluate_whole_experiment(ehd, timeline, res_dir, prefix,
+        prefix = ecohab_data.prefix
+    states = get_states(ecohab_data, timeline, dt)
+    dispatch.evaluate_whole_experiment(ecohab_data, timeline, res_dir, prefix,
                                        dominating_mice,
                                        'subversion_evaluation',
                                        'dominating mouse',
                                        'subversive mouse',
                                        '# times in small cage',
-                                       args=[states, ehd.homecage_entrance,
+                                       args=[states, ecohab_data.homecage_entrance,
                                              dt], vmin=0, vmax=200,
                                        delimiter=delimiter)
 
@@ -293,25 +293,25 @@ def how_many_visits(states, t_start, t_end, T_0, dt):
 
 
 
-def get_visits_to_stimulus_cage(ehd, timeline, res_dir="", prefix="", dt=0.05,
+def get_visits_to_stimulus_cage(ecohab_data, timeline, res_dir="", prefix="", dt=0.05,
                                 delimiter=";"):
     if res_dir == "":
-        res_dir = ehd.res_dir
+        res_dir = ecohab_data.res_dir
     if prefix == "":
-        prefix = ehd.prefix
-    states = get_states(ehd, timeline, dt)
+        prefix = ecohab_data.prefix
+    states = get_states(ecohab_data, timeline, dt)
     phases = utils.filter_dark_light(timeline.sections())
-    results = np.zeros((1,  len(ehd.mice), len(phases)))
-    cumulative = np.zeros((1, len(ehd.mice)))
+    results = np.zeros((1,  len(ecohab_data.mice), len(phases)))
+    cumulative = np.zeros((1, len(ecohab_data.mice)))
     T_0, T_1 = timeline.get_time_from_epoch("ALL")
     for i, phase in enumerate(phases):
         t_start, t_end = timeline.get_time_from_epoch(phase)
-        for j, mouse in enumerate(ehd.mice):
+        for j, mouse in enumerate(ecohab_data.mice):
             results[0, j, i] = how_many_visits(states[mouse], t_start, t_end, T_0, dt)
-    for j, mouse in enumerate(ehd.mice):
+    for j, mouse in enumerate(ecohab_data.mice):
         cumulative[0, j] = how_many_visits(states[mouse], T_0, T_1, T_0, dt)
         assert cumulative[0, j] == sum(results[0, j, :])
-    write_csv_alone(results, phases, ehd.mice,
+    write_csv_alone(results, phases, ecohab_data.mice,
                     res_dir, prefix, labels=["conditioning compartment"],
                     header='Number of visits %s\n',
                     fname='visits_to_conditioning_compartment_%s.csv',

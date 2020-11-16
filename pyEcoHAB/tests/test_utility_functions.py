@@ -1431,7 +1431,7 @@ class TestGetEHSData(unittest.TestCase):
         cls.data = Loader(path)
         cls.t1 = 1286701470+7200
         cls.t2 = 1286701580+7200
-        cls.m_1_a, cls.s1, cls.e1 = uf.get_ehs_data_with_margin(cls.data,
+        cls.m_1_a, cls.s1, cls.e1 = uf.get_ecohab_data_data_with_margin(cls.data,
                                                                 "mouse_1",
                                                                 cls.t1,
                                                                 cls.t2,
@@ -1439,13 +1439,13 @@ class TestGetEHSData(unittest.TestCase):
         for a, s, e in zip(cls.m_1_a, cls.s1, cls.e1):
             print(a, s, e)
 
-    def test_get_ehs_address(self):
+    def test_get_ecohab_data_address(self):
         self.assertEqual(["cage C", "cage C", "cage D", "cage C", "cage D",
                           "cage C", "cage B", "cage C", "cage D",
                           "cage C", "cage D", "cage C", "cage D"],
                          self.m_1_a)
 
-    def test_get_ehs_starttimes(self):
+    def test_get_ecohab_data_starttimes(self):
         out = sorted(self.s1)
         starttimes = [1286708667.302, 1286708669.9, 1286708676.243,
                       1286708680.721, 1286708749.62, 1286708768.349,
@@ -1454,7 +1454,7 @@ class TestGetEHSData(unittest.TestCase):
                       1286708858.91]
         self.assertEqual(out, starttimes)
 
-    def test_get_ehs_endtimes(self):
+    def test_get_ecohab_data_endtimes(self):
         out = sorted(self.e1)
         endtimes = [1286708669.65, 1286708674.28, 1286708680.125,
                     1286708748.484, 1286708767.615, 1286708781.731,
@@ -1493,25 +1493,25 @@ class TestPrepareData(unittest.TestCase):
                                                         "mouse_2"],
                                           [cls.t11, cls.t12])
 
-    def test_get_ehs_address(self):
+    def test_get_ecohab_data_address(self):
         self.assertEqual(["cage C", "cage D", "cage C", "cage D", "cage C"],
                          [x[0] for x in self.out])
 
-    def test_get_ehs_starttimes(self):
+    def test_get_ecohab_data_starttimes(self):
         starttimes = [1286708670, 1286708676.243, 1286708680.721,
                       1286708749.62, 1286708768.349]
         self.assertTrue([x[1] for x in self.out] == starttimes)
 
-    def test_get_ehs_endtimes(self):
+    def test_get_ecohab_data_endtimes(self):
         endtimes = [1286708674.28, 1286708680.125, 1286708748.484,
                     1286708767.615, 1286708780]
         self.assertTrue([x[2] for x in self.out] == endtimes)
 
-    def test_get_ehs_starttimes_3(self):
+    def test_get_ecohab_data_starttimes_3(self):
         all_starttimes = set([self.out[i][1] for i in range(len(self.out))])
         self.assertTrue(len(all_starttimes) > 1)
 
-    def test_get_ehs_endtimes_3(self):
+    def test_get_ecohab_data_endtimes_3(self):
         all_endtimes = set([self.out[i][2] for i in range(len(self.out))])
         self.assertTrue(len(all_endtimes) > 1)
 
