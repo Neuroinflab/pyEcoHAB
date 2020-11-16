@@ -169,7 +169,10 @@ class SetupConfigMethods(RawConfigParser):
         Return other entrance antennas to the same tunnel.
         """
         antenna = new_antenna
-        tunnel_antennas = self.same_tunnel[antenna][:]
+        try:
+            tunnel_antennas = self.same_tunnel[antenna][:]
+        except KeyError:
+            return []
         idx = tunnel_antennas.index(antenna)
         tunnel_antennas.pop(idx)
         return tunnel_antennas
@@ -405,6 +408,33 @@ class SetupConfigMethods(RawConfigParser):
         return sorted(out)
 
 
+    def allowed_pairs(self):
+        allowed = []
+        for antenna in self.all_antennas:
+            allowed.append("%s %s" % (antenna, antenna))
+            for antenna2 in self.other_cage_antenna(antenna):
+                allowed.append("%s %s" % (antenna, antenna2))
+            if antenna in self.internal_antennas:
+                continue
+            for antenna2 in self.other_tunnel_antenna(antenna):
+                allowed.append("%s %s" % (antenna, antenna2))
+        return sorted(allowed)
+
+    def skipped_one(self):
+        skipped_one = []
+        for antenna in self.all_antennas:
+            for antenna2 in self.other_cage_antenna(antenna):
+                if antenna2 in self.internal_antennas:
+                    continue
+                for antenna3 in self.other_tunnel_antenna(antenna2):
+                    skipped_one.append("%s %s" % (antenna, antenna3))
+                    skipped_one.append("%s %s" % (antenna3, antenna))
+            for antenna2 in self.other_tunnel_antenna(antenna):
+                for antenna3 in self.other_cage_antenna(antenna2):
+                    skipped_one.append("%s %s" % (antenna, antenna3))
+                    skipped_one.append("%s %s" % (antenna3, antenna))
+        return sorted(set(skipped_one))
+
     @property
     def all_unique_pairs(self):
         pairs = []
@@ -413,6 +443,23 @@ class SetupConfigMethods(RawConfigParser):
                 pairs.append("%s %s" % (min(antenna1, antenna2),
                                         max(antenna1, antenna2)))
         return pairs
+
+    @property
+    def all_pairs(self):
+        pairs = []
+        for antenna1 in self.all_antennas:
+            for antenna2 in self.all_antennas:
+                pairs.append("%s %s" % (antenna1, antenna2))
+        return pairs
+
+    def two_and_more_skipped_antennas(self):
+        pairs = self.all_pairs
+        allowed = self.allowed_pairs()
+        skipped = self.skipped_one()
+        for pair in allowed+skipped:
+            pairs.remove(pair)
+        return sorted(pairs)
+
 
 class SetupConfig(SetupConfigMethods):
     """Load config file for a single EcoHAB setup.

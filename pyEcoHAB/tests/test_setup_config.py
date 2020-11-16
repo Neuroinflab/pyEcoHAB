@@ -1095,7 +1095,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
                                  max(antenna1, antenna2))
                 out.add(key)
         self.assertTrue(sorted(out)==self.experiment_dom.all_unique_pairs)
-        
+
     def test_all_pairs_unique_full(self):
         out = set()
         for antenna1 in self.full_exp.all_antennas:
@@ -1103,8 +1103,23 @@ class TestExperimentSetupConfig(unittest.TestCase):
                 key = "%s %s" % (min(antenna1, antenna2),
                                  max(antenna1, antenna2))
                 out.add(key)
-                
         self.assertEqual(sorted(out), self.full_exp.all_unique_pairs)
+
+    def test_all_pairs_dom(self):
+        out = set()
+        for antenna1 in self.experiment_dom.all_antennas:
+            for antenna2 in self.experiment_dom.all_antennas:
+                key = "%s %s" % (antenna1, antenna2)
+                out.add(key)
+        self.assertTrue(sorted(out)==self.experiment_dom.all_pairs)
+
+    def test_all_pairs_full(self):
+        out = set()
+        for antenna1 in self.full_exp.all_antennas:
+            for antenna2 in self.full_exp.all_antennas:
+                key = "%s %s" % (antenna1, antenna2)
+                out.add(key)
+        self.assertEqual(sorted(out), self.full_exp.all_pairs)
 
     def test_mismatched_antennas_full(self):
         out = ["1_ecohab_1 3_ecohab_1", "1_ecohab_1 4_ecohab_1",
@@ -1150,6 +1165,146 @@ class TestExperimentSetupConfig(unittest.TestCase):
                "6_default1 7_custom2", "7_default1 8_custom2"]
         self.assertEqual(sorted(out),
                          self.experiment_dom.mismatched_pairs)
+
+    def test_allowed_pairs_full(self):
+        expected = sorted(["1_ecohab_1 8_ecohab_2", "1_ecohab_1 1_ecohab_1",
+                           "1_ecohab_1 2_ecohab_1", "2_ecohab_1 1_ecohab_1",
+                           "2_ecohab_1 2_ecohab_1", "2_ecohab_1 3_ecohab_1",
+                           "3_ecohab_1 2_ecohab_1", "3_ecohab_1 3_ecohab_1",
+                           "3_ecohab_1 4_ecohab_1", "4_ecohab_1 3_ecohab_1",
+                           "4_ecohab_1 4_ecohab_1", "4_ecohab_1 5_ecohab_2",
+                           "5_ecohab_2 4_ecohab_1", "5_ecohab_2 5_ecohab_2",
+                           "5_ecohab_2 6_ecohab_2", "6_ecohab_2 5_ecohab_2",
+                           "6_ecohab_2 6_ecohab_2", "6_ecohab_2 7_ecohab_2",
+                           "7_ecohab_2 6_ecohab_2", "7_ecohab_2 7_ecohab_2",
+                           "7_ecohab_2 8_ecohab_2", "8_ecohab_2 7_ecohab_2",
+                           "8_ecohab_2 8_ecohab_2", "8_ecohab_2 1_ecohab_1", ])
+        calc = self.full_exp.allowed_pairs()
+        self.assertEqual(expected, calc)
+
+    def test_allowed_pairs_dom(self):
+        expected = sorted(["1_default1 8_default1", "1_default1 1_default1",
+                           "1_default1 2_default1", "2_default1 1_default1",
+                           "2_default1 2_default1", "2_default1 3_default1",
+                           "3_default1 2_default1", "3_default1 3_default1",
+                           "3_default1 4_default1", "4_default1 3_default1",
+                           "4_default1 4_default1", "4_default1 5_default1",
+                           "5_default1 4_default1", "5_default1 5_default1",
+                           "5_default1 6_default1", "6_default1 5_default1",
+                           "6_default1 6_default1", "6_default1 7_default1",
+                           "7_default1 6_default1", "7_default1 7_default1",
+                           "7_default1 8_default1", "8_default1 7_default1",
+                           "8_default1 8_default1", "8_default1 1_default1",
+                           "8_custom2 8_custom2", "8_custom2 1_default1",
+                           "1_default1 8_custom2", "8_custom2 8_default1",
+                           "8_default1 8_custom2", "8_custom2 2_custom2",
+                           "2_custom2 8_custom2", "2_custom2 2_custom2",
+                           "2_custom2 1_custom2", "1_custom2 1_custom2",
+                           "1_custom2 7_custom2", "7_custom2 1_custom2",
+                           "7_custom2 7_custom2", "1_custom2 2_custom2",
+                           "2_custom2 8_default1", "2_custom2 1_default1",
+                           "8_default1 2_custom2", "1_default1 2_custom2"
+        ])
+        calc = self.experiment_dom.allowed_pairs()
+        self.assertEqual(expected, calc)
+
+    def test_skipped_one_full(self):
+        expected = sorted(["1_ecohab_1 3_ecohab_1", "3_ecohab_1 1_ecohab_1",
+                           "1_ecohab_1 7_ecohab_2", "7_ecohab_2 1_ecohab_1",
+                           "2_ecohab_1 4_ecohab_1", "4_ecohab_1 2_ecohab_1",
+                           "2_ecohab_1 8_ecohab_2", "8_ecohab_2 2_ecohab_1",
+                           "3_ecohab_1 5_ecohab_2", "5_ecohab_2 3_ecohab_1",
+                           "4_ecohab_1 6_ecohab_2", "6_ecohab_2 4_ecohab_1",
+                           "6_ecohab_2 8_ecohab_2", "8_ecohab_2 6_ecohab_2",
+                           "5_ecohab_2 7_ecohab_2", "7_ecohab_2 5_ecohab_2",
+        ])
+        calculated = self.full_exp.skipped_one()
+        self.assertEqual(expected, calculated)
+
+    def test_skipped_one_dom(self):
+        expected = sorted(["1_default1 3_default1", "3_default1 1_default1",
+                           "1_default1 7_default1", "7_default1 1_default1",
+                           "2_default1 4_default1", "4_default1 2_default1",
+                           "2_default1 8_default1", "8_default1 2_default1",
+                           "3_default1 5_default1", "5_default1 3_default1",
+                           "4_default1 6_default1", "6_default1 4_default1",
+                           "6_default1 8_default1", "8_default1 6_default1",
+                           "5_default1 7_default1", "7_default1 5_default1",
+                           "7_custom2 2_custom2", "2_custom2 7_custom2",
+                           "1_custom2 8_custom2", "8_custom2 1_custom2",
+                           "1_custom2 8_default1", "8_default1 1_custom2",
+                           "1_custom2 1_default1", "1_default1 1_custom2",
+                           "2_custom2 2_default1", "2_default1 2_custom2",
+                           "2_custom2 7_default1", "7_default1 2_custom2",
+                           "8_custom2 7_default1", "7_default1 8_custom2",
+                           "8_custom2 2_default1", "2_default1 8_custom2",
+        ])
+        calculated = self.experiment_dom.skipped_one()
+        self.assertEqual(expected, calculated)
+
+    def test_skip_two_more(self):
+        expected = sorted(["1_ecohab_1 4_ecohab_1", "4_ecohab_1 1_ecohab_1",
+                           "1_ecohab_1 5_ecohab_2", "5_ecohab_2 1_ecohab_1",
+                           "1_ecohab_1 6_ecohab_2", "6_ecohab_2 1_ecohab_1",
+                           "2_ecohab_1 5_ecohab_2", "5_ecohab_2 2_ecohab_1",
+                           "2_ecohab_1 6_ecohab_2", "6_ecohab_2 2_ecohab_1",
+                           "2_ecohab_1 7_ecohab_2", "7_ecohab_2 2_ecohab_1",
+                           "3_ecohab_1 6_ecohab_2", "6_ecohab_2 3_ecohab_1",
+                           "3_ecohab_1 7_ecohab_2", "7_ecohab_2 3_ecohab_1",
+                           "3_ecohab_1 8_ecohab_2", "8_ecohab_2 3_ecohab_1",
+                           "4_ecohab_1 7_ecohab_2", "7_ecohab_2 4_ecohab_1",
+                           "4_ecohab_1 8_ecohab_2", "8_ecohab_2 4_ecohab_1",
+                           "5_ecohab_2 8_ecohab_2", "8_ecohab_2 5_ecohab_2",
+                           ])
+        calculated = self.full_exp.two_and_more_skipped_antennas()
+        self.assertEqual(expected, calculated)
+
+    def test_skip_two_more_dom(self):
+        allowed = sorted(["1_default1 3_default1", "3_default1 1_default1",
+                           "1_default1 7_default1", "7_default1 1_default1",
+                           "2_default1 4_default1", "4_default1 2_default1",
+                           "2_default1 8_default1", "8_default1 2_default1",
+                           "3_default1 5_default1", "5_default1 3_default1",
+                           "4_default1 6_default1", "6_default1 4_default1",
+                           "6_default1 8_default1", "8_default1 6_default1",
+                           "5_default1 7_default1", "7_default1 5_default1",
+                           "7_custom2 2_custom2", "2_custom2 7_custom2",
+                           "1_custom2 8_custom2", "8_custom2 1_custom2",
+                           "1_custom2 8_default1", "8_default1 1_custom2",
+                           "1_custom2 1_default1", "1_default1 1_custom2",
+                           "2_custom2 2_default1", "2_default1 2_custom2",
+                           "2_custom2 7_default1", "7_default1 2_custom2",
+                           "8_custom2 7_default1", "7_default1 8_custom2",
+                           "8_custom2 2_default1", "2_default1 8_custom2",
+        ]) + sorted(["1_default1 8_default1", "1_default1 1_default1",
+                           "1_default1 2_default1", "2_default1 1_default1",
+                           "2_default1 2_default1", "2_default1 3_default1",
+                           "3_default1 2_default1", "3_default1 3_default1",
+                           "3_default1 4_default1", "4_default1 3_default1",
+                           "4_default1 4_default1", "4_default1 5_default1",
+                           "5_default1 4_default1", "5_default1 5_default1",
+                           "5_default1 6_default1", "6_default1 5_default1",
+                           "6_default1 6_default1", "6_default1 7_default1",
+                           "7_default1 6_default1", "7_default1 7_default1",
+                           "7_default1 8_default1", "8_default1 7_default1",
+                           "8_default1 8_default1", "8_default1 1_default1",
+                           "8_custom2 8_custom2", "8_custom2 1_default1",
+                           "1_default1 8_custom2", "8_custom2 8_default1",
+                           "8_default1 8_custom2", "8_custom2 2_custom2",
+                           "2_custom2 8_custom2", "2_custom2 2_custom2",
+                           "2_custom2 1_custom2", "1_custom2 1_custom2",
+                           "1_custom2 7_custom2", "7_custom2 1_custom2",
+                           "7_custom2 7_custom2", "1_custom2 2_custom2",
+                           "2_custom2 8_default1", "2_custom2 1_default1",
+                           "8_default1 2_custom2", "1_default1 2_custom2"
+        ])
+        all_pairs = self.experiment_dom.all_pairs
+        expected = []
+        for pair in all_pairs:
+            if pair not in allowed:
+                expected.append(pair)
+        calculated = self.experiment_dom.two_and_more_skipped_antennas()
+        self.assertEqual(sorted(expected), calculated)
 
 
 if __name__ == '__main__':
