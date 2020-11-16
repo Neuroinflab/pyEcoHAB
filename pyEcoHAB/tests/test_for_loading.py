@@ -310,7 +310,7 @@ class TestAntennaMismatch(unittest.TestCase):
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
         config = SetupConfig()
-        cls.mismatch1 = uf.antenna_mismatch(data, config.mismatched_pairs)
+        cls.mismatch1 = uf.antenna_mismatch(data, config)
 
     def test_1(self):
         self.assertEqual(2, self.mismatch1["3 6"])
@@ -376,11 +376,11 @@ class TestTotalMismatches(unittest.TestCase):
         path = os.path.join(data_path, "weird_short_3_mice")
         raw_data1 = uf.read_single_file(path, "20101010_110000.txt")
         cls.data1 = uf.from_raw_data(raw_data1)
-        cls.mismatch1 = uf.antenna_mismatch(cls.data1, config.mismatched_pairs)
+        cls.mismatch1 = uf.antenna_mismatch(cls.data1, config)
         path = os.path.join(data_path, "weird_short")
         raw_data2 = uf.read_single_file(path, "20101010_110000.txt")
         cls.data2 = uf.from_raw_data(raw_data2)
-        cls.mismatch2 = uf.antenna_mismatch(cls.data2, config.mismatched_pairs)
+        cls.mismatch2 = uf.antenna_mismatch(cls.data2, config)
 
     def test_no_mismatches(self):
         res = uf.total_mismatches(self.mismatch2)
@@ -417,7 +417,7 @@ class TestRunDiagnostics(unittest.TestCase):
         path = os.path.join(data_path, "weird_short_3_mice")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
-        cls.mismatch1 = uf.antenna_mismatch(data, config.mismatched_pairs)
+        cls.mismatch1 = uf.antenna_mismatch(data, config)
         cls.presences1 = uf.check_antenna_presence(data, 24*3600)
         res_path = os.path.join(path, "Results")
         files = glob.glob(os.path.join(res_path + "/diagnostics/*.csv"))
@@ -427,11 +427,11 @@ class TestRunDiagnostics(unittest.TestCase):
         cls.str11, cls.str12, cls.str13 = uf.run_diagnostics(data,
                                                              24*3600,
                                                              res_path,
-                                                             config.mismatched_pairs)
+                                                             config)
         path = os.path.join(data_path, "weird_short")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
-        cls.mismatch2 = uf.antenna_mismatch(data, config.mismatched_pairs)
+        cls.mismatch2 = uf.antenna_mismatch(data, config)
         cls.presences2 = uf.check_antenna_presence(data, 24*3600)
         res_path = os.path.join(path, "Results")
         files = glob.glob(os.path.join(res_path + "/diagnostics/*.csv"))
@@ -441,7 +441,7 @@ class TestRunDiagnostics(unittest.TestCase):
 
         cls.str21, cls.str22, cls.str23 = uf.run_diagnostics(data, 24*3600,
                                                              res_path,
-                                                             config.mismatched_pairs)
+                                                             config)
 
     def test_no_registration_breaks_file(self):
         path = os.path.join(data_path, "weird_short")

@@ -344,7 +344,7 @@ class Loader(EcoHabDataBase):
         data = ufl.remove_antennas(data, remove_antennas)
         # As in antenna readings
         ufl.run_diagnostics(data, self.max_break, self.res_dir,
-                            antennas.mismatched_pairs)
+                            antennas)
         super(Loader, self).__init__(data, self.mask,
                                      self.visit_threshold, antennas)
         self.cages = antennas.cages
@@ -453,4 +453,4 @@ class Merger(EcoHabDataBase):
         self.internal_antennas = antennas.internal_antennas
         self.max_break = max(max_breaks)
         ufl.run_diagnostics(data, self.max_break, self.res_dir,
-                            antennas.mismatched_pairs)
+                            antennas)

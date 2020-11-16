@@ -263,9 +263,10 @@ def check_antenna_presence(raw_data, max_break):
     return breaks
 
 
-def antenna_mismatch(raw_data, pairs):
+def antenna_mismatch(raw_data, setup_config):
     if not len(raw_data):
         raise Exception("Empty dataset")
+    pairs = setup_config.mismatched_pairs
     all_times = raw_data['Time']
     mice = set(raw_data['Tag'])
     mismatches = OrderedDict()
@@ -354,8 +355,8 @@ def save_antenna_breaks(antenna_breaks, res_dir):
     f2.close()
     return out_f2
 
-def run_diagnostics(raw_data, max_break, res_dir, pairs):
-    mismatches = antenna_mismatch(raw_data, pairs)
+def run_diagnostics(raw_data, max_break, res_dir, setup_config):
+    mismatches = antenna_mismatch(raw_data, setup_config)
     out_f1 = save_mismatches(mismatches, len(raw_data["Antenna"]),
                              res_dir)
     
