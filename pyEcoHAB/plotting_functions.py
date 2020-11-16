@@ -400,8 +400,8 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
 
     new_dir = os.path.join(directory, 'figs')
     dir_name = utils.check_directory(main_directory, new_dir)
-    plt.gtimeline().text(0.02, 0.5, "Followed mouse", fontsize=28, rotation=90)
-    plt.gtimeline().text(0.5, 0.02, "Following mouse", fontsize=28)
+    plt.gcf().text(0.02, 0.5, "Followed mouse", fontsize=28, rotation=90)
+    plt.gcf().text(0.5, 0.02, "Following mouse", fontsize=28)
 
     if prefix != "":
         new_name = '%s_%s_%s' % (fname, prefix, new_name)
