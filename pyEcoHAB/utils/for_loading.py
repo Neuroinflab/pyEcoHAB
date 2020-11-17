@@ -305,7 +305,7 @@ def skipped_registrations(raw_data, setup_config):
     one_skipped = setup_config.skipped_one()
     skipped_more = setup_config.two_and_more_skipped_antennas()
     mice = set(raw_data['Tag'])
-    mismatches = {"skipped one": 0, "skipped more": 0}
+    mismatches = OrderedDict([("skipped one", 0), ("skipped more", 0)])
     for mouse in mice:
         mouse_idx = np.where(np.array(raw_data['Tag']) == mouse)[0]
         ant = raw_data['Antenna'][mouse_idx]
@@ -319,7 +319,7 @@ def skipped_registrations(raw_data, setup_config):
 
 def save_skipped_registrations(skipped, tot_registrations, res_dir,
                                fname="skipped_registrations.csv",
-                               header=u"type,  count, percentage\n"):
+                               header=u"type, count, percentage\n"):
     out_f1 = header
     for key in skipped.keys():
         try:
