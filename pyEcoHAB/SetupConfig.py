@@ -452,11 +452,32 @@ class SetupConfigMethods(RawConfigParser):
                 pairs.append("%s %s" % (antenna1, antenna2))
         return pairs
 
-    def two_and_more_skipped_antennas(self):
+    def skipped_two(self):
+        skipped_two = []
+        for antenna in self.all_antennas:
+            for antenna2 in self.other_cage_antenna(antenna):
+                if antenna2 in self.internal_antennas:
+                    continue
+                for antenna3 in self.other_tunnel_antenna(antenna2):
+                    for antenna4 in self.other_cage_antenna(antenna3):
+                        skipped_two.append("%s %s" % (antenna, antenna4))
+                        skipped_two.append("%s %s" % (antenna4, antenna))
+            for antenna2 in self.other_tunnel_antenna(antenna):
+                for antenna3 in self.other_cage_antenna(antenna2):
+                    if antenna3 in self.internal_antennas:
+                        continue
+                    for antenna4 in self.other_tunnel_antenna(antenna3):
+                        skipped_two.append("%s %s" % (antenna, antenna4))
+                        skipped_two.append("%s %s" % (antenna4, antenna))
+        return sorted(set(skipped_two))
+
+
+    def skipped_more(self):
         pairs = self.all_pairs
         allowed = self.allowed_pairs()
-        skipped = self.skipped_one()
-        for pair in allowed+skipped:
+        skipped_one = self.skipped_one()
+        skipped_two = self.skipped_two()
+        for pair in allowed+skipped_one+skipped_two:
             pairs.remove(pair)
         return sorted(pairs)
 

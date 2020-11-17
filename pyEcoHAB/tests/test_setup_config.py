@@ -1242,24 +1242,54 @@ class TestExperimentSetupConfig(unittest.TestCase):
         calculated = self.experiment_dom.skipped_one()
         self.assertEqual(expected, calculated)
 
-    def test_skip_two_more(self):
+    def test_skip_two(self):
         expected = sorted(["1_ecohab_1 4_ecohab_1", "4_ecohab_1 1_ecohab_1",
-                           "1_ecohab_1 5_ecohab_2", "5_ecohab_2 1_ecohab_1",
                            "1_ecohab_1 6_ecohab_2", "6_ecohab_2 1_ecohab_1",
                            "2_ecohab_1 5_ecohab_2", "5_ecohab_2 2_ecohab_1",
-                           "2_ecohab_1 6_ecohab_2", "6_ecohab_2 2_ecohab_1",
                            "2_ecohab_1 7_ecohab_2", "7_ecohab_2 2_ecohab_1",
                            "3_ecohab_1 6_ecohab_2", "6_ecohab_2 3_ecohab_1",
-                           "3_ecohab_1 7_ecohab_2", "7_ecohab_2 3_ecohab_1",
                            "3_ecohab_1 8_ecohab_2", "8_ecohab_2 3_ecohab_1",
                            "4_ecohab_1 7_ecohab_2", "7_ecohab_2 4_ecohab_1",
-                           "4_ecohab_1 8_ecohab_2", "8_ecohab_2 4_ecohab_1",
                            "5_ecohab_2 8_ecohab_2", "8_ecohab_2 5_ecohab_2",
                            ])
-        calculated = self.full_exp.two_and_more_skipped_antennas()
+        calculated = self.full_exp.skipped_two()
         self.assertEqual(expected, calculated)
 
-    def test_skip_two_more_dom(self):
+    def test_skip_more(self):
+        expected = sorted([
+            "1_ecohab_1 5_ecohab_2", "5_ecohab_2 1_ecohab_1",
+            "2_ecohab_1 6_ecohab_2", "6_ecohab_2 2_ecohab_1",
+            "3_ecohab_1 7_ecohab_2", "7_ecohab_2 3_ecohab_1",
+            "4_ecohab_1 8_ecohab_2", "8_ecohab_2 4_ecohab_1",
+        ])
+        calculated = self.full_exp.skipped_more()
+        self.assertEqual(expected, calculated)
+
+    def test_skip_two(self):
+        expected = sorted([
+            "1_default1 4_default1", "4_default1 1_default1",
+            "1_default1 6_default1", "6_default1 1_default1",
+            "2_default1 5_default1", "5_default1 2_default1",
+            "2_default1 7_default1", "7_default1 2_default1",
+            "3_default1 6_default1", "6_default1 3_default1",
+            "3_default1 8_default1", "8_default1 3_default1",
+            "4_default1 7_default1", "7_default1 4_default1",
+            "5_default1 8_default1", "8_default1 5_default1",
+            "7_custom2 8_custom2", "8_custom2 7_custom2",
+            "7_custom2 1_default1", "1_default1 7_custom2",
+            "7_custom2 8_default1", "8_default1 7_custom2",
+            "1_custom2 2_default1", "2_default1 1_custom2",
+            "1_custom2 7_default1", "7_default1 1_custom2",
+            "2_custom2 6_default1", "6_default1 2_custom2",
+            "2_custom2 3_default1", "3_default1 2_custom2",
+            "8_custom2 6_default1", "6_default1 8_custom2",
+            "8_custom2 3_default1", "3_default1 8_custom2",
+
+        ])
+        calculated = self.experiment_dom.skipped_two()
+        self.assertEqual(sorted(expected), calculated)
+
+    def test_skipped_more_dom(self):
         allowed = sorted(["1_default1 3_default1", "3_default1 1_default1",
                            "1_default1 7_default1", "7_default1 1_default1",
                            "2_default1 4_default1", "4_default1 2_default1",
@@ -1297,13 +1327,32 @@ class TestExperimentSetupConfig(unittest.TestCase):
                            "7_custom2 7_custom2", "1_custom2 2_custom2",
                            "2_custom2 8_default1", "2_custom2 1_default1",
                            "8_default1 2_custom2", "1_default1 2_custom2"
+        ])+ sorted([
+            "1_default1 4_default1", "4_default1 1_default1",
+            "1_default1 6_default1", "6_default1 1_default1",
+            "2_default1 5_default1", "5_default1 2_default1",
+            "2_default1 7_default1", "7_default1 2_default1",
+            "3_default1 6_default1", "6_default1 3_default1",
+            "3_default1 8_default1", "8_default1 3_default1",
+            "4_default1 7_default1", "7_default1 4_default1",
+            "5_default1 8_default1", "8_default1 5_default1",
+            "7_custom2 8_custom2", "8_custom2 7_custom2",
+            "7_custom2 1_default1", "1_default1 7_custom2",
+            "7_custom2 8_default1", "8_default1 7_custom2",
+            "1_custom2 2_default1", "2_default1 1_custom2",
+            "1_custom2 7_default1", "7_default1 1_custom2",
+            "2_custom2 6_default1", "6_default1 2_custom2",
+            "2_custom2 3_default1", "3_default1 2_custom2",
+            "8_custom2 6_default1", "6_default1 8_custom2",
+            "8_custom2 3_default1", "3_default1 8_custom2",
+
         ])
         all_pairs = self.experiment_dom.all_pairs
         expected = []
         for pair in all_pairs:
             if pair not in allowed:
                 expected.append(pair)
-        calculated = self.experiment_dom.two_and_more_skipped_antennas()
+        calculated = self.experiment_dom.skipped_more()
         self.assertEqual(sorted(expected), calculated)
 
 

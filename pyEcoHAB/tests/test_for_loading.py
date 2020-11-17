@@ -339,7 +339,7 @@ class TestSkippedAntennas(unittest.TestCase):
         cls.mismatch1 = uf.skipped_registrations(data, config)
 
     def test_1(self):
-        self.assertEqual(2, self.mismatch1["skipped more"])
+        self.assertEqual(2, self.mismatch1["skipped two"])
 
     def test_2(self):
         self.assertEqual(2, self.mismatch1["skipped one"])
@@ -541,17 +541,22 @@ class TestRunDiagnostics(unittest.TestCase):
 
     def test_no_skipped_string(self):
         out = u"type, count, percentage\n"
-        for pair in ["skipped one", "skipped more"]:
+        for pair in ["skipped one", "skipped two", "skipped more"]:
             out += u"%s, %d, %3.2f per 100\n" % (pair, 0, 0.00)
         self.assertEqual(self.str24, out)
 
     def test_skipped_string(self):
         out = u"type, count, percentage\n"
-        for pair in ["skipped one", "skipped more"]:
+        for pair in ["skipped one", "skipped two", "skipped more"]:
             exact_mis = np.round(100*2/self.length)
-            out += u"%s, %d, %3.2f per 100\n" % (pair,
-                                                2,
-                                                exact_mis)
+            if pair == "skipped more":
+                out += u"%s, %d, %3.2f per 100\n" % (pair,
+                                                     0,
+                                                     0.0)
+            else:
+                out += u"%s, %d, %3.2f per 100\n" % (pair,
+                                                     2,
+                                                     exact_mis)
         self.assertEqual(out, self.str14)
 
 
