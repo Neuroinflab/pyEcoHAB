@@ -540,9 +540,9 @@ class TestRunDiagnostics(unittest.TestCase):
         self.assertEqual(out, self.str11)
 
     def test_no_skipped_string(self):
-        out = "type,  count, percentage\n"
+        out = u"type,  count, percentage\n"
         for pair in ["skipped one", "skipped more"]:
-            out += "%s, %d, %3.2f per 100\n" % (pair, 0, 0.00)
+            out += u"%s, %d, %3.2f per 100\n" % (pair, 0, 0.00)
         self.assertEqual(self.str24, out)
 
     def test_skipped_string(self):

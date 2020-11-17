@@ -317,8 +317,9 @@ def skipped_registrations(raw_data, setup_config):
                 mismatches["skipped more"] += 1
     return mismatches
 
-def save_skipped_registrations(skipped, tot_registrations, res_dir, fname="skipped_registrations.csv",
-                    header=u"type,  count, percentage\n"):
+def save_skipped_registrations(skipped, tot_registrations, res_dir,
+                               fname="skipped_registrations.csv",
+                               header=u"type,  count, percentage\n"):
     out_f1 = header
     for key in skipped.keys():
         try:
