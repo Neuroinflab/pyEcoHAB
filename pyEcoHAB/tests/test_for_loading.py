@@ -329,6 +329,29 @@ class TestAntennaMismatch(unittest.TestCase):
         self.assertRaises(Exception, uf.antenna_mismatch, [])
 
 
+class TestSkippedAntennas(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_3_mice")
+        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        data = uf.from_raw_data(raw_data)
+        config = SetupConfig()
+        cls.mismatch1 = uf.skipped_registrations(data, config)
+
+    def test_1(self):
+        self.assertEqual(2, self.mismatch1["skipped more"])
+
+    def test_2(self):
+        self.assertEqual(2, self.mismatch1["skipped one"])
+
+    def test_all_others(self):
+        out = sum(list(self.mismatch1.values()))
+        self.assertEqual(4, out)
+
+    def test_empty(self):
+        self.assertRaises(Exception, uf.skipped_registrations, [])
+
+
 class TestCheckAntennaPresence(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -424,7 +447,7 @@ class TestRunDiagnostics(unittest.TestCase):
         for f in files:
             print("rm ", f)
         cls.length = len(data["Antenna"])
-        cls.str11, cls.str12, cls.str13 = uf.run_diagnostics(data,
+        cls.str11, cls.str12, cls.str13, cls.str14 = uf.run_diagnostics(data,
                                                              24*3600,
                                                              res_path,
                                                              config)
@@ -439,9 +462,10 @@ class TestRunDiagnostics(unittest.TestCase):
         for f in files:
             os.remove(f)
 
-        cls.str21, cls.str22, cls.str23 = uf.run_diagnostics(data, 24*3600,
-                                                             res_path,
-                                                             config)
+        cls.str21, cls.str22, cls.str23, cls.str24 = uf.run_diagnostics(data,
+                                                                        24*3600,
+                                                                        res_path,
+                                                                        config)
 
     def test_no_registration_breaks_file(self):
         path = os.path.join(data_path, "weird_short")
@@ -514,6 +538,21 @@ class TestRunDiagnostics(unittest.TestCase):
             else:
                 out += "%s, %d, %3.2f per 100\n" % (pair, 0, 0.00)
         self.assertEqual(out, self.str11)
+
+    def test_no_skipped_string(self):
+        out = "type,  count, percentage\n"
+        for pair in ["skipped one", "skipped more"]:
+            out += "%s, %d, %3.2f per 100\n" % (pair, 0, 0.00)
+        self.assertEqual(self.str24, out)
+
+    def test_skipped_string(self):
+        out = "type,  count, percentage\n"
+        for pair in ["skipped one", "skipped more"]:
+            exact_mis = np.round(100*2/self.length)
+            out += "%s, %d, %3.2f per 100\n" % (pair,
+                                                2,
+                                                exact_mis)
+        self.assertEqual(out, self.str14)
 
 
 class TestTransformVisits(unittest.TestCase):

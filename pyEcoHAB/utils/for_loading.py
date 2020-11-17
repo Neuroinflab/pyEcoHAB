@@ -299,6 +299,42 @@ def total_mismatches(mismatches):
     return out
 
 
+def skipped_registrations(raw_data, setup_config):
+    if not len(raw_data):
+        raise Exception("Empty dataset")
+    one_skipped = setup_config.skipped_one()
+    skipped_more = setup_config.two_and_more_skipped_antennas()
+    mice = set(raw_data['Tag'])
+    mismatches = {"skipped one": 0, "skipped more": 0}
+    for mouse in mice:
+        mouse_idx = np.where(np.array(raw_data['Tag']) == mouse)[0]
+        ant = raw_data['Antenna'][mouse_idx]
+        for i, a in enumerate(ant[:-1]):
+            key = "%s %s" % (a, ant[i+1])
+            if key in one_skipped:
+                mismatches["skipped one"] += 1
+            elif key in skipped_more:
+                mismatches["skipped more"] += 1
+    return mismatches
+
+def save_skipped_registrations(skipped, tot_registrations, res_dir, fname="skipped_registrations.csv",
+                    header=u"type,  count, percentage\n"):
+    out_f1 = header
+    for key in skipped.keys():
+        try:
+            exact_mis = np.round(100*skipped[key]/tot_registrations)
+        except ZeroDivisionError:
+            exact_mis = 1
+        out_f1 += u"%s, %d, %3.2f per 100\n" % (key, skipped[key],
+                                                 exact_mis)
+    new_path = check_directory(res_dir, "diagnostics")
+    fpath1 = os.path.join(new_path, fname)
+    f1 = open(fpath1, "w")
+    f1.write(out_f1)
+    f1.close()
+    return out_f1
+
+
 def save_mismatches(mismatches, tot_registrations, res_dir,
                     fname="antenna_mismatches.csv",
                     header=u"antenna pair,  count, percentage\n"):
@@ -366,7 +402,10 @@ def run_diagnostics(raw_data, max_break, res_dir, setup_config):
 
     antenna_breaks = check_antenna_presence(raw_data, max_break)
     out_f2 = save_antenna_breaks(antenna_breaks, res_dir)
-    return out_f1, out_f2, out_f3
+
+    skip = skipped_registrations(raw_data, setup_config)
+    out_f4 = save_skipped_registrations(skip, len(raw_data["Tag"]), res_dir)
+    return out_f1, out_f2, out_f3, out_f4
 
 
 def transform_raw(row):
