@@ -658,7 +658,7 @@ def histograms_antenna_transitions(transition_times, setup_config, res_dir,
                                          "different_antenna")
     dir_incorrect = os.path.join(directory,
                                  "incorrect_antenna_transition")
-    title_double_a = "consecutive crossing of antenna %s entrance to %s"
+    title_double_a = "consecutive crossing of antenna %s entrance to %s phase %s"
     max_count = 0
     nbins = {}
     title = {}
@@ -668,61 +668,76 @@ def histograms_antenna_transitions(transition_times, setup_config, res_dir,
     xmin = 1000
     xmax = 0
     incorrect_transitions = []
-    allowed_keys = []
-    for key in transition_times.keys():
-        if not len(transition_times[key]):
-            continue
-        first, last = key.split(" ")
-        gen_key = "%s %s" % (min(first, last), max(first, last))
-        if gen_key in setup_config.mismatched_pairs:
-            incorrect_transitions.extend(transition_times[key])
-        else:
-            allowed_keys.append(key)
-            if first == last:
-                dir_name[key] = dir_correct_same
-                title[key] = title_double_a % (first,
-                                          setup_config.address[first])
-            else:
-                dir_name[key] = dir_correct_different
-                title[key] = "%s (tunnel)" % key
-            xlogscale[key] = False
-            nbins[key] = 10
-            if len(transition_times[key]) > 1000:
-                nbins[key] = 40
-                if max(transition_times[key]) > 1000*min(transition_times[key]):
-                    xlogscale[key] = True
-            while True:
-                if 0 in transition_times[key]:
-                    transition_times[key].remove(0)
-                else:
-                    break
-            hist, bins = np.histogram(transition_times[key], nbins[key])
-            if xlogscale[key]:
-                logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]),
-                                      len(bins))
-                hist, bins = np.histogram(transition_times[key], bins=logbins)
+    allowed_keys = {}
 
-            fname[key] = "transition_times_antennas_%s" % key
-            if max(hist) > max_count:
-                max_count = max(hist) + 5
-            if xmin > min(transition_times[key]):
-                xmin =  min(transition_times[key]) - 0.5
-            if xmax < max(transition_times[key]):
-                xmax = max(transition_times[key]) + 0.5
+    for phase in transition_times.keys():
+        allowed_keys[phase] = []
+        title[phase] = {}
+        fname[phase] = {}
+        nbins[phase] = {}
+        xlogscale[phase] = {}
+        for key in transition_times[phase].keys():
+            if not len(transition_times[phase][key]):
+                continue
+            first, last = key.split(" ")
+            gen_key = "%s %s" % (min(first, last), max(first, last))
+            if gen_key in setup_config.mismatched_pairs:
+                incorrect_transitions.extend(transition_times[phase][key])
+            else:
+                allowed_keys[phase].append(key)
+                if first == last:
+                    dir_name[key] = dir_correct_same
+                    title[phase][key] = title_double_a % (first,
+                                                   setup_config.address[first],
+                                                   phase)
+                else:
+                    dir_name[key] = dir_correct_different
+                    title[phase][key] = "%s (tunnel) phase %s" % (key, phase)
+                xlogscale[phase][key] = False
+                nbins[phase][key] = 10
+                if len(transition_times[phase][key]) > 1000:
+                    nbins[phase][key] = 40
+                    if max(transition_times[phase][key]) > 1000*min(transition_times[phase][key]):
+                        xlogscale[phase][key] = True
+                while True:
+                    if 0 in transition_times[phase][key]:
+                        transition_times[phase][key].remove(0)
+                    else:
+                        break
+                hist, bins = np.histogram(transition_times[phase][key],
+                                          nbins[phase][key])
+                if xlogscale[phase][key]:
+                    logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]),
+                                          len(bins))
+                    hist, bins = np.histogram(transition_times[phase][key],
+                                              bins=logbins)
                 
-    for key in allowed_keys:
-        if not len(transition_times[key]):
-            continue
-            
-        single_histogram_figures(transition_times[key], fname[key],
-                                 res_dir, dir_name[key], title[key],
-                                 nbins=nbins[key],
-                                 xlogscale=xlogscale[key],
-                                 xlabel="Transition times (s)",
-                                 ylabel="count", xmin=xmin, xmax=xmax,
-                                 ymin=0, ymax=max_count,
-                                 fontsize=14, median_mean=True)
+
+                fname[phase][key] = "transition_times_antennas_%s_%s" % (key,
+                                                                         phase)
+                if max(hist) > max_count:
+                    max_count = max(hist) + 5
+                if xmin > min(transition_times[phase][key]):
+                    xmin =  min(transition_times[phase][key]) - 0.5
+                if xmax < max(transition_times[phase][key]):
+                    xmax = max(transition_times[phase][key]) + 0.5
     
+    for phase in transition_times.keys():
+        for key in allowed_keys[phase]:
+            if not len(transition_times[phase][key]):
+                continue
+            
+            single_histogram_figures(transition_times[phase][key],
+                                     fname[phase][key],
+                                     res_dir, dir_name[key],
+                                     title[phase][key],
+                                     nbins=nbins[phase][key],
+                                     xlogscale=xlogscale[phase][key],
+                                     xlabel="Transition times (s)",
+                                     ylabel="count", xmin=xmin, xmax=xmax,
+                                     ymin=0, ymax=max_count,
+                                     fontsize=14, median_mean=True)
+   
     single_histogram_figures(incorrect_transitions, "incorrect_transitions",
                              res_dir, dir_incorrect,
                              "Incorrect antenna transitions",

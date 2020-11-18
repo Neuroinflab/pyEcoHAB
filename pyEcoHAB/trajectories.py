@@ -32,38 +32,45 @@ def single_mouse_antenna_transitions(ants, ts):
     return out
 
 
-def get_antenna_transitions(ecohab_data):
+def get_antenna_transitions(ecohab_data, timeline):
+    """Save and plot histograms of consecutive tag registrations
+    by pairs of antennas"""
     transition_times = {}
-    for antenna1 in ecohab_data.setup_config.all_antennas:
-        for antenna2 in ecohab_data.setup_config.all_antennas:
-            key = "%s %s" % (antenna1, antenna2)
-            transition_times[key] = []
-        
-    for mouse in ecohab_data.mice:
-        antennas = ecohab_data.get_antennas(mouse)
-        times = ecohab_data.get_times(mouse)
-        out = single_mouse_antenna_transitions(antennas, times)
-        for key in out:
-            transition_times[key].extend(out[key])
+    for phase in timeline.sections():
+        transition_times[phase] = {}
+        for antenna1 in ecohab_data.setup_config.all_antennas:
+            for antenna2 in ecohab_data.setup_config.all_antennas:
+                key = "%s %s" % (antenna1, antenna2)
+                transition_times[phase][key] = []
+        t_start, t_end = timeline.get_time_from_epoch(phase)
+        ecohab_data.mask_data(t_start, t_end)
+        for mouse in ecohab_data.mice:
+            antennas = ecohab_data.get_antennas(mouse)
+            times = ecohab_data.get_times(mouse)
+            out = single_mouse_antenna_transitions(antennas, times)
+            for key in out:
+                transition_times[phase][key].extend(out[key])
+        ecohab_data.unmask_data()
+        save_antenna_transitions(transition_times[phase], "transition_durations_%s.csv" % phase,
+                                 ecohab_data.res_dir, directory)
+
     histograms_antenna_transitions(transition_times, ecohab_data.setup_config,
                                    ecohab_data.res_dir, directory)
-    save_antenna_transitions(transition_times, "transition_durations.csv",
-                             ecohab_data.res_dir, directory)
     return transition_times
 
-def get_registration_trains(data):
+def get_registration_trains(ecohab_data):
     title = "Series of registrations by "
     fname_duration = "total_duration_of_registration_trains"
     fname_count = "total_count_of_registration_trains"
     directory = "trains_of_registrations"
     registration_trains = {}
     counts_in_trains = {}
-    for antenna in data.all_antennas:
+    for antenna in ecohab_data.all_antennas:
         registration_trains[antenna] = []
         counts_in_trains[antenna] = []
-    for mouse in data.mice:
-        times = data.get_times(mouse)
-        antennas = data.get_antennas(mouse)
+    for mouse in ecohab_data.mice:
+        times = ecohab_data.get_times(mouse)
+        antennas = ecohab_data.get_antennas(mouse)
         previous_antenna = antennas[0]
         previous_t_start = times[0]
         count = 1
@@ -80,18 +87,18 @@ def get_registration_trains(data):
                 previous_antenna = a
                 previous_t_start = times[i+1]
            
-    histograms_registration_trains(registration_trains, data.setup_config,
-                                   fname_duration, data.res_dir, directory,
+    histograms_registration_trains(registration_trains, ecohab_data.setup_config,
+                                   fname_duration, ecohab_data.res_dir, directory,
                                    title=title,
                                    xlabel="Duration (s)")
-    histograms_registration_trains(counts_in_trains, data.setup_config,
-                                   fname_count, data.res_dir, directory,
+    histograms_registration_trains(counts_in_trains, ecohab_data.setup_config,
+                                   fname_count, ecohab_data.res_dir, directory,
                                    title=title,
                                    xlabel="#registrations")
     save_antenna_transitions(registration_trains, "train_durations.csv",
-                             data.res_dir, directory)
+                             ecohab_data.res_dir, directory)
     save_antenna_transitions(counts_in_trains, "counts_in_trains.csv",
-                             data.res_dir, directory)
+                             ecohab_data.res_dir, directory)
     return registration_trains, counts_in_trains
 
 

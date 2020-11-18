@@ -33,6 +33,7 @@ class TestAntennaTransitions(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_very_short_3_mice")
+        cls.timeline = Timeline(path)
         cls.data = Loader(path)
         cls.expected = {}
         for a1 in cls.data.setup_config.all_antennas:
@@ -54,7 +55,7 @@ class TestAntennaTransitions(unittest.TestCase):
         cls.expected["2 1"] = [.891]
         cls.expected["1 1"] = [8.874]
         cls.expected["1 2"] = [0.651]
-        cls.calc =  tr.get_antenna_transitions(cls.data)
+        cls.calc =  tr.get_antenna_transitions(cls.data, cls.timeline)
         for key in cls.expected:
             line = cls.expected[key]
             cls.expected[key] = [np.round(a, decimals=3) for a in line]
