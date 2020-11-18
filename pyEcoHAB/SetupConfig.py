@@ -248,7 +248,7 @@ class SetupConfigMethods(RawConfigParser):
 
     def get_cage_address_dict(self):
         """
-        Return a dictionary specifing which antenna is at the entrance
+        Return a dictionary specifying which antenna is at the entrance
         to which cage or alternatively which antennas is inside which cage.
         """
         out = {}
@@ -265,7 +265,7 @@ class SetupConfigMethods(RawConfigParser):
 
     def get_address_non_adjacent_dict(self):
         """
-        Return a dictionary specifing which cage is at the other
+        Return a dictionary specifying which cage is at the other
         side of the tunnel with specified entrance antenna.
         """
         all_antennas = self.entrance_antennas
@@ -549,7 +549,7 @@ class SetupConfig(SetupConfigMethods):
 
 class IdentityConfig(RawConfigParser):
 
-    """Load a config file specifing how EcoHAB setups are combined
+    """Load a config file specifying how EcoHAB setups are combined
     together in a modular experiment.
 
     Experiment setup config should specify, which compartments in

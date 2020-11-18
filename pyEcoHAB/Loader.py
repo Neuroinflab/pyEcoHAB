@@ -54,7 +54,7 @@ class EcoHabDataBase(object):
         a modified algorithm by Alicja Puscian and Szymon Leski. Main
         modification -- if there are internal atennas in cages,
         readings from internal antennas override other readings
-        when specifing animal location.
+        when specifying animal location.
 
         Args:
            config: ExperimentSetupConfig or SetupConfig
@@ -85,7 +85,7 @@ class EcoHabDataBase(object):
         Eco-HAB compartments, using a modified algorithm by Alicja
         Puscian and Szymon Leski. Main modification -- if there are
         internal atennas in cages, readings from internal antennas
-        override other readings when specifing animal location.
+        override other readings when specifying animal location.
 
         Args:
            config: ExperimentSetupConfig or SetupConfig
