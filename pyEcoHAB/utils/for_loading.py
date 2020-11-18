@@ -350,11 +350,11 @@ def save_mismatches(mismatches, tot_registrations, res_dir,
             try:
                 exact_mis = np.round(100*mismatches[pair]/tot_registrations[pair])
             except ZeroDivisionError:
-                exact_mis = 1
+                exact_mis = 0
         else:
             exact_mis = np.round(100*mismatches[pair]/tot_registrations)
         out_f1 += u"%s, %d, %3.2f per 100\n" % (pair, mismatches[pair],
-                                                 exact_mis)
+                                                exact_mis)
     new_path = check_directory(res_dir, "diagnostics")
     fpath1 = os.path.join(new_path, fname)
     f1 = open(fpath1, "w")
@@ -397,21 +397,99 @@ def save_antenna_breaks(antenna_breaks, res_dir):
     return out_f2
 
 def run_diagnostics(raw_data, max_break, res_dir, setup_config):
-    mismatches = antenna_mismatch(raw_data, setup_config)
-    out_f1 = save_mismatches(mismatches, len(raw_data["Antenna"]),
-                             res_dir)
+    """
+    Calculate parameters showing fidelity of obtained antenna
+    registrations and overall experimental errors during the experiment.
+    These parameters will be saved in "diagnostics" directory.
+
+    Args:
+    raw_data:  dictionary of sequences
+       data read in from data files
+    max_break: float
+       maximum brea k in single antenna registrations (in sec)
+    res_dir: string
+       path to results directory
+    setup_config: SetupConfig or ExperimentalSetupConfig
+      object describing geometry of the (modular) experimental setup
     
+    returns:
+      string_1: text
+        text showing count and percentage of pairs of mismatched antenna
+        registrations
+      string_2: text
+        text describing periods when any antenna was silent for more
+        than max_break
+      string_3: text
+        text showing count and percentage of mismatched antenna registrations
+        per single antenna
+      string_4: text
+        text showing count and percentage of cases, when for 2 consecutive
+        antenna registration one antenna, two antennas and more than two
+        antennas were skipped
+      string_5: text
+        text showing count and percentage of cases, when two entrance antennas
+        to the same tunnel registered an animal simultaneously
+    """
+    mismatches = antenna_mismatch(raw_data, setup_config)
+    string_1 = save_mismatches(mismatches, len(raw_data["Antenna"]),
+                               res_dir)
+    antenna_breaks = check_antenna_presence(raw_data, max_break)
+    string_2 = save_antenna_breaks(antenna_breaks, res_dir)
     tot_mismatches = total_mismatches(mismatches)
     counters = Counter(raw_data["Antenna"])
-    out_f3 = save_total_mismatches(tot_mismatches, counters, res_dir)
-
-    antenna_breaks = check_antenna_presence(raw_data, max_break)
-    out_f2 = save_antenna_breaks(antenna_breaks, res_dir)
-
+    string_3 = save_total_mismatches(tot_mismatches, counters, res_dir)
     skip = skipped_registrations(raw_data, setup_config)
-    out_f4 = save_skipped_registrations(skip, len(raw_data["Tag"]), res_dir)
-    return out_f1, out_f2, out_f3, out_f4
+    string_4 = save_skipped_registrations(skip, len(raw_data["Tag"]), res_dir)
+    count, total_count = incorrect_tunnel_registrations(raw_data, setup_config)
+    header = u"tunnel, count, percentage of all passings through the tunnel\n"
+    string_5 = save_mismatches(count, total_count, res_dir,
+                               fname="incorrect_tunnel_registrations.csv",
+                               header=header)
+    return string_1, string_2, string_3, string_4, string_5
 
+
+def incorrect_tunnel_single_mouse(keys, antennas, times, durations):
+    count = {}
+    total_count = {}
+    for key in keys:
+        count[key] = 0
+        total_count[key] = 0
+    for i, a1 in enumerate(antennas[:-1]):
+        a2 = antennas[i+1]
+        key = "%s %s" % (min(a1, a2), max(a1, a2))
+        if key in keys:
+            t1, t2 = times[i], times[i+1]
+            d1 = durations[i]/1000
+            total_count[key] += 1
+            if t2 <= t1 + d1:
+                count[key] += 1
+    return count, total_count
+
+
+def incorrect_tunnel_registrations(raw_data, setup_config):
+    count = {}
+    directions = setup_config.directions
+    total_count = {}
+    for direction in directions:
+        a1, a2 = direction.split(" ")
+        key = "%s %s" % (min(a1, a2), max(a1, a2))
+        count[key] = 0
+        total_count[key] = 0
+    mice = set(raw_data['Tag'])
+
+    for mouse in mice:
+        mouse_idx = np.where(np.array(raw_data['Tag']) == mouse)[0]
+        times1 = raw_data["Time"][mouse_idx]
+        antennas1 = raw_data['Antenna'][mouse_idx]
+        durations1 = raw_data["Duration"][mouse_idx]
+        out_count, out_tot_count = incorrect_tunnel_single_mouse(count.keys(),
+                                                                 antennas1,
+                                                                 times1,
+                                                                 durations1)
+        for key in count:
+            count[key] += out_count[key]
+            total_count[key] += out_tot_count[key]
+    return count, total_count
 
 def transform_raw(row):
     return (int(row[0]), time_to_sec(row[1]),

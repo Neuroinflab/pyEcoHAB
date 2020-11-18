@@ -447,25 +447,32 @@ class TestRunDiagnostics(unittest.TestCase):
         for f in files:
             print("rm ", f)
         cls.length = len(data["Antenna"])
-        cls.str11, cls.str12, cls.str13, cls.str14 = uf.run_diagnostics(data,
-                                                             24*3600,
-                                                             res_path,
-                                                             config)
+        out1 = uf.run_diagnostics(data, 24*3600, res_path, config)
+        cls.str11, cls.str12, cls.str13, cls.str14, cls.str15 = out1
         path = os.path.join(data_path, "weird_short")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
         cls.mismatch2 = uf.antenna_mismatch(data, config)
         cls.presences2 = uf.check_antenna_presence(data, 24*3600)
         res_path = os.path.join(path, "Results")
-        files = glob.glob(os.path.join(res_path + "/diagnostics/*.csv"))
-
+        files = glob.glob(os.path.join(res_path
+                                       + "/diagnostics/*.csv"))
         for f in files:
             os.remove(f)
 
-        cls.str21, cls.str22, cls.str23, cls.str24 = uf.run_diagnostics(data,
-                                                                        24*3600,
-                                                                        res_path,
-                                                                        config)
+        out2 = uf.run_diagnostics(data, 24*3600, res_path, config)
+        cls.str21, cls.str22, cls.str23, cls.str24, cls.str25 = out2
+        path1 = os.path.join(data_path, "weird_very_short_3_mice")
+        raw_data1 = uf.read_single_file(path1, "20101010_110000.txt")
+        data1 = uf.from_raw_data(raw_data1)
+        config1 = SetupConfig()
+        res_path1 = os.path.join(path1, "Results")
+        out =  uf.run_diagnostics(data1, 24*3600, res_path1, config1)
+        cls.incorr_tunnel = out[-1]
+
+    def test_mismatched_tunnels(self):
+        expected = u"tunnel, count, percentage of all passings through the tunnel\n1 2, 0, 0.00 per 100\n3 4, 0, 0.00 per 100\n5 6, 2, 29.00 per 100\n7 8, 0, 0.00 per 100\n"
+        self.assertEqual(self.incorr_tunnel, expected)
 
     def test_no_registration_breaks_file(self):
         path = os.path.join(data_path, "weird_short")
@@ -645,6 +652,37 @@ class TestAppendData(unittest.TestCase):
         line1["Time"] += 15*60
         self.assertTrue(np.all(line1 == line2))
 
+
+class TestTunnelErrors(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        antennas =  ["1", "2", "1", "2", "3", "4", "5", "6", "7"]
+        times =     [1,   2,  2.5,   3,  4.5, 5.5, 6.5, 7.5, 10.5]
+        durations = [3, 600,  3,    34,  55,  66, 1999, 200, 100]
+        cls.pred_out = {"1 2": 1, "3 4":0, "5 6": 1, "7 8": 0}
+        cls.out, cls.tot = uf.incorrect_tunnel_single_mouse(cls.pred_out.keys(),
+                                                            antennas,
+                                                            times, durations)
+        cls.pred_tot = {"1 2": 3, "3 4":1, "5 6": 1, "7 8": 0}
+        path = os.path.join(data_path, "weird_very_short_3_mice")
+        cls.raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        cls.data = uf.from_raw_data(cls.raw_data)
+        config = SetupConfig()
+        cls.out_i, cls.out_tot_i = uf.incorrect_tunnel_registrations(cls.data, config)
+        cls.pred_out_i = {"1 2": 0, "3 4": 0, "5 6":2, "7 8":0}
+        cls.pred_tot_i = {"1 2": 2, "3 4": 1, "5 6":7, "7 8":0}
+
+    def test_incorrect(self):
+        self.assertEqual(self.pred_out, self.out)
+
+    def test_total(self):
+        self.assertEqual(self.pred_tot, self.tot)
+
+    def test_data_incorrect(self):
+        self.assertEqual(self.pred_out_i, self.out_i)
+
+    def test_data_total(self):
+        self.assertEqual(self.pred_tot_i, self.out_tot_i)
 
 if __name__ == '__main__':
     unittest.main()
