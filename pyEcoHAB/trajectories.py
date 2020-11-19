@@ -21,28 +21,26 @@ def save_antenna_transitions(transition_times, fname, res_dir, directory):
         f.write("\n")
     f.close()
 
-def single_mouse_antenna_transitions(ants, ts):
+def single_mouse_antenna_transitions(antennas1, times1):
     out = {}
-    for i, a1 in enumerate(ants[:-1]):
-        a2 = ants[i+1]
+    for i, a1 in enumerate(antennas1[:-1]):
+        a2 = antennas1[i+1]
         key = "%s %s" % (a1, a2)
         if key not in out:
             out[key] = [] 
-        out[key].append(ts[i+1]-ts[i])
+        out[key].append(times1[i+1]-times1[i])
     return out
 
 
-def get_antenna_transitions(ecohab_data, timeline):
-    """Save and plot histograms of consecutive tag registrations
-    by pairs of antennas"""
+def antenna_transtions_in_phases(data, phase_bounds, chosen_phases):
     transition_times = {}
-    for phase in timeline.sections():
+    for i, phase in enumerate(phases):
         transition_times[phase] = {}
         for antenna1 in ecohab_data.setup_config.all_antennas:
             for antenna2 in ecohab_data.setup_config.all_antennas:
                 key = "%s %s" % (antenna1, antenna2)
                 transition_times[phase][key] = []
-        t_start, t_end = timeline.get_time_from_epoch(phase)
+        t_start, t_end = phase_bounds[i]
         ecohab_data.mask_data(t_start, t_end)
         for mouse in ecohab_data.mice:
             antennas = ecohab_data.get_antennas(mouse)
@@ -51,12 +49,32 @@ def get_antenna_transitions(ecohab_data, timeline):
             for key in out:
                 transition_times[phase][key].extend(out[key])
         ecohab_data.unmask_data()
-        save_antenna_transitions(transition_times[phase], "transition_durations_%s.csv" % phase,
+        save_antenna_transitions(transition_times[phase],
+                                 "transition_durations_%s.csv" % phase,
                                  ecohab_data.res_dir, directory)
 
     histograms_antenna_transitions(transition_times, ecohab_data.setup_config,
                                    ecohab_data.res_dir, directory)
     return transition_times
+
+
+def get_antenna_transitions(ecohab_data, timeline, what_phases="All"):
+    """Save and plot histograms of consecutive tag registrations
+    by pairs of antennas
+    All - all phases
+    filter_dark, filter_light
+    """
+    data = ecohab_data
+    bins = 12*3600
+    mice = ecohab_data.mice
+    phases, tot_time, data, data_keys = prepare_binned_registrations(data,
+                                                                     timeline,
+                                                                     bins,
+                                                                     mice,
+                                                                     uf.get_times_antennas_list_of_mice)
+
+    antenna_transtions_chosen_phases(data, phase_bounds, chosen_phases)
+
 
 def get_registration_trains(ecohab_data):
     title = "Series of registrations by "
