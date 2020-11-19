@@ -185,6 +185,14 @@ def get_times_antennas(ecohab_data, mouse, t_1, t_2):
     ecohab_data.unmask_data()
     return times, antennas
 
+def get_times_antennas_list_of_mice(ecohab_data, mice, t_1, t_2):
+    out = {}
+    for mouse in mice:
+        out[mouse] = {}
+        times, antennas = get_times_antennas(ecohab_data, mouse, t_1, t_2)
+        out[mouse]["times"] = times
+        out[mouse]["antennas"] = antennas
+    return out
 
 def get_states_and_readouts(antennas, times, t1, t2):
     before = get_idx_pre(t1, times)
@@ -550,13 +558,15 @@ def prepare_registrations(ecohab_data, mice, st, en):
     return directions
 
 
-def prepare_binned_registrations(ecohab_data, timeline, bins, mice):
+
+def prepare_binned_registrations(ecohab_data, timeline, bins, mice,
+                                 function=prepare_registrations):
     total_time = OrderedDict()
     data = OrderedDict()
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
         time = timeline.get_time_from_epoch("ALL")
-        data["ALL"] = {0: prepare_registrations(ecohab_data, mice, *time)}
+        data["ALL"] = {0: function(ecohab_data, mice, *time)}
         data_keys = [["ALL"], [0.0]]
         total_time["ALL"] = {0: time}
     elif isinstance(bins, int) or isinstance(bins, float):
@@ -592,9 +602,9 @@ def prepare_binned_registrations(ecohab_data, timeline, bins, mice):
                 if t_e > t_end:
                     t_e = t_end
                 time = (t_start, t_e)
-                data[phase][bin_labels[j]] = prepare_registrations(ecohab_data,
-                                                                   mice,
-                                                                   *time)
+                data[phase][bin_labels[j]] = function(ecohab_data,
+                                                      mice,
+                                                      *time)
                 total_time[phase][bin_labels[j]] = time
                 t_start += bins
                 j += 1
