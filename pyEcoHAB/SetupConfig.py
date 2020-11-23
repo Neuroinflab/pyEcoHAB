@@ -481,6 +481,29 @@ class SetupConfigMethods(RawConfigParser):
             pairs.remove(pair)
         return sorted(pairs)
 
+    def tunnel_pairs(self):
+        out = []
+        for key in self.tunnels_dict.keys():
+            if len(self.tunnels_dict[key]) < 2:
+                continue
+            out.append("%s %s" % (self.tunnels_dict[key][0],
+                                  self.tunnels_dict[key][1]))
+            out.append("%s %s" % (self.tunnels_dict[key][1],
+                                  self.tunnels_dict[key][0]))
+        return sorted(out)
+
+    def cage_pairs(self):
+        out = []
+        for key in self.cages_dict.keys():
+            antennas = self.cages_dict[key]
+            if len(antennas) < 2:
+                continue
+            for i, a1 in enumerate(antennas):
+                for a2 in antennas[i+1:]:
+                    out.append("%s %s" %(a1, a2))
+                    out.append("%s %s" %(a2, a1))
+        return sorted(out)
+
 
 class SetupConfig(SetupConfigMethods):
     """Load config file for a single EcoHAB setup.

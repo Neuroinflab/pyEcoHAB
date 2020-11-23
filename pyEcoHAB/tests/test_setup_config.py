@@ -1355,6 +1355,53 @@ class TestExperimentSetupConfig(unittest.TestCase):
         calculated = self.experiment_dom.skipped_more()
         self.assertEqual(sorted(expected), calculated)
 
+    def test_tunnel_antenna_pairs_full(self):
+        expected = sorted([
+            "1_ecohab_1 2_ecohab_1", "2_ecohab_1 1_ecohab_1",
+            "3_ecohab_1 4_ecohab_1", "4_ecohab_1 3_ecohab_1",
+            "5_ecohab_2 6_ecohab_2", "6_ecohab_2 5_ecohab_2",
+            "7_ecohab_2 8_ecohab_2", "8_ecohab_2 7_ecohab_2",
+        ])
+        calculated = self.full_exp.tunnel_pairs()
+        self.assertEqual(calculated, expected)
+
+    def test_tunnel_antenna_pairs_dom(self):
+        expected = sorted([
+            "1_default1 2_default1", "2_default1 1_default1",
+            "3_default1 4_default1", "4_default1 3_default1",
+            "5_default1 6_default1", "6_default1 5_default1",
+            "7_default1 8_default1", "8_default1 7_default1",
+            "1_custom2 2_custom2", "2_custom2 1_custom2",
+
+        ])
+        calculated = self.experiment_dom.tunnel_pairs()
+        self.assertEqual(calculated, expected)
+
+    def test_cage_antenna_pairs_full(self):
+        expected = sorted([
+            "2_ecohab_1 3_ecohab_1", "3_ecohab_1 2_ecohab_1",
+            "5_ecohab_2 4_ecohab_1", "4_ecohab_1 5_ecohab_2",
+            "7_ecohab_2 6_ecohab_2", "6_ecohab_2 7_ecohab_2",
+            "1_ecohab_1 8_ecohab_2", "8_ecohab_2 1_ecohab_1",
+        ])
+        calculated = self.full_exp.cage_pairs()
+        self.assertEqual(calculated, expected)
+
+    def test_cage_antenna_pairs_dom(self):
+        expected = sorted([
+            "3_default1 2_default1", "2_default1 3_default1",
+            "5_default1 4_default1", "4_default1 5_default1",
+            "7_default1 6_default1", "6_default1 7_default1",
+            "1_default1 8_default1", "8_default1 1_default1",
+            "1_custom2 7_custom2", "7_custom2 1_custom2",
+            "1_default1 2_custom2", "2_custom2 1_default1",
+            "8_default1 2_custom2", "2_custom2 8_default1",
+            "8_custom2 2_custom2", "2_custom2 8_custom2",
+            "8_custom2 1_default1", "1_default1 8_custom2",
+            "8_custom2 8_default1", "8_default1 8_custom2",
+        ])
+        calculated = self.experiment_dom.cage_pairs()
+        self.assertEqual(calculated, expected)
 
 if __name__ == '__main__':
     unittest.main()
