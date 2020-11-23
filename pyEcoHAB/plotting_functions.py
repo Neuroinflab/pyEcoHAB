@@ -725,7 +725,7 @@ def histograms_antenna_transitions(transition_times, setup_config, res_dir,
                                               bins=logbins)
                 
 
-                fname[phase][label][key] = "transition_times_antennas_%s_%s_start_at_%s" % (key.replace(" ", "_"), phase, label)
+                fname[phase][label][key] = "transition_times_antennas_%s_%s_start_at_%s" % (key.replace(" ", "_"), phase.replace(" ", "_"), label)
                 if max(hist) > max_count:
                     max_count = max(hist) + 5
                 if xmin > min(transition_times[phase][label][key]):
@@ -789,10 +789,10 @@ def histograms_transitions_cages_tunnels(transition_times, setup_config,
         cages[phase] = {}
         tunnels[phase] = {}
         for label in transition_times[phase].keys():
-            fname["cages"][phase][label] = fname_cage % (phase, label)
-            title["cages"][phase][label] = title_cage % (phase, label)
-            fname["tunnels"][phase][label] = fname_tunnel % (phase, label)
-            title["tunnels"][phase][label] = title_tunnel % (phase, label)
+            fname["cages"][phase][label] = fname_cage % (phase.replace(" ", "_"), label)
+            title["cages"][phase][label] = title_cage % (phase.replace(" ", "_"), label)
+            fname["tunnels"][phase][label] = fname_tunnel % (phase.replace(" ", "_"), label)
+            title["tunnels"][phase][label] = title_tunnel % (phase.replace(" ", "_"), label)
             xlogscale["cages"][phase][label] = False
             xlogscale["tunnels"][phase][label] = False
             cages[phase][label] = []
