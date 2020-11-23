@@ -59,6 +59,8 @@ def antenna_transtions_in_phases(data, phase_bounds, phases,
 
     histograms_antenna_transitions(transition_times, setup_config,
                                    res_dir, "antenna_transitions")
+    histograms_transitions_cages_tunnels(transition_times, setup_config,
+                                         res_dir, "antenna_transitions")
     return transition_times
 
 
