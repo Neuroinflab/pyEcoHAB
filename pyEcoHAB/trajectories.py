@@ -2,7 +2,7 @@ from __future__ import division, print_function, absolute_import
 import os
 
 import numpy as np
-from pyEcoHAB.utility_functions import check_directory
+from pyEcoHAB import utility_functions as uf
 from pyEcoHAB.plotting_functions import single_histogram_figures
 from pyEcoHAB.plotting_functions import histograms_antenna_transitions
 from pyEcoHAB.utils.for_loading import save_mismatches
@@ -11,7 +11,7 @@ directory = "antenna_transitions"
 
 def save_antenna_transitions(transition_times, fname, res_dir, directory):
     dir_correct = os.path.join(res_dir, directory)
-    out_dir = check_directory(dir_correct, "data")
+    out_dir = uf.check_directory(dir_correct, "data")
     fname = os.path.join(out_dir, fname)
     f = open(fname, "w")
     for key in transition_times.keys():
@@ -32,48 +32,77 @@ def single_mouse_antenna_transitions(antennas1, times1):
     return out
 
 
-def antenna_transtions_in_phases(data, phase_bounds, chosen_phases):
+def antenna_transtions_in_phases(data, phase_bounds, phases,
+                                 data_keys, setup_config,
+                                 res_dir,
+                                 chosen_phases="ALL"):
     transition_times = {}
-    for i, phase in enumerate(phases):
-        transition_times[phase] = {}
-        for antenna1 in ecohab_data.setup_config.all_antennas:
-            for antenna2 in ecohab_data.setup_config.all_antennas:
-                key = "%s %s" % (antenna1, antenna2)
-                transition_times[phase][key] = []
-        t_start, t_end = phase_bounds[i]
-        ecohab_data.mask_data(t_start, t_end)
-        for mouse in ecohab_data.mice:
-            antennas = ecohab_data.get_antennas(mouse)
-            times = ecohab_data.get_times(mouse)
-            out = single_mouse_antenna_transitions(antennas, times)
-            for key in out:
-                transition_times[phase][key].extend(out[key])
-        ecohab_data.unmask_data()
-        save_antenna_transitions(transition_times[phase],
-                                 "transition_durations_%s.csv" % phase,
-                                 ecohab_data.res_dir, directory)
+    all_phases, bin_labels = data_keys
+    if chosen_phases == "ALL":
+        skip_phases = []
+    elif chosen_phases == "dark":
+        skip_phases = ["Light", "light", "LIGHT"]
+    elif chosen_phases == "light":
+        skip_phases = ["Dark", "dark", "DARK"]
 
-    histograms_antenna_transitions(transition_times, ecohab_data.setup_config,
-                                   ecohab_data.res_dir, directory)
+    for idx_phase, ph in enumerate(all_phases):
+        new_phase = phases[idx_phase]
+        transition_times[ph] = {}
+        skip = False
+        for to_skip in skip_phases:
+            if to_skip in ph:
+                skip = True
+        if skip:
+            continue
+        for i, lab in enumerate(bin_labels):
+            t_start, t_stop = phase_bounds[ph][lab]
+            tunnels_antennas_dict = data[ph][lab]
+            transition_times[ph][lab] = {}
+            for key in setup_config.all_pairs:
+                transition_times[ph][lab][key] = []
+
+            for mouse in tunnels_antennas_dict.keys():
+                antennas = tunnels_antennas_dict[mouse]["antennas"]
+                times = tunnels_antennas_dict[mouse]["times"]
+                out = single_mouse_antenna_transitions(antennas, times)
+                for key in out:
+                    transition_times[ph][lab][key].extend(out[key])
+            save_antenna_transitions(transition_times[ph][lab],
+                                     "transition_durations_%s%s.csv" % (new_phase, lab),
+                                     res_dir, "antenna_transitions")
+
+    histograms_antenna_transitions(transition_times, setup_config,
+                                   res_dir, "antenna_transitions")
     return transition_times
 
 
-def get_antenna_transitions(ecohab_data, timeline, what_phases="All"):
+def get_antenna_transitions(ecohab_data, timeline, what_phases=""):
     """Save and plot histograms of consecutive tag registrations
     by pairs of antennas
     All - all phases
     filter_dark, filter_light
     """
-    data = ecohab_data
-    bins = 12*3600
-    mice = ecohab_data.mice
-    phases, tot_time, data, data_keys = prepare_binned_registrations(data,
-                                                                     timeline,
-                                                                     bins,
-                                                                     mice,
-                                                                     uf.get_times_antennas_list_of_mice)
+    if what_phases == "":
+        chosen_phases = "ALL"
+        bins = 12*3600
+    elif what_phases == "dark" or what_phases == "light":
+        bins = 12*3600
+        chosen_phases = what_phases
+    elif what_phases == "ALL":
+        bins = "ALL"
+        chosen_phases = what_phases
 
-    antenna_transtions_chosen_phases(data, phase_bounds, chosen_phases)
+    phases, tot_times, data, data_keys = uf.prepare_binned_registrations(ecohab_data,
+                                                                         timeline,
+                                                                         bins,
+                                                                         ecohab_data.mice,
+                                                                         uf.get_times_antennas_list_of_mice)
+
+    transitions = antenna_transtions_in_phases(data, tot_times, phases,
+                                               data_keys, ecohab_data.setup_config,
+                                               ecohab_data.res_dir,
+                                               chosen_phases=chosen_phases)
+    return transitions
 
 
 def get_registration_trains(ecohab_data):
