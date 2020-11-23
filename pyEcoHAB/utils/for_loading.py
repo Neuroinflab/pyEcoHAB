@@ -467,10 +467,10 @@ def incorrect_tunnel_single_mouse(keys, antennas, times, durations):
 
 
 def incorrect_tunnel_registrations(raw_data, setup_config):
-    count = {}
+    count = OrderedDict()
     directions = setup_config.directions
     total_count = {}
-    for direction in directions:
+    for direction in sorted(directions):
         a1, a2 = direction.split(" ")
         key = "%s %s" % (min(a1, a2), max(a1, a2))
         count[key] = 0
