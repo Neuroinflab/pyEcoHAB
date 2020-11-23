@@ -47,7 +47,7 @@ def antenna_transtions_in_phases(data, phase_bounds, phases,
             transition_times[ph][lab] = {}
             for key in setup_config.all_pairs:
                 transition_times[ph][lab][key] = []
-            for mouse in tunnels_antennas_dict.keys():
+            for mouse in sorted(tunnels_antennas_dict.keys()):
                 antennas = tunnels_antennas_dict[mouse]["antennas"]
                 times = tunnels_antennas_dict[mouse]["times"]
                 out = single_mouse_antenna_transitions(antennas, times)
