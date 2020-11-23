@@ -494,7 +494,7 @@ def prepare_binned_data(ecohab_data, timeline, bins, mice):
                 t_start += bins
         else:
             all_phases = filter_dark_light(timeline.sections())
-            bin_labels = get_times(bins, time_start=0, time_end=shortest_phase)
+            bin_labels = get_times(bins)
             times = [timeline.get_time_from_epoch(phase) for phase in all_phases]
         for i, phase in enumerate(all_phases):
             t_start, t_end = times[i]
@@ -572,7 +572,7 @@ def prepare_binned_registrations(ecohab_data, timeline, bins, mice,
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
         all_phases = filter_dark_light(timeline.sections())
-        min_phase = get_shortest_phase_duration(timeline)
+        min_phase = int(get_shortest_phase_duration(timeline))
         # you can not iterate by phases, if bins are longer than phases
         if bins > min_phase:
             t_start = timeline.get_time_from_epoch(all_phases[0])[0]

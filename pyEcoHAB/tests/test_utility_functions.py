@@ -1436,8 +1436,6 @@ class TestGetEHSData(unittest.TestCase):
                                                                 cls.t1,
                                                                 cls.t2,
                                                                 margin=100)
-        for a, s, e in zip(cls.m_1_a, cls.s1, cls.e1):
-            print(a, s, e)
 
     def test_get_ecohab_data_address(self):
         self.assertEqual(["cage C", "cage C", "cage D", "cage C", "cage D",
