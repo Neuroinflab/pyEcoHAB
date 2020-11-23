@@ -655,10 +655,10 @@ def histograms_antenna_transitions(transition_times, setup_config, res_dir,
                                     "same_antenna")
     dir_correct_cage = os.path.join(directory,
                                     "correct_antenna_transition",
-                                    "cage")
+                                    "cages")
     dir_correct_tunnel = os.path.join(directory,
                                       "correct_antenna_transition",
-                                      "tunnel")
+                                      "tunnels")
     dir_incorrect = os.path.join(directory,
                                  "incorrect_antenna_transition")
     title_double_a = "consecutive crossing of antenna %s entrance to %s phase %s at %s"
@@ -725,7 +725,7 @@ def histograms_antenna_transitions(transition_times, setup_config, res_dir,
                                               bins=logbins)
                 
 
-                fname[phase][label][key] = "transition_times_antennas_%s_%s_start_at_%s" % (key, phase, label)
+                fname[phase][label][key] = "transition_times_antennas_%s_%s_start_at_%s" % (key.replace(" ", "_"), phase, label)
                 if max(hist) > max_count:
                     max_count = max(hist) + 5
                 if xmin > min(transition_times[phase][label][key]):
@@ -768,8 +768,8 @@ def histograms_transitions_cages_tunnels(transition_times, setup_config,
                              "tunnels")
     title_cage = "transitions through all the cages %s %s"
     title_tunnel = "transitions through all the tunnels %s %s"
-    fname_cage = "cage_transitions_%s_%s_"
-    fname_tunnel = "tunnel_transitions_%s_%s_"
+    fname_cage = "all_cage_transitions_%s_%s_"
+    fname_tunnel = "all_tunnel_transitions_%s_%s_"
     max_count = 0
     title = {"cages": {}, "tunnels": {}}
     fname = {"cages": {}, "tunnels": {}}
@@ -779,6 +779,7 @@ def histograms_transitions_cages_tunnels(transition_times, setup_config,
     cages = {}
     tunnels = {}
     for phase in transition_times.keys():
+        
         xlogscale["cages"][phase] = {}
         fname["cages"][phase] = {}
         title["cages"][phase] = {}
