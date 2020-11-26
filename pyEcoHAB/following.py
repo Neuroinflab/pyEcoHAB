@@ -252,8 +252,8 @@ def add_intervals(all_intervals, phase_intervals):
         all_intervals[mouse].extend(phase_intervals[mouse])
 
 
-def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600, res_dir="",
-                             prefix="", remove_mouse=None,
+def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
+                             res_dir="", prefix="", remove_mouse=None,
                              save_distributions=True, save_figures=False,
                              return_median=False, delimiter=";",
                              save_times_following=False, seed=None):
