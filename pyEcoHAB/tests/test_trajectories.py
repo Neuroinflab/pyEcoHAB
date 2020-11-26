@@ -78,10 +78,12 @@ class TestAntennaTransitions(unittest.TestCase):
         cls.expected_dark["1 dark"][0.0]["1 1"] = [8.874]
         cls.expected_dark["1 dark"][0.0]["1 2"] = [0.651]
 
-        cls.calc =  tr.get_antenna_transitions(cls.data, cls.timeline,
-                                               bins="ALL")
-        cls.calc_dark = tr.get_antenna_transitions(cls.data, cls.timeline,
-                                                   bins=1800)
+        cls.calc =  tr.get_antenna_transitions_durations(cls.data,
+                                                         cls.timeline,
+                                                         bins="ALL")
+        cls.calc_dark = tr.get_antenna_transitions_durations(cls.data,
+                                                             cls.timeline,
+                                                             bins=1800)
         for key in cls.expected["ALL"][0.0]:
             line = cls.expected["ALL"][0.0][key]
             cls.expected["ALL"][0.0][key] = [np.round(a, decimals=3)
@@ -245,14 +247,14 @@ class TestGetAntennaTransitions(unittest.TestCase):
         cls.timeline = Timeline(path)
 
     def test_all_phases(self):
-        transitions = tr.get_antenna_transitions(self.data,
-                                                 self.timeline,
-                                                 bins=30*60)
+        transitions = tr.get_antenna_transitions_durations(self.data,
+                                                           self.timeline,
+                                                           bins=30*60)
 
     def test_ALL(self):
-        transitions = tr.get_antenna_transitions(self.data,
-                                                 self.timeline,
-                                                 bins="ALL")
+        transitions = tr.get_antenna_transitions_durations(self.data,
+                                                           self.timeline,
+                                                           bins="ALL")
 
 
 class TestTrainsOfSingleAntennaRegistrations(unittest.TestCase):

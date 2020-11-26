@@ -105,11 +105,11 @@ def get_cage_tunnel_transitions(transitions, setup_config):
     return out
 
 
-def get_antenna_transitions(ecohab_data, timeline, bins=12*3600,
-                            res_dir="", prefix="", remove_mouse="",
-                            delimiter=";"):
-    """Save and plot histograms of consecutive tag registrations
-    by pairs of antennas
+def get_antenna_transitions_durations(ecohab_data, timeline, bins=12*3600,
+                                      res_dir="", prefix="", remove_mouse="",
+                                      delimiter=";"):
+    """Save and plot histograms of durations between consecutive tag
+    registrations by antenna pairs.
 
     Args:
         ecohab_data : Loader or Loader_like
@@ -134,6 +134,7 @@ def get_antenna_transitions(ecohab_data, timeline, bins=12*3600,
            in ecohab_data.
         delimiter : str, optional
            String or character separating columns
+
     """
     if prefix == "":
         prefix = ecohab_data.prefix
