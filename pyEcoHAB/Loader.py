@@ -311,7 +311,7 @@ class Loader(EcoHabDataBase):
            Add analysis date to results directory filename.
            As a default current date will be added.
     """
-    MAX_BREAK = 3600
+    MAX_BREAK = 3*3600
     internal_antennas = []
 
     def __init__(self, path, **kwargs):
