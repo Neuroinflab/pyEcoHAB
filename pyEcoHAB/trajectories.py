@@ -1,26 +1,15 @@
 from __future__ import division, print_function, absolute_import
 import os
-
+from collections import OrderedDict
 import numpy as np
-from pyEcoHAB import utility_functions as uf
+from pyEcoHAB import utility_functions as utils
 from pyEcoHAB.plotting_functions import single_histogram_figures
 from pyEcoHAB.plotting_functions import histograms_antenna_transitions
-from pyEcoHAB.plotting_functions import histograms_transitions_cages_tunnels
 from pyEcoHAB.utils.for_loading import save_mismatches
+from pyEcoHAB.write_to_file import save_antenna_transitions
 
 directory = "antenna_transitions"
 
-def save_antenna_transitions(transition_times, fname, res_dir, directory):
-    dir_correct = os.path.join(res_dir, directory)
-    out_dir = uf.check_directory(dir_correct, "data")
-    fname = os.path.join(out_dir, fname)
-    f = open(fname, "w")
-    for key in transition_times.keys():
-        f.write("%s;" % key)
-        for duration in transition_times[key]:
-            f.write("%f;" % duration)
-        f.write("\n")
-    f.close()
 
 def single_mouse_antenna_transitions(antennas1, times1):
     out = {}
@@ -35,11 +24,11 @@ def single_mouse_antenna_transitions(antennas1, times1):
 
 def antenna_transtions_in_phases(data, phase_bounds, phases,
                                  data_keys, setup_config,
-                                 res_dir):
+                                 res_dir, prefix, delimiter):
     transition_times = {}
     all_phases, bin_labels = data_keys
     for idx_phase, ph in enumerate(all_phases):
-        new_phase = phases[idx_phase]
+
         transition_times[ph] = {}
         for i, lab in enumerate(bin_labels):
             t_start, t_stop = phase_bounds[ph][lab]
@@ -53,32 +42,113 @@ def antenna_transtions_in_phases(data, phase_bounds, phases,
                 out = single_mouse_antenna_transitions(antennas, times)
                 for key in out:
                     transition_times[ph][lab][key].extend(out[key])
-            save_antenna_transitions(transition_times[ph][lab],
-                                     "transition_durations_%s%s.csv" % (new_phase, lab),
-                                     res_dir, "antenna_transitions")
-
+    save_antenna_transitions(transition_times, all_phases,
+                             "transition_durations",
+                             res_dir, prefix, directory, delimiter=delimiter)
     histograms_antenna_transitions(transition_times, setup_config,
-                                   res_dir, "antenna_transitions")
-    histograms_transitions_cages_tunnels(transition_times, setup_config,
-                                         res_dir, "antenna_transitions")
+                                   res_dir, directory,
+                                   "transition_times_antennas", prefix)
+    cages_tunnels = get_cage_tunnel_transitions(transition_times,
+                                                setup_config)
+    save_antenna_transitions(cages_tunnels, all_phases,
+                             "transition_durations",
+                             res_dir, prefix, directory, delimiter=delimiter)
+    
+    histograms_antenna_transitions(cages_tunnels, setup_config,
+                                   res_dir, directory,
+                                   "transitions_all", prefix)
+    light_dark = get_light_dark_transitions(transition_times)
+    save_antenna_transitions(light_dark, ["dark", "light"],
+                             "transition_durations",
+                             res_dir, prefix, directory, delimiter=delimiter)
+    histograms_antenna_transitions(light_dark, setup_config,
+                                   res_dir, directory,
+                                   "transition_times_antennas", prefix)
     return transition_times
 
 
-def get_antenna_transitions(ecohab_data, timeline, bins=12*3600):
+
+def get_light_dark_transitions(transitions):
+    if transitions.keys() == ["ALL"]:
+        return
+    out = OrderedDict((("dark", {0: {}}), ("light", {0: {}})))
+    for phase in transitions.keys():
+        for label in transitions[phase].keys():
+            for key in transitions[phase][label].keys():
+                if "dark" in phase or "Dark" in phase or "DARK" in phase:
+                    if key in out["dark"][0]:
+                        out["dark"][0][key] += transitions[phase][label][key]
+                    else:
+                        out["dark"][0][key] = transitions[phase][label][key]
+                elif  "light" in phase or "Light" in phase or "LIGHT" in phase:
+                    if key in out["light"][0]:
+                        out["light"][0][key] += transitions[phase][label][key]
+                    else:
+                        out["light"][0][key] = transitions[phase][label][key]
+    return out
+
+
+def get_cage_tunnel_transitions(transitions, setup_config):
+    out = OrderedDict()
+    tunnel_pairs = setup_config.tunnel_pairs()
+    cage_pairs = setup_config.cage_pairs()
+    for phase in transitions.keys():
+        out[phase] = OrderedDict()
+        for label in transitions[phase]:
+            out[phase][label] = OrderedDict((("cages", []),
+                                            ("tunnels", [])))
+            for key in transitions[phase][label].keys():
+                if key in tunnel_pairs:
+                    out[phase][label]["tunnels"] += transitions[phase][label][key]
+                elif key in cage_pairs:
+                    out[phase][label]["cages"] += transitions[phase][label][key]
+    return out
+
+
+def get_antenna_transitions(ecohab_data, timeline, bins=12*3600,
+                            res_dir="", prefix="", remove_mouse="",
+                            delimiter=";"):
     """Save and plot histograms of consecutive tag registrations
     by pairs of antennas
-    All - all phases
-    filter_dark, filter_light
-    """
 
-    phases, tot_times, data, data_keys = uf.prepare_binned_registrations(ecohab_data,
-                                                                         timeline,
-                                                                         bins,
-                                                                         ecohab_data.mice,
-                                                                         uf.get_times_antennas_list_of_mice)
-    transitions = antenna_transtions_in_phases(data, tot_times, phases,
-                                               data_keys, ecohab_data.setup_config,
-                                               ecohab_data.res_dir)
+    Args:
+        ecohab_data : Loader or Loader_like
+           Eco-HAB dataset.
+        timeline : Timeline
+           timeline of the experiment.
+        binsize : string or number
+           time bins for calculating activity. Possible string values are:
+           "ALL" -- calculate activity for the whole experiment,
+           A number value specifies number of seconds in each bin, e.g. binsize
+           equal 3600 results in 1 h bins.
+        res_dir : string
+           destination directory
+           default value is the destination directory established
+           for ecohab_data.
+        prefix : string
+           string added to the name of every generated results file
+           default value is the prefix established for ecohab_data
+        remove_mouse : string or list
+           name of mouse or mice to be removed from the results file
+           As a default activity will be established for every mouse registered
+           in ecohab_data.
+        delimiter : str, optional
+           String or character separating columns
+    """
+    if prefix == "":
+        prefix = ecohab_data.prefix
+    if res_dir == "":
+        res_dir = ecohab_data.res_dir
+    mice = utils.get_mice(ecohab_data.mice, remove_mouse)
+    function = utils.get_times_antennas_list_of_mice
+    phases, times, data, keys = utils.prepare_binned_registrations(ecohab_data,
+                                                                   timeline,
+                                                                   bins,
+                                                                   mice,
+                                                                   function)
+    transitions = antenna_transtions_in_phases(data, times, phases,
+                                               keys, ecohab_data.setup_config,
+                                               res_dir, prefix, delimiter=";")
     return transitions
 
 
@@ -87,11 +157,11 @@ def get_registration_trains(ecohab_data):
     fname_duration = "total_duration_of_registration_trains"
     fname_count = "total_count_of_registration_trains"
     directory = "trains_of_registrations"
-    registration_trains = {}
-    counts_in_trains = {}
+    registration_trains = {"ALL":{0:{}}}
+    counts_in_trains = {"ALL":{0:{}}}
     for antenna in ecohab_data.all_antennas:
-        registration_trains[antenna] = []
-        counts_in_trains[antenna] = []
+        registration_trains["ALL"][0][antenna] = []
+        counts_in_trains["ALL"][0][antenna] = []
     for mouse in ecohab_data.mice:
         times = ecohab_data.get_times(mouse)
         antennas = ecohab_data.get_antennas(mouse)
@@ -105,24 +175,25 @@ def get_registration_trains(ecohab_data):
             else:
                 if count > 2:
                     duration = times[i] - previous_t_start
-                    registration_trains[previous_antenna].append(duration)
-                    counts_in_trains[previous_antenna].append(count)
+                    registration_trains["ALL"][0][previous_antenna].append(duration)
+                    counts_in_trains["ALL"][0][previous_antenna].append(count)
                 count = 1
                 previous_antenna = a
                 previous_t_start = times[i+1]
            
-    histograms_registration_trains(registration_trains, ecohab_data.setup_config,
+    histograms_registration_trains(registration_trains["ALL"][0], ecohab_data.setup_config,
                                    fname_duration, ecohab_data.res_dir, directory,
                                    title=title,
                                    xlabel="Duration (s)")
-    histograms_registration_trains(counts_in_trains, ecohab_data.setup_config,
+    histograms_registration_trains(counts_in_trains["ALL"][0], ecohab_data.setup_config,
                                    fname_count, ecohab_data.res_dir, directory,
                                    title=title,
                                    xlabel="#registrations")
-    save_antenna_transitions(registration_trains, "train_durations.csv",
-                             ecohab_data.res_dir, directory)
-    save_antenna_transitions(counts_in_trains, "counts_in_trains.csv",
-                             ecohab_data.res_dir, directory)
+    save_antenna_transitions(registration_trains, ["ALL"],
+                             "train_durations.csv",
+                             ecohab_data.res_dir, "", directory)
+    save_antenna_transitions(counts_in_trains, ["ALL"], "counts_in_trains.csv",
+                             ecohab_data.res_dir, "", directory)
     return registration_trains, counts_in_trains
 
 

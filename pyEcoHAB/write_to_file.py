@@ -321,3 +321,22 @@ def write_registrations_stats(crossings, phase, mice_list,
                 f.write(delimiter+str(crossings[antenna][mouse][i]))
         f.write("\n")
     f.close()
+
+
+def save_antenna_transitions(transition_times, phases,
+                             fname, res_dir, prefix, directory,
+                             delimiter=";"):
+    dir_correct = os.path.join(res_dir, directory)
+    out_dir = utils.check_directory(dir_correct, "data")
+    for idx_phase, phase in enumerate(transition_times.keys()):
+        new_phase = phases[idx_phase]
+        for label in transition_times[phase].keys():
+            new_fname = "%s_%s_%s.csv" % (fname, new_phase, label)
+            new_path = os.path.join(out_dir, new_fname)
+            f = open(new_path, "w")
+            for key in transition_times[phase][label].keys():
+                f.write("%s%s" % (key, delimiter))
+                for duration in transition_times[phase][label][key]:
+                    f.write("%f%s" % (duration, delimiter))
+                f.write("\n")
+            f.close()

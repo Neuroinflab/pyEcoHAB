@@ -205,7 +205,8 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
            equal 3600 results in 1 h bins.
         res_dir : string
            destination directory
-           default value is the destination directory established for ecohab_data.
+           default value is the destination directory established 
+           for ecohab_data.
         prefix : string
            string added to the name of every generated results file
            default value is the prefix established for ecohab_data

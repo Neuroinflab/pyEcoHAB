@@ -649,8 +649,10 @@ def make_visit_duration_histogram(results, time, phase, mice,
         plt.close(fig)
 
 
-def histograms_antenna_transitions(transition_times, setup_config, res_dir,
-                                   directory):
+def histograms_antenna_transitions(transition_times, setup_config,
+                                   main_directory, directory, fname, prefix,
+                                   xmin=None, xmax=None, ymin=None, ymax=None,
+                                   additional_info=""):
     dir_correct_same = os.path.join(directory, "correct_antenna_transition",
                                     "same_antenna")
     dir_correct_cage = os.path.join(directory,
@@ -662,14 +664,15 @@ def histograms_antenna_transitions(transition_times, setup_config, res_dir,
     dir_incorrect = os.path.join(directory,
                                  "incorrect_antenna_transition")
     title_double_a = "consecutive crossing of antenna %s entrance to %s phase %s at %s"
+    fname = "%s%s%s" % (prefix, fname, additional_info)
     max_count = 0
     nbins = {}
     title = {}
-    fname = {}
+    designated_fname = {}
     dir_name = {}
     xlogscale = {}
-    xmin = 1000
-    xmax = 0
+    new_xmin = 1000
+    new_xmax = 0
     incorrect_transitions = []
     allowed_keys = {}
 
@@ -677,40 +680,47 @@ def histograms_antenna_transitions(transition_times, setup_config, res_dir,
         allowed_keys[phase] = []
         xlogscale[phase] = {}
         nbins[phase] = {}
-        fname[phase] = {}
+        designated_fname[phase] = {}
         title[phase] = {}
          
         for label in transition_times[phase].keys():
             nbins[phase][label] = {}
-            fname[phase][label] = {}
+            designated_fname[phase][label] = {}
             title[phase][label] = {}
             xlogscale[phase][label] = {}
             for key in transition_times[phase][label].keys():
                 if not len(transition_times[phase][label][key]):
                     continue
-                first, last = key.split(" ")
-                gen_key = "%s %s" % (min(first, last), max(first, last))
-                if gen_key in setup_config.mismatched_pairs:
-                    incorrect_transitions.extend(transition_times[phase][label][key])
-                else:
-                    allowed_keys[phase].append(key)
-                if first == last:
-                    dir_name[key] = dir_correct_same
-                    title[phase][label][key] = title_double_a % (first,
-                                                   setup_config.address[first],
-                                                                 phase, label)
-                else:
-                    if key in setup_config.tunnel_pairs():
-                        dir_name[key] = dir_correct_tunnel
+                try:
+                    first, last = key.split(" ")
+                    gen_key = "%s %s" % (min(first, last), max(first, last))
+                    if gen_key in setup_config.mismatched_pairs:
+                        incorrect_transitions.extend(transition_times[phase][label][key])
                     else:
+                        allowed_keys[phase].append(key)
+                    if first == last:
+                        dir_name[key] = dir_correct_same
+                        title[phase][label][key] = title_double_a % (first,
+                                                                     setup_config.address[first],
+                                                                     phase,
+                                                                     label)
+                    else:
+                        if key in setup_config.tunnel_pairs():
+                            dir_name[key] = dir_correct_tunnel
+                        else:
+                            dir_name[key] = dir_correct_cage
+
+                except ValueError:
+                    allowed_keys[phase].append(key)
+                    if key == "tunnels":
+                        dir_name[key] = dir_correct_tunnel
+                    elif key == "cages":
                         dir_name[key] = dir_correct_cage
-                    title[phase][label][key] = "%s phase %s at %s" % (key, phase, label)
-                xlogscale[phase][label][key] = False
+                title[phase][label][key] = "%s phase %s at %s" % (key, phase, label)
+                xlogscale[phase][label][key] = True
                 nbins[phase][label][key] = 10
                 if len(transition_times[phase][label][key]) > 1000:
                     nbins[phase][label][key] = 40
-                    if max(transition_times[phase][label][key]) > 1000*min(transition_times[phase][label][key]):
-                        xlogscale[phase][label][key] = True
                 while True:
                     if 0 in transition_times[phase][label][key]:
                         transition_times[phase][label][key].remove(0)
@@ -725,14 +735,21 @@ def histograms_antenna_transitions(transition_times, setup_config, res_dir,
                                               bins=logbins)
                 
 
-                fname[phase][label][key] = "transition_times_antennas_%s_%s_start_at_%s" % (key.replace(" ", "_"), phase.replace(" ", "_"), label)
+                designated_fname[phase][label][key] = "%s_%s_%s_start_at_%s" % (fname, key.replace(" ", "_"), phase.replace(" ", "_"), label)
                 if max(hist) > max_count:
-                    max_count = max(hist) + 5
-                if xmin > min(transition_times[phase][label][key]):
-                    xmin =  min(transition_times[phase][label][key]) - 0.5
-                if xmax < max(transition_times[phase][label][key]):
-                    xmax = max(transition_times[phase][label][key]) + 0.5
-    
+                    max_count = max(hist) 
+                if new_xmin > min(transition_times[phase][label][key]):
+                    new_xmin =  min(transition_times[phase][label][key])
+                if new_xmax < max(transition_times[phase][label][key]):
+                    new_xmax = max(transition_times[phase][label][key])
+    if xmin is None:
+        xmin = new_xmin
+    if xmax is None:
+        xmax = new_xmax
+    if ymin is None:
+        ymin = 0
+    if ymax is None:
+        ymax = max_count
     for phase in transition_times.keys():
         for label in transition_times[phase].keys():
             for key in allowed_keys[phase]:
@@ -740,18 +757,18 @@ def histograms_antenna_transitions(transition_times, setup_config, res_dir,
                     continue
             
                 single_histogram_figures(transition_times[phase][label][key],
-                                         fname[phase][label][key],
-                                         res_dir, dir_name[key],
+                                         designated_fname[phase][label][key],
+                                         main_directory, dir_name[key],
                                          title[phase][label][key],
                                          nbins=nbins[phase][label][key],
                                          xlogscale=xlogscale[phase][label][key],
                                          xlabel="Transition times (s)",
                                          ylabel="count", xmin=xmin, xmax=xmax,
-                                         ymin=0, ymax=max_count,
+                                         ymin=0, ymax=ymax,
                                          fontsize=14, median_mean=True)
    
     single_histogram_figures(incorrect_transitions, "incorrect_transitions",
-                             res_dir, dir_incorrect,
+                             main_directory, dir_incorrect,
                              "Incorrect antenna transitions",
                              nbins=30,
                              xlogscale=True,
@@ -759,107 +776,3 @@ def histograms_antenna_transitions(transition_times, setup_config, res_dir,
                              ylabel="count",
                              fontsize=14, median_mean=True)
     return incorrect_transitions
-
-def histograms_transitions_cages_tunnels(transition_times, setup_config,
-                                         res_dir, directory, nbins=40):
-    dir_cages = os.path.join(directory, "correct_antenna_transition",
-                             "cages")
-    dir_tunnels = os.path.join(directory, "correct_antenna_transition",
-                             "tunnels")
-    title_cage = "transitions through all the cages %s %s"
-    title_tunnel = "transitions through all the tunnels %s %s"
-    fname_cage = "all_cage_transitions_%s_%s_"
-    fname_tunnel = "all_tunnel_transitions_%s_%s_"
-    max_count = 0
-    title = {"cages": {}, "tunnels": {}}
-    fname = {"cages": {}, "tunnels": {}}
-    xlogscale = {"cages": {}, "tunnels": {}}
-    xmin = 1000
-    xmax = 0
-    cages = {}
-    tunnels = {}
-    for phase in transition_times.keys():
-        
-        xlogscale["cages"][phase] = {}
-        fname["cages"][phase] = {}
-        title["cages"][phase] = {}
-        xlogscale["tunnels"][phase] = {}
-        fname["tunnels"][phase] = {}
-        title["tunnels"][phase] = {}
-        cages[phase] = {}
-        tunnels[phase] = {}
-        for label in transition_times[phase].keys():
-            fname["cages"][phase][label] = fname_cage % (phase.replace(" ", "_"), label)
-            title["cages"][phase][label] = title_cage % (phase.replace(" ", "_"), label)
-            fname["tunnels"][phase][label] = fname_tunnel % (phase.replace(" ", "_"), label)
-            title["tunnels"][phase][label] = title_tunnel % (phase.replace(" ", "_"), label)
-            xlogscale["cages"][phase][label] = False
-            xlogscale["tunnels"][phase][label] = False
-            cages[phase][label] = []
-            tunnels[phase][label] = []
-            for key in transition_times[phase][label].keys():
-                if key in setup_config.tunnel_pairs():
-                    tunnels[phase][label].extend(transition_times[phase][label][key])
-                elif key in setup_config.cage_pairs():
-                    cages[phase][label].extend(transition_times[phase][label][key])
-            if not len(cages[phase][label]):
-                continue
-            if not len(tunnels[phase][label]):
-                continue
-            if max(cages[phase][label]) > 1000*min(cages[phase][label]):
-                xlogscale["cages"][phase][label] = True
-            if max(tunnels[phase][label]) > 1000*min(tunnels[phase][label]):
-                xlogscale["tunnels"][phase][label] = True
-
-            hist_cages, bins_cages = np.histogram(cages[phase][label], nbins)
-            hist_tunnels, bins_tunnels = np.histogram(tunnels[phase][label],
-                                                      nbins)
-            if xlogscale["cages"][phase][label]:
-                logbins = np.logspace(np.log10(bins_cages[0]),
-                                      np.log10(bins_cages[-1]),
-                                      len(bins_cages))
-                hist_cages, bins = np.histogram(cages[phase][label],
-                                                bins=logbins)
-            if xlogscale["tunnels"][phase][label]:
-                logbins = np.logspace(np.log10(bins_tunnels[0]),
-                                      np.log10(bins_tunnels[-1]),
-                                      len(bins_tunnels))
-                hist_tunnels, bins = np.histogram(tunnels[phase][label],
-                                                  bins=logbins)
-            if max(hist_cages) > max_count:
-                max_count = max(hist_cages)
-            if max(hist_tunnels) > max_count:
-                max_count = max(hist_tunnels)
-            if xmin > min(cages[phase][label]):
-                xmin = min(cages[phase][label])
-            if xmax < max(cages[phase][label]):
-                xmax = max(cages[phase][label])
-            if xmin > min(tunnels[phase][label]):
-                xmin = min(tunnels[phase][label])
-            if xmax < max(tunnels[phase][label]):
-                xmax = max(tunnels[phase][label])
-
-    for phase in cages:
-        for label in cages[phase]:
-            if len(cages[phase][label]):
-                single_histogram_figures(cages[phase][label],
-                                         fname["cages"][phase][label],
-                                         res_dir, dir_cages,
-                                         title["cages"][phase][label],
-                                         nbins=nbins,
-                                         xlogscale=xlogscale["cages"][phase][label],
-                                         xlabel="Transition times (s)",
-                                         ylabel="count", xmin=xmin, xmax=xmax,
-                                         ymin=0, ymax=max_count,
-                                         fontsize=14, median_mean=True)
-            if len(tunnels[phase][label]):
-                single_histogram_figures(tunnels[phase][label],
-                                         fname["tunnels"][phase][label],
-                                         res_dir, dir_tunnels,
-                                         title["tunnels"][phase][label],
-                                         nbins=nbins,
-                                         xlogscale=xlogscale["tunnels"][phase][label],
-                                         xlabel="Transition times (s)",
-                                         ylabel="count", xmin=xmin, xmax=xmax,
-                                         ymin=0, ymax=max_count,
-                                         fontsize=14, median_mean=True)
