@@ -94,7 +94,7 @@ def get_cage_tunnel_transitions(transitions, setup_config):
     for phase in transitions.keys():
         out[phase] = {}
         for label in transitions[phase]:
-            out[phase][label] = {"cages": [], "tunnels": [])))
+            out[phase][label] = {"cages": [], "tunnels": []}
             for key in transitions[phase][label].keys():
                 if key in tunnel_pairs:
                     out[phase][label]["tunnels"] += transitions[phase][label][key]
