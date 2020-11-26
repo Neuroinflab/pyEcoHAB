@@ -358,7 +358,8 @@ class TestCheckAntennaPresence(unittest.TestCase):
         path = os.path.join(data_path, "weird_short_3_mice")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
-        cls.presences = uf.check_antenna_presence(data, 24*3600)
+        cls.config = SetupConfig()
+        cls.presences = uf.check_antenna_presence(data, cls.config, 24*3600)
         cls.end = data["Time"][-1]
         cls.begs = []
         for key in cls.presences.keys():
@@ -388,7 +389,8 @@ class TestCheckAntennaPresence(unittest.TestCase):
         self.assertEqual(len(set(self.begs)), len(self.begs))
 
     def test_empty(self):
-        self.assertRaises(Exception, uf.check_antenna_presence, [], 2)
+        self.assertRaises(Exception, uf.check_antenna_presence, [],
+                          self.config, 2)
 
 
 class TestTotalMismatches(unittest.TestCase):
@@ -441,7 +443,7 @@ class TestRunDiagnostics(unittest.TestCase):
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
         cls.mismatch1 = uf.antenna_mismatch(data, config)
-        cls.presences1 = uf.check_antenna_presence(data, 24*3600)
+        cls.presences1 = uf.check_antenna_presence(data, config, 24*3600)
         res_path = os.path.join(path, "Results")
         files = glob.glob(os.path.join(res_path + "/diagnostics/*.csv"))
         for f in files:
@@ -453,7 +455,7 @@ class TestRunDiagnostics(unittest.TestCase):
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
         cls.mismatch2 = uf.antenna_mismatch(data, config)
-        cls.presences2 = uf.check_antenna_presence(data, 24*3600)
+        cls.presences2 = uf.check_antenna_presence(data, config, 24*3600)
         res_path = os.path.join(path, "Results")
         files = glob.glob(os.path.join(res_path
                                        + "/diagnostics/*.csv"))

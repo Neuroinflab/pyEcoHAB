@@ -232,14 +232,14 @@ def remove_ghost_tags(raw_data, legal_tags="ALL"):
     return new_data[:]
 
 
-def check_antenna_presence(raw_data, max_break):
+def check_antenna_presence(raw_data, setup_config, max_break):
     if not len(raw_data):
         raise Exception("Empty dataset")
     all_times = raw_data['Time']
     t_start = raw_data['Time'][0]
     breaks = {}
     t_end = raw_data['Time'][-1]
-    for antenna in ["1", "2", "3", "4", "5", "6", "7", "8"]:
+    for antenna in setup_config.all_antennas:
         antenna_idx = []
         for i, a in enumerate(raw_data['Antenna']):
             if antenna == a:
@@ -433,7 +433,7 @@ def run_diagnostics(raw_data, max_break, res_dir, setup_config):
     mismatches = antenna_mismatch(raw_data, setup_config)
     string_1 = save_mismatches(mismatches, len(raw_data["Antenna"]),
                                res_dir)
-    antenna_breaks = check_antenna_presence(raw_data, max_break)
+    antenna_breaks = check_antenna_presence(raw_data, setup_config, max_break)
     string_2 = save_antenna_breaks(antenna_breaks, res_dir)
     tot_mismatches = total_mismatches(mismatches)
     counters = Counter(raw_data["Antenna"])
