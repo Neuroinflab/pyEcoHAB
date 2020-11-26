@@ -67,9 +67,10 @@ def antenna_transtions_in_phases(data, phase_bounds, phases,
 
 
 
+
 def get_light_dark_transitions(transitions):
     if transitions.keys() == ["ALL"]:
-        return
+        return {}
     out = {"dark": {0: {}}, "light": {0: {}}}
     for phase in transitions.keys():
         for label in transitions[phase].keys():
