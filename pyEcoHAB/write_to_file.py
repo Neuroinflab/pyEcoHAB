@@ -329,7 +329,7 @@ def save_antenna_transitions(transition_times,
     dir_correct = os.path.join(res_dir, directory)
     out_dir = utils.check_directory(dir_correct, "data")
     for idx_phase, phase in enumerate(transition_times.keys()):
-        new_phase = phases.replace(" ", "_")
+        new_phase = phase.replace(" ", "_")
         for label in transition_times[phase].keys():
             new_fname = "%s_%s_%s.csv" % (fname, new_phase, label)
             new_path = os.path.join(out_dir, new_fname)
