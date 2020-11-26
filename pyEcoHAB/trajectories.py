@@ -28,7 +28,6 @@ def antenna_transtions_in_phases(data, phase_bounds, phases,
     transition_times = {}
     all_phases, bin_labels = data_keys
     for idx_phase, ph in enumerate(all_phases):
-
         transition_times[ph] = {}
         for i, lab in enumerate(bin_labels):
             t_start, t_stop = phase_bounds[ph][lab]
@@ -71,7 +70,7 @@ def antenna_transtions_in_phases(data, phase_bounds, phases,
 def get_light_dark_transitions(transitions):
     if transitions.keys() == ["ALL"]:
         return
-    out = OrderedDict((("dark", {0: {}}), ("light", {0: {}})))
+    out = {"dark": {0: {}}, "light": {0: {}}}
     for phase in transitions.keys():
         for label in transitions[phase].keys():
             for key in transitions[phase][label].keys():
