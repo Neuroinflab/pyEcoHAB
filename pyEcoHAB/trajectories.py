@@ -42,7 +42,7 @@ def antenna_transtions_in_phases(data, phase_bounds, phases,
                 out = single_mouse_antenna_transitions(antennas, times)
                 for key in out:
                     transition_times[ph][lab][key].extend(out[key])
-    save_antenna_transitions(transition_times, all_phases,
+    save_antenna_transitions(transition_times,
                              "transition_durations",
                              res_dir, prefix, directory, delimiter=delimiter)
     histograms_antenna_transitions(transition_times, setup_config,
@@ -50,7 +50,7 @@ def antenna_transtions_in_phases(data, phase_bounds, phases,
                                    "transition_times_antennas", prefix)
     cages_tunnels = get_cage_tunnel_transitions(transition_times,
                                                 setup_config)
-    save_antenna_transitions(cages_tunnels, all_phases,
+    save_antenna_transitions(cages_tunnels,
                              "transition_durations",
                              res_dir, prefix, directory, delimiter=delimiter)
     
@@ -58,7 +58,7 @@ def antenna_transtions_in_phases(data, phase_bounds, phases,
                                    res_dir, directory,
                                    "transitions_all", prefix)
     light_dark = get_light_dark_transitions(transition_times)
-    save_antenna_transitions(light_dark, ["dark", "light"],
+    save_antenna_transitions(light_dark, 
                              "transition_durations",
                              res_dir, prefix, directory, delimiter=delimiter)
     histograms_antenna_transitions(light_dark, setup_config,
@@ -71,7 +71,7 @@ def antenna_transtions_in_phases(data, phase_bounds, phases,
 def get_light_dark_transitions(transitions):
     if transitions.keys() == ["ALL"]:
         return
-    out = OrderedDict((("dark", {0: {}}), ("light", {0: {}})))
+    out =  {"dark": {0: {}}, "light": {0: {}}}
     for phase in transitions.keys():
         for label in transitions[phase].keys():
             for key in transitions[phase][label].keys():
@@ -89,14 +89,13 @@ def get_light_dark_transitions(transitions):
 
 
 def get_cage_tunnel_transitions(transitions, setup_config):
-    out = OrderedDict()
+    out = {}
     tunnel_pairs = setup_config.tunnel_pairs()
     cage_pairs = setup_config.cage_pairs()
     for phase in transitions.keys():
-        out[phase] = OrderedDict()
+        out[phase] = {}
         for label in transitions[phase]:
-            out[phase][label] = OrderedDict((("cages", []),
-                                            ("tunnels", [])))
+            out[phase][label] = {"cages": [], "tunnels": [])))
             for key in transitions[phase][label].keys():
                 if key in tunnel_pairs:
                     out[phase][label]["tunnels"] += transitions[phase][label][key]
