@@ -663,8 +663,11 @@ def histograms_antenna_transitions(transition_times, setup_config,
                                       "tunnels")
     dir_incorrect = os.path.join(directory,
                                  "incorrect_antenna_transition")
-    title_double_a = "consecutive crossing of antenna %s entrance to %s phase %s at %s"
-    fname = "%s%s%s" % (prefix, fname, additional_info)
+    cage_pair_dict = setup_config.cage_pair_dict()
+    tunnel_pair_dict = setup_config.tunnel_pair_dict()
+    title_double_a = "consecutive reading by antenna %s (entrance to %s) phase %s at %s"
+    title_other = "passing through %s phase %s at %s"
+    fname = "%s_%s_%s" % (prefix, fname, additional_info)
     max_count = 0
     nbins = {}
     title = {}
@@ -696,6 +699,7 @@ def histograms_antenna_transitions(transition_times, setup_config,
                     gen_key = "%s %s" % (min(first, last), max(first, last))
                     if gen_key in setup_config.mismatched_pairs:
                         incorrect_transitions.extend(transition_times[phase][label][key])
+                        continue
                     else:
                         allowed_keys[phase].append(key)
                     if first == last:
@@ -704,11 +708,34 @@ def histograms_antenna_transitions(transition_times, setup_config,
                                                                      setup_config.address[first],
                                                                      phase,
                                                                      label)
+                        designated_fname[phase][label][key] = "%s_%s_%s_%s_start_at_%d" % (fname,
+                                                                                           setup_config.address[first].replace(" ", "_"),
+                                                                                           key.replace(" ", "_"),
+                                                                                           phase.replace(" ", "_"),
+                                                                                           label)
+
                     else:
                         if key in setup_config.tunnel_pairs():
                             dir_name[key] = dir_correct_tunnel
+                            title[phase][label][key] = title_other % (tunnel_pair_dict[key],
+                                                                      phase,
+                                                                      label)
+                            designated_fname[phase][label][key] = "%s_%s_%s_%s_start_at_%d" % (fname,
+                                                                                               tunnel_pair_dict[key].replace(" ", "_"),
+                                                                                               key.replace(" ", "_"),
+                                                                                               phase.replace(" ", "_"),
+                                                                                               label)
+
                         else:
-                            dir_name[key] = dir_correct_cage
+                            dir_name[key] = dir_correct_cage 
+                            title[phase][label][key] = title_other % (cage_pair_dict[key],
+                                                                      phase,
+                                                                      label)
+                            designated_fname[phase][label][key] = "%s_%s_%s_%s_start_at_%s" % (fname,
+                                                                                               cage_pair_dict[key].replace(" ", "_"),
+                                                                                               key.replace(" ", "_"),
+                                                                                               phase.replace(" ", "_"),
+                                                                                               label)
 
                 except ValueError:
                     allowed_keys[phase].append(key)
@@ -716,7 +743,13 @@ def histograms_antenna_transitions(transition_times, setup_config,
                         dir_name[key] = dir_correct_tunnel
                     elif key == "cages":
                         dir_name[key] = dir_correct_cage
-                title[phase][label][key] = "%s phase %s at %s" % (key, phase, label)
+                    title[phase][label][key] = "%s phase %s at %s" % (key, phase, label)
+                    designated_fname[phase][label][key] = "%s_%s_%s_start_at_%s" % (fname,
+                                                                                    key.replace(" ", "_"),
+                                                                                    phase.replace(" ", "_"),
+                                                                                    label)
+
+
                 xlogscale[phase][label][key] = True
                 nbins[phase][label][key] = 10
                 if len(transition_times[phase][label][key]) > 1000:
@@ -733,9 +766,6 @@ def histograms_antenna_transitions(transition_times, setup_config,
                                           len(bins))
                     hist, bins = np.histogram(transition_times[phase][label][key],
                                               bins=logbins)
-                
-
-                designated_fname[phase][label][key] = "%s_%s_%s_start_at_%s" % (fname, key.replace(" ", "_"), phase.replace(" ", "_"), label)
                 if max(hist) > max_count:
                     max_count = max(hist) 
                 if new_xmin > min(transition_times[phase][label][key]):

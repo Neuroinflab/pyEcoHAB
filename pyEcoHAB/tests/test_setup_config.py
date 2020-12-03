@@ -1403,5 +1403,75 @@ class TestExperimentSetupConfig(unittest.TestCase):
         calculated = self.experiment_dom.cage_pairs()
         self.assertEqual(calculated, expected)
 
+    def test_tunnel_antenna_pair_dict_full(self):
+        expected = {"1_ecohab_1 2_ecohab_1": "ecohab_1 tunnel 1",
+                    "2_ecohab_1 1_ecohab_1": "ecohab_1 tunnel 1",
+                    "3_ecohab_1 4_ecohab_1": "ecohab_1 tunnel 2",
+                    "4_ecohab_1 3_ecohab_1": "ecohab_1 tunnel 2",
+                    "5_ecohab_2 6_ecohab_2": "ecohab_2 tunnel 2",
+                    "6_ecohab_2 5_ecohab_2": "ecohab_2 tunnel 2",
+                    "7_ecohab_2 8_ecohab_2": "ecohab_2 tunnel 1",
+                    "8_ecohab_2 7_ecohab_2": "ecohab_2 tunnel 1",
+        }
+        calculated = self.full_exp.tunnel_pair_dict()
+        self.assertEqual(calculated, expected)
+
+    def test_tunnel_antenna_pair_dict_dom(self):
+        expected = {
+            "1_default1 2_default1": "default1 tunnel 1",
+            "2_default1 1_default1": "default1 tunnel 1",
+            "3_default1 4_default1": "default1 tunnel 2",
+            "4_default1 3_default1": "default1 tunnel 2",
+            "5_default1 6_default1": "default1 tunnel 3",
+            "6_default1 5_default1": "default1 tunnel 3",
+            "7_default1 8_default1": "default1 tunnel 4",
+            "8_default1 7_default1": "default1 tunnel 4",
+            "1_custom2 2_custom2": "custom2 tunnel 1",
+            "2_custom2 1_custom2": "custom2 tunnel 1",
+        }
+        calculated = self.experiment_dom.tunnel_pair_dict()
+        self.assertEqual(calculated, expected)
+
+    def test_cage_antenna_pair_dict_full(self):
+        expected = {
+            "2_ecohab_1 3_ecohab_1": "ecohab_1 cage B",
+            "3_ecohab_1 2_ecohab_1": "ecohab_1 cage B",
+            "5_ecohab_2 4_ecohab_1": "cage C",
+            "4_ecohab_1 5_ecohab_2": "cage C",
+            "7_ecohab_2 6_ecohab_2": "ecohab_2 cage D",
+            "6_ecohab_2 7_ecohab_2": "ecohab_2 cage D",
+            "1_ecohab_1 8_ecohab_2": "cage A",
+            "8_ecohab_2 1_ecohab_1": "cage A",
+        }
+        calculated = self.full_exp.cage_pair_dict()
+        self.assertEqual(calculated, expected)
+
+    def test_cage_antenna_pair_dict_dom(self):
+        expected = {
+            "3_default1 2_default1": "default1 cage B",
+            "2_default1 3_default1": "default1 cage B",
+            "5_default1 4_default1": "cage C",
+            "4_default1 5_default1": "cage C",
+            "7_default1 6_default1": "default1 cage D",
+            "6_default1 7_default1": "default1 cage D",
+            "1_default1 8_default1": "shared cage 1",
+            "8_default1 1_default1": "shared cage 1",
+            "1_custom2 7_custom2": "custom2 cage A",
+            "7_custom2 1_custom2": "custom2 cage A",
+            "1_default1 2_custom2":  "shared cage 1",
+            "2_custom2 1_default1":  "shared cage 1",
+            "8_default1 2_custom2":  "shared cage 1",
+            "2_custom2 8_default1":  "shared cage 1",
+            "8_custom2 2_custom2":  "shared cage 1",
+            "2_custom2 8_custom2":  "shared cage 1",
+            "8_custom2 1_default1":  "shared cage 1",
+            "1_default1 8_custom2":  "shared cage 1",
+            "8_custom2 8_default1":  "shared cage 1",
+            "8_default1 8_custom2":  "shared cage 1",
+        }
+        calculated = self.experiment_dom.cage_pair_dict()
+        self.assertEqual(calculated, expected)
+
+
 if __name__ == '__main__':
     unittest.main()

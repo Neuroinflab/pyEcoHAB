@@ -500,9 +500,33 @@ class SetupConfigMethods(RawConfigParser):
                 continue
             for i, a1 in enumerate(antennas):
                 for a2 in antennas[i+1:]:
-                    out.append("%s %s" %(a1, a2))
-                    out.append("%s %s" %(a2, a1))
+                    out.append("%s %s" % (a1, a2))
+                    out.append("%s %s" % (a2, a1))
         return sorted(out)
+
+
+    def tunnel_pair_dict(self):
+        out = {}
+        for key in self.tunnels_dict.keys():
+            if len(self.tunnels_dict[key]) < 2:
+                continue
+            out["%s %s" % (self.tunnels_dict[key][0],
+                           self.tunnels_dict[key][1])] = key
+            out["%s %s" % (self.tunnels_dict[key][1],
+                           self.tunnels_dict[key][0])] = key
+        return out
+
+    def cage_pair_dict(self):
+        out = {}
+        for key in self.cages_dict.keys():
+            antennas = self.cages_dict[key]
+            if len(antennas) < 2:
+                continue
+            for i, a1 in enumerate(antennas):
+                for a2 in antennas[i+1:]:
+                    out["%s %s" % (a1, a2)] = key
+                    out["%s %s" % (a2, a1)] = key
+        return out
 
 
 class SetupConfig(SetupConfigMethods):
