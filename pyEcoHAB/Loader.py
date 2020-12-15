@@ -375,7 +375,7 @@ class Loader(EcoHabDataBase):
         return data
 
     def __repr__(self):
-        """Nice string representation for prtinting this class."""
+        """Nice string representation for printing this class."""
         mystring = 'Eco-HAB data loaded from:\n%s\nin the folder%s\n' % (
                    self._fnames.__str__(), self.path)
         return mystring
@@ -392,8 +392,8 @@ class Merger(EcoHabDataBase):
     the experimental setup. For example, if a standard Eco-HAB setup
     (four cages, four tunnels and eight antennas numbered from 1 to 8)
     recorded by one Eco-HAB.rfid (setup_1) is extended by adding a
-    fifth tunnel to cage A of the first setup and a fith cage at the
-    end of that tunnel with 2 antennas at the entrances to the fith
+    fifth tunnel to cage A of the first setup and a fifth cage at the
+    end of that tunnel with 2 antennas at the entrances to the fifth
     tunnel and an internal antenna in the fifth cage recorded by a
     separate Eco-HAB.rfid (setup_2), the experimental setup file
     should be similar to:
@@ -407,7 +407,7 @@ class Merger(EcoHabDataBase):
     compartment_1_name and compartment_2_name depend on the actual position
     of the cage shared by both setups.
 
-    When merging data obtained by this complex (modular) experimenta setup,
+    When merging data obtained by this complex (modular) experimental setup,
     provide the path to the experimental setup config. Data  should be provided
     (from all parts of the experiment loaded by Loader) as non-keyworded
     arguments:
