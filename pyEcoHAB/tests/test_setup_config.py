@@ -4,6 +4,13 @@ import unittest
 from pyEcoHAB import SetupConfig, ExperimentSetupConfig
 from pyEcoHAB import data_path
 
+# In the first scripts for EcoHAB data analysis,
+# the antennas were numbered from 1 to 8. The cages
+# were also number, in this case from 1 to 4. We first
+# changes cage names to letter A, B, C, D (cage 4 was renamed
+# to A, cage 1 to B, cage 2 to C, cage 3 do D). Accounting for
+# modular experiments forced us to allow for arbitrary names
+# for cages (however, these names have to include the word "cage").
 
 SAME_PIPE = {
     "1": ["1", "2"],
