@@ -101,7 +101,7 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="", remove_m
     res_dir/approach_to_social to facilitate further analysis.
 
     csv files with animal activity have following structure:
-    header specifying parameter (visit count or total duration) and Eco-Hab
+    header specifying parameter (visit count or total duration) and Eco-HAB
     compartment ("A", "B", "C" or "D").
     column header: mouse tag, beginning of the bin in hours, phase name
     Values of the second column start with 0., e.g.  0, 1., 2. etc.

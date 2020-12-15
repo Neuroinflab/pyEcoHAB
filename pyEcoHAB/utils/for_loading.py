@@ -411,7 +411,7 @@ def run_diagnostics(raw_data, max_break, res_dir, setup_config):
     raw_data:  dictionary of sequences
        data read in from data files
     max_break: float
-       maximum brea k in single antenna registrations (in sec)
+       maximum break in single antenna registrations (in sec)
     res_dir: string
        path to results directory
     setup_config: SetupConfig or ExperimentalSetupConfig

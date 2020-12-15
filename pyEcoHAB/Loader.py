@@ -23,12 +23,12 @@ class EcoHabDataBase(object):
     def __init__(self, data, mask, visit_threshold, config):
         """
         Base class for Loader and Merger providing data structure and
-        methods for accessing antenna recordings and visits to EcoHAB
+        methods for accessing antenna recordings and visits to Eco-HAB
         cages. Initialization requires providing a dataset (an instance
         of DataBase class), a mask cutting the data if necessary (specifying
-        seconds from epoch in GMT), minimum visit duration to EcoHAB
+        seconds from epoch in GMT), minimum visit duration to Eco-HAB
         cage and an instance of SetupConfig, which describes geometry
-        of the EcoHAB setup used to collect data.
+        of the Eco-HAB setup used to collect data.
 
         Args:
            data: DataBase
@@ -38,9 +38,9 @@ class EcoHabDataBase(object):
              Mask bounds have to be specified as seconds from epoch in
              GMT. By default mask is None.
            visit_threshold: float
-             Specify minumum duration (in sec) of visit to EcoHAB cage.
+             Specify minumum duration (in sec) of visit to Eco-HAB cage.
            config: SetupConfig or ExperimentSetupConfig
-             Geometry of the EcoHab setup used to collect data.
+             Geometry of the Eco-Hab setup used to collect data.
         """
         self.readings = BaseFunctions.Data(data, mask)
         self.threshold = visit_threshold
@@ -90,7 +90,7 @@ class EcoHabDataBase(object):
         Args:
            config: ExperimentSetupConfig or SetupConfig
         Returns:
-           visits to EcoHAB cages: Visits
+           visits to Eco-HAB cages: Visits
 
         """
         temp_data = self._calculate_animal_positions(config)
@@ -127,7 +127,7 @@ class EcoHabDataBase(object):
                                          'float')
 
     def get_durations(self, mice):
-        """Return duration of registration by antenna for specified a nimals.
+        """Return duration of registration by antenna for specified animals.
         """
         return self.readings.getproperty(mice,
                                          'Duration',
@@ -158,7 +158,7 @@ class EcoHabDataBase(object):
 
     def get_mice(self):
         mouse_list = list(set(self.readings.data["Tag"]))
-        # new EcoHAB has a different tag naming convention
+        # new Eco-HAB has a different mouse tag naming convention
         # last five digits are the same whereas in previous version
         # there was a prefix and first digits where the same
         if len(set([mouse[-4:] for mouse in mouse_list])) == len(mouse_list):
@@ -170,8 +170,8 @@ class EcoHabDataBase(object):
     def get_visits(self, mice=None, cage=None, t_start=None, t_end=None):
         """
         Return a list of visits to Eco-HAB compartments. Each visit is
-        a named dictionary with following fields: t_start, t_end, cage, tag
-        """
+        a named dictionary with following fields: t_start, t_end, cage,
+        mouse tag."""
         if isinstance(mice, str):
             if mice in self.mice:
                 mice = [mice]
@@ -201,14 +201,14 @@ class EcoHabDataBase(object):
             for i, a in enumerate(addresses):
                 if a in cage:
                     visit = ufl.NamedDict("Visit_%s_%d" % (mouse, i),
-                                          tag=mouse, address=a,
+                                          mouse=mouse, address=a,
                                           t_start=start_times[i],
                                           t_end=end_times[i],
                                           duration=durations[i])
                     out.append(visit)
         return sorted(out, key=lambda o: o["t_start"])
 
-    def get_registration_stats(self, tag, t_start,
+    def get_registration_stats(self, mouse, t_start,
                                t_end, antenna, binsize):
         """Count number and combined durations of registrations of a mouse tag
         by a specified antenna in bins of size binsize for tags
@@ -238,10 +238,10 @@ class EcoHabDataBase(object):
         while t_s < t_end:
             t_e = t_s + binsize
             self.mask_data(t_s, t_e)
-            antennas = self.get_antennas(tag)
+            antennas = self.get_antennas(mouse)
             indices = np.where(np.array(antennas) == antenna)[0]
             count_in_bins.append(len(indices))
-            durations = self.get_durations(tag)
+            durations = self.get_durations(mouse)
             sum_time = 0
             for ind in indices:
                 sum_time += durations[ind]
@@ -255,14 +255,14 @@ class Loader(EcoHabDataBase):
     """Read in Eco-HAB data files that are located in path.
 
     This class reads in data collected by the Eco-HAB system, parses them
-    and removes in-correct registrations. After loading the data Loader
+    and removes incorrect registrations. After loading the data Loader
     triggers calculation of timings of animal visits to Eco-HAB compartments.
-    EcoHAB compartments are specified in a setup configuration file setup.txt,
+    Eco-HAB compartments are specified in a setup configuration file setup.txt,
     which should be provided in the data directory. If no setup.txt file exists
-    Loader loades a standard EcoHAB setup config file (can be found in
-    pyEcoHAB.data_path/standard_setup.txt). If your EcoHAB experiment uses a
+    Loader loades a standard Eco-HAB setup config file (can be found in
+    pyEcoHAB.data_path/standard_setup.txt). If your Eco-HAB experiment uses a
     non-standard setup, provide it with your data set. If your experimental
-    setup is a modular EcoHAB setup (consisting of more than one EcoHAB
+    setup is a modular Eco-HAB setup (consisting of more than one Eco-HAB
     setups), load data from all your setups separately and merge loaded data
     with Merger.
 
@@ -279,7 +279,7 @@ class Loader(EcoHabDataBase):
            file can be found in path a standard setup is going to be loaded
            (pyEcoHAB/data/standard_setup.txt). You need to provide a
            separate setup.txt file or a path to a file with a configuration
-           of your experiment, if you are using a non-standard EcoHAB
+           of your experiment, if you are using a non-standard Eco-HAB
            experimental setup.
         mask: list or tuple of floats
            Loader will read in data registed between mask[0] and mask[1].
@@ -381,14 +381,14 @@ class Loader(EcoHabDataBase):
 
 
 class Merger(EcoHabDataBase):
-    """Merge datasets from one modular EcoHAB experiment. This means datasets
+    """Merge datasets from one modular Eco-HAB experiment. This means datasets
     obtained from different parts of the same experimental setup. Merger will
     rename antennas according to how specific parts of the experimental setup
     have been named.
 
     Merger requires a config file for the experimental setup, which
     specifies cages or tunnels that are shared by two or more parts of
-    the experimental setup. For example, if a standard EcoHAB setup
+    the experimental setup. For example, if a standard Eco-HAB setup
     (four cages, four tunnels and eight antennas numbered from 1 to 8)
     recorded by one Eco-HAB.rfid (setup_1) is extended by adding a
     fifth tunnel to cage A of the first setup and a fith cage at the
@@ -415,7 +415,7 @@ class Merger(EcoHabDataBase):
 
     Merger will rename all antennas to antenna_setup_name, and
     recalculate visits and provide all the necessary functionality for
-    performing analysis of EcoHAB data.
+    performing analysis of Eco-HAB data.
 
     Args:
     experiment_config: str or IdentityConfig object
@@ -424,7 +424,7 @@ class Merger(EcoHabDataBase):
         full path to results
 
     loaders:
-        EcoHAB datasets
+        Eco-HAB datasets
     """
     def __init__(self, experiment_config, res_dir, *loaders):
         datasets = []

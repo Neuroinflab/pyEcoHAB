@@ -5,7 +5,7 @@ pyEcoHAB is a Python library for loading and analyzing behavioral data obtained 
 
 pyEcoHAB supports both Python2 and Python3.
 
-pyEcoHAB allows for easy access to antenna readings. It implements a heuristic calculating timing and duration of animal visists to EcoHAB compartments. It also provides methods for determining mouse activity (number of visits and time spent in each chamber), in-cohort sociability, solitude (time mouse spent alone in EcoHAB chambers) and following.
+pyEcoHAB allows for easy access to antenna readings. It implements a heuristic calculating timing and duration of animal visists to Eco-HAB compartments. It also provides methods for determining mouse activity (number of visits and time spent in each chamber), in-cohort sociability, solitude (time mouse spent alone in Eco-HAB chambers) and following.
 
 Install
 To read-in and analyze a sample data-set type:
@@ -18,7 +18,7 @@ To read-in and analyze a sample data-set type:
 >>> pyEcoHAB.get_solitude(data, config)
 >>> pyEcoHAB.get_dynamic_interactions(data, config, 1000)
 
-Standart data analysis script used by the Laboratory of Neurobiology with pyEcoHAB.sample_data as an example of an Eco-HAB dataset:
+Standart data analysis script used by the Laboratory of Emotions' Neurobiology with pyEcoHAB.sample_data as an example of an Eco-HAB dataset:
 
 >>> import os
 >>> import pyEcoHAB
@@ -42,11 +42,11 @@ Results of the data analysis can be found in pyEcoHAB/data/BALB_VPA_data_cohort_
 Analyze a custom Eco-HAB experiment
 =========
 
-If you want to analyse data obtained by a non-standard EcoHAB setup or a modular experimental setup utilizing more than one EcoHAB setup, you should provide a config file for every non-standard EcoHAB setup and a separate config file describing how EcoHAB setups are combined together into a modular experimental setup.
+If you want to analyse data obtained by a non-standard Eco-HAB setup or a modular experimental setup utilizing more than one Eco-HAB setup, you should provide a config file for every non-standard Eco-HAB setup and a separate config file describing how Eco-HAB setups are combined together into a modular experimental setup.
 
 Config file for an Eco-HAB setup
 ------------
-pyEcoHAB requires a setup.txt file describing geometry of the experimental setup and antenna positions in the data directory. If you don't provide one, pyEcoHAB will load a configuration of a standard EcoHAB setup with 4 chambers connected with 4 tunnels, forming a square with a chamber in each corner and tunnels providing sides of that square. A standard setup configuration file provided by pyEcoHAB:
+pyEcoHAB requires a setup.txt file describing geometry of the experimental setup and antenna positions in the data directory. If you don't provide one, pyEcoHAB will load a configuration of a standard Eco-HAB setup with 4 chambers connected with 4 tunnels, forming a square with a chamber in each corner and tunnels providing sides of that square. A standard setup configuration file provided by pyEcoHAB:
 
 
    [setup]
@@ -111,7 +111,7 @@ pyEcoHAB requires a setup.txt file describing geometry of the experimental setup
 
    
 In a setup.txt file you need to specify:
-a. Your setups name in section [setup]. This is very important for modular EcoHAB setups, because every submodule has to have a unique name.
+a. Your setups name in section [setup]. This is very important for modular Eco-HAB setups, because every submodule has to have a unique name.
 b. Chambers of the setup and their entrance antennas and internal antennas (if there are any internal antennas). You add each chamber specification as a separate section (in square brackets). Every chamber name needs to be unique and contain the word cage (lower case). In the section specifying each chamber list entrance antennas and internal antennas and their numbers. If there is more than one  antenna of a certain type you need to number them e.g. external_antenna1 = 6, external_antenna2 = 7.
 c. tunnels connecting chambers.  You add each tunnel specification as a separate section (in square brackets). Every tunnel name needs to be unique and contain the word tunnel (lower case). In the section specifying each tunnel list entrance antennas and internal antennas and their numbers.  If there is more than one  antenna of a certain type you need to number them e.g. external_antenna1 = 7, external_antenna2 = 8.
 

@@ -42,7 +42,7 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
     a startime (in a HH:MM format), an enddate (in a DD.MM.YYYY format), and
     an endtime (in a HH:MM format) needs to be specified.
 
-    Currently EcoHAB does not indicate timezone in registration
+    Currently Eco-HAB does not indicate timezone in registration
     times. All tags are registered using a local timezone. Both Loader
     and Timeline class assume that all times are in GMT. While writing
     your experiment timeline file, just assume that both tag
