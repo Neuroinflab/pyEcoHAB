@@ -356,7 +356,7 @@ class Loader(EcoHabDataBase):
         self.setup_name = antennas.name
         self.home_antenna = antennas.homecage_antenna
         self.home_internal_antennas = antennas.homecage_internal_antennas
-        self.stimuls_internal_antennas = antennas.stimCage_internal_antennas
+        self.stimulus_internal_antennas = antennas.stimCage_internal_antennas
 
     def _read_in_raw_data(self, tags):
         """Reads in data from files in self.path.
