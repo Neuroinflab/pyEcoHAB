@@ -69,6 +69,18 @@ def antenna_transtions_in_phases(data, phase_bounds, phases,
 
 
 def get_light_dark_transitions(transitions):
+    """
+    Divide all transitions between antennas into light and dark phases.
+
+    Args:
+    transitions: a dictionary
+       This should be the dictionary returned by antenna_transtions_in_phases
+
+    Returns:
+       A dictionary with lists of transitions. First set of keys:
+       ["dark", "light"], second set of keys [0.0], third set of keys:
+       pairs of antenna transitions
+    """
     if transitions.keys() == ["ALL"]:
         return {}
     out = {"dark": {0: {}}, "light": {0: {}}}
@@ -134,6 +146,11 @@ def get_antenna_transition_durations(ecohab_data, timeline, bins=12*3600,
         delimiter : str, optional
            String or character separating columns
 
+
+    Returns:
+       A dictionary with lists of transitions. First set of keys: phase names,
+       second set of keys start times of time bins ([0.0] for single phases),
+       third set of keys: pairs of antenna transitions
     """
     if prefix == "":
         prefix = ecohab_data.prefix
