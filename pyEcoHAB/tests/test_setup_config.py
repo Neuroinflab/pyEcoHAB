@@ -406,7 +406,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
         path3 = os.path.join(data_path, "experiment_setup_renaming_dom.txt")
         cls.config5 = SetupConfig(path=path2,
                                   fname="setup_internal_dominance.txt")
-        cls.experiment_dom = ExperimentSetupConfig(path3,
+        cls.exp_i_antennas = ExperimentSetupConfig(path3,
                                                    default1=cls.config1,
                                                    custom2=cls.config5)
     def test_indentity_compartments(self):
@@ -1077,24 +1077,24 @@ class TestExperimentSetupConfig(unittest.TestCase):
         self.assertEqual(self.experiment_config.directions, out)
 
     def test_homecage_antenna(self):
-        self.assertEqual(self.experiment_dom.homecage_antenna, "2_custom2")
+        self.assertEqual(self.exp_i_antennas.homecage_antenna, "2_custom2")
 
     def test_homecage_internals(self):
-        out = self.experiment_dom.homecage_internal_antennas
+        out = self.exp_i_antennas.homecage_internal_antennas
         self.assertEqual(out, ["8_custom2"])
 
     def test_stimulus_internals(self):
-        out = self.experiment_dom.stimulus_cage_internal_antennas
+        out = self.exp_i_antennas.stimulus_cage_internal_antennas
         self.assertEqual(out, ["7_custom2"])
 
     def test_all_unique_pairs_dom(self):
         out = set()
-        for antenna1 in self.experiment_dom.all_antennas:
-            for antenna2 in self.experiment_dom.all_antennas:
+        for antenna1 in self.exp_i_antennas.all_antennas:
+            for antenna2 in self.exp_i_antennas.all_antennas:
                 key = "%s %s" % (min(antenna1, antenna2),
                                  max(antenna1, antenna2))
                 out.add(key)
-        self.assertTrue(sorted(out)==self.experiment_dom.all_unique_pairs)
+        self.assertTrue(sorted(out)==self.exp_i_antennas.all_unique_pairs)
 
     def test_all_pairs_unique_full(self):
         out = set()
@@ -1107,11 +1107,11 @@ class TestExperimentSetupConfig(unittest.TestCase):
 
     def test_all_pairs_dom(self):
         out = set()
-        for antenna1 in self.experiment_dom.all_antennas:
-            for antenna2 in self.experiment_dom.all_antennas:
+        for antenna1 in self.exp_i_antennas.all_antennas:
+            for antenna2 in self.exp_i_antennas.all_antennas:
                 key = "%s %s" % (antenna1, antenna2)
                 out.add(key)
-        self.assertTrue(sorted(out)==self.experiment_dom.all_pairs)
+        self.assertTrue(sorted(out)==self.exp_i_antennas.all_pairs)
 
     def test_all_pairs_full(self):
         out = set()
@@ -1164,7 +1164,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
                "7_custom2 8_custom2", "7_custom2 8_default1",
                "6_default1 7_custom2", "7_default1 8_custom2"]
         self.assertEqual(sorted(out),
-                         self.experiment_dom.mismatched_pairs)
+                         self.exp_i_antennas.mismatched_pairs)
 
     def test_allowed_pairs_full(self):
         expected = sorted(["1_ecohab_1 8_ecohab_2", "1_ecohab_1 1_ecohab_1",
@@ -1205,7 +1205,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
                            "2_custom2 8_default1", "2_custom2 1_default1",
                            "8_default1 2_custom2", "1_default1 2_custom2"
         ])
-        calc = self.experiment_dom.allowed_pairs()
+        calc = self.exp_i_antennas.allowed_pairs()
         self.assertEqual(expected, calc)
 
     def test_skipped_one_full(self):
@@ -1239,7 +1239,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
                            "8_custom2 7_default1", "7_default1 8_custom2",
                            "8_custom2 2_default1", "2_default1 8_custom2",
         ])
-        calculated = self.experiment_dom.skipped_one()
+        calculated = self.exp_i_antennas.skipped_one()
         self.assertEqual(expected, calculated)
 
     def test_skip_two(self):
@@ -1286,7 +1286,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
             "8_custom2 3_default1", "3_default1 8_custom2",
 
         ])
-        calculated = self.experiment_dom.skipped_two()
+        calculated = self.exp_i_antennas.skipped_two()
         self.assertEqual(sorted(expected), calculated)
 
     def test_skipped_more_dom(self):
@@ -1347,12 +1347,12 @@ class TestExperimentSetupConfig(unittest.TestCase):
             "8_custom2 3_default1", "3_default1 8_custom2",
 
         ])
-        all_pairs = self.experiment_dom.all_pairs
+        all_pairs = self.exp_i_antennas.all_pairs
         expected = []
         for pair in all_pairs:
             if pair not in allowed:
                 expected.append(pair)
-        calculated = self.experiment_dom.skipped_more()
+        calculated = self.exp_i_antennas.skipped_more()
         self.assertEqual(sorted(expected), calculated)
 
     def test_tunnel_antenna_pairs_full(self):
@@ -1374,7 +1374,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
             "1_custom2 2_custom2", "2_custom2 1_custom2",
 
         ])
-        calculated = self.experiment_dom.tunnel_pairs()
+        calculated = self.exp_i_antennas.tunnel_pairs()
         self.assertEqual(calculated, expected)
 
     def test_cage_antenna_pairs_full(self):
@@ -1400,7 +1400,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
             "8_custom2 1_default1", "1_default1 8_custom2",
             "8_custom2 8_default1", "8_default1 8_custom2",
         ])
-        calculated = self.experiment_dom.cage_pairs()
+        calculated = self.exp_i_antennas.cage_pairs()
         self.assertEqual(calculated, expected)
 
     def test_tunnel_antenna_pair_dict_full(self):
@@ -1429,7 +1429,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
             "1_custom2 2_custom2": "custom2 tunnel 1",
             "2_custom2 1_custom2": "custom2 tunnel 1",
         }
-        calculated = self.experiment_dom.tunnel_pair_dict()
+        calculated = self.exp_i_antennas.tunnel_pair_dict()
         self.assertEqual(calculated, expected)
 
     def test_cage_antenna_pair_dict_full(self):
@@ -1469,7 +1469,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
             "8_custom2 8_default1":  "shared cage 1",
             "8_default1 8_custom2":  "shared cage 1",
         }
-        calculated = self.experiment_dom.cage_pair_dict()
+        calculated = self.exp_i_antennas.cage_pair_dict()
         self.assertEqual(calculated, expected)
 
 
