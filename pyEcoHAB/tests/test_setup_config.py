@@ -159,7 +159,7 @@ class TestGetDicts(unittest.TestCase):
         self.assertEqual(out, ["8"])
 
     def test_stimulus_internals(self):
-        out = self.custom_dom.stimulus_cage_internal_antennas
+        out = self.custom_dom.stimCage_internal_antennas
         self.assertEqual(out, ["7"])
 
 
@@ -1084,7 +1084,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
         self.assertEqual(out, ["8_custom2"])
 
     def test_stimulus_internals(self):
-        out = self.exp_i_antennas.stimulus_cage_internal_antennas
+        out = self.exp_i_antennas.stimCage_internal_antennas
         self.assertEqual(out, ["7_custom2"])
 
     def test_all_unique_pairs_dom(self):

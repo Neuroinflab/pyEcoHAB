@@ -7,6 +7,7 @@ from collections import OrderedDict, Counter
 import numpy as np
 from pyEcoHAB.utility_functions import check_directory
 
+h = u"antenna, incorrect transitions count, percentage of antenna recordings\n"
 
 try:
     basestring
@@ -207,7 +208,7 @@ def remove_ghost_tags(raw_data, legal_tags="ALL"):
 
     If a list of correct tags is provided this method removes all registrations
     of incorrect  tags.
-  
+
     Args:
     raw_data: a list of lists or an 2D array
         raw_data read by Loader._read_in_raw_data
@@ -224,7 +225,7 @@ def remove_ghost_tags(raw_data, legal_tags="ALL"):
     new_data = []
     if isinstance(legal_tags, basestring):
         legal_tags = [legal_tags]
-    
+
     for d in raw_data:
         mouse = d[4]
         if mouse in legal_tags:
@@ -307,7 +308,8 @@ def skipped_registrations(raw_data, setup_config):
     skipped_more = setup_config.skipped_more()
 
     mice = set(raw_data['Tag'])
-    mismatches = OrderedDict([("skipped one", 0), ("skipped two", 0), ("skipped more", 0)])
+    mismatches = OrderedDict([("skipped one", 0), ("skipped two", 0),
+                              ("skipped more", 0)])
     for mouse in mice:
         mouse_idx = np.where(np.array(raw_data['Tag']) == mouse)[0]
         ant = raw_data['Antenna'][mouse_idx]
@@ -321,6 +323,7 @@ def skipped_registrations(raw_data, setup_config):
                 mismatches["skipped two"] += 1
     return mismatches
 
+
 def save_skipped_registrations(skipped, tot_registrations, res_dir,
                                fname="skipped_registrations.csv",
                                header=u"type, count, percentage\n"):
@@ -331,7 +334,7 @@ def save_skipped_registrations(skipped, tot_registrations, res_dir,
         except ZeroDivisionError:
             exact_mis = 1
         out_f1 += u"%s, %d, %3.2f per 100\n" % (key, skipped[key],
-                                                 exact_mis)
+                                                exact_mis)
     new_path = check_directory(res_dir, "diagnostics")
     fpath1 = os.path.join(new_path, fname)
     f1 = open(fpath1, "w")
@@ -348,7 +351,8 @@ def save_mismatches(mismatches, tot_registrations, res_dir,
         a1, a2 = pair.split(" ")
         if isinstance(tot_registrations, dict):
             try:
-                exact_mis = np.round(100*mismatches[pair]/tot_registrations[pair])
+                tot = tot_registrations[pair]
+                exact_mis = np.round(100*mismatches[pair]/tot)
             except ZeroDivisionError:
                 exact_mis = 0
         else:
@@ -364,14 +368,14 @@ def save_mismatches(mismatches, tot_registrations, res_dir,
 
 
 def save_total_mismatches(tot_mismatches, counters, res_dir):
-    out_f1 = u"antenna, incorrect transitions count, percentage of antenna recordings\n"
+    out_f1 = h
     for a1 in tot_mismatches.keys():
         if counters[a1]:
             exact_mis = 100*tot_mismatches[a1]/counters[a1]
         else:
             exact_mis = 0
         out_f1 += u"%s, %d, %3.2f per 100\n" % (a1, tot_mismatches[a1],
-                                                 exact_mis)
+                                                exact_mis)
     new_path = check_directory(res_dir, "diagnostics")
     fpath1 = os.path.join(new_path, "incorrect_antenna_transitions.csv")
     f1 = open(fpath1, "w")
@@ -396,6 +400,7 @@ def save_antenna_breaks(antenna_breaks, res_dir):
     f2.close()
     return out_f2
 
+
 def run_diagnostics(raw_data, max_break, res_dir, setup_config):
     """
     Calculate parameters showing fidelity of obtained antenna
@@ -411,7 +416,7 @@ def run_diagnostics(raw_data, max_break, res_dir, setup_config):
        path to results directory
     setup_config: SetupConfig or ExperimentalSetupConfig
       object describing geometry of the (modular) experimental setup
-    
+
     returns:
       string_1: text
         text showing count and percentage of pairs of mismatched antenna
@@ -491,9 +496,11 @@ def incorrect_tunnel_registrations(raw_data, setup_config):
             total_count[key] += out_tot_count[key]
     return count, total_count
 
+
 def transform_raw(row):
     return (int(row[0]), time_to_sec(row[1]),
             row[2], int(row[3]), row[4])
+
 
 def from_raw_data(raw_data):
     """

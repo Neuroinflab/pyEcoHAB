@@ -398,7 +398,7 @@ class SetupConfigMethods(RawConfigParser):
         return sorted(out)
 
     @property
-    def stimulus_cage_internal_antennas(self):
+    def stimCage_internal_antennas(self):
         out = []
         if self.has_section("other"):
             other_items = self.items("other")
@@ -406,7 +406,6 @@ class SetupConfigMethods(RawConfigParser):
                 if it.startswith("stimulus_cage_internal"):
                     out.append(val)
         return sorted(out)
-
 
     def allowed_pairs(self):
         allowed = []
@@ -471,7 +470,6 @@ class SetupConfigMethods(RawConfigParser):
                         skipped_two.append("%s %s" % (antenna4, antenna))
         return sorted(set(skipped_two))
 
-
     def skipped_more(self):
         pairs = self.all_pairs
         allowed = self.allowed_pairs()
@@ -503,7 +501,6 @@ class SetupConfigMethods(RawConfigParser):
                     out.append("%s %s" % (a1, a2))
                     out.append("%s %s" % (a2, a1))
         return sorted(out)
-
 
     def tunnel_pair_dict(self):
         out = {}
@@ -706,8 +703,8 @@ class ExperimentSetupConfig(SetupConfigMethods):
         compartment_2_name = cage D
         destination_name = cage A
 
-        "cage A" of ecohab1 is named "cage D" in ecohab2. In all relevant result
-        files this cage is going to be called "shared cage".
+        "cage A" of ecohab1 is named "cage D" in ecohab2. In all relevant
+        result files this cage is going to be called "shared cage".
 
         For modular experiments pyEcoHAB will add setup name to
         compartment name. To avoid weird sounding compartment names
@@ -717,8 +714,8 @@ class ExperimentSetupConfig(SetupConfigMethods):
         compartment_name = cage C
         destination_name = cage C
 
-        if the destitation name was not provided cage C of ecohab1 would be named
-        "ecohab1 cage C".
+        if the destitation name was not provided cage C of ecohab1 would
+        be named "ecohab1 cage C".
 
         Load experiment setup config from "experiment_setup.txt", with
         config1 and config2 -- SetupConfig objects for ecohab_1 and ecohab_2:
@@ -751,20 +748,20 @@ class ExperimentSetupConfig(SetupConfigMethods):
                 if section.lower().startswith("setup"):
                     continue
                 if section == "other":
-                    new_section_name = section
+                    new_sec_name = section
                 else:
-                    new_section_name = "%s %s" % (key, section)
+                    new_sec_name = "%s %s" % (key, section)
 
-                if new_section_name in self.identity_compartments:
-                    new_section_name = self.identity_compartments[new_section_name]
-                if new_section_name in self.renames:
-                    new_section_name = self.renames[new_section_name]
+                if new_sec_name in self.identity_compartments:
+                    new_sec_name = self.identity_compartments[new_sec_name]
+                if new_sec_name in self.renames:
+                    new_sec_name = self.renames[new_sec_name]
                 try:
-                    self.add_section(new_section_name)
+                    self.add_section(new_sec_name)
                     section_items = []
                 except DuplicateSectionError:
                     section_items = [item[0] for item in
-                                     self.items(new_section_name)]
+                                     self.items(new_sec_name)]
 
                 for antenna_type, value in this_config.items(section):
                     new_value = "%s_%s" % (value, key)
@@ -777,6 +774,6 @@ class ExperimentSetupConfig(SetupConfigMethods):
                     else:
                         new_antenna_type = antenna_type
 
-                    self.set(new_section_name, new_antenna_type, new_value)
+                    self.set(new_sec_name, new_antenna_type, new_value)
                     section_items = [item[0] for item
-                                     in self.items(new_section_name)]
+                                     in self.items(new_sec_name)]

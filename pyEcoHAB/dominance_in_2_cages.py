@@ -9,17 +9,17 @@ from .write_to_file import write_csv_alone
 def get_states_mouse(antennas, times, t_start, t_end,
                      config, dt):
     home_cage_internal_antennas = config.homecage_internal_antennas
-    stimulus_cage_internal_antennas = config.stimulus_cage_internal_antennas
+    stimCage_internal_antennas = config.stimCage_internal_antennas
     home_antenna = config.homecage_antenna
     unaccounted_for = []
     if len(config.internal_antennas):
         provided = home_cage_internal_antennas\
-                   + stimulus_cage_internal_antennas
+                   + stimCage_internal_antennas
         unaccounted_for = list(set(config.internal_antennas)
                                - set(provided))
     else:
         assert len(home_cage_internal_antennas) == 0
-        assert len(stimulus_cage_internal_antennas) == 0
+        assert len(stimCage_internal_antennas) == 0
 
     length = utils.get_timestamp(t_start, t_end, dt)
     states = np.zeros((length), dtype=int)
@@ -44,7 +44,7 @@ def get_states_mouse(antennas, times, t_start, t_end,
         timestamp = utils.get_timestamp(t_start, t_now, dt)
         next_timestamp = utils.get_timestamp(t_start, next_t, dt)
         print(a_now, next_a)
-        if next_a in stimulus_cage_internal_antennas:
+        if next_a in stimCage_internal_antennas:
             states[timestamp:next_timestamp] = 3
         elif a_now != next_a:
             if config.same_tunnel[a_now] == config.same_tunnel[next_a]:

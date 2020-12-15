@@ -30,7 +30,8 @@ else:
 
 
 class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
-    """Read in the temporal config of the experiment (timeline of the experiment).
+    """Read in the temporal config of the experiment
+     (timeline of the experiment).
 
     As a subclass of :py:class:`matplotlib.ticker.Formatter` the class is also
     a time axis formatter in :py:mod:`matplotlib.dates` coordinates.
@@ -68,14 +69,14 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
             self.path = os.path.join(path, fname)
         self.read(self.path)
 
-
     def _time_from_epoch(self, phase):
         t1, t2 = self._time(phase)
         return calendar.timegm(t1), calendar.timegm(t2)
 
     def get_time_from_epoch(self, phases):
         """Convert start and end time and date read from section sec
-        (might be a list) of the config file to a tuple of times from epoch."""
+        (might be a list) of the config file to a tuple of times
+        from epoch."""
         if not isinstance(phases, list):
             phases = [phases]
         for phase in phases:
@@ -133,7 +134,7 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
         """Diagnostic plot of sections defined in the config file."""
         figg = plt.figure()
         for idx, sec in enumerate(self.sections()):
-            t1, t2 = mpd.epoch2num(self.get_time_from_epoch(sec))  # cf2time(cf, sec)
+            t1, t2 = mpd.epoch2num(self.get_time_from_epoch(sec))
             plt.plot([t1, t2], [idx, idx], 'ko-')
             plt.plot([t2], [idx], 'bo')
             plt.text(t2 + 0.5, idx, sec)
