@@ -20,15 +20,15 @@ from .utils import for_loading as ufl
 
 
 class EcoHabDataBase(object):
-    def __init__(self, data, mask, visit_threshold, config):
+    def __init__(self, data, mask, visit_threshold, setup_config):
         """
         Base class for Loader and Merger providing data structure and
         methods for accessing antenna recordings and visits to Eco-HAB
         cages. Initialization requires providing a dataset (an instance
         of DataBase class), a mask cutting the data if necessary (specifying
         seconds from epoch in GMT), minimum visit duration to Eco-HAB
-        cage and an instance of SetupConfig, which describes geometry
-        of the Eco-HAB setup used to collect data.
+        cage and an instance of SetupConfig (a setup configuration file),
+        which describes geometry of the Eco-HAB setup used to collect data.
 
         Args:
            data: DataBase
@@ -39,17 +39,17 @@ class EcoHabDataBase(object):
              GMT. By default mask is None.
            visit_threshold: float
              Specify minumum duration (in sec) of visit to Eco-HAB cage.
-           config: SetupConfig or ExperimentSetupConfig
+           setup_config: SetupConfig or ExperimentSetupConfig
              Geometry of the Eco-Hab setup used to collect data.
         """
         self.readings = BaseFunctions.Data(data, mask)
         self.threshold = visit_threshold
         self.mice = self.get_mice()
-        self.visits = self._calculate_visits(config)
+        self.visits = self._calculate_visits(setup_config)
         self.session_start = sorted(self.get_times(self.mice))[0]
         self.session_end = sorted(self.get_times(self.mice))[-1]
 
-    def _calculate_animal_positions(self, config):
+    def _calculate_animal_positions(self, setup_config):
         """Calculate timings of animal visits to Eco-HAB compartments, using
         a modified algorithm by Alicja Puscian and Szymon Leski. Main
         modification -- if there are internal atennas in cages,
@@ -57,7 +57,7 @@ class EcoHabDataBase(object):
         when specifying animal location.
 
         Args:
-           config: ExperimentSetupConfig or SetupConfig
+           setup_config: ExperimentSetupConfig or SetupConfig
         Returns:
            list
         """
@@ -69,18 +69,18 @@ class EcoHabDataBase(object):
             out = utils.get_animal_position(times, antennas,
                                             mouse,
                                             self.threshold,
-                                            config.same_tunnel,
-                                            config.same_address,
-                                            config.opposite_tunnel,
-                                            config.address,
-                                            config.address_surrounding,
-                                            config.address_non_adjacent,
-                                            config.internal_antennas)
+                                            setup_config.same_tunnel,
+                                            setup_config.same_address,
+                                            setup_config.opposite_tunnel,
+                                            setup_config.address,
+                                            setup_config.address_surrounding,
+                                            setup_config.address_non_adjacent,
+                                            setup_config.internal_antennas)
             tempdata.extend(out)
         tempdata.sort(key=lambda x: x[2])
         return tempdata
 
-    def _calculate_visits(self, config):
+    def _calculate_visits(self, setup_config):
         """Calculate EcoHabBase.visits. Calculate timings of animal visits to
         Eco-HAB compartments, using a modified algorithm by Alicja
         Puscian and Szymon Leski. Main modification -- if there are
@@ -88,12 +88,12 @@ class EcoHabDataBase(object):
         override other readings when specifying animal location.
 
         Args:
-           config: ExperimentSetupConfig or SetupConfig
+           setup_config: ExperimentSetupConfig or SetupConfig
         Returns:
            visits to Eco-HAB cages: Visits
 
         """
-        temp_data = self._calculate_animal_positions(config)
+        temp_data = self._calculate_animal_positions(setup_config)
         data = ufl.transform_visits(temp_data)
         return BaseFunctions.Visits(data, None)
 
@@ -257,14 +257,15 @@ class Loader(EcoHabDataBase):
     This class reads in data collected by the Eco-HAB system, parses them
     and removes incorrect registrations. After loading the data Loader
     triggers calculation of timings of animal visits to Eco-HAB compartments.
-    Eco-HAB compartments are specified in a setup configuration file setup.txt,
-    which should be provided in the data directory. If no setup.txt file exists
-    Loader loades a standard Eco-HAB setup config file (can be found in
-    pyEcoHAB.data_path/standard_setup.txt). If your Eco-HAB experiment uses a
-    non-standard setup, provide it with your data set. If your experimental
-    setup is a modular Eco-HAB setup (consisting of more than one Eco-HAB
-    setups), load data from all your setups separately and merge loaded data
-    with Merger.
+    Eco-HAB compartments are specified in a setup config file usually
+    named  setup.txt, which should be provided in the data directory.
+    If no setup.txt file exists Loader loades a standard Eco-HAB setup config
+    file (found in pyEcoHAB.data_path/standard_setup.txt). If your Eco-HAB
+    experiment uses a non-standard Eco-HAB setup, provide the setup config file
+    with your data set. If your experimental setup is a modular Eco-HAB setup
+    (consisting of more than one Eco-HAB setups), load data from all
+    your setups separately (remeber to provide setup config files)
+    and merge loaded data with Merger.
 
     Loader converts date and time of registration to float using
     time.localtime()
