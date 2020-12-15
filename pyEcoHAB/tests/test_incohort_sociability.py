@@ -488,28 +488,28 @@ class TestTimeTogether(unittest.TestCase):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage B")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage B")
         out1 = ics.time_fraction_together_one_cage(ints1, ints2,
-                                                   self. duration)
+                                                   self.duration)
         self.assertEqual(out1, 5/self.duration)
 
     def test_mouse1_mouse2_address_2(self):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage C")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage C")
         out1 = ics.time_fraction_together_one_cage(ints1, ints2,
-                                                   self. duration)
+                                                   self.duration)
         self.assertEqual(out1, 0)
 
     def test_mouse1_mouse2_address_3(self):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage D")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage D")
         out1 = ics.time_fraction_together_one_cage(ints1, ints2,
-                                                   self. duration)
+                                                   self.duration)
         self.assertEqual(out1, 1/self.duration)
 
     def test_mouse1_mouse2_address_4(self):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage A")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage A")
         out1 = ics.time_fraction_together_one_cage(ints1, ints2,
-                                                   self. duration)
+                                                   self.duration)
         self.assertEqual(out1, 5/self.duration)
 
 
@@ -543,7 +543,7 @@ class TestExpectedTimeTogether(unittest.TestCase):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage B")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage B")
         out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2,
-                                                            self. duration)
+                                                            self.duration)
         res = np.isclose(out1, 56/self.duration2)
         self.assertTrue(res)
 
@@ -551,7 +551,7 @@ class TestExpectedTimeTogether(unittest.TestCase):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage C")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage C")
         out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2,
-                                                            self. duration)
+                                                            self.duration)
         res = np.isclose(out1, 9/self.duration2)
         self.assertTrue(res)
 
@@ -559,7 +559,7 @@ class TestExpectedTimeTogether(unittest.TestCase):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage D")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage D")
         out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2,
-                                                            self. duration)
+                                                            self.duration)
         res = np.isclose(out1, 5/self.duration2)
         self.assertTrue(res)
 
@@ -567,7 +567,7 @@ class TestExpectedTimeTogether(unittest.TestCase):
         ints1 = utils.get_intervals(self.data["mouse1"], "cage A")
         ints2 = utils.get_intervals(self.data["mouse2"], "cage A")
         out1 = ics.expected_time_fraction_together_one_cage(ints1, ints2,
-                                                            self. duration)
+                                                            self.duration)
         res = np.isclose(out1, 6*30/self.duration2)
         self.assertTrue(res)
 
