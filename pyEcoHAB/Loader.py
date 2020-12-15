@@ -406,21 +406,21 @@ class Merger(EcoHabDataBase):
 
     compartment_1_name and compartment_2_name depend on the actual position
     of the cage shared by both setups.
+
     When merging data obtained by this complex (modular) experimenta setup,
-    provide path to the experimental setup config, and data (from
-    all parts of the experiment loaded by Loader) as keyworded arguments:
-    new_data = Merger(path_to_setup, setup_1=Loader(path_to_setup_1),
-    setup_2=Loader(path_to_setup2))
-    The names of the keyworded arguments need to match the names specified
-    in the experiment setup config file.
+    provide the path to the experimental setup config. Data  should be provided
+    (from all parts of the experiment loaded by Loader) as non-keyworded
+    arguments:
+    new_data = Merger(path_to_setup, Loader(path_to_setup_1), 
+    Loader(path_to_setup2))
 
     Merger will rename all antennas to antenna_setup_name, and
-    recalculate visits and provide all the necessary functionality for
-    performing analysis of Eco-HAB data.
+    recalculate the visits and provide all the necessary functionality for
+    performing analysis of the Eco-HAB data.
 
     Args:
     experiment_config: str or IdentityConfig object
-        path to experimental setup config or experimental setup config
+        path to experimental setup config or experimental setup config object
     res_dir: str
         full path to results
 
