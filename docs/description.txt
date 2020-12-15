@@ -4,7 +4,7 @@ EcoHab.py - analysing data from Eco-HAB
 
 The raw data saved by the Eco-HAB are a series of events where an RFID tag is detected by an antenna. Every such event is characterized by: a sequential event number, date and time (given with the precision of 1 millisecond), antenna number, and RFID tag number. The events are written to text files, with each file containing the data collected during one hour. 
 
-The key step of the analysis is to convert a series of antenna registrations of a single mouse to a series of visits (here termed sessions) of that mouse to the four cages. The basic idea is that we consider two consecutive antenna registrations and based on the location of these antennas we determine in which of the cages the mouse spent that period. This simple idea is complicated by the fact that in rare cases a mouse can pass through an antenna without trigerring an event. Specifically, we use the following procedure:
+The key step of the analysis is to convert a series of antenna registrations of a single mouse to a series of visits (here named sessions) of that mouse to the four cages. The basic idea is that we consider two consecutive antenna registrations and based on the location of these antennas we determine in which of the cages the mouse spent that period. This simple idea is complicated by the fact that in rare cases a mouse can pass through an antenna without trigerring an event. Specifically, we use the following procedure:
 
 1. for each mouse we make a list of all events e1, e2, ... eN, 
 2. we consider two consecutive events at a time, that is (e1, e2) in the first step, then (e2, e3), and so on until (eN-1, eN),
@@ -23,11 +23,11 @@ The method described above has been implemented in Python 2.7 programming langua
 
 ehd = EcoHabData(path_to_data)
 
-The list of tag numbers is stored in ehd.mice. The data can be accesed through methods ehd.getantennas(mice), ehd.gettimes(mice), which return antenna numbers and event times, respectively, for tags listed as an argument 'mice' (can be a single tag or a list).
+The list of tag numbers is stored in ehd.mice. The data can be accesed through methods ehd.get_antennas(mice), ehd.get_times(mice), which return antenna numbers and event times, respectively, for tags listed as an argument 'mice' (can be a single tag or a list).
 
 The EcoHabSessions object is then created based on ehd:
 ehs = EcoHabSessions(ehd)
-This generates the list of sessions. The data can be acceses through methods ehs.getaddresses(mice), ehs.getstarttimes(mice), ehs.getendtimes(mice), and ehs.getdurations(mice), which return cage numbers, start times, end times, and durations of sessions, respectively. Data can be masked using ehs.mask_data(t1, t2). In that case, only sessions starting after t1 and before t2 will be considered. 
+This generates the list of sessions. The data can be acceses through methods ehs.get_addresses(mice), ehs.get_starttimes(mice), ehs.get_endtimes(mice), and ehs.get_durations(mice), which return cage numbers, start times, end times, and durations of sessions, respectively. Data can be masked using ehs.mask_data(t1, t2). In that case, only sessions starting after t1 and before t2 will be considered. 
 
 All times are internally represented as UNIX epochs (ie., time in seconds since a fixed date in history). To facilitate masking the data to relevant periods within the experiment, the experimental phases are defined in a text file config.txt in the following format:
 
@@ -37,10 +37,10 @@ starttime = 12:00
 enddate = 17.02.2015
 endtime = 00:00
 
-Such a configuration file is read using a helper class ExperimentConfigFile (defined in ExperimentConfigFile.py):
-cf = ExperimentConfigFile(path_to_data),
+Such a configuration file is read using a helper class Timeline (defined in Timeline.py):
+timeline = Timeline(path_to_data),
 and masking can be now achieved using eg.:
-ehs.mask_data(*cf.gettime('EMPTY 1 dark'))
+ecohab_data.mask_data(*timeline.get_time_from_epoch('EMPTY 1 dark'))
 From now on all responses will be limited to sessions starting during the 'EMPTY 1 dark' phase. 
 
-The scripts for data analysis together with an example data set (one cohort of BALB VPA mice) are provided as supplementary online material.
+Both scripts for data analysis and an example data set (one cohort of BALB VPA mice) are provided as supplementary online material.

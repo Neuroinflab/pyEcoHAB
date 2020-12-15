@@ -3,9 +3,12 @@ import os
 import time
 import calendar
 import sys
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 import numpy as np
 from pyEcoHAB.utility_functions import check_directory
+
+h = u"antenna, incorrect transitions count, percentage of antenna recordings\n"
+
 try:
     basestring
 except NameError:
@@ -13,6 +16,7 @@ except NameError:
 
 PAIRS = ["1 3", "1 4", "1 5", "1 6", "1 7", "2 4", "2 5", "2 6", "2 7", "2 8",
          "3 5", "3 6", "3 7", "3 8", "4 6", "4 7", "4 8", "5 7", "5 8", "6 8"]
+
 
 def results_path(path, res_dir):
     return os.path.join(path, res_dir)
@@ -27,14 +31,13 @@ def make_prefix(path):
     """
     key_list = [
         'genotype',
-        "Strain",
+        "strain",
         'sex',
-        'gender', 
-        'Experimentator',
+        'gender',
+        'experimentator',
         'type of experiment',
-        "Type of Experiment",
         'date of experiment',
-        "Start date and hour",
+        "start date and hour",
         'social odor',
         'no social odor',
     ]
@@ -51,9 +54,10 @@ def make_prefix(path):
             key, info = line.split(':')
         except ValueError:
             continue
+        new_key = key.strip().lower()
         info = info.strip()
         info = info.replace(' ', '_')
-        info_dict[key] = info
+        info_dict[new_key] = info
     prefix = ''
     for key in key_list:
         if key not in info_dict:
@@ -87,6 +91,7 @@ def parse_fname(fname):
 
     return hour, date, datenext
 
+
 def print_human_time(tt):
     """convert seconds to date and time since epoch """
     st = time.gmtime(tt)
@@ -102,12 +107,12 @@ def time_to_sec(tt):
                                              '%Y%m%d %H:%M:%S %Z'))
 
     seconds = calendar.timegm(time.strptime(more_than_sec + " UTC",
-                                        '%Y%m%d %H:%M:%S %Z'))
+                                            '%Y%m%d %H:%M:%S %Z'))
     return seconds + float(less_than_sec)/1000
 
 
 def reformat_date_time(date, time):
-    return "%s %s" %(date.replace('.',''), time)
+    return "%s %s" % (date.replace('.', ''), time)
 
 
 def process_line_more_elements(elements):
@@ -144,7 +149,7 @@ def read_single_file(dir_path, fname):
     """Reads in a single data file"""
     hour, date, datenext = parse_fname(fname)
     raw_data = []
-    f = open(os.path.join(dir_path, fname),'r')
+    f = open(os.path.join(dir_path, fname), 'r')
     for line in f:
         elements = line.split()
         if len(elements) == 5:
@@ -155,8 +160,9 @@ def read_single_file(dir_path, fname):
         elif len(elements) > 5:
             line = process_line_more_elements(elements)
         else:
-            raise(IOError('Unknown data format in file %s' %f))
+            raise(IOError('Unknown data format in file %s' % f))
         raw_data += [line]
+    f.close()
     return raw_data
 
 
@@ -164,11 +170,10 @@ def remove_one_antenna(data, antenna):
     """
     Remove animal tags registered by a specified antenna from 2D data array
     """
-    if not isinstance(antenna, int):
-        return data
-    if antenna > 8 or antenna < 1:
-        return data
-    where = np.where(data["Antenna"] == antenna)[0]
+    where = []
+    for i, a in enumerate(data["Antenna"]):
+        if a == antenna:
+            where.append(i)
     if len(where) == 0:
         return data
     return np.delete(data, where, axis=0)
@@ -188,7 +193,7 @@ def remove_antennas(data, antennas):
     Returns:
        data dictionary (same as data)
     """
-    if isinstance(antennas, int):
+    if not isinstance(antennas, list):
         antennas = [antennas]
     new_data = data.copy()
     if isinstance(antennas, list):
@@ -197,67 +202,49 @@ def remove_antennas(data, antennas):
     return new_data
 
 
-def remove_ghost_tags(raw_data, how_many_appearances,
-                      how_many_days, tags=[]):
+def remove_ghost_tags(raw_data, legal_tags="ALL"):
     """
-    Remove animal tag registrations that are untrustworthy.
+    Leave animal tag registrations that are trustworthy.
 
-    This method removes all animal tag registration, when the Eco-HAB
-    system registered the animal tag, if:
-    1. less times than how_many days,
-    2. during less than how_many_days of the experiment,
-    3. the tag was provided in tags.
+    If a list of correct tags is provided this method removes all registrations
+    of incorrect  tags.
 
     Args:
     raw_data: a list of lists or an 2D array
         raw_data read by Loader._read_in_raw_data
-    how_many_appearances: int
-        minimum number of tag registration
-    how_many_days: float
-        minimum number of days, on which the animal tag was registred
-    tags: list
-        animal tags to be removed from raw_data
+    legal_tags: list
+        animal tags to be kept in raw_data
+        Default "ALL". Keep all tags.
 
     Returns:
        a list of lists or an 2D array (the same type as raw_data)
     """
+    if legal_tags == "ALL":
+        return raw_data
+
     new_data = []
-    ghost_mice = []
-    counters = {}
-    dates = {}
-    if isinstance(tags, basestring):
-        tags = [tags]
-    for tag in tags:
-        ghost_mice.append(tag)
-    for d in raw_data:
-        mouse = d[4]
-        if mouse not in counters:
-            counters[mouse] = 0
-        if mouse not in dates:
-            dates[mouse] = set()
-        counters[mouse] += 1
-        dates[mouse].add(d[1].split()[0])
+    if isinstance(legal_tags, basestring):
+        legal_tags = [legal_tags]
 
-    for mouse in counters:
-        if counters[mouse] < how_many_appearances or len(dates[mouse]) <= how_many_days:
-            if mouse not in ghost_mice:
-                ghost_mice.append(mouse)
     for d in raw_data:
         mouse = d[4]
-        if mouse not in ghost_mice:
+        if mouse in legal_tags:
             new_data.append(d)
-
     return new_data[:]
 
 
-def check_antenna_presence(raw_data, max_break):
-    t_start = raw_data['Time'][0]
+def check_antenna_presence(raw_data, setup_config, max_break):
+    if not len(raw_data):
+        raise Exception("Empty dataset")
     all_times = raw_data['Time']
+    t_start = raw_data['Time'][0]
     breaks = {}
     t_end = raw_data['Time'][-1]
-    
-    for antenna in range(1, 9):
-        antenna_idx = np.where(raw_data['Antenna'] == antenna)[0]
+    for antenna in setup_config.all_antennas:
+        antenna_idx = []
+        for i, a in enumerate(raw_data['Antenna']):
+            if antenna == a:
+                antenna_idx.append(i)
         times = all_times[antenna_idx]
         breaks[antenna] = []
         if len(times):
@@ -267,7 +254,8 @@ def check_antenna_presence(raw_data, max_break):
             where_breaks = np.where(intervals > max_break)[0]
             if len(where_breaks):
                 for i in where_breaks:
-                    breaks[antenna].append([np.round(times[i]), np.round(times[i+1])])
+                    breaks[antenna].append([np.round(times[i]),
+                                            np.round(times[i+1])])
             if t_end - times[-1] > max_break:
                 breaks[antenna].append([np.round(times[-1]), t_end])
         else:
@@ -276,94 +264,281 @@ def check_antenna_presence(raw_data, max_break):
     return breaks
 
 
-def antenna_mismatch(raw_data):
-    t_start = raw_data['Time'][0]
+def antenna_mismatch(raw_data, setup_config):
+    if not len(raw_data):
+        raise Exception("Empty dataset")
+    pairs = setup_config.mismatched_pairs
     all_times = raw_data['Time']
     mice = set(raw_data['Tag'])
     mismatches = OrderedDict()
-    for pair in PAIRS:
+    for pair in pairs:
         mismatches[pair] = 0
-
     for mouse in mice:
         mouse_idx = np.where(np.array(raw_data['Tag']) == mouse)[0]
         times = all_times[mouse_idx]
         ant = raw_data['Antenna'][mouse_idx]
         for i, a in enumerate(ant[:-1]):
-            if abs(a - ant[i+1]) not in [0, 1, 7]:
-                if a < ant[i+1]:
-                    key = "%d %d" % (a, ant[i+1])
-                else:
-                    key = "%d %d" % (ant[i+1], a)
+            key = "%s %s" % (min(a, ant[i+1]), max(a, ant[i+1]))
+            if key in pairs:
                 mismatches[key] += 1
     return mismatches
 
-def run_diagnostics(raw_data, max_break, res_dir):
-    mismatches = antenna_mismatch(raw_data)
-    out_f1 = "First reading, consecutive reading,  count, percentage\n"
-    print("Mismatched antenna readings")
-    print("First reading, consecutive reading,  count, percentage")
-   
+
+def total_mismatches(mismatches):
+    all_antennas = set()
     for pair in mismatches.keys():
-        exact_mis = np.round(100*mismatches[pair]/len(raw_data['Antenna']))
-        print("%s,\t%d, %3.2f per 100"% (pair, mismatches[pair], exact_mis))
-        out_f1 += "%s,\t%d, %3.2f per 100\n"% (pair, mismatches[pair],
-                                               exact_mis)
-    
-    antenna_breaks = check_antenna_presence(raw_data, max_break)
-    
-    print('Breaks in registrations on antennas:')
-    out_f2 = 'Breaks in registrations on antennas:\n'
+        a1, a2 = pair.split()
+        all_antennas.add(a1)
+        all_antennas.add(a2)
+    all_antennas = sorted(all_antennas)
+    out = {}
+    for antenna in all_antennas:
+        out[antenna] = 0
+        for pair in mismatches:
+            if antenna in pair:
+                out[antenna] += mismatches[pair]
+    return out
+
+
+def skipped_registrations(raw_data, setup_config):
+    if not len(raw_data):
+        raise Exception("Empty dataset")
+    one_skipped = setup_config.skipped_one()
+    skipped_two = setup_config.skipped_two()
+    skipped_more = setup_config.skipped_more()
+
+    mice = set(raw_data['Tag'])
+    mismatches = OrderedDict([("skipped one", 0), ("skipped two", 0),
+                              ("skipped more", 0)])
+    for mouse in mice:
+        mouse_idx = np.where(np.array(raw_data['Tag']) == mouse)[0]
+        ant = raw_data['Antenna'][mouse_idx]
+        for i, a in enumerate(ant[:-1]):
+            key = "%s %s" % (a, ant[i+1])
+            if key in one_skipped:
+                mismatches["skipped one"] += 1
+            elif key in skipped_more:
+                mismatches["skipped more"] += 1
+            elif key in skipped_two:
+                mismatches["skipped two"] += 1
+    return mismatches
+
+
+def save_skipped_registrations(skipped, tot_registrations, res_dir,
+                               fname="skipped_registrations.csv",
+                               header=u"type, count, percentage\n"):
+    out_f1 = header
+    for key in skipped.keys():
+        try:
+            exact_mis = np.round(100*skipped[key]/tot_registrations)
+        except ZeroDivisionError:
+            exact_mis = 1
+        out_f1 += u"%s, %d, %3.2f per 100\n" % (key, skipped[key],
+                                                exact_mis)
+    new_path = check_directory(res_dir, "diagnostics")
+    fpath1 = os.path.join(new_path, fname)
+    f1 = open(fpath1, "w")
+    f1.write(out_f1)
+    f1.close()
+    return out_f1
+
+
+def save_mismatches(mismatches, tot_registrations, res_dir,
+                    fname="antenna_mismatches.csv",
+                    header=u"antenna pair,  count, percentage\n"):
+    out_f1 = header
+    for pair in mismatches.keys():
+        a1, a2 = pair.split(" ")
+        if isinstance(tot_registrations, dict):
+            try:
+                tot = tot_registrations[pair]
+                exact_mis = np.round(100*mismatches[pair]/tot)
+            except ZeroDivisionError:
+                exact_mis = 0
+        else:
+            exact_mis = np.round(100*mismatches[pair]/tot_registrations)
+        out_f1 += u"%s, %d, %3.2f per 100\n" % (pair, mismatches[pair],
+                                                exact_mis)
+    new_path = check_directory(res_dir, "diagnostics")
+    fpath1 = os.path.join(new_path, fname)
+    f1 = open(fpath1, "w")
+    f1.write(out_f1)
+    f1.close()
+    return out_f1
+
+
+def save_total_mismatches(tot_mismatches, counters, res_dir):
+    out_f1 = h
+    for a1 in tot_mismatches.keys():
+        if counters[a1]:
+            exact_mis = 100*tot_mismatches[a1]/counters[a1]
+        else:
+            exact_mis = 0
+        out_f1 += u"%s, %d, %3.2f per 100\n" % (a1, tot_mismatches[a1],
+                                                exact_mis)
+    new_path = check_directory(res_dir, "diagnostics")
+    fpath1 = os.path.join(new_path, "incorrect_antenna_transitions.csv")
+    f1 = open(fpath1, "w")
+    f1.write(out_f1)
+    f1.close()
+    return out_f1
+
+
+def save_antenna_breaks(antenna_breaks, res_dir):
+    out_f2 = u'Breaks in registrations on antennas:\n'
     for antenna in antenna_breaks:
-        print(antenna, ':')
-        out_f2 += "%d:\n" % antenna
+        out_f2 += u"%s:\n" % antenna
         for breaks in antenna_breaks[antenna]:
-            print("%s %s, %4.2f h" % (print_human_time(breaks[0]),
-                                      print_human_time(breaks[1]),
-                                      (breaks[1] - breaks[0])/3600))
-            out_f2 += "%s %s, %4.2f h\n" % (print_human_time(breaks[0]),
-                                           print_human_time(breaks[1]),
-                                           (breaks[1] - breaks[0])/3600)
+            out_f2 += u"%s %s, %4.2f h\n" % (print_human_time(breaks[0]),
+                                             print_human_time(breaks[1]),
+                                             (breaks[1] - breaks[0])/3600)
 
     new_path = check_directory(res_dir, "diagnostics")
-
-    fpath1 = os.path.join(new_path, "antenna_mismatches.csv")
-    f1 = open(fpath1, "w")
-
     fpath2 = os.path.join(new_path, "breaks_in_registrations.csv")
     f2 = open(fpath2, "w")
-
-    f1.write(out_f1)
-
     f2.write(out_f2)
-    f1.close()
     f2.close()
-             
-    return out_f1, out_f2
+    return out_f2
 
 
-def transform_raw(row, a_pos):
+def run_diagnostics(raw_data, max_break, res_dir, setup_config):
+    """
+    Calculate parameters showing fidelity of obtained antenna
+    registrations and overall experimental errors during the experiment.
+    These parameters will be saved in "diagnostics" directory.
+
+    Args:
+    raw_data:  dictionary of sequences
+       data read in from data files
+    max_break: float
+       maximum break in single antenna registrations (in sec)
+    res_dir: string
+       path to results directory
+    setup_config: SetupConfig or ExperimentalSetupConfig
+      object describing geometry of the (modular) experimental setup
+
+    returns:
+      string_1: text
+        text showing count and percentage of pairs of mismatched antenna
+        registrations
+      string_2: text
+        text describing periods when any antenna was silent for more
+        than max_break
+      string_3: text
+        text showing count and percentage of mismatched antenna registrations
+        per single antenna
+      string_4: text
+        text showing count and percentage of cases, when for 2 consecutive
+        antenna registration one antenna, two antennas and more than two
+        antennas were skipped
+      string_5: text
+        text showing count and percentage of cases, when two entrance antennas
+        to the same tunnel registered an animal simultaneously
+    """
+    mismatches = antenna_mismatch(raw_data, setup_config)
+    string_1 = save_mismatches(mismatches, len(raw_data["Antenna"]),
+                               res_dir)
+    antenna_breaks = check_antenna_presence(raw_data, setup_config, max_break)
+    string_2 = save_antenna_breaks(antenna_breaks, res_dir)
+    tot_mismatches = total_mismatches(mismatches)
+    counters = Counter(raw_data["Antenna"])
+    string_3 = save_total_mismatches(tot_mismatches, counters, res_dir)
+    skip = skipped_registrations(raw_data, setup_config)
+    string_4 = save_skipped_registrations(skip, len(raw_data["Tag"]), res_dir)
+    count, total_count = incorrect_tunnel_registrations(raw_data, setup_config)
+    header = u"tunnel, count, percentage of all passings through the tunnel\n"
+    string_5 = save_mismatches(count, total_count, res_dir,
+                               fname="incorrect_tunnel_registrations.csv",
+                               header=header)
+    return string_1, string_2, string_3, string_4, string_5
+
+
+def incorrect_tunnel_single_mouse(keys, antennas, times, durations):
+    count = {}
+    total_count = {}
+    for key in keys:
+        count[key] = 0
+        total_count[key] = 0
+    for i, a1 in enumerate(antennas[:-1]):
+        a2 = antennas[i+1]
+        key = "%s %s" % (min(a1, a2), max(a1, a2))
+        if key in keys:
+            t1, t2 = times[i], times[i+1]
+            d1 = durations[i]/1000
+            total_count[key] += 1
+            if t2 <= t1 + d1:
+                count[key] += 1
+    return count, total_count
+
+
+def incorrect_tunnel_registrations(raw_data, setup_config):
+    count = OrderedDict()
+    directions = setup_config.directions
+    total_count = {}
+    for direction in sorted(directions):
+        a1, a2 = direction.split(" ")
+        key = "%s %s" % (min(a1, a2), max(a1, a2))
+        count[key] = 0
+        total_count[key] = 0
+    mice = set(raw_data['Tag'])
+
+    for mouse in mice:
+        mouse_idx = np.where(np.array(raw_data['Tag']) == mouse)[0]
+        times1 = raw_data["Time"][mouse_idx]
+        antennas1 = raw_data['Antenna'][mouse_idx]
+        durations1 = raw_data["Duration"][mouse_idx]
+        out_count, out_tot_count = incorrect_tunnel_single_mouse(count.keys(),
+                                                                 antennas1,
+                                                                 times1,
+                                                                 durations1)
+        for key in count:
+            count[key] += out_count[key]
+            total_count[key] += out_tot_count[key]
+    return count, total_count
+
+
+def transform_raw(row):
     return (int(row[0]), time_to_sec(row[1]),
-            a_pos[row[2]], int(row[3]), row[4])
+            row[2], int(row[3]), row[4])
 
 
-def from_raw_data(raw_data, antenna_positions):
+def from_raw_data(raw_data):
     """
     Transform raw data, which is in the form of a double list
     to a 2D structured array with registrations of animal tags.
     """
     new_data = []
     for row in raw_data:
-        new_data.append(transform_raw(row, antenna_positions))
-    data_type = [("Id", int), ("Time", float), ("Antenna", int),
-                 ("Duration", int), ("Tag", "U15")]
+        new_data.append(transform_raw(row))
+    data_type = [("Id", int),
+                 ("Time", float),
+                 ("Antenna", "U15"),
+                 ("Duration", int),
+                 ("Tag", "U15")]
     return np.array(new_data, dtype=data_type)
 
 
 def transform_visits(data):
-    data_type = [("Address", "U5"), ("Tag", "U15"), ("AbsStartTimecode", float),
-                 ("AbsEndTimecode", float), ("VisitDuration", float),
+    data_type = [("Address", "U30"),
+                 ("Tag", "U15"),
+                 ("AbsStartTimecode", float),
+                 ("AbsEndTimecode", float),
+                 ("VisitDuration", float),
                  ("ValidVisitSolution", bool)]
     return np.array(data, dtype=data_type)
+
+
+def rename_antennas(name, dataset):
+    new_data = dataset.copy()
+    for row in new_data:
+        row["Antenna"] = "%s_%s" % (row["Antenna"], name)
+    return new_data
+
+
+def append_data_sources(data_sets):
+    new_data = np.concatenate(data_sets)
+    new_data.sort(order="Time")
+    return new_data
 
 
 class NamedDict(dict):
@@ -396,14 +571,14 @@ class NamedDict(dict):
         self.__name__ = name
 
     def __repr__(self):
-        items = ('{}={}'.format(k,v) for (k,v) in self.items())
-        l = len(self.__name__) + 1
-        sep = ',\n' + ' '*l
+        items = ('{}={}'.format(k, v) for (k, v) in self.items())
+        length = len(self.__name__) + 1
+        sep = ',\n' + ' '*length
         return '{}({})'.format(self.__name__, sep.join(items))
 
     def __setitem__(self, k, v):
-        super(NamedDict, self).__setitem__(k,v)
-        setattr(self,k,v)
+        super(NamedDict, self).__setitem__(k, v)
+        setattr(self, k, v)
 
     def __getattribute__(self, k):
         # attributes have higher priority
@@ -413,9 +588,9 @@ class NamedDict(dict):
             return super(NamedDict, self).__getitem__(k)
 
     def __setattr__(self, k, v):
-        super(NamedDict, self).__setattr__(k,v)
+        super(NamedDict, self).__setattr__(k, v)
         if not k.startswith('_'):
-            super(NamedDict, self).__setitem__(k,v)
+            super(NamedDict, self).__setitem__(k, v)
 
     def __dir__(self):
         dirlist = super(NamedDict, self).__dir__()

@@ -1,0 +1,73 @@
+[1 dark]
+startdate = 11.11.2019
+starttime = 12:00
+enddate = 12.11.2019
+endtime = 00:00
+
+[1 light]
+startdate = 12.11.2019
+starttime = 00:00
+enddate = 12.11.2019
+endtime = 12:00
+
+[2 dark]
+startdate = 12.11.2019
+starttime = 12:00
+enddate = 13.11.2019
+endtime = 00:00
+
+[2 light]
+startdate = 13.11.2019
+starttime = 00:00
+enddate = 13.11.2019
+endtime = 12:00
+
+[5 dark]
+startdate = 15.11.2019
+starttime = 12:00
+enddate = 16.11.2019
+endtime = 00:00
+
+[5 light]
+startdate = 16.11.2019
+starttime = 00:00
+enddate = 16.11.2019
+endtime = 12:00
+
+[6 dark - sucrose]
+startdate = 16.11.2019
+starttime = 12:00
+enddate = 17.11.2019
+endtime = 00:00
+
+[6 light - sucrose]
+startdate = 17.11.2019
+starttime = 00:00
+enddate = 17.11.2019
+endtime = 12:00
+
+[7 dark - sucrose]
+startdate = 17.11.2019
+starttime = 12:00
+enddate = 18.11.2019
+endtime = 00:00
+
+[7 light - sucrose]
+startdate = 18.11.2019
+starttime = 00:00
+enddate = 18.11.2019
+endtime = 12:00
+
+[8 dark - sucrose]
+startdate = 18.11.2019
+starttime = 12:00
+enddate = 19.11.2019
+endtime = 00:00
+
+
+
+[ALL]
+startdate = 11.11.2019
+starttime = 12:00
+enddate = 19.11.2019
+endtime = 00:00

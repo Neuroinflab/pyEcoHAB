@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import print_function, division, absolute_import
 import os
 import sys
@@ -12,46 +14,105 @@ except NameError:
 import numpy as np
 
 from . import BaseFunctions
+from pyEcoHAB.SetupConfig import SetupConfig, ExperimentSetupConfig
 from . import utility_functions as utils
 from .utils import for_loading as ufl
 
-class EcoHabDataBase(object):
 
-    def __init__(self, data, mask, threshold):
+class EcoHabDataBase(object):
+    def __init__(self, data, mask, visit_threshold, setup_config):
+        """
+        Base class for Loader and Merger providing data structure and
+        methods for accessing antenna recordings and visits to Eco-HAB
+        cages. Initialization requires providing a dataset (an instance
+        of DataBase class), a mask cutting the data if necessary (specifying
+        seconds from epoch in GMT), minimum visit duration to Eco-HAB
+        cage and an instance of SetupConfig (a setup configuration file),
+        which describes geometry of the Eco-HAB setup used to collect data.
+
+        Args:
+           data: DataBase
+             dataset read in by Loader or Merger
+           mask: a list or tuple of floats
+             If necessary one can provide time bounds to cut the data.
+             Mask bounds have to be specified as seconds from epoch in
+             GMT. By default mask is None.
+           visit_threshold: float
+             Specify minumum duration (in sec) of visit to Eco-HAB cage.
+           setup_config: SetupConfig or ExperimentSetupConfig
+             Geometry of the Eco-Hab setup used to collect data.
+        """
         self.readings = BaseFunctions.Data(data, mask)
-        self.threshold = threshold
+        self.threshold = visit_threshold
         self.mice = self.get_mice()
-        self.visits = self._calculate_visits()
+        self.visits = self._calculate_visits(setup_config)
         self.session_start = sorted(self.get_times(self.mice))[0]
         self.session_end = sorted(self.get_times(self.mice))[-1]
 
-    def _calculate_animal_positions(self):
-        """
-        Calculate timings of animal visits to Eco-HAB compartments.
+    def _calculate_animal_positions(self, setup_config):
+        """Calculate timings of animal visits to Eco-HAB compartments, using
+        a modified algorithm by Alicja Puscian and Szymon Leski. Main
+        modification -- if there are internal atennas in cages,
+        readings from internal antennas override other readings
+        when specifying animal location.
+
+        Args:
+           setup_config: ExperimentSetupConfig or SetupConfig
+        Returns:
+           list
         """
         tempdata = []
         for mouse in self.mice:
             times, antennas = utils.get_times_antennas(self.readings,
                                                        mouse,
                                                        0, -1)
-            tempdata.extend(utils.get_animal_position(times, antennas,
-                                                      mouse,
-                                                      self.threshold))
+            out = utils.get_animal_position(times, antennas,
+                                            mouse,
+                                            self.threshold,
+                                            setup_config.same_tunnel,
+                                            setup_config.same_address,
+                                            setup_config.opposite_tunnel,
+                                            setup_config.address,
+                                            setup_config.address_surrounding,
+                                            setup_config.address_non_adjacent,
+                                            setup_config.internal_antennas)
+            tempdata.extend(out)
         tempdata.sort(key=lambda x: x[2])
         return tempdata
 
-    def _calculate_visits(self):
-        temp_data = self._calculate_animal_positions()
+    def _calculate_visits(self, setup_config):
+        """Calculate EcoHabBase.visits. Calculate timings of animal visits to
+        Eco-HAB compartments, using a modified algorithm by Alicja
+        Puscian and Szymon Leski. Main modification -- if there are
+        internal atennas in cages, readings from internal antennas
+        override other readings when specifying animal location.
+
+        Args:
+           setup_config: ExperimentSetupConfig or SetupConfig
+        Returns:
+           visits to Eco-HAB cages: Visits
+
+        """
+        temp_data = self._calculate_animal_positions(setup_config)
         data = ufl.transform_visits(temp_data)
         return BaseFunctions.Visits(data, None)
 
-    def mask_data(self, starttime, endtime):
-        self.mask = (starttime, endtime)
+    def mask_data(self, start_time, end_time):
+        """
+        Hide readings and visits in ranges (self.session_start, start_time)
+        and (end_time, self.session_end).
+
+        Args:
+           start_time: float
+           end_time: float
+        """
+        self.mask = (start_time, end_time)
         self.readings.mask_data(self.mask)
         self.visits.mask_data(self.mask)
 
     def unmask_data(self):
-        """Remove the mask - future queries will not be clipped"""
+        """Remove the mask - future readings and visits queries will not be
+        clipped"""
         self.mask = None
         self.readings.unmask_data()
         self.visits.unmask_data()
@@ -64,16 +125,18 @@ class EcoHabDataBase(object):
         return self.readings.getproperty(mice,
                                          'Time',
                                          'float')
+
     def get_durations(self, mice):
-        """Return duration of registration
-        by antenna"""
+        """Return duration of registration by antenna for specified animals.
+        """
         return self.readings.getproperty(mice,
                                          'Duration',
                                          'float')
-    #add get_visits, get_readings
+
     def get_visit_addresses(self, mice):
         return self.visits.getproperty(mice,
                                        'Address')
+
     def get_starttimes(self, mice):
         return self.visits.getproperty(mice,
                                        'AbsStartTimecode',
@@ -88,36 +151,27 @@ class EcoHabDataBase(object):
         return self.visits.getproperty(mice,
                                        'VisitDuration',
                                        'float')
+
     def how_many_antennas(self):
         all_antennas = set(self.get_antennas(self.mice))
         return len(all_antennas)
 
     def get_mice(self):
         mouse_list = list(set(self.readings.data["Tag"]))
-        #new EcoHAB has a different tag nameing convention
-        #last five digits are the same whereas in previous version
-        #there was a prefix and first digits where the same
+        # new Eco-HAB has a different mouse tag naming convention
+        # last five digits are the same whereas in previous version
+        # there was a prefix and first digits where the same
         if len(set([mouse[-4:] for mouse in mouse_list])) == len(mouse_list):
-            mouse_dict = {mouse[-6:]:mouse for mouse in mouse_list}
+            mouse_dict = {mouse[-6:]: mouse for mouse in mouse_list}
             mouse_keys = sorted(mouse_dict.keys())
             return [mouse_dict[mouse] for mouse in mouse_keys]
         return sorted(mouse_list)
 
-    def get_home_cage_antenna(self):
+    def get_visits(self, mice=None, cage=None, t_start=None, t_end=None):
         """
-        Finds home antenna. This is a function used to calculate one
-        of the measures of dominance in two cage experiments. 
-        """
-        antennas = []
-        for mouse in self.mice:
-            antennas.append(self.get_antennas(mouse)[0])
-        return max(set(antennas), key=antennas.count)
-
-    def get_visits(self, mice=None, t_start=None, t_end=None):
-        """
-        Return a list of visits to Eco-HAB compartments. Each visit is 
-        a named dictionary with following fields: t_start, t_end, tag
-        """
+        Return a list of visits to Eco-HAB compartments. Each visit is
+        a named dictionary with following fields: t_start, t_end, cage,
+        mouse tag."""
         if isinstance(mice, str):
             if mice in self.mice:
                 mice = [mice]
@@ -130,6 +184,12 @@ class EcoHabDataBase(object):
             t_start = self.session_start
         if t_end is None:
             t_end = self.session_end
+        if cage is None:
+            cage = self.cages
+        elif isinstance(cage, str):
+            if cage not in self.cages:
+                return []
+            cage = [cage]
 
         self.visits.mask_data([t_start, t_end])
         out = []
@@ -137,17 +197,18 @@ class EcoHabDataBase(object):
             addresses = self.get_visit_addresses(mouse)
             start_times = self.get_starttimes(mouse)
             end_times = self.get_endtimes(mouse)
-            durations = self.get_durations(mouse)
+            durations = self.get_visit_durations(mouse)
             for i, a in enumerate(addresses):
-                visit = ufl.NamedDict("Visit_%s_%d" % (mouse, i),
-                                      tag=mouse, address=a,
-                                      t_start=start_times[i],
-                                      t_end=end_times[i],
-                                      duration=durations[i])
-                out.append(visit)
-        return sorted(out, key = lambda o: o["t_start"])
+                if a in cage:
+                    visit = ufl.NamedDict("Visit_%s_%d" % (mouse, i),
+                                          mouse=mouse, address=a,
+                                          t_start=start_times[i],
+                                          t_end=end_times[i],
+                                          duration=durations[i])
+                    out.append(visit)
+        return sorted(out, key=lambda o: o["t_start"])
 
-    def get_registration_stats(self, tag, t_start,
+    def get_registration_stats(self, mouse, t_start,
                                t_end, antenna, binsize):
         """Count number and combined durations of registrations of a mouse tag
         by a specified antenna in bins of size binsize for tags
@@ -177,10 +238,10 @@ class EcoHabDataBase(object):
         while t_s < t_end:
             t_e = t_s + binsize
             self.mask_data(t_s, t_e)
-            antennas = self.get_antennas(tag)
-            indices = np.where(np.array(antennas) == antenna )[0]
+            antennas = self.get_antennas(mouse)
+            indices = np.where(np.array(antennas) == antenna)[0]
             count_in_bins.append(len(indices))
-            durations = self.get_durations(tag)
+            durations = self.get_durations(mouse)
             sum_time = 0
             for ind in indices:
                 sum_time += durations[ind]
@@ -191,12 +252,20 @@ class EcoHabDataBase(object):
 
 
 class Loader(EcoHabDataBase):
-    """Reads in Eco-HAB data files that are located in path.
+    """Read in Eco-HAB data files that are located in path.
 
     This class reads in data collected by the Eco-HAB system, parses them
-    and removes in-correct registrations. After loading the data Loader triggers
-    calculation of timings of animal visits to Eco-HAB compartments. Currently
-    Loader assumes that there are 4 Eco-HAB compartments denoted by A, B, C, D).
+    and removes incorrect registrations. After loading the data Loader
+    triggers calculation of timings of animal visits to Eco-HAB compartments.
+    Eco-HAB compartments are specified in a setup config file usually
+    named  setup.txt, which should be provided in the data directory.
+    If no setup.txt file exists Loader loades a standard Eco-HAB setup config
+    file (found in pyEcoHAB.data_path/standard_setup.txt). If your Eco-HAB
+    experiment uses a non-standard Eco-HAB setup, provide the setup config file
+    with your data set. If your experimental setup is a modular Eco-HAB setup
+    (consisting of more than one Eco-HAB setups), load data from all
+    your setups separately (remeber to provide setup config files)
+    and merge loaded data with Merger.
 
     Loader converts date and time of registration to float using
     time.localtime()
@@ -206,10 +275,13 @@ class Loader(EcoHabDataBase):
            directory containing Eco-HAB data
 
     Keyword Args:
-        antenna_positions: dictionary
-           a dictionary specifing conversion of registered antenna ids
-           to integers
-           int(antenna_id) is the default conversion
+        setup_config: str or an instance of SetupConfig
+           directory path to config file with antenna setup. If no "setup.txt"
+           file can be found in path a standard setup is going to be loaded
+           (pyEcoHAB/data/standard_setup.txt). You need to provide a
+           separate setup.txt file or a path to a file with a configuration
+           of your experiment, if you are using a non-standard Eco-HAB
+           experimental setup.
         mask: list or tuple of floats
            Loader will read in data registed between mask[0] and mask[1].
            mask[0] and mask[1] need to be expressed seconds from the epoch,
@@ -229,161 +301,157 @@ class Loader(EcoHabDataBase):
         max_break: float
            breaks in antenna registrations longer than max_break
            will be reported, while loading Eco-HAB data.
-        how_many_appearances: int
-           Animal tags that are registered less times than how_many_appearances
-           will be removed from loaded data. By default no animal tag
-           registrations are removed.
-        min_appearance_factor: float of value less than 1
-           Animal tags that are registered in fraction of the experiment
-           duration lower than min_appearance_factor will be removed
-           from loaded data. By default no animal tag registrations are removed.
         remove_antennas: list
            Registrations by antenna ids in remove_antennas will be removed from
            loaded data. By default Loader keeps all the registrations.
-        remove_mice: list
-           Animal tag registrations to be removed from loaded data. By default
-           no registrations are removed.
+        legal_tags: list
+           Animal tag registrations to be kept in loaded data (all other tag
+           registrations will be removed). By default no registrations are
+           removed.
         add_date: True or False
            Add analysis date to results directory filename.
            As a default current date will be added.
     """
-    STANDARD_ANTENNAS = {'1': 1, '2': 2,
-                         '3': 3, '4': 4,
-                         '5': 5, '6': 6,
-                         '7': 7, '8': 8}
-    MAX_BREAK = 3600
+    MAX_BREAK = 3*3600
+    internal_antennas = []
 
     def __init__(self, path, **kwargs):
-        #Read in parameters
+        # Read in parameters
         self.path = path
-        antenna_positions = kwargs.pop('antenna_positions', None)
-
-        if antenna_positions is None:
-            self.antenna_positions = self.STANDARD_ANTENNAS
+        setup_config = kwargs.pop('setup_config', None)
+        if isinstance(setup_config, SetupConfig):
+            antennas = setup_config
+        elif isinstance(setup_config, str):
+            antennas = SetupConfig(path=setup_config)
         else:
-            self.antenna_positions = antenna_positions
+            antennas = SetupConfig(path=self.path)
 
         self.mask = kwargs.pop('mask', None)
         self.visit_threshold = kwargs.pop('visit_threshold', 2.)
         add_date = kwargs.pop('add_date', True)
         res_dir = kwargs.pop("res_dir", "Results")
-        self.prefix = ufl.make_prefix(self.path)
+        self.prefix = kwargs.pop("prefix", ufl.make_prefix(self.path))
         self.max_break = kwargs.pop("max_break", self.MAX_BREAK)
-        how_many_appearances = kwargs.pop('how_many_appearances', 0)
-        factor = kwargs.pop('min_appearance_factor', 0)
+
         remove_antennas = kwargs.pop('remove_antennas', [])
-        tags = kwargs.pop('remove_mice',[])
+        tags = kwargs.pop('legal_tags', "ALL")
         if add_date:
             today = date.today().strftime("%d.%m.%y")
-            res_dir = "%s_%s" %(res_dir, today)
-        print(res_dir)
+            res_dir = "%s_%s" % (res_dir, today)
         self.res_dir = ufl.results_path(self.path, res_dir)
-        print(self.res_dir, self.path)
-        #Read in data
-        rawdata = self._read_in_raw_data(factor,
-                                         how_many_appearances,
-                                         tags)
-        data = ufl.from_raw_data(rawdata,
-                                 self.antenna_positions)
+        # Read in data
+        rawdata = self._read_in_raw_data(tags)
+        data = ufl.from_raw_data(rawdata)
         data = ufl.remove_antennas(data, remove_antennas)
-        #As in antenna readings
-        
-        ufl.run_diagnostics(data, self.max_break, self.res_dir)
+        # As in antenna readings
+        ufl.run_diagnostics(data, self.max_break, self.res_dir,
+                            antennas)
         super(Loader, self).__init__(data, self.mask,
-                                     self.visit_threshold)
-        self.cages = self.get_cages()
+                                     self.visit_threshold, antennas)
+        self.cages = antennas.cages
+        self.directions = antennas.directions
+        self.setup_config = antennas
+        self.all_antennas = antennas.all_antennas
+        self.internal_antennas = antennas.internal_antennas
+        self.setup_name = antennas.name
+        self.home_antenna = antennas.homecage_antenna
+        self.home_internal_antennas = antennas.homecage_internal_antennas
+        self.stimulus_internal_antennas = antennas.stimCage_internal_antennas
 
-    def get_cages(self):
-        return sorted(list(set(self.get_visit_addresses(self.mice))))
-
-    def _read_in_raw_data(self, factor, how_many_appearances, tags):
+    def _read_in_raw_data(self, tags):
         """Reads in data from files in self.path.
         Removes ghost tags from data"""
         raw_data = []
         days = set()
         self._fnames = ufl.get_filenames(self.path)
-        if not len(self._fnames ):
-            sys.exit("%s is empty"% self.path)
+        if not len(self._fnames):
+            raise Exception("empty directory %s" % self.path)
         for f_name in self._fnames:
             raw_data += ufl.read_single_file(self.path, f_name)
             days.add(f_name.split('_')[0])
-        how_many_days = len(days)*factor
         data = ufl.remove_ghost_tags(raw_data,
-                                     how_many_appearances,
-                                     how_many_days,
-                                     tags=tags)
+                                     legal_tags=tags)
         data.sort(key=lambda x: ufl.time_to_sec(x[1]))
         return data
-                         
-    def __repr__ (self):
-        """Nice string representation for prtinting this class."""
-        mystring = 'Eco-HAB data loaded from:\n%s\nin the folder%s\n' %(
-                   self._fnames.__str__(), self.path) 
+
+    def __repr__(self):
+        """Nice string representation for printing this class."""
+        mystring = 'Eco-HAB data loaded from:\n%s\nin the folder%s\n' % (
+                   self._fnames.__str__(), self.path)
         return mystring
-
-    def check_single_mouse_data(self, mouse):
-        antennas = self.data.get_antennas(mouse)
-        times  = self.data.get_times(mouse)
-        error_crossing_times = []
-        for i, next_antenna in enumerate(antennas[1:]):
-            if abs(next_antenna - antennas[i]) not in [0, 1]:
-                if next_antenna != 8 and antennas[i] != 8:
-                    error_crossing_times.append(times[i])
-        return error_crossing_times
-
 
 
 class Merger(EcoHabDataBase):
-    def __init__(self, *data_sources, **kwargs):
-        self._source_list = map(str, data_sources)
-        self._ignore_mice_diff = kwargs.pop('ignore_mice_differences',
-                                            False)
-        self.session_start = None
-        self.session_end = None
+    """Merge datasets from one modular Eco-HAB experiment. This means datasets
+    obtained from different parts of the same experimental setup. Merger will
+    rename antennas according to how specific parts of the experimental setup
+    have been named.
 
-        grouped_sources = self._group_data_sources(data_sources)
-        for key in sorted(grouped_sources.keys()):
-            data_source = grouped_sources[key]
-            try:
-                self._append_data_source(data_source)
+    Merger requires a config file for the experimental setup, which
+    specifies cages or tunnels that are shared by two or more parts of
+    the experimental setup. For example, if a standard Eco-HAB setup
+    (four cages, four tunnels and eight antennas numbered from 1 to 8)
+    recorded by one Eco-HAB.rfid (setup_1) is extended by adding a
+    fifth tunnel to cage A of the first setup and a fifth cage at the
+    end of that tunnel with 2 antennas at the entrances to the fifth
+    tunnel and an internal antenna in the fifth cage recorded by a
+    separate Eco-HAB.rfid (setup_2), the experimental setup file
+    should be similar to:
+    [shared compartment 1]
+    setup_1_name = setup_1
+    compartment_1_name = cage A
+    setup_2_name = setup_2
+    compartment_2_name = cage D
+    destination_name = cage A
 
-            except:
-                print("ERROR processing {}".format(data_source))
-                raise
-        self.mice = self.get_mice()
-        self.session_start = sorted(self.get_times(self.mice))[0]
-        self.session_end = sorted(self.get_times(self.mice))[-1]
-        self.res_dir = kwargs.pop("results_path",
-                                  data_sources[0].res_dir  + "_merged")
-        self.prefix = kwargs.pop("results_path",
-                                 data_sources[0].prefix + "_merged")
+    compartment_1_name and compartment_2_name depend on the actual position
+    of the cage shared by both setups.
 
-    def _group_data_sources(self, data_sources):
-        grouped = {}
-        for data_source in data_sources:
-            key = data_source.session_start
-            grouped[key] = data_source
-        return grouped
+    When merging data obtained by this complex (modular) experimental setup,
+    provide the path to the experimental setup config. Data  should be provided
+    (from all parts of the experiment loaded by Loader) as non-keyworded
+    arguments:
+    new_data = Merger(path_to_setup, Loader(path_to_setup_1), 
+    Loader(path_to_setup2))
 
+    Merger will rename all antennas to antenna_setup_name, and
+    recalculate the visits and provide all the necessary functionality for
+    performing analysis of the Eco-HAB data.
 
-    def _append_data_source(self, new_data):
-        if self.session_start is None and self.session_end is None:
-            super(Merger, self).__init__(new_data.readings.data, None,
-                                         new_data.visit_threshold)
+    Args:
+    experiment_config: str or IdentityConfig object
+        path to experimental setup config or experimental setup config object
+    res_dir: str
+        full path to results
 
-        if new_data.session_start != None:
-            if self.session_start != None and self.session_end != None:
-                if self.session_start < new_data.session_start\
-                   and self.session_end > new_data.session_start:
-                    print('Overlap of EcoHAB sessions detected')
+    loaders:
+        Eco-HAB datasets
+    """
+    def __init__(self, experiment_config, res_dir, *loaders):
+        datasets = []
+        configs = {}
+        max_breaks = []
+        for loader in loaders:
+            setup_name = loader.setup_name
+            configs[setup_name] = loader.setup_config
+            datasets.append(ufl.rename_antennas(setup_name,
+                                                loader.readings.data))
+            max_breaks.append(loader.max_break)
 
-        if new_data.session_end != None:
-            if self.session_start != None and self.session_end != None:
-                if self.session_start < new_data.session_end\
-                   and self.session_end > new_data.session_end:
-                    print('Overlap of EcoHAN sessions detected')
-
-        for key in new_data.readings.data.keys():
-            self.readings.data[key].extend(new_data.readings.data[key])
-        for key in new_data.visits.data.keys():
-            self.visits.data[key].extend(new_data.visits.data[key])
+        data = ufl.append_data_sources(datasets)
+        mask = None
+        self.visit_threshold = max([d.visit_threshold for d in loaders])
+        self.prefix = "merged"
+        today = date.today().strftime("%d.%m.%y")
+        self.res_dir = "%s_%s" % (res_dir, today)
+        antennas = ExperimentSetupConfig(experiment_config, **configs)
+        super(Merger, self).__init__(data, mask,
+                                     self.visit_threshold, antennas)
+        self.cages = antennas.cages
+        self.directions = antennas.directions
+        self.setup_config = antennas
+        self.all_antennas = antennas.all_antennas
+        self.internal_antennas = antennas.internal_antennas
+        self.max_break = max(max_breaks)
+        ufl.run_diagnostics(data, self.max_break, self.res_dir,
+                            antennas)

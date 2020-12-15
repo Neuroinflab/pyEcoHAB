@@ -12,7 +12,72 @@ import numpy as np
 import pyEcoHAB.utility_functions as uf
 from pyEcoHAB import data_path
 from pyEcoHAB import Loader
-from pyEcoHAB import ExperimentConfigFile
+from pyEcoHAB import Timeline
+from pyEcoHAB import SetupConfig
+
+
+SAME_PIPE = {"1": ["1", "2"],
+             "2": ["1", "2"],
+             "3": ["3", "4"],
+             "4": ["3", "4"],
+             "5": ["5", "6"],
+             "6": ["5", "6"],
+             "7": ["7", "8"],
+             "8": ["7", "8"]}
+
+SAME_ADDRESS = {
+    "1": ["1", "8"],
+    "2": ["2", "3"],
+    "3": ["2", "3"],
+    "4": ["4", "5"],
+    "5": ["4", "5"],
+    "6": ["6", "7"],
+    "7": ["6", "7"],
+    "8": ["1", "8"],
+}
+
+OPPOSITE_PIPE = {"1": ["5", "6"],
+                 "2": ["5", "6"],
+                 "3": ["7", "8"],
+                 "4": ["7", "8"],
+                 "5": ["1", "2"],
+                 "6": ["1", "2"],
+                 "7": ["3", "4"],
+                 "8": ["3", "4"]}
+
+ADDRESS = {
+    "1": "cage A",  # "4"
+    "2": "cage B",  # 1,
+    "3": "cage B",  # 1,
+    "4": "cage C",  # 2,
+    "5": "cage C",  # 2,
+    "6": "cage D",  # "3",
+    "7": "cage D",  # "3",
+    "8": "cage A",  # "4"
+}
+
+ADDRESS_NON_ADJACENT = {
+    "1": "cage B",  # 1,
+    "2": "cage A",  # "4",
+    "3": "cage C",  # 2,
+    "4": "cage B",  # 1,
+    "5": "cage D",  # "3",
+    "6": "cage C",  # 2,
+    "7": "cage A",  # "4",
+    "8": "cage D",  # "3"
+}
+# Surrounding: difference between antennas only 2 or "6" -- skipped one antenna
+SURROUNDING = {
+    ("1", "3"): "cage B",  # 1,
+    ("1", "7"): "cage A",  # "4",
+    ("2", "4"): "cage B",  # 1,
+    ("2", "8"): "cage A",  # "4",
+    ("3", "5"): "cage C",  # 2,
+    ("4", "6"): "cage C",  # 2,
+    ("5", "7"): "cage D",  # "3",
+    ("6", "8"): "cage D",  # "3"
+}
+
 
 class TestFilter(unittest.TestCase):
     @classmethod
@@ -41,7 +106,6 @@ class TestFilter(unittest.TestCase):
 
 
 class TestGetMoreStates(unittest.TestCase):
-    
     def test_2nd_tier_len_states(self):
         antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
         times = [101.976,
@@ -59,8 +123,10 @@ class TestGetMoreStates(unittest.TestCase):
                  228.772,
                  228.972]
         idx = 6
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), 3)
+
     def test_2nd_tier_len_states_times(self):
         antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
         times = [101.976,
@@ -78,7 +144,8 @@ class TestGetMoreStates(unittest.TestCase):
                  228.772,
                  228.972]
         idx = 6
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), len(readouts))
 
     def test_2nd_tier_equal_len_midx(self):
@@ -98,7 +165,8 @@ class TestGetMoreStates(unittest.TestCase):
                  228.772,
                  228.972]
         idx = 6
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(midx + 1, idx + len(states))
 
     def test_catch_threshold_len_states(self):
@@ -118,8 +186,10 @@ class TestGetMoreStates(unittest.TestCase):
                  228.772,
                  228.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), 4 + idx)
+
     def test_catch_threshold_equal_len_states_times(self):
         antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
         times = [101.976,
@@ -137,7 +207,8 @@ class TestGetMoreStates(unittest.TestCase):
                  228.772,
                  228.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), len(readouts))
 
     def test_catch_threshold_equal_len_midx(self):
@@ -157,9 +228,10 @@ class TestGetMoreStates(unittest.TestCase):
                  228.772,
                  228.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), midx + idx)
-    
+
     def test_catch_3rd_len_states(self):
         antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
         times = [101.976,
@@ -177,7 +249,8 @@ class TestGetMoreStates(unittest.TestCase):
                  128.772,
                  128.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), 7)
 
     def test_catch_3rd_equal_len_states_times(self):
@@ -197,7 +270,8 @@ class TestGetMoreStates(unittest.TestCase):
                  128.772,
                  128.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), len(readouts))
 
     def test_catch_3rd_equal_len_midx(self):
@@ -217,7 +291,8 @@ class TestGetMoreStates(unittest.TestCase):
                  128.772,
                  128.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states) - 1, midx + idx)
 
     def test_catch_end(self):
@@ -237,7 +312,8 @@ class TestGetMoreStates(unittest.TestCase):
                  128.772,
                  128.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), midx + idx)
 
     def test_catch_equal_len_antennas_states(self):
@@ -257,7 +333,8 @@ class TestGetMoreStates(unittest.TestCase):
                  128.772,
                  128.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), len(antennas))
 
     def test_catch_equal_len_antennas_readouts(self):
@@ -277,80 +354,53 @@ class TestGetMoreStates(unittest.TestCase):
                  128.772,
                  128.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), len(readouts))
 
 
-class TestInPipe(unittest.TestCase):
-    def test_pipe_1_2_clockwise(self):
-        self.assertTrue(uf.in_tube(1, 2))
-    def test_pipe_2_1_counterclockwise(self):
-        self.assertTrue(uf.in_tube(2, 1))
-    def test_pipe_2_3_clockwise(self):
-        self.assertFalse(uf.in_tube(2, 3))
-    def test_pipe_3_2_counterclockwise(self):
-        self.assertFalse(uf.in_tube(3, 2))
-    def test_pipe_7_8_clockwise(self):
-        self.assertTrue(uf.in_tube(7, 8))
-    def test_pipe_8_7_counterclockwise(self):
-        self.assertTrue(uf.in_tube(8, 7))
-    def test_pipe_1_8_clockwise(self):
-        self.assertFalse(uf.in_tube(1, 8))
-    def test_pipe_8_1_counterclockwise(self):
-        self.assertFalse(uf.in_tube(8, 1))
-
-class TestInChambers(unittest.TestCase):
-    def test_pipe_1_2_clockwise(self):
-        self.assertFalse(uf.in_chamber(1, 2))
-    def test_pipe_2_1_counterclockwise(self):
-        self.assertFalse(uf.in_chamber(2, 1))
-    def test_pipe_2_3_clockwise(self):
-        self.assertTrue(uf.in_chamber(2, 3))
-    def test_pipe_3_2_counterclockwise(self):
-        self.assertTrue(uf.in_chamber(3, 2))
-    def test_pipe_7_8_clockwise(self):
-        self.assertFalse(uf.in_chamber(7, 8))
-    def test_pipe_8_7_counterclockwise(self):
-        self.assertFalse(uf.in_chamber(8, 7))
-    def test_pipe_1_8_clockwise(self):
-        self.assertTrue(uf.in_chamber(1, 8))
-    def test_pipe_8_1_counterclockwise(self):
-        self.assertTrue(uf.in_chamber(8, 1))
-    
 class TestChangeState(unittest.TestCase):
     def test_check_no_change(self):
-        self.assertEqual(len(uf.change_state([1, 1, 1, 1,])), 0)
+        self.assertEqual(len(uf.change_state([1, 1, 1, 1])), 0)
+
     def test_check_change_1(self):
         self.assertFalse(len(uf.change_state([1, 1, 1, 2])) == 0)
+
     def test_check_change_2(self):
         self.assertEqual(uf.change_state([1, 1, 1, 2]).tolist(),
                          np.array([2], dtype=int).tolist())
-        
+
+
 class TestGetIdxPre(unittest.TestCase):
     def test_false(self):
         self.assertEqual(uf.get_idx_pre(2, [3, 4, 5]), None)
+
     def test_correct(self):
         self.assertEqual(uf.get_idx_pre(2, [-1, 0, 1, 2, 3]), 2)
+
     def test_empty(self):
         self.assertEqual(uf.get_idx_pre(0, []), None)
+
 
 class TestGetIdxPost(unittest.TestCase):
     def test_false(self):
         self.assertEqual(uf.get_idx_post(2, [-1, 0, 1]), None)
+
     def test_correct(self):
         self.assertEqual(uf.get_idx_post(2, [-1, 0, 1, 2, 3]), 4)
+
     def test_empty(self):
         self.assertEqual(uf.get_idx_post(0, []), None)
+
 
 class TestGetIdxBetween(unittest.TestCase):
     def test_false(self):
         self.assertEqual(len(uf.get_idx_between(2, 3, [-1, 0, 1])), 0)
-        
+
     def test_correct1(self):
         out = uf.get_idx_between(2, 3, [-1, 0, 1, 2, 3])
         res = np.array([3], dtype=int)
         self.assertEqual(len(out), len(res))
-
 
     def test_correct_loop(self):
         out = uf.get_idx_between(2, 3, [-1, 0, 1, 2, 3])
@@ -362,140 +412,12 @@ class TestGetIdxBetween(unittest.TestCase):
         self.assertEqual(len(uf.get_idx_between(0, 2, [])), 0)
 
 
-class TestMouseGoingForward(unittest.TestCase):
-    def test_going_forward(self):
-        self.assertTrue(uf.mouse_going_forward([1, 2, 3]))
-
-    def test_not_going_forward(self):
-        self.assertFalse(uf.mouse_going_forward([1, 2, 1, 8]))
-
-    def test_going_forward_other_pipe(self):
-        self.assertTrue(uf.mouse_going_forward([7, 8, 1]))
-
-    def test_not_going_forward_other_pipe(self):
-        self.assertFalse(uf.mouse_going_forward([8, 7, 8, 1]))
-
-    def test_going_forward_other_from_data(self):
-        self.assertTrue(uf.mouse_going_forward([3, 4, 4, 3, 3, 4, 4, 5]))
-
-    def test_not_going_forward_from_data(self):
-        self.assertFalse(uf.mouse_going_forward([5, 6, 6, 5, 4]))
-        
-class TestMouseBacking(unittest.TestCase):
-    def test_going_forward(self):
-        self.assertFalse(uf.mouse_backing_off([1, 2, 3]))
-
-    def test_not_going_forward(self):
-        self.assertTrue(uf.mouse_backing_off([1, 2, 1, 8]))
-
-    def test_going_forward_other_pipe(self):
-        self.assertFalse(uf.mouse_backing_off([7, 8, 1]))
-
-    def test_not_going_forward_other_pipe(self):
-        self.assertTrue(uf.mouse_backing_off([8, 7, 8, 1]))
-
-    def test_going_forward_other_from_data(self):
-        self.assertFalse(uf.mouse_backing_off([3, 4, 4, 3, 3, 4, 4, 5]))
-
-    def test_not_going_forward_from_data(self):
-        self.assertTrue(uf.mouse_backing_off([5, 6, 6, 5, 4]))
-        
-    def test_two_same_reading(self):
-        self.assertFalse(uf.mouse_backing_off([1, 1]))
-        
-    def test_two_different_readings(self):
-        self.assertFalse(uf.mouse_backing_off([1, 2]))
-
-    def test_only_two_antennas_True(self):
-        self.assertTrue(uf.mouse_backing_off([1, 2, 1]))
-
-    def test_only_two_antennas_False(self):
-        self.assertFalse(uf.mouse_backing_off([1, 2, 1, 2]))
-
-    def test_one_reading(self):
-        self.assertFalse(uf.mouse_backing_off([1]))
-        
-
-class TestSkipAntennas(unittest.TestCase):
-    def test_no_skipped_antennas_short(self):
-        out = uf.skipped_antennas([1, 2])
-        self.assertFalse(out)
-    def test_skipped_antennas_short(self):
-        out = uf.skipped_antennas([4, 2])
-        self.assertTrue(out)
-    def test_no_skipped_antennas_long(self):
-        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 5])
-        self.assertFalse(out)
-    def test_skipped_antennas_long(self):
-        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 6])
-        self.assertTrue(out)
-    def test_no_skipped_antennas_long_with_8(self):
-        out = uf.skipped_antennas([8, 1, 2, 2, 3, 4, 4, 5])
-        self.assertFalse(out)
-    def test_skipped_antennas_long_with_8(self):
-        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 6])
-        self.assertTrue(out)
-
-class TestChangeOneToSeven(unittest.TestCase):
-    def test_change_seven(self):
-        out = uf.change_seven_to_one([1, 0, -1, 7])
-        self.assertEqual(out[3], -1)
-    def test_change_minus_seven(self):
-        out = uf.change_seven_to_one([1, 0, -1, -7])
-        self.assertEqual(out[3], 1)
-    def test_no_change(self):
-        values = [1, 2, 8, 3, 5, 6]
-        out = uf.change_seven_to_one(values)
-        for i, val in enumerate(values):
-            self.assertEqual(val, out[i])
-
-
-class TestMouseGoingClockwise(unittest.TestCase):
-    def test_correct(self):
-        positions = [3, 4, 4, 3, 3, 4, 4, 5]
-        self.assertTrue(uf.mouse_going_clockwise(positions))
-        
-    def test_incorrect(self):
-        positions = [4, 3, 2, 1]
-        self.assertFalse(uf.mouse_going_clockwise(positions))
-
-    def test_incorrect2(self):
-        positions = [4, 4, 4, 4]
-        self.assertFalse(uf.mouse_going_clockwise(positions))
-
-    def test_correct_with_8(self):
-        positions = [7, 8, 1, 2, 3, 4, 4, 5]
-        self.assertTrue(uf.mouse_going_clockwise(positions))
-
-class TestMouseGoingCounterClockwise(unittest.TestCase):
-    def test_incorrect(self):
-        positions = [3, 4, 4, 3, 3, 4, 4, 5]
-        self.assertFalse(uf.mouse_going_counterclockwise(positions))
-        
-    def test_correct(self):
-        positions = [4, 3, 2, 1]
-        self.assertTrue(uf.mouse_going_counterclockwise(positions))
-
-    def test_incorrect2(self):
-        positions = [4, 4, 4, 4]
-        self.assertFalse(uf.mouse_going_counterclockwise(positions))
-
-    def test_incorrect_with_8(self):
-        positions = [7, 8, 1, 2, 3, 4, 4, 5]
-        self.assertFalse(uf.mouse_going_counterclockwise(positions))
-
-    def test_correct_with_8(self):
-        positions = [1, 8, 7]
-        self.assertTrue(uf.mouse_going_counterclockwise(positions))
-
-
 class TestGetTimestamp(unittest.TestCase):
-
     def test_up(self):
         self.assertEqual(uf.get_timestamp(42.2, 45.76, 0.1), 36)
 
     def test_down(self):
-        self.assertEqual(uf.get_timestamp(42.2, 45.71, 0.1), 35) 
+        self.assertEqual(uf.get_timestamp(42.2, 45.71, 0.1), 35)
 
 
 class TestGetAnennas(unittest.TestCase):
@@ -504,30 +426,7 @@ class TestGetAnennas(unittest.TestCase):
         self.assertEqual(out, [1, 2, 5])
 
 
-class TestGetKeyForFrequency(unittest.TestCase):
-    def test_78(self):
-        out = uf.get_key_for_frequencies(7, 8)
-        self.assertEqual(out, "78")
-
-    def test_87(self):
-        out = uf.get_key_for_frequencies(8, 7)
-        self.assertEqual(out, "87")
-
-    def test_chamber_18(self):
-        out = uf.get_key_for_frequencies(8, 1)
-        self.assertEqual(out, None)
-
-    def test_chamber_23(self):
-        out = uf.get_key_for_frequencies(2, 3)
-        self.assertEqual(out, None)
-
-    def test_stupid_(self):
-        out = uf.get_key_for_frequencies(2, 4)
-        self.assertEqual(out, None)
-
-
 class TestIntervalOverlap(unittest.TestCase):
-
     def test_interval_overlap_1(self):
         """Incorrect interval
         """
@@ -570,62 +469,8 @@ class TestIntervalOverlap(unittest.TestCase):
         inte_2 = [46, 50]
         self.assertTrue(uf.interval_overlap(inte_1, inte_2) == 2)
 
-class TestGetStatesForEhs(unittest.TestCase):
-    def test_chambers(self):
-        out = uf.get_animal_position([1, 5], [2, 3], "mouse 1", 2)
-        res = [(1, "mouse 1", 1, 5, 4, True)]
-        self.assertEqual(out, res)
-
-    def test_chambers_8(self):
-        out = uf.get_animal_position([1, 5], [1, 8], "mouse 1", 2)
-        res = [(4, "mouse 1", 1, 5, 4, True)]
-        self.assertEqual(out, res)
-
-    def test_too_fast(self):
-        out = uf.get_animal_position([1, 2], [2, 3], "mouse 1", 2)
-        self.assertEqual(out, [])
-
-    def test_pipe(self):
-        out = uf.get_animal_position([1, 5], [2, 1], "mouse 1", 2)
-        self.assertEqual(out, [])
-
-    def test_same_chamber(self):
-        out = uf.get_animal_position([1, 5], [1, 1], "mouse 1", 2)
-        res = [(4, "mouse 1", 1, 5, 4, True)]
-        self.assertEqual(out, res)
-
-    def test_skipped_antenna(self):
-        out = uf.get_animal_position([1, 5], [1, 3], "mouse 1", 2)
-        res = [(1, "mouse 1", 1, 5, 4, False)]
-        self.assertEqual(out, res)
-
-    def test_skipped_antenna_2(self):
-        out = uf.get_animal_position([1, 5], [7, 1], "mouse 1", 2)
-        res = [(4, "mouse 1", 1, 5, 4, False)]
-        self.assertEqual(out, res)
-
-    def test_opposite_pipe_1(self):
-        antenna = 2
-        out = uf.get_animal_position([1, 5], [antenna, antenna + 3],
-                                    "mouse 1", 2)
-        self.assertEqual(out, [])
-
-    def test_not_opposite_pipe_1(self):
-        out = uf.get_animal_position([1, 5], [2, 7],
-                                    "mouse 1", 2)
-        self.assertEqual(out, [(4, "mouse 1", 1, 5, 4, False)])
-
-    def test_longer(self):
-        out = uf.get_animal_position([2, 7, 23, 45, 55, 61],
-                                    [1, 2, 3, 4, 5, 6],
-                                    "mouse 1", 2)
-        res = [(1, "mouse 1", 7, 23, 16, True),
-               (2, "mouse 1", 45, 55, 10, True)]
-        self.assertEqual(out, res)
-
 
 class TestGetIntervals(unittest.TestCase):
-
     def test_empty(self):
         self.assertEqual(uf.get_intervals([[1, 2, 3]], 4), [])
 
@@ -645,8 +490,8 @@ class TestGetIntervals(unittest.TestCase):
         ]
         self.assertEqual(uf.get_intervals(test_input, 1), test_output)
 
-class TestIntervals2Lists(unittest.TestCase):
 
+class TestIntervals2Lists(unittest.TestCase):
     def test_empty(self):
         self.assertEqual(uf.intervals2lists([[1, 2, 3]], 4), [[], []])
 
@@ -686,6 +531,7 @@ class TestGetIndices(unittest.TestCase):
         out = uf.get_indices(4, 10, starts, ends)
         self.assertEqual(out, [0, 1])
 
+
 class TestGetDurations(unittest.TestCase):
     def test_1(self):
         a = [1, 5, 8]
@@ -715,6 +561,7 @@ class TestCalculateTotalDuration(unittest.TestCase):
     def test_1(self):
         a = [[1, 2],  [5, 7], [8, 10]]
         self.assertEqual(uf.calculate_total_duration(a), 5)
+
 
 class TestGetMice(unittest.TestCase):
     @classmethod
@@ -748,7 +595,7 @@ class TestGetMice(unittest.TestCase):
         self.assertEqual(uf.get_mice(self.lista, ['Gienio',
                                                   'Zdzisio']),
                          ["Zbysio", "Henio"])
-        
+
 
 class TestAddInfo(unittest.TestCase):
     def test_None(self):
@@ -757,6 +604,7 @@ class TestAddInfo(unittest.TestCase):
     def test_one(self):
         self.assertEqual(uf.add_info_mice_filename("Zdzisio"),
                          'remove_Zdzisio')
+
     def test_more(self):
         lista = ["Zdzisio",
                  "Zbysio",
@@ -764,6 +612,7 @@ class TestAddInfo(unittest.TestCase):
                  "Gienio"]
         self.assertEqual(uf.add_info_mice_filename(lista),
                          'remove_Zdzisio_Zbysio_Henio_Gienio')
+
 
 class TestListOfpairs(unittest.TestCase):
     def test_list(self):
@@ -795,7 +644,7 @@ class TestAllPairs(unittest.TestCase):
         lista = ["Zdzisio",
                  "Zbysio",
                  "Henio"]
-        out = uf.all_pairs(lista)
+        out = uf.all_mouse_pairs(lista)
         expected = ["Zdzisio|Zbysio", "Zdzisio|Henio", "Zbysio|Zdzisio",
                     "Zbysio|Henio", "Henio|Zdzisio", "Henio|Zbysio"]
         self.assertEqual(out, expected)
@@ -807,7 +656,7 @@ class TestAllPairs(unittest.TestCase):
                  ]
         expected = ["Zbysio|Zdzisio", "Henio|Zdzisio", "Zdzisio|Zbysio",
                     "Henio|Zbysio", "Zdzisio|Henio", "Zbysio|Henio"]
-        out = uf.all_pairs(lista, reverse_order="True")
+        out = uf.all_mouse_pairs(lista, reverse_order="True")
         self.assertEqual(out, expected)
 
 
@@ -843,9 +692,12 @@ class TestMakeTableOfPairs(unittest.TestCase):
         cls.out_data, cls.out = uf.make_table_of_pairs(cls.data,
                                                        cls.phases,
                                                        cls.lista)
+
     def test_shape(self):
         out_lista = uf.list_of_pairs(self.lista)
-        self.assertEqual(self.out_data.shape, (len(out_lista), len(self.phases)))
+        self.assertEqual(self.out_data.shape, (len(out_lista),
+                                               len(self.phases)))
+
     def test_lista(self):
         out_lista = uf.list_of_pairs(self.lista)
         self.assertEqual(out_lista, self.out)
@@ -879,27 +731,28 @@ class TestMakeTableOfAllPairs(unittest.TestCase):
         cls.data[0, 0, 1] = 1
         cls.data[0, 0, 2] = 2
         cls.data[0, 1, 2] = 4
-        cls.out_data, cls.out = uf.make_table_of_all_pairs(cls.data,
+        cls.out_data, cls.out = uf.make_table_of_all_mouse_pairs(cls.data,
                                                            cls.phases,
                                                            cls.lista,
                                                            reverse_order=False)
-        cls.out_data_rev, cls.out_rev = uf.make_table_of_all_pairs(cls.data,
-                                                                   cls.phases,
-                                                                   cls.lista,
-                                                                   reverse_order=True)
+        cls.o_d_rev, cls.o_rev = uf.make_table_of_all_mouse_pairs(cls.data,
+                                                            cls.phases,
+                                                            cls.lista,
+                                                            reverse_order=True)
+
     def test_shape(self):
-        out_lista = uf.all_pairs(self.lista)
+        out_lista = uf.all_mouse_pairs(self.lista)
         self.assertEqual(self.out_data.shape,
                          (len(out_lista), len(self.phases)))
 
     def test_lista(self):
-        out_lista = uf.all_pairs(self.lista)
+        out_lista = uf.all_mouse_pairs(self.lista)
         self.assertEqual(out_lista, self.out)
 
     def test_lista_rev(self):
-        out_lista = uf.all_pairs(self.lista,
+        out_lista = uf.all_mouse_pairs(self.lista,
                                  reverse_order=True)
-        self.assertEqual(out_lista, self.out_rev)
+        self.assertEqual(out_lista, self.o_rev)
 
     def test_1st_phase(self):
         out = [1., 2., 0., 4., 0., 0.]
@@ -908,7 +761,7 @@ class TestMakeTableOfAllPairs(unittest.TestCase):
 
     def test_1st_phase_rev(self):
         out = [0., 0., 1., 0., 2., 4.]
-        first_column = self.out_data_rev[:, 0].tolist()
+        first_column = self.o_d_rev[:, 0].tolist()
         self.assertEqual(out, first_column)
 
 
@@ -924,7 +777,6 @@ class TestGetLength(unittest.TestCase):
     def test_3(self):
         out = uf.get_length(0, 15, 7)
         self.assertEqual(out, 3)
-
 
 
 class TestGETEHSData(unittest.TestCase):
@@ -953,7 +805,6 @@ class TestGETEHSData(unittest.TestCase):
 
 
 class TestGetMoreStates(unittest.TestCase):
-    
     def test_2nd_tier_len_states(self):
         antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
         times = [101.976,
@@ -971,8 +822,10 @@ class TestGetMoreStates(unittest.TestCase):
                  228.772,
                  228.972]
         idx = 6
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), 3)
+
     def test_2nd_tier_len_states_times(self):
         antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
         times = [101.976,
@@ -990,7 +843,8 @@ class TestGetMoreStates(unittest.TestCase):
                  228.772,
                  228.972]
         idx = 6
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), len(readouts))
 
     def test_2nd_tier_equal_len_midx(self):
@@ -1010,7 +864,8 @@ class TestGetMoreStates(unittest.TestCase):
                  228.772,
                  228.972]
         idx = 6
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(midx + 1, idx + len(states))
 
     def test_catch_threshold_len_states(self):
@@ -1030,8 +885,10 @@ class TestGetMoreStates(unittest.TestCase):
                  228.772,
                  228.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), 4 + idx)
+
     def test_catch_threshold_equal_len_states_times(self):
         antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
         times = [101.976,
@@ -1049,7 +906,8 @@ class TestGetMoreStates(unittest.TestCase):
                  228.772,
                  228.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), len(readouts))
 
     def test_catch_threshold_equal_len_midx(self):
@@ -1069,9 +927,10 @@ class TestGetMoreStates(unittest.TestCase):
                  228.772,
                  228.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), midx + idx)
-    
+
     def test_catch_3rd_len_states(self):
         antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
         times = [101.976,
@@ -1089,7 +948,8 @@ class TestGetMoreStates(unittest.TestCase):
                  128.772,
                  128.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), 7)
 
     def test_catch_3rd_equal_len_states_times(self):
@@ -1109,7 +969,8 @@ class TestGetMoreStates(unittest.TestCase):
                  128.772,
                  128.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), len(readouts))
 
     def test_catch_3rd_equal_len_midx(self):
@@ -1129,7 +990,8 @@ class TestGetMoreStates(unittest.TestCase):
                  128.772,
                  128.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states) - 1, midx + idx)
 
     def test_catch_end(self):
@@ -1149,7 +1011,8 @@ class TestGetMoreStates(unittest.TestCase):
                  128.772,
                  128.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), midx + idx)
 
     def test_catch_equal_len_antennas_states(self):
@@ -1169,7 +1032,8 @@ class TestGetMoreStates(unittest.TestCase):
                  128.772,
                  128.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), len(antennas))
 
     def test_catch_equal_len_antennas_readouts(self):
@@ -1189,79 +1053,53 @@ class TestGetMoreStates(unittest.TestCase):
                  128.772,
                  128.972]
         idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx, 50, 3)
+        states, readouts, midx = uf.get_more_states(antennas, times, idx,
+                                                    50, 3)
         self.assertEqual(len(states), len(readouts))
 
 
-class TestInPipe(unittest.TestCase):
-    def test_pipe_1_2_clockwise(self):
-        self.assertTrue(uf.in_tube(1, 2))
-    def test_pipe_2_1_counterclockwise(self):
-        self.assertTrue(uf.in_tube(2, 1))
-    def test_pipe_2_3_clockwise(self):
-        self.assertFalse(uf.in_tube(2, 3))
-    def test_pipe_3_2_counterclockwise(self):
-        self.assertFalse(uf.in_tube(3, 2))
-    def test_pipe_7_8_clockwise(self):
-        self.assertTrue(uf.in_tube(7, 8))
-    def test_pipe_8_7_counterclockwise(self):
-        self.assertTrue(uf.in_tube(8, 7))
-    def test_pipe_1_8_clockwise(self):
-        self.assertFalse(uf.in_tube(1, 8))
-    def test_pipe_8_1_counterclockwise(self):
-        self.assertFalse(uf.in_tube(8, 1))
-
-class TestInChambers(unittest.TestCase):
-    def test_pipe_1_2_clockwise(self):
-        self.assertFalse(uf.in_chamber(1, 2))
-    def test_pipe_2_1_counterclockwise(self):
-        self.assertFalse(uf.in_chamber(2, 1))
-    def test_pipe_2_3_clockwise(self):
-        self.assertTrue(uf.in_chamber(2, 3))
-    def test_pipe_3_2_counterclockwise(self):
-        self.assertTrue(uf.in_chamber(3, 2))
-    def test_pipe_7_8_clockwise(self):
-        self.assertFalse(uf.in_chamber(7, 8))
-    def test_pipe_8_7_counterclockwise(self):
-        self.assertFalse(uf.in_chamber(8, 7))
-    def test_pipe_1_8_clockwise(self):
-        self.assertTrue(uf.in_chamber(1, 8))
-    def test_pipe_8_1_counterclockwise(self):
-        self.assertTrue(uf.in_chamber(8, 1))
-    
 class TestChangeState(unittest.TestCase):
     def test_check_no_change(self):
-        self.assertEqual(len(uf.change_state([1, 1, 1, 1,])), 0)
+        self.assertEqual(len(uf.change_state([1, 1, 1, 1])), 0)
+
     def test_check_change_1(self):
         self.assertFalse(len(uf.change_state([1, 1, 1, 2])) == 0)
+
     def test_check_change_2(self):
-        self.assertTrue(uf.change_state([1, 1, 1, 2]), np.array([2], dtype=int))
-        
+        self.assertTrue(uf.change_state([1, 1, 1, 2]), np.array([2],
+                                                                dtype=int))
+
+
 class TestGetIdxPre(unittest.TestCase):
     def test_false(self):
         self.assertEqual(uf.get_idx_pre(2, [3, 4, 5]), None)
+
     def test_correct(self):
         self.assertEqual(uf.get_idx_pre(2, [-1, 0, 1, 2, 3]), 2)
+
     def test_empty(self):
         self.assertEqual(uf.get_idx_pre(0, []), None)
+
 
 class TestGetIdxPost(unittest.TestCase):
     def test_false(self):
         self.assertEqual(uf.get_idx_post(2, [-1, 0, 1]), None)
+
     def test_correct(self):
         self.assertEqual(uf.get_idx_post(2, [-1, 0, 1, 2, 3]), 4)
+
     def test_empty(self):
         self.assertEqual(uf.get_idx_post(0, []), None)
+
 
 class TestGetIdxBetween(unittest.TestCase):
     def test_false(self):
         self.assertEqual(len(uf.get_idx_between(2, 3, [-1, 0, 1])), 0)
-        
+
     def test_correct1(self):
         out = uf.get_idx_between(2, 3, [-1, 0, 1, 2, 3])
         res = np.array([3], dtype=int)
         self.assertEqual(len(out), len(res))
-
 
     def test_correct_loop(self):
         out = uf.get_idx_between(2, 3, [-1, 0, 1, 2, 3])
@@ -1273,168 +1111,19 @@ class TestGetIdxBetween(unittest.TestCase):
         self.assertEqual(len(uf.get_idx_between(0, 2, [])), 0)
 
 
-class TestMouseGoingForward(unittest.TestCase):
-    def test_going_forward(self):
-        self.assertTrue(uf.mouse_going_forward([1, 2, 3]))
-
-    def test_not_going_forward(self):
-        self.assertFalse(uf.mouse_going_forward([1, 2, 1, 8]))
-
-    def test_going_forward_other_pipe(self):
-        self.assertTrue(uf.mouse_going_forward([7, 8, 1]))
-
-    def test_not_going_forward_other_pipe(self):
-        self.assertFalse(uf.mouse_going_forward([8, 7, 8, 1]))
-
-    def test_going_forward_other_from_data(self):
-        self.assertTrue(uf.mouse_going_forward([3, 4, 4, 3, 3, 4, 4, 5]))
-
-    def test_not_going_forward_from_data(self):
-        self.assertFalse(uf.mouse_going_forward([5, 6, 6, 5, 4]))
-        
-class TestMouseBacking(unittest.TestCase):
-    def test_going_forward(self):
-        self.assertFalse(uf.mouse_backing_off([1, 2, 3]))
-
-    def test_not_going_forward(self):
-        self.assertTrue(uf.mouse_backing_off([1, 2, 1, 8]))
-
-    def test_going_forward_other_pipe(self):
-        self.assertFalse(uf.mouse_backing_off([7, 8, 1]))
-
-    def test_not_going_forward_other_pipe(self):
-        self.assertTrue(uf.mouse_backing_off([8, 7, 8, 1]))
-
-    def test_going_forward_other_from_data(self):
-        self.assertFalse(uf.mouse_backing_off([3, 4, 4, 3, 3, 4, 4, 5]))
-
-    def test_not_going_forward_from_data(self):
-        self.assertTrue(uf.mouse_backing_off([5, 6, 6, 5, 4]))
-        
-    def test_two_same_reading(self):
-        self.assertFalse(uf.mouse_backing_off([1, 1]))
-        
-    def test_two_different_readings(self):
-        self.assertFalse(uf.mouse_backing_off([1, 2]))
-
-    def test_only_two_antennas_True(self):
-        self.assertTrue(uf.mouse_backing_off([1, 2, 1]))
-
-    def test_only_two_antennas_False(self):
-        self.assertFalse(uf.mouse_backing_off([1, 2, 1, 2]))
-
-    def test_one_reading(self):
-        self.assertFalse(uf.mouse_backing_off([1]))
-        
-
-class TestSkipAntennas(unittest.TestCase):
-    def test_no_skipped_antennas_short(self):
-        out = uf.skipped_antennas([1, 2])
-        self.assertFalse(out)
-    def test_skipped_antennas_short(self):
-        out = uf.skipped_antennas([4, 2])
-        self.assertTrue(out)
-    def test_no_skipped_antennas_long(self):
-        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 5])
-        self.assertFalse(out)
-    def test_skipped_antennas_long(self):
-        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 6])
-        self.assertTrue(out)
-    def test_no_skipped_antennas_long_with_8(self):
-        out = uf.skipped_antennas([8, 1, 2, 2, 3, 4, 4, 5])
-        self.assertFalse(out)
-    def test_skipped_antennas_long_with_8(self):
-        out = uf.skipped_antennas([1, 2, 2, 3, 4, 4, 6])
-        self.assertTrue(out)
-
-class TestChangeOneToSeven(unittest.TestCase):
-    def test_change_seven(self):
-        out = uf.change_seven_to_one([1, 0, -1, 7])
-        self.assertEqual(out[3], -1)
-    def test_change_minus_seven(self):
-        out = uf.change_seven_to_one([1, 0, -1, -7])
-        self.assertEqual(out[3], 1)
-    def test_no_change(self):
-        values = [1, 2, 8, 3, 5, 6]
-        out = uf.change_seven_to_one(values)
-        for i, val in enumerate(values):
-            self.assertEqual(val, out[i])
-
-
-class TestMouseGoingClockwise(unittest.TestCase):
-    def test_correct(self):
-        positions = [3, 4, 4, 3, 3, 4, 4, 5]
-        self.assertTrue(uf.mouse_going_clockwise(positions))
-        
-    def test_incorrect(self):
-        positions = [4, 3, 2, 1]
-        self.assertFalse(uf.mouse_going_clockwise(positions))
-
-    def test_incorrect2(self):
-        positions = [4, 4, 4, 4]
-        self.assertFalse(uf.mouse_going_clockwise(positions))
-
-    def test_correct_with_8(self):
-        positions = [7, 8, 1, 2, 3, 4, 4, 5]
-        self.assertTrue(uf.mouse_going_clockwise(positions))
-
-class TestMouseGoingCounterClockwise(unittest.TestCase):
-    def test_incorrect(self):
-        positions = [3, 4, 4, 3, 3, 4, 4, 5]
-        self.assertFalse(uf.mouse_going_counterclockwise(positions))
-        
-    def test_correct(self):
-        positions = [4, 3, 2, 1]
-        self.assertTrue(uf.mouse_going_counterclockwise(positions))
-
-    def test_incorrect2(self):
-        positions = [4, 4, 4, 4]
-        self.assertFalse(uf.mouse_going_counterclockwise(positions))
-
-    def test_incorrect_with_8(self):
-        positions = [7, 8, 1, 2, 3, 4, 4, 5]
-        self.assertFalse(uf.mouse_going_counterclockwise(positions))
-
-    def test_correct_with_8(self):
-        positions = [1, 8, 7]
-        self.assertTrue(uf.mouse_going_counterclockwise(positions))
-
-
 class TestGetTimestamp(unittest.TestCase):
 
     def test_up(self):
         self.assertEqual(uf.get_timestamp(42.2, 45.76, 0.1), 36)
 
     def test_down(self):
-        self.assertEqual(uf.get_timestamp(42.2, 45.71, 0.1), 35) 
+        self.assertEqual(uf.get_timestamp(42.2, 45.71, 0.1), 35)
 
 
 class TestGetAnennas(unittest.TestCase):
     def test(self):
         out = uf.get_antennas([0, 1, 4], [1, 2, 3, 4, 5, 6, 7, 8])
         self.assertEqual(out, [1, 2, 5])
-
-
-class TestGetKeyForFrequency(unittest.TestCase):
-    def test_78(self):
-        out = uf.get_key_for_frequencies(7, 8)
-        self.assertEqual(out, "78")
-
-    def test_87(self):
-        out = uf.get_key_for_frequencies(8, 7)
-        self.assertEqual(out, "87")
-
-    def test_chamber_18(self):
-        out = uf.get_key_for_frequencies(8, 1)
-        self.assertEqual(out, None)
-
-    def test_chamber_23(self):
-        out = uf.get_key_for_frequencies(2, 3)
-        self.assertEqual(out, None)
-
-    def test_stupid_(self):
-        out = uf.get_key_for_frequencies(2, 4)
-        self.assertEqual(out, None)
 
 
 class TestIntervalOverlap(unittest.TestCase):
@@ -1481,59 +1170,6 @@ class TestIntervalOverlap(unittest.TestCase):
         inte_2 = [46, 50]
         self.assertTrue(uf.interval_overlap(inte_1, inte_2) == 2)
 
-class TestGetStatesForEhs(unittest.TestCase):
-    def test_chambers(self):
-        out = uf.get_animal_position([1, 5], [2, 3], "mouse 1", 2)
-        res = [("B", "mouse 1", 1, 5, 4, True)]
-        self.assertEqual(out, res)
-
-    def test_chambers_8(self):
-        out = uf.get_animal_position([1, 5], [1, 8], "mouse 1", 2)
-        res = [("A", "mouse 1", 1, 5, 4, True)]
-        self.assertEqual(out, res)
-
-    def test_too_fast(self):
-        out = uf.get_animal_position([1, 2], [2, 3], "mouse 1", 2)
-        self.assertEqual(out, [])
-
-    def test_pipe(self):
-        out = uf.get_animal_position([1, 5], [2, 1], "mouse 1", 2)
-        self.assertEqual(out, [])
-
-    def test_same_chamber(self):
-        out = uf.get_animal_position([1, 5], [1, 1], "mouse 1", 2)
-        res = [("A", "mouse 1", 1, 5, 4, True)]
-        self.assertEqual(out, res)
-
-    def test_skipped_antenna(self):
-        out = uf.get_animal_position([1, 5], [1, 3], "mouse 1", 2)
-        res = [("B", "mouse 1", 1, 5, 4, False)]
-        self.assertEqual(out, res)
-
-    def test_skipped_antenna_2(self):
-        out = uf.get_animal_position([1, 5], [7, 1], "mouse 1", 2)
-        res = [("A", "mouse 1", 1, 5, 4, False)]
-        self.assertEqual(out, res)
-
-    def test_opposite_pipe_1(self):
-        antenna = 2
-        out = uf.get_animal_position([1, 5], [antenna, antenna + 3],
-                                    "mouse 1", 2)
-        self.assertEqual(out, [])
-
-    def test_not_opposite_pipe_1(self):
-        out = uf.get_animal_position([1, 5], [2, 7],
-                                    "mouse 1", 2)
-        self.assertEqual(out, [("A", "mouse 1", 1, 5, 4, False)])
-
-    def test_longer(self):
-        out = uf.get_animal_position([2, 7, 23, 45, 55, 61],
-                                    [1, 2, 3, 4, 5, 6],
-                                    "mouse 1", 2)
-        res = [("B", "mouse 1", 7, 23, 16, True),
-               ("C", "mouse 1", 45, 55, 10, True)]
-        self.assertEqual(out, res)
-
 
 class TestGetIntervals(unittest.TestCase):
 
@@ -1555,6 +1191,7 @@ class TestGetIntervals(unittest.TestCase):
             [10, 12],
         ]
         self.assertEqual(uf.get_intervals(test_input, 1), test_output)
+
 
 class TestIntervals2Lists(unittest.TestCase):
 
@@ -1597,6 +1234,7 @@ class TestGetIndices(unittest.TestCase):
         out = uf.get_indices(4, 10, starts, ends)
         self.assertEqual(out, [0, 1])
 
+
 class TestGetDurations(unittest.TestCase):
     def test_1(self):
         a = [1, 5, 8]
@@ -1626,6 +1264,7 @@ class TestCalculateTotalDuration(unittest.TestCase):
     def test_1(self):
         a = [[1, 2],  [5, 7], [8, 10]]
         self.assertEqual(uf.calculate_total_duration(a), 5)
+
 
 class TestGetMice(unittest.TestCase):
     @classmethod
@@ -1659,7 +1298,7 @@ class TestGetMice(unittest.TestCase):
         self.assertEqual(uf.get_mice(self.lista, ['Gienio',
                                                   'Zdzisio']),
                          ["Zbysio", "Henio"])
-        
+
 
 class TestAddInfo(unittest.TestCase):
     def test_None(self):
@@ -1668,6 +1307,7 @@ class TestAddInfo(unittest.TestCase):
     def test_one(self):
         self.assertEqual(uf.add_info_mice_filename("Zdzisio"),
                          'remove_Zdzisio')
+
     def test_more(self):
         lista = ["Zdzisio",
                  "Zbysio",
@@ -1675,6 +1315,7 @@ class TestAddInfo(unittest.TestCase):
                  "Gienio"]
         self.assertEqual(uf.add_info_mice_filename(lista),
                          'remove_Zdzisio_Zbysio_Henio_Gienio')
+
 
 class TestListOfpairs(unittest.TestCase):
     def test_list(self):
@@ -1707,7 +1348,7 @@ class TestAllPairs(unittest.TestCase):
                  "Zbysio",
                  "Henio",
                  "Gienio"]
-        out = uf.all_pairs(lista)
+        out = uf.all_mouse_pairs(lista)
         self.assertEqual(len(out), 12)
 
 
@@ -1743,9 +1384,12 @@ class TestMakeTableOfPairs(unittest.TestCase):
         cls.out_data, cls.out = uf.make_table_of_pairs(cls.data,
                                                        cls.phases,
                                                        cls.lista)
+
     def test_shape(self):
         out_lista = uf.list_of_pairs(self.lista)
-        self.assertEqual(self.out_data.shape, (len(out_lista), len(self.phases)))
+        self.assertEqual(self.out_data.shape, (len(out_lista),
+                                               len(self.phases)))
+
     def test_lista(self):
         out_lista = uf.list_of_pairs(self.lista)
         self.assertEqual(out_lista, self.out)
@@ -1780,34 +1424,35 @@ class TestGetLength(unittest.TestCase):
         self.assertEqual(out, 3)
 
 
-
 class TestGetEHSData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short")
         cls.data = Loader(path)
-        cls.t1 = calendar.timegm(uf.to_struck("10.10.201011:04:30"))
-        cls.t2 = calendar.timegm(uf.to_struck("10.10.201011:06:20"))
-        cls.m_1_a, cls.s1, cls.e1 = uf.get_ehs_data_with_margin(cls.data,
+        cls.t1 = 1286701470+7200
+        cls.t2 = 1286701580+7200
+        cls.m_1_a, cls.s1, cls.e1 = uf.get_ecohab_data_data_with_margin(cls.data,
                                                                 "mouse_1",
-                                                                cls.t1, cls.t2,
+                                                                cls.t1,
+                                                                cls.t2,
                                                                 margin=100)
 
-    def test_get_ehs_address(self):
-        self.assertEqual(["C", "C", "D", "C", "D", "C", "B", "C", "D",
-                          "C", "D", "C", "D"], self.m_1_a)
-       
-    def test_get_ehs_starttimes(self):
+    def test_get_ecohab_data_address(self):
+        self.assertEqual(["cage C", "cage C", "cage D", "cage C", "cage D",
+                          "cage C", "cage B", "cage C", "cage D",
+                          "cage C", "cage D", "cage C", "cage D"],
+                         self.m_1_a)
+
+    def test_get_ecohab_data_starttimes(self):
         out = sorted(self.s1)
         starttimes = [1286708667.302, 1286708669.9, 1286708676.243,
                       1286708680.721, 1286708749.62, 1286708768.349,
                       1286708783.809, 1286708800.057, 1286708804.718,
                       1286708817.259, 1286708825.762, 1286708838.969,
                       1286708858.91]
-        
         self.assertEqual(out, starttimes)
 
-    def test_get_ehs_endtimes(self):
+    def test_get_ecohab_data_endtimes(self):
         out = sorted(self.e1)
         endtimes = [1286708669.65, 1286708674.28, 1286708680.125,
                     1286708748.484, 1286708767.615, 1286708781.731,
@@ -1825,7 +1470,7 @@ class TestPrepareData(unittest.TestCase):
         cls.t1 = calendar.timegm(uf.to_struck("10.10.201011:04:30"))
         cls.t2 = calendar.timegm(uf.to_struck("10.10.201011:06:20"))
         data1 = uf.prepare_data(cls.data, "mouse_1",
-                               [cls.t1, cls.t2])
+                                [cls.t1, cls.t2])
         cls.out = data1["mouse_1"]
         data2 = uf.prepare_data(cls.data, "mouse_1")
         cls.out_all = data2["mouse_1"]
@@ -1837,34 +1482,34 @@ class TestPrepareData(unittest.TestCase):
         cls.out_different = data3["mouse_1"]
 
         cls.no_mouse = uf.prepare_data(cls.data, "mouse_2",
-                               [cls.t1, cls.t2])["mouse_2"]
+                                       [cls.t1, cls.t2])["mouse_2"]
 
         path2 = os.path.join(data_path, "weird_3_mice")
         data_longer = Loader(path2)
-        
+
         cls.data_longer = uf.prepare_data(data_longer, ["mouse_1",
                                                         "mouse_2"],
                                           [cls.t11, cls.t12])
-        
 
-    def test_get_ehs_address(self):
-        self.assertEqual(["C", "D", "C", "D", "C"], [x[0] for x in self.out])
+    def test_get_ecohab_data_address(self):
+        self.assertEqual(["cage C", "cage D", "cage C", "cage D", "cage C"],
+                         [x[0] for x in self.out])
 
-    def test_get_ehs_starttimes(self):
+    def test_get_ecohab_data_starttimes(self):
         starttimes = [1286708670, 1286708676.243, 1286708680.721,
                       1286708749.62, 1286708768.349]
         self.assertTrue([x[1] for x in self.out] == starttimes)
 
-    def test_get_ehs_endtimes(self):
+    def test_get_ecohab_data_endtimes(self):
         endtimes = [1286708674.28, 1286708680.125, 1286708748.484,
                     1286708767.615, 1286708780]
         self.assertTrue([x[2] for x in self.out] == endtimes)
 
-    def test_get_ehs_starttimes_3(self):
+    def test_get_ecohab_data_starttimes_3(self):
         all_starttimes = set([self.out[i][1] for i in range(len(self.out))])
         self.assertTrue(len(all_starttimes) > 1)
 
-    def test_get_ehs_endtimes_3(self):
+    def test_get_ecohab_data_endtimes_3(self):
         all_endtimes = set([self.out[i][2] for i in range(len(self.out))])
         self.assertTrue(len(all_endtimes) > 1)
 
@@ -1877,7 +1522,7 @@ class TestPrepareData(unittest.TestCase):
 
     def test_get2_endtimes(self):
         self.assertTrue(self.out_different[-1][-1] < self.t12)
-    
+
     def test_no_mouse(self):
         self.assertEqual(self.no_mouse, [])
 
@@ -1889,9 +1534,9 @@ class TestPrepareData(unittest.TestCase):
     def test_mouse_1_all_datasets(self):
         self.assertTrue(sorted(list(self.data_longer["mouse_1"])),
                         sorted(self.out_different))
-                        
+
     def test_mouse_2_all_datasets_start(self):
-        data_mouse2 = [x[1]< self.t11 for x in self.data_longer["mouse_2"]]
+        data_mouse2 = [x[1] < self.t11 for x in self.data_longer["mouse_2"]]
         self.assertEqual(sum(data_mouse2), 0)
 
     def test_mouse_2_all_datasets_end(self):
@@ -1901,62 +1546,188 @@ class TestPrepareData(unittest.TestCase):
 
 class TestGetAnimalPositions(unittest.TestCase):
     def test_threshold(self):
-        out = uf.get_animal_position([2, 3], [2, 2], "mouse_1", 2)
+        out = uf.get_animal_position([2, 3], ["2", "2"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual(out, [])
 
     def test_pipe_1(self):
-        out = uf.get_animal_position([2, 3], [1, 2], "mouse_1", 1)
+        out = uf.get_animal_position([2, 3], ["1", "2"], "mouse_1", 1,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual(out, [])
 
     def test_pipe_2(self):
-        out = uf.get_animal_position([2, 3], [3, 4], "mouse_1", 1)
+        out = uf.get_animal_position([2, 3], ["3", "4"], "mouse_1", 1,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual(out, [])
 
     def test_pipe_3(self):
-        out = uf.get_animal_position([2, 3], [5, 6], "mouse_1", 1)
+        out = uf.get_animal_position([2, 3], ["5", "6"], "mouse_1", 1,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual(out, [])
-        
+
     def test_pipe_4(self):
-        out = uf.get_animal_position([2, 3], [7, 8], "mouse_1", 1)
+        out = uf.get_animal_position([2, 3], ["7", "8"], "mouse_1", 1,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
         self.assertEqual(out, [])
 
     def test_chamber_A1(self):
-        out = uf.get_animal_position([2, 6], [1, 8], "mouse_1", 2)
-        self.assertEqual([("A", "mouse_1", 2, 6, 4, True)], out)
-        
+        out = uf.get_animal_position([2, 6], ["1", "8"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
+        self.assertEqual([("cage A", "mouse_1", 2, 6, 4, True)], out)
+
     def test_chamber_A2(self):
-        out = uf.get_animal_position([2, 6], [8, 1], "mouse_1", 2)
-        self.assertEqual([("A", "mouse_1", 2, 6, 4, True)], out)
+        out = uf.get_animal_position([2, 6], ["8", "1"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
+        self.assertEqual([("cage A", "mouse_1", 2, 6, 4, True)], out)
 
     def test_chamber_B1(self):
-        out = uf.get_animal_position([2, 6], [2, 3], "mouse_1", 2)
-        self.assertEqual([("B", "mouse_1", 2, 6, 4, True)], out)
-        
+        out = uf.get_animal_position([2, 6], ["2", "3"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
+        self.assertEqual([("cage B", "mouse_1", 2, 6, 4, True)], out)
+
     def test_chamber_B2(self):
-        out = uf.get_animal_position([2, 6], [3, 2], "mouse_1", 2)
-        self.assertEqual([("B", "mouse_1", 2, 6, 4, True)], out)
+        out = uf.get_animal_position([2, 6], ["3", "2"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
+        self.assertEqual([("cage B", "mouse_1", 2, 6, 4, True)], out)
 
     def test_chamber_C1(self):
-        out = uf.get_animal_position([2, 6], [4, 5], "mouse_1", 2)
-        self.assertEqual([("C", "mouse_1", 2, 6, 4, True)], out)
-        
+        out = uf.get_animal_position([2, 6], ["4", "5"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
+        self.assertEqual([("cage C", "mouse_1", 2, 6, 4, True)], out)
+
     def test_chamber_C2(self):
-        out = uf.get_animal_position([2, 6], [5, 4], "mouse_1", 2)
-        self.assertEqual([("C", "mouse_1", 2, 6, 4, True)], out)
+        out = uf.get_animal_position([2, 6], ["5", "4"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
+        self.assertEqual([("cage C", "mouse_1", 2, 6, 4, True)], out)
 
     def test_chamber_D1(self):
-        out = uf.get_animal_position([2, 6], [6, 7], "mouse_1", 2)
-        self.assertEqual([("D", "mouse_1", 2, 6, 4, True)], out)
-        
+        out = uf.get_animal_position([2, 6], ["6", "7"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
+        self.assertEqual([("cage D", "mouse_1", 2, 6, 4, True)], out)
+
     def test_chamber_D2(self):
-        out = uf.get_animal_position([2, 6], [7, 6], "mouse_1", 2)
-        self.assertEqual([("D", "mouse_1", 2, 6, 4, True)], out)
+        out = uf.get_animal_position([2, 6], ["7", "6"], "mouse_1", 2,
+                                     same_pipe=SAME_PIPE,
+                                     same_address=SAME_ADDRESS,
+                                     opposite_pipe=OPPOSITE_PIPE,
+                                     address=ADDRESS, surrounding=SURROUNDING,
+                                     address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                     internal_antennas=[])
+        self.assertEqual([("cage D", "mouse_1", 2, 6, 4, True)], out)
+
+    def test_chambers_with_internal_antennas(self):
+        positions = ["2", "8", "2", "1", "1", "1", "2", "8",
+                     "8", "8", "8", "8", "2", "1"]
+        times = [49.819, 54.198, 54.902, 65.126, 77.904,
+                 92.234, 93.380, 114.173, 114.623,
+                 115.214, 116.625, 121.984, 122.934, 123.571]
+        positions2 = ["2", "2", "1", "1", "1", "2",  "2", "1"]
+        times2 = [49.819,  54.902, 65.126, 77.904, 92.234, 93.380,
+                  122.934, 123.571]
+        SAME_PIPE = {
+            "1": ["1", "2"],
+            "2": ["1", "2"]
+        }
+
+        SAME_ADDRESS = {
+            "1": ["1"],
+            "2": ["2", "8"],
+            "8": ["2", "8"]
+        }
+        OPPOSITE_PIPE = {}
+
+        ADDRESS = {
+            "1": "cage A",  # "4"
+            "2": "cage B",  # 1,
+            "8": "cage B",  # 1,
+        }
+
+        ADDRESS_NON_ADJACENT = {
+            "1": "cage B",  # 1,
+            "2": "cage A",  # "4",
+        }
+        SURROUNDING = {}
+        o1 = uf.get_animal_position(times, positions, "mouse_1", 2,
+                                    same_pipe=SAME_PIPE,
+                                    same_address=SAME_ADDRESS,
+                                    opposite_pipe=OPPOSITE_PIPE,
+                                    address=ADDRESS, surrounding=SURROUNDING,
+                                    address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                    internal_antennas=["8"])
+        o2 = uf.get_animal_position(times2, positions2, "mouse_1", 2,
+                                    same_pipe=SAME_PIPE,
+                                    same_address=SAME_ADDRESS,
+                                    opposite_pipe=OPPOSITE_PIPE,
+                                    address=ADDRESS, surrounding=SURROUNDING,
+                                    address_not_adjacent=ADDRESS_NON_ADJACENT,
+                                    internal_antennas=[])
+        self.assertEqual(o1, o2)
 
 
 class TestDictToArray2D(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        dictio = {"A":{"C": 1, "D": 2}, "B":{"C":3, "D": 4}}
+        dictio = {"A": {"C": 1, "D": 2}, "B": {"C": 3, "D": 4}}
         cls.out = np.array([[1, 2], [3, 4]])
         cls.new_arr = uf.dict_to_array_2D(dictio, ["A", "B"], ["C", "D"])
 
@@ -1976,14 +1747,15 @@ class TestDictToArray2D(unittest.TestCase):
 class TestDictToArray3D(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        dictio1 = {"A":{"C": 1, "D": 2}, "B":{"C":3, "D": 4}}
-        dictio2 = {"A":{"C": 5, "D": 6}, "B":{"C":7, "D": 8}}
-        dictio = {"AA": dictio1, "BB":dictio2}
+        dictio1 = {"A": {"C": 1, "D": 2}, "B": {"C": 3, "D": 4}}
+        dictio2 = {"A": {"C": 5, "D": 6}, "B": {"C": 7, "D": 8}}
+        dictio = {"AA": dictio1, "BB": dictio2}
         cls.out = np.array([[[1, 2],
                              [3, 4]],
                             [[5, 6],
-                             [7, 8]] ])
-        cls.new_arr = uf.dict_to_array_3D(dictio, ["AA", "BB"], ["A", "B"], ["C", "D"])
+                             [7, 8]]])
+        cls.new_arr = uf.dict_to_array_3D(dictio, ["AA", "BB"],
+                                          ["A", "B"], ["C", "D"])
 
     def test000(self):
         self.assertEqual(self.out[0, 0, 0], self.new_arr[0, 0, 0])
@@ -2013,14 +1785,14 @@ class TestDictToArray3D(unittest.TestCase):
 class TestCalcExcess(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        dictio11 = {"A":{"C": 1, "D": 2}, "B":{"C":3, "D": 4}}
-        dictio12 = {"A":{"C": 5, "D": 4}, "B":{"C":2, "D": 1}}
-        dictio13 = {"A":{"C": 8, "D": 9}, "B":{"C":10, "D": 11}}
-        dictio1 = {"AA": dictio11, "BB":dictio12}
-        dictio2 = {"AA": dictio12, "BB":dictio13}
+        dictio11 = {"A": {"C": 1, "D": 2}, "B": {"C": 3, "D": 4}}
+        dictio12 = {"A": {"C": 5, "D": 4}, "B": {"C": 2, "D": 1}}
+        dictio13 = {"A": {"C": 8, "D": 9}, "B": {"C": 10, "D": 11}}
+        dictio1 = {"AA": dictio11, "BB": dictio12}
+        dictio2 = {"AA": dictio12, "BB": dictio13}
         cls.out = uf.calc_excess(dictio1, dictio2)
         cls.new_arr = {
-            "AA":{
+            "AA": {
                 "A": {"C": -4, "D": -2},
                 "B": {"C": 1, "D": 3}
             },
@@ -2028,43 +1800,52 @@ class TestCalcExcess(unittest.TestCase):
                 "A": {"C": -3, "D": -5},
                 "B": {"C": -8, "D": -10}
             }
-            }
+        }
 
     def test000(self):
-        self.assertEqual(self.out["AA"]["A"]["C"], self.new_arr["AA"]["A"]["C"])
+        self.assertEqual(self.out["AA"]["A"]["C"],
+                         self.new_arr["AA"]["A"]["C"])
 
     def test001(self):
-        self.assertEqual(self.out["AA"]["A"]["D"], self.new_arr["AA"]["A"]["D"])
+        self.assertEqual(self.out["AA"]["A"]["D"],
+                         self.new_arr["AA"]["A"]["D"])
 
     def test010(self):
-        self.assertEqual(self.out["AA"]["B"]["C"], self.new_arr["AA"]["B"]["C"])
+        self.assertEqual(self.out["AA"]["B"]["C"],
+                         self.new_arr["AA"]["B"]["C"])
 
     def test100(self):
-        self.assertEqual(self.out["AA"]["B"]["D"], self.new_arr["AA"]["B"]["D"])
+        self.assertEqual(self.out["AA"]["B"]["D"],
+                         self.new_arr["AA"]["B"]["D"])
 
     def test110(self):
-        self.assertEqual(self.out["BB"]["A"]["C"], self.new_arr["BB"]["A"]["C"])
+        self.assertEqual(self.out["BB"]["A"]["C"],
+                         self.new_arr["BB"]["A"]["C"])
 
     def test101(self):
-        self.assertEqual(self.out["BB"]["A"]["D"], self.new_arr["BB"]["A"]["D"])
+        self.assertEqual(self.out["BB"]["A"]["D"],
+                         self.new_arr["BB"]["A"]["D"])
 
     def test111(self):
-        self.assertEqual(self.out["BB"]["B"]["C"], self.new_arr["BB"]["B"]["C"])
+        self.assertEqual(self.out["BB"]["B"]["C"],
+                         self.new_arr["BB"]["B"]["C"])
 
     def test011(self):
-        self.assertEqual(self.out["BB"]["B"]["D"], self.new_arr["BB"]["B"]["D"])
+        self.assertEqual(self.out["BB"]["B"]["D"],
+                         self.new_arr["BB"]["B"]["D"])
+
 
 class TestPrepareBinnedData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short")
         cls.data = Loader(path)
-        cls.config = ExperimentConfigFile(path)
+        cls.config = Timeline(path)
 
         cls.all_phases, cls.all_total_time,\
             cls.all_data, cls.all_keys = uf.prepare_binned_data(cls.data,
                                                                 cls.config,
-                                                               "ALL",
+                                                                "ALL",
                                                                 ["mouse_1"])
         cls.dark_phases, cls.dark_total_time,\
             cls.dark_data, cls.dark_keys = uf.prepare_binned_data(cls.data,
@@ -2072,21 +1853,29 @@ class TestPrepareBinnedData(unittest.TestCase):
                                                                   "DARK",
                                                                   ["mouse_1"])
         cls.light_phases, cls.light_total_time,\
-            cls.light_data, cls.light_keys = uf.prepare_binned_data(cls.data,
-                                                                    cls.config,
-                                                                    "LIGHT",
-                                                                    ["mouse_1"])
+            cls.light_data,\
+            cls.light_keys = uf.prepare_binned_data(cls.data,
+                                                    cls.config,
+                                                    "LIGHT",
+                                                    ["mouse_1"])
 
         cls.phases_100s_bins, cls.total_time_100s_bins,\
-            cls.data_100s_bins, cls.keys_100s_bins = uf.prepare_binned_data(cls.data, cls.config,100, ["mouse_1"])
+            cls.data_100s_bins,\
+            cls.keys_100s_bins = uf.prepare_binned_data(cls.data, cls.config,
+                                                        100, ["mouse_1"])
         cls.phases_900s_bins, cls.total_time_900s_bins,\
-            cls.data_900s_bins, cls.keys_900s_bins = uf.prepare_binned_data(cls.data, cls.config, 900, ["mouse_1"])
+            cls.data_900s_bins,\
+            cls.keys_900s_bins = uf.prepare_binned_data(cls.data, cls.config,
+                                                        900, ["mouse_1"])
 
         path = os.path.join(data_path, "weird_short_3_mice")
         cls.data2 = Loader(path)
-        cls.config2 = ExperimentConfigFile(path)
+        cls.config2 = Timeline(path)
         cls.phases_24h_bins, cls.total_time_24h_bins,\
-        cls.data_24h_bins, cls.keys_24h_bins = uf.prepare_binned_data(cls.data2, cls.config2, 24*3600, ["mouse_1"])
+            cls.data24h_b, cls.keys24h_b = uf.prepare_binned_data(cls.data2,
+                                                                  cls.config2,
+                                                                  24*3600,
+                                                                  ["mouse_1"])
 
     def test_all_phases(self):
         self.assertEqual(self.all_phases, ["ALL"])
@@ -2102,7 +1891,7 @@ class TestPrepareBinnedData(unittest.TestCase):
     def test_all_keys(self):
         keys = [["ALL"], [0]]
         self.assertEqual(keys, self.all_keys)
-    
+
     def test_dark_phases(self):
         self.assertEqual(self.dark_phases, ["DARK"])
 
@@ -2161,7 +1950,7 @@ class TestPrepareBinnedData(unittest.TestCase):
 
     def test_bins_data_8th_address(self):
         data = self.data_100s_bins["1 dark"][600.]["mouse_1"][0]
-        self.assertEqual(data[0], "B")
+        self.assertEqual(data[0], "cage B")
 
     def test_bins_24_h_phases(self):
         self.assertEqual(self.phases_24h_bins, ['1_x_24.00h', '2_x_24.00h'])
@@ -2172,79 +1961,81 @@ class TestPrepareBinnedData(unittest.TestCase):
                          self.total_time_24h_bins)
 
     def test_keys_24_h(self):
-        self.assertEqual(self.keys_24h_bins, [['1_x', '2_x'], [0.0]])
+        self.assertEqual(self.keys24h_b, [['1_x', '2_x'], [0.0]])
 
     def test_data_1_bin(self):
-        self.assertEqual(self.data_24h_bins["1_x"][0.0]["mouse_1"][-1],
-                         ('B', 1286711990.827, 1286711995.578))
+        self.assertEqual(self.data24h_b["1_x"][0.0]["mouse_1"][-1],
+                         ('cage B', 1286711990.827, 1286711995.578))
 
     def test_data_2_bin(self):
-        self.assertEqual(self.data_24h_bins["2_x"][0.0]["mouse_1"],
-                         [('C', 1286798036.218, 1286798396.218)])
+        self.assertEqual(self.data24h_b["2_x"][0.0]["mouse_1"],
+                         [('cage C', 1286798036.218, 1286798396.218)])
 
 
 class TestExtractDirections(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        antennas1 = [1, 2,   3, 4,  5,  6,  7,   8,  1, 2]
-        times1 = [15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34 ]
-        antennas2 = [8, 1,   2,    1,  2,  3,  4,   5, 6,   7,   8]
-        times2 =   [10, 16, 19, 19.5, 22, 25,  26, 27, 28, 31, 35]
-        cls.res1 = uf.extract_directions(times1, antennas1, 3)
-        cls.res1_1 = uf.extract_directions(times1, antennas1, 1)
-        cls.res2 = uf.extract_directions(times2, antennas2, 1)
-        cls.res2_1 = uf.extract_directions(times2, antennas2, 7)
+        antennas1 = [1, 2, 3, 4, 5, 6, 7, 8, 1, 2]
+        times1 = [15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34]
+        antennas2 = [8, 1, 2, 1, 2, 3, 4, 5, 6, 7, 8]
+        times2 = [10, 16, 19, 19.5, 22, 25, 26, 27, 28, 31, 35]
+        config = SetupConfig()
+        cls.keys = config.directions
+        cls.res1 = uf.extract_directions(times1, antennas1, 3,
+                                         config.directions)
+        cls.res1_1 = uf.extract_directions(times1, antennas1, 1,
+                                           config.directions)
+        cls.res2 = uf.extract_directions(times2, antennas2, 1,
+                                         config.directions)
+        cls.res2_1 = uf.extract_directions(times2, antennas2, 7,
+                                           config.directions)
 
     def test_1(self):
-        direction_dict = {key:[[], []] for key in uf.keys}
-        direction_dict["12"][0].append(15)
-        direction_dict["12"][1].append(16.5)
-        direction_dict["34"][0].append(19)
-        direction_dict["34"][1].append(20)
-        direction_dict["56"][0].append(21)
-        direction_dict["56"][1].append(22)
-        direction_dict["78"][0].append(24)
-        direction_dict["78"][1].append(25)
-        direction_dict["12"][0].append(29)
-        direction_dict["12"][1].append(34)
-
+        direction_dict = {key: [[], []] for key in self.keys}
+        direction_dict["1 2"][0].append(15)
+        direction_dict["1 2"][1].append(16.5)
+        direction_dict["3 4"][0].append(19)
+        direction_dict["3 4"][1].append(20)
+        direction_dict["5 6"][0].append(21)
+        direction_dict["5 6"][1].append(22)
+        direction_dict["7 8"][0].append(24)
+        direction_dict["7 8"][1].append(25)
+        direction_dict["1 2"][0].append(29)
+        direction_dict["1 2"][1].append(34)
         self.assertEqual(direction_dict, self.res1)
 
     def test_2(self):
-        direction_dict = {key:[[], []] for key in uf.keys}
-        direction_dict["12"][0].append(19.5)
-        direction_dict["12"][1].append(22)
-        direction_dict["34"][0].append(25)
-        direction_dict["34"][1].append(26)
-        direction_dict["56"][0].append(27)
-        direction_dict["56"][1].append(28)
-        direction_dict["78"][0].append(31)
-        direction_dict["78"][1].append(35)
-
+        direction_dict = {key: [[], []] for key in self.keys}
+        direction_dict["1 2"][0].append(19.5)
+        direction_dict["1 2"][1].append(22)
+        direction_dict["3 4"][0].append(25)
+        direction_dict["3 4"][1].append(26)
+        direction_dict["5 6"][0].append(27)
+        direction_dict["5 6"][1].append(28)
+        direction_dict["7 8"][0].append(31)
+        direction_dict["7 8"][1].append(35)
         self.assertEqual(direction_dict, self.res2)
 
     def test_1_1(self):
-        direction_dict = {key:[[], []] for key in uf.keys}
-        direction_dict["12"][0].append(15)
-        direction_dict["12"][1].append(16.5)
-        direction_dict["34"][0].append(19)
-        direction_dict["34"][1].append(20)
-        direction_dict["56"][0].append(21)
-        direction_dict["56"][1].append(22)
-        direction_dict["78"][0].append(24)
-        direction_dict["78"][1].append(25)
-
+        direction_dict = {key: [[], []] for key in self.keys}
+        direction_dict["1 2"][0].append(15)
+        direction_dict["1 2"][1].append(16.5)
+        direction_dict["3 4"][0].append(19)
+        direction_dict["3 4"][1].append(20)
+        direction_dict["5 6"][0].append(21)
+        direction_dict["5 6"][1].append(22)
+        direction_dict["7 8"][0].append(24)
+        direction_dict["7 8"][1].append(25)
         self.assertEqual(direction_dict, self.res1_1)
 
     def test_2_1(self):
-        direction_dict = {key:[[], []] for key in uf.keys}
-        direction_dict["12"][0].append(19.5)
-        direction_dict["12"][1].append(22)
-        direction_dict["34"][0].append(25)
-        direction_dict["34"][1].append(26)
-        direction_dict["56"][0].append(27)
-        direction_dict["56"][1].append(28)
-
+        direction_dict = {key: [[], []] for key in self.keys}
+        direction_dict["1 2"][0].append(19.5)
+        direction_dict["1 2"][1].append(22)
+        direction_dict["3 4"][0].append(25)
+        direction_dict["3 4"][1].append(26)
+        direction_dict["5 6"][0].append(27)
+        direction_dict["5 6"][1].append(28)
         self.assertEqual(direction_dict, self.res2_1)
 
 
@@ -2253,21 +2044,22 @@ class TestPrepareRegistrations(unittest.TestCase):
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
         data = Loader(path)
-        config = ExperimentConfigFile(path)
-        times = config.gettime("1 dark")
+        config = Timeline(path)
+        times = config.get_time_from_epoch("1 dark")
         t_start = times[-1] - 3600/3*2
         t_end = times[-1] - 3600/3
         cls.out = uf.prepare_registrations(data, ["mouse_1"],
-                                            t_start, t_end)
+                                           t_start, t_end)
+
     def test_1(self):
         self.assertEqual(["mouse_1"], list(self.out.keys()))
 
     def test_2(self):
-        self.assertEqual(len(self.out["mouse_1"]["56"][0]), 3)
+        self.assertEqual(len(self.out["mouse_1"]["5 6"][0]), 3)
 
     def test_3(self):
-        # check if last antenna is working
-        self.assertEqual(len(self.out["mouse_1"]["65"][0]), 2)
+        #  check if last antenna is working
+        self.assertEqual(len(self.out["mouse_1"]["6 5"][0]), 2)
 
 
 class TestPrepareBinnedRegistrations(unittest.TestCase):
@@ -2275,7 +2067,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
         cls.data = Loader(path)
-        cls.config = ExperimentConfigFile(path)
+        cls.config = Timeline(path)
         cls.out_all = uf.prepare_binned_registrations(cls.data,
                                                       cls.config,
                                                       "All",
@@ -2294,12 +2086,12 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
 
     def test_all_total_time(self):
         out = OrderedDict()
-        out["ALL"] = {0: self.config.gettime("ALL")}
+        out["ALL"] = {0: self.config.get_time_from_epoch("ALL")}
         self.assertEqual(self.out_all[1], out)
 
     def test_all_data(self):
         out = OrderedDict()
-        time = self.config.gettime("ALL")
+        time = self.config.get_time_from_epoch("ALL")
         out["ALL"] = {0: uf.prepare_registrations(self.data,
                                                   ["mouse_1"],
                                                   *time)}
@@ -2317,19 +2109,19 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         phases = ["1 dark", "1 light", "2 dark"]
         out = OrderedDict()
         for phase in phases:
-            times = self.config.gettime(phase)
+            times = self.config.get_time_from_epoch(phase)
             out[phase] = OrderedDict()
             out[phase][0.0] = uf.prepare_registrations(self.data,
-                                                     ["mouse_1"],
-                                                      times[0],
-                                                      times[0]+
-                                                      6*3600)
+                                                       ["mouse_1"],
+                                                       times[0],
+                                                       times[0] +
+                                                       6*3600)
             key = 6*3600.
             out[phase][key] = uf.prepare_registrations(self.data,
-                                                     ["mouse_1"],
-                                                      times[0]+
-                                                      6*3600,
-                                                      times[-1])
+                                                       ["mouse_1"],
+                                                       times[0] +
+                                                       6*3600,
+                                                       times[-1])
         self.assertEqual(self.out_6h[2], out)
 
     def test_6h_total(self):
@@ -2337,7 +2129,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         phases = ["1 dark", "1 light", "2 dark"]
         for phase in phases:
             out[phase] = OrderedDict()
-            times = self.config.gettime(phase)
+            times = self.config.get_time_from_epoch(phase)
             out[phase][0.0] = (times[0], times[0] + 6*3600)
             out[phase][6*3600.0] = (times[0] + 6*3600, times[-1])
         self.assertEqual(out, self.out_6h[1])
@@ -2352,7 +2144,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
 
     def test_24h_data(self):
         phases = ["1_x", "2_x"]
-        times = self.config.gettime("ALL")
+        times = self.config.get_time_from_epoch("ALL")
         out = OrderedDict()
         for phase in phases:
             out[phase] = OrderedDict()
@@ -2360,20 +2152,20 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         out["1_x"][0.0] = uf.prepare_registrations(self.data,
                                                    ["mouse_1"],
                                                    times[0],
-                                                   times[0]+
+                                                   times[0] +
                                                    24*3600)
 
         out["2_x"][0.0] = uf.prepare_registrations(self.data,
                                                    ["mouse_1"],
-                                                   times[0]+
+                                                   times[0] +
                                                    24*3600,
-                                                   times[0]+
+                                                   times[0] +
                                                    2*24*3600)
         self.assertEqual(self.out_24h[2], out)
 
     def test_24h_total(self):
         out = OrderedDict()
-        times = self.config.gettime("ALL")
+        times = self.config.get_time_from_epoch("ALL")
         phases = ["1_x", "2_x"]
         for phase in phases:
             out[phase] = OrderedDict()

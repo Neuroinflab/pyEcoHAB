@@ -55,6 +55,7 @@ def get_visits_in_bins(intervals, time_start,
         added_visit.append(outs)
     return visits, added_visit
 
+
 def calc_visit_per_mouse(intervals, t_start, t_end, binsize):
     visits_in_bins, added_visit = get_visits_in_bins(intervals,
                                                      t_start,
@@ -67,7 +68,8 @@ def calc_visit_per_mouse(intervals, t_start, t_end, binsize):
     return visits, durations, visits_in_bins
 
 
-def calculate_visits_and_durations(data, mice, address, t_start, t_end, binsize):
+def calculate_visits_and_durations(data, mice, address, t_start, t_end,
+                                   binsize):
     visits = OrderedDict()
     durations = OrderedDict()
     all_visits = OrderedDict()
@@ -80,12 +82,11 @@ def calculate_visits_and_durations(data, mice, address, t_start, t_end, binsize)
     return visits, durations, all_visits
 
 
-def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
+def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="", remove_mouse="",
                  save_histogram=False, delimiter=";",
-                 headers=['Number of visits to box',
-                          'Total time (sec) in box']):
-    """
-    Calculate activity of each mouse in time bins across the phases
+                 headers=['Number of visits to',
+                          'Total time (sec) in']):
+    """Calculate activity of each mouse in time bins across the phases
     of the experiment.
 
     This function counts both visits of every mouse to each Eco-HAB compartment
@@ -100,16 +101,16 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
     res_dir/approach_to_social to facilitate further analysis.
 
     csv files with animal activity have following structure:
-    header specifying parameter (visit count or total duration) and Eco-Hab
+    header specifying parameter (visit count or total duration) and Eco-HAB
     compartment ("A", "B", "C" or "D").
     column header: mouse tag, beginning of the bin in hours, phase name
     Values of the second column start with 0., e.g.  0, 1., 2. etc.
     for 1 h bins. Visit count is an integer. Visit duration is a float.
 
     Args:
-        ehs : Loader or Loader_like
+        ecohab_data : Loader or Loader_like
            Eco-HAB dataset.
-        cf : ExperimentConfigFile
+        timeline : Timeline
            timeline of the experiment.
         binsize : number (seconds)
            time bins for calculating activity.
@@ -117,14 +118,14 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
            equal 3600 results in 1 h bins.
         res_dir : string
            destination directory
-           default value is the destination directory established for ehs.
+           default value is the destination directory established for ecohab_data.
         prefix : string
            string added to the name of every generated results file
-           default value is the prefix established for ehs
+           default value is the prefix established for ecohab_data
         remove_mouse : string or list
            name of mouse or mice to be removed from the results file
            As a default activity will be established for every mouse registered
-           in ehs.
+           in ecohab_data.
         save_histogram :
            if True save visit durations to every bin and generate histograms
            of vist durations
@@ -133,22 +134,26 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
         headers : list of strings
            strings that will be written above activity parameters for each
            compartment.
+
+    Returns: data: a dictionary of visits and times spent in cages.
+       first key: address, second key: 0 -- visits, 1 -- durations,
+       2 -- duration data for histograms, third key: phase
+
     """
     if prefix == "":
-        prefix = ehs.prefix
+        prefix = ecohab_data.prefix
     if res_dir == "":
-        res_dir = ehs.res_dir
-    
-    phases = utils.filter_dark_light(cf.sections())
-    fname = '%sactivity_bin_%3.2f_h.csv'%(prefix,
-                                          binsize/3600)
+        res_dir = ecohab_data.res_dir
+    phases = utils.filter_dark_light(timeline.sections())
+    fname = '%sactivity_bin_%3.2f_h.csv' % (prefix,
+                                            binsize/3600)
     histogram_fname = 'activity_histograms_bin_%3.1f_h' % (binsize/3600)
-    mice = utils.get_mice(ehs.mice, remove_mouse)
+    mice = utils.get_mice(ecohab_data.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
-    
+
     if binsize > 12*3600:
-        t_start = cf.gettime(phases[0])[0]
-        t_end = cf.gettime(phases[-1])[-1]
+        t_start = timeline.get_time_from_epoch(phases[0])[0]
+        t_end = timeline.get_time_from_epoch(phases[-1])[-1]
         phases = []
         times = []
         i = 1
@@ -158,15 +163,15 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
             i += 1
             t_start += binsize
     else:
-        times = [cf.gettime(phase) for phase in phases]
-    data = {c:{0:{},1:{}} for c in ehs.cages}
-    ehs_data = utils.prepare_data(ehs, mice)
+        times = [timeline.get_time_from_epoch(phase) for phase in phases]
+    data = {c: {0: {}, 1: {}} for c in ecohab_data.cages}
+    ecohab_data_data = utils.prepare_data(ecohab_data, mice)
     bin_labels = {}
     for idx_phase, phase in enumerate(phases):
         t_start, t_end = times[idx_phase]
         visits_in_cages = {}
-        for address in ehs.cages:
-            visit_data = calculate_visits_and_durations(ehs_data,
+        for address in ecohab_data.cages:
+            visit_data = calculate_visits_and_durations(ecohab_data_data,
                                                         mice,
                                                         address,
                                                         t_start,
@@ -176,7 +181,6 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
             data[address][1][phase] = visit_data[1]
             bin_labels[phase] = utils.get_times(binsize)
             visits_in_cages[address] = visit_data[2]
-            
         if save_histogram:
             make_visit_duration_histogram(visits_in_cages,
                                           bin_labels[phase],
@@ -192,8 +196,8 @@ def get_activity(ehs, cf, binsize, res_dir="", prefix="", remove_mouse="",
                                 "other_variables/visit_histograms_binsize_%3.1f"
                                 % (binsize/3600),
                                 prefix, add_info_mice)
-    save_data_cvs(data, phases, mice, bin_labels, fname, res_dir, ehs.cages,
+    save_data_cvs(data, phases, mice, bin_labels, fname, res_dir, ecohab_data.cages,
                   headers)
-    save_data_cvs(data, phases, mice, bin_labels, fname, res_dir, ehs.cages,
+    save_data_cvs(data, phases, mice, bin_labels, fname, res_dir, ecohab_data.cages,
                   headers, target_dir="social_approach")
     return data

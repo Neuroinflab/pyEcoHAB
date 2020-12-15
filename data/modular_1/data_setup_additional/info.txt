@@ -1,0 +1,3 @@
+Genotype : WT
+gender:F
+type of experiment:test 1

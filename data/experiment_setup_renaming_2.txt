@@ -1,0 +1,11 @@
+[shared compartment 1]
+setup_1_name = default1
+compartment_1_name = cage A
+setup_2_name = custom2
+compartment_2_name = cage B
+destination_name = shared cage 1
+
+[rename compartment 1]
+setup_name = default1
+compartment_name = cage C
+destination_name = cage C

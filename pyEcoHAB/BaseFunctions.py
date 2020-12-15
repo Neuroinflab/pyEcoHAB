@@ -2,6 +2,7 @@ from __future__ import print_function, division, absolute_import
 import sys
 import numpy as np
 
+
 class DataBase(object):
 
     def __init__(self, data, mask):
@@ -105,6 +106,7 @@ class Data(DataBase):
     def mask_data(self, mask):
         super(Data, self).mask_data(mask, column_name="Time")
 
+
 class Visits(DataBase):
     def __init__(self, data, mask):
         super(Visits, self).__init__(data, mask)
@@ -122,5 +124,4 @@ class Visits(DataBase):
         return self.getproperty(mice, 'Address')
 
     def mask_data(self, mask):
-        super(Visits, self).mask_data(mask,
-                                      column_name="AbsStartTimecode")
+        super(Visits, self).mask_data(mask, column_name="AbsStartTimecode")

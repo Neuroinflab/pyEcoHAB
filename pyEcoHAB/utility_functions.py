@@ -1,61 +1,12 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 import os
 import time
 import sys
 from collections import OrderedDict
 import numpy as np
-#NamedDict class was originally written by Zbyszek Jędrzejewski-Szmek
-#and Avrama Blackwell for moose_nerp https://github.com/neurord/moose_nerp
-
-same_pipe = {1: [1, 2],
-             2: [1, 2],
-             3: [3, 4],
-             4: [3, 4],
-             5: [5, 6],
-             6: [5, 6],
-             7: [7, 8],
-             8: [7, 8]}
-
-opposite_pipe = {1: [5, 6],
-                 2: [5, 6],
-                 3: [7, 8],
-                 4: [7, 8],
-                 5: [1, 2],
-                 6: [1, 2],
-                 7: [3, 4],
-                 8: [3, 4]}
-
-address = {1: "A", #4
-           2: "B", #1,
-           3: "B", #1,
-           4: "C", #2,
-           5: "C", #2,
-           6: "D", #3,
-           7: "D", #3,
-           8: "A", #4
-}
-
-address_not_adjacent = {1: "B", #1,
-                        2: "A", #4,
-                        3: "C", #2,
-                        4: "B", #1,
-                        5: "D", #3,
-                        6: "C", #2,
-                        7: "A", #4,
-                        8: "D", #3
-}
-# Surrounding: difference between antennas only 2 or 6 -- skipped one antenna
-surrounding = {(1, 3): "B", #1,
-               (1, 7): "A", #4,
-               (2, 4): "B", #1,
-               (2, 8): "A", #4,
-               (3, 5): "C", #2,
-               (4, 6): "C", #2,
-               (5, 7): "D", #3,
-               (6, 8): "D", #3
-}
-keys = ['12', '21', '34', '43', '56', '65', '78', '87']
+# NamedDict class was originally written by Zbyszek Jędrzejewski-Szmek
+# and Avrama Blackwell for moose_nerp https://github.com/neurord/moose_nerp
 
 
 def check_directory(directory, subdirectory=None):
@@ -69,9 +20,9 @@ def check_directory(directory, subdirectory=None):
 
 
 def make_figure(title):
-    fig = plt.figure(figsize=(12,12))
+    fig = plt.figure(figsize=(12, 12))
     ax = fig.add_subplot(111, aspect='equal')
-    fig.suptitle('%s'%(title), fontsize=14, fontweight='bold')
+    fig.suptitle('%s' % (title), fontsize=14, fontweight='bold')
     return fig, ax
 
 
@@ -79,10 +30,11 @@ def list_of_pairs(mice):
     pair_labels = []
     for j, mouse in enumerate(mice):
         for k in range(j+1, len(mice)):
-            pair_labels.append(mice[j]+'|'+mice[k])
+            pair_labels.append(mice[j] + '|' + mice[k])
     return pair_labels
 
-def all_pairs(mice, reverse_order=False):
+
+def all_mouse_pairs(mice, reverse_order=False):
     pair_labels = []
     for mouse1 in mice:
         for mouse2 in mice:
@@ -100,30 +52,31 @@ def make_table_of_pairs(FAM, phases, mice):
     output = np.zeros(new_shape)
     pair_labels = list_of_pairs(mice)
     for i in range(len(phases)):
-        l = 0
+        count = 0
         for j in range(len(mice)):
             for k in range(j + 1, len(mice)):
-                output[l, i] = FAM[i, j, k]
-                l += 1
+                output[count, i] = FAM[i, j, k]
+                count += 1
 
     return output, pair_labels
 
-def make_table_of_all_pairs(FAM, phases, mice, reverse_order=False):
+
+def make_table_of_all_mouse_pairs(FAM, phases, mice, reverse_order=False):
     new_shape = (len(mice)*(len(mice)-1), len(phases))
     output = np.zeros(new_shape)
-    pair_labels = all_pairs(mice,
-                            reverse_order=reverse_order)
+    pair_labels = all_mouse_pairs(mice,
+                                  reverse_order=reverse_order)
     for i, phase in enumerate(phases):
-        l = 0
+        count = 0
         for j in range(len(mice)):
             for k in range(len(mice)):
                 if j == k:
                     continue
                 if reverse_order is True:
-                    output[l, i] = FAM[i, k, j]
+                    output[count, i] = FAM[i, k, j]
                 else:
-                    output[l, i] = FAM[i, j, k]
-                l += 1
+                    output[count, i] = FAM[i, j, k]
+                count += 1
     return output, pair_labels
 
 
@@ -193,7 +146,7 @@ def add_info_mice_filename(remove_mouse):
     if isinstance(remove_mouse, list):
         add_info_mice = 'remove'
         for mouse in remove_mouse:
-            add_info_mice += '_' + mouse 
+            add_info_mice += '_' + mouse
     return add_info_mice
 
 
@@ -203,8 +156,9 @@ def get_idx_pre(t0, times):
         return idxs[-1]
     return None
 
+
 def get_idx_between(t0, t1, times):
-    return  np.where((np.array(times) >= t0) & (np.array(times) < t1))[0]
+    return np.where((np.array(times) >= t0) & (np.array(times) < t1))[0]
 
 
 def get_idx_post(t1, times):
@@ -214,98 +168,31 @@ def get_idx_post(t1, times):
     return None
 
 
-def in_tube(antenna, next_antenna):
-    if antenna % 2:
-        if next_antenna  == antenna  + 1:
-            return True
-    else:
-        if next_antenna == antenna - 1:
-            return True
-    return False
-
-
-def in_chamber(antenna, next_antenna):
-    antenna = antenna % 8
-    next_antenna = next_antenna % 8
-    if antenna % 2:
-        if next_antenna  == antenna - 1:
-            return True
-    else:
-        if next_antenna == antenna + 1:
-            return True
-    return False
-
-
 def change_state(antennas):
-    return np.where(abs(np.array(antennas[:-1]) - np.array(antennas[1:])) !=0)[0]
-
-def mouse_going_forward(antennas):
-    assert len(antennas) > 2
-    first_antenna, last_antenna = antennas[0], antennas[-1]
-    if first_antenna % 2 and last_antenna % 2:
-        return True
-    if not first_antenna % 2 and not last_antenna % 2:
-        return True
-    return False
-    
-def mouse_backing_off(antennas):
-    first_antenna, last_antenna = antennas[0], antennas[-1]
-    how_many = len(set(antennas))
-    if how_many == 3:
-        if first_antenna % 2 and not last_antenna % 2:
-            return True
-        if not first_antenna % 2 and last_antenna % 2:
-            return True
-        return False
-
-    if first_antenna == last_antenna and len(antennas) > 2:
-        return True
-    return False
-
-def skipped_antennas(antennas):
-    change = abs(np.array(antennas[:-1]) - np.array(antennas[1:]))
-    if len(np.intersect1d(np.where(change>=2)[0], np.where(change<=6)[0])):
-        return True
-    return False
-
-    
-def change_seven_to_one(change):
-    if isinstance(change, list):
-        change = np.array(change)
-    seven = np.where(change == 7)[0]
-    if len(seven):
-        change[seven] = -1
-    minus_seven = np.where(change == -7)[0]
-    if len(minus_seven):
-        change[minus_seven] = 1
-    return change
+    indx = []
+    for i, a in enumerate(antennas[:-1]):
+        if a != antennas[i+1]:
+            indx.append(i)
+    return indx
 
 
-def mouse_going_clockwise(antennas):
-    change = np.array(antennas[:-1]) - np.array(antennas[1:])
-    change = change_seven_to_one(change)
-    if sum(change) < 0:
-        return True
-    return False
-
-
-def mouse_going_counterclockwise(antennas):
-    change = np.array(antennas[:-1]) - np.array(antennas[1:])
-    change = change_seven_to_one(change)
-    if sum(change) > 0:
-        return True
-    return False
-
-
-def get_times_antennas(ehd, mouse, t_1, t_2):
+def get_times_antennas(ecohab_data, mouse, t_1, t_2):
     if t_1 == 0 and t_2 == -1:
-        ehd.unmask_data()
-        return ehd.get_times(mouse), ehd.get_antennas(mouse)
-    ehd.mask_data(t_1, t_2)
-    antennas, times = ehd.get_antennas(mouse), ehd.get_times(mouse)
-    ehd.unmask_data()
+        ecohab_data.unmask_data()
+        return ecohab_data.get_times(mouse), ecohab_data.get_antennas(mouse)
+    ecohab_data.mask_data(t_1, t_2)
+    antennas, times = ecohab_data.get_antennas(mouse), ecohab_data.get_times(mouse)
+    ecohab_data.unmask_data()
     return times, antennas
 
+def get_times_antennas_list_of_mice(ecohab_data, mice, t_1, t_2):
+    out = {}
+    for mouse in mice:
+        out[mouse] = {}
+        times, antennas = get_times_antennas(ecohab_data, mouse, t_1, t_2)
+        out[mouse]["times"] = times
+        out[mouse]["antennas"] = antennas
+    return out
 
 def get_states_and_readouts(antennas, times, t1, t2):
     before = get_idx_pre(t1, times)
@@ -326,7 +213,7 @@ def get_states_and_readouts(antennas, times, t1, t2):
 def get_more_states(antennas, times, midx,
                     mouse_attention_span,
                     how_many_antennas):
-    #save first antenna
+    # save first antenna
     states = [antennas[midx]]
     readouts = [times[midx]]
     midx += 1
@@ -334,10 +221,10 @@ def get_more_states(antennas, times, midx,
     while True:
         if midx >= len(antennas):
             break
-        #read in next antenna
+        # read in next antenna
         new_antenna = antennas[midx]
         new_readout = times[midx]
-        #if pause too long break
+        # if pause too long break
         if new_readout > readouts[idx - 1] + mouse_attention_span:
             break
 
@@ -345,13 +232,14 @@ def get_more_states(antennas, times, midx,
         readouts.append(new_readout)
 
         idx += 1
-        #if more than 2 antennas, break
+        # if more than 2 antennas, break
         if len(set(states)) == how_many_antennas:
-            # go back to the last readout of the opposite antenna not to loose it
+            # go back to the last readout of the opposite antenna not
+            # to loose it
             break
         midx += 1
-        
     return states, readouts, midx
+
 
 def get_antennas(idxs, antennas):
     antenna_slice = []
@@ -362,12 +250,6 @@ def get_antennas(idxs, antennas):
 
 def get_timestamp(t_start, t_end, dt):
     return int(round((t_end - t_start)/dt))
-
-def get_key_for_frequencies(antenna, next_antenna):
-    if antenna % 2 and next_antenna == antenna + 1:
-        return "%d%d" % (antenna, next_antenna)
-    elif next_antenna % 2 and antenna == next_antenna + 1:
-        return "%d%d" % (antenna, next_antenna)
 
 
 def interval_overlap(int1, int2):
@@ -415,37 +297,36 @@ def intervals2lists(data, address):
 def get_indices(t_start, t_end, starts, ends):
     idx_start = get_idx_between(t_start, t_end, starts).tolist()
     idx_end = get_idx_between(t_start, t_end, ends).tolist()
-    return sorted(list(set(idx_start +  idx_end)))
+    return sorted(list(set(idx_start + idx_end)))
 
 
-def get_ehs_data_with_margin(ehs, mouse, t_start, t_end,
+def get_ecohab_data_data_with_margin(ecohab_data, mouse, t_start, t_end,
                              margin=12*3600):
     if t_start == 0 and t_end == -1:
-        return ehs.get_visit_addresses(mouse),\
-            ehs.get_starttimes(mouse),\
-            ehs.get_endtimes(mouse)
-
-    ehs.mask_data(t_start - margin, t_end +  margin)
-    adresses = ehs.get_visit_addresses(mouse)
-    starts = ehs.get_starttimes(mouse)
-    ends = ehs.get_endtimes(mouse)
-    ehs.unmask_data()
+        return ecohab_data.get_visit_addresses(mouse),\
+            ecohab_data.get_starttimes(mouse),\
+            ecohab_data.get_endtimes(mouse)
+    ecohab_data.mask_data(t_start - margin, t_end + margin)
+    adresses = ecohab_data.get_visit_addresses(mouse)
+    starts = ecohab_data.get_starttimes(mouse)
+    ends = ecohab_data.get_endtimes(mouse)
+    ecohab_data.unmask_data()
     return adresses, starts, ends
 
 
-def prepare_data(ehs, mice, times=None):
+def prepare_data(ecohab_data, mice, times=None):
     """Prepare masked data."""
     data = {}
     if not isinstance(mice, list):
         mice = [mice]
     if times is None:
-        ehs.unmask_data()
-        times = (ehs.get_starttimes(mice)[0],
-                 ehs.get_endtimes(mice)[-1])
+        ecohab_data.unmask_data()
+        times = (ecohab_data.get_starttimes(mice)[0],
+                 ecohab_data.get_endtimes(mice)[-1])
     t_start, t_end = times
     for mouse in mice:
         data[mouse] = []
-        ads, sts, ens = get_ehs_data_with_margin(ehs, mouse, t_start, t_end)
+        ads, sts, ens = get_ecohab_data_data_with_margin(ecohab_data, mouse, t_start, t_end)
         idxs = get_indices(t_start, t_end, sts, ens)
         for i in idxs:
             data[mouse].append((ads[i],
@@ -454,40 +335,74 @@ def prepare_data(ehs, mice, times=None):
     return data
 
 
-def get_animal_position(times, antennas, mouse, threshold):
+def get_animal_position(times, antennas, mouse, threshold, same_pipe,
+                        same_address, opposite_pipe, address, surrounding,
+                        address_not_adjacent, internal_antennas):
     out = []
-    for t_start, t_end, an_start, an_end in zip(times[:-1], times[1:],
-                                                antennas[:-1],
-                                                antennas[1:]):
+    i = 0
+    if len(times) < 2:
+        return []
+    t_start, an_start = times[0], antennas[0]
+    t_end, an_end = times[1], antennas[1]
+    while i < len(times) - 1:
         delta_t = t_end - t_start
-        # Workflow as agreed on 14 May 2014
-        if delta_t < threshold:
-            continue
-        delta_an = np.abs(an_end - an_start)
-        if delta_an == 0:
+        if an_start in internal_antennas:
+            while an_end == an_start:
+                i = i + 1
+                try:
+                    t_end, an_end = times[i+1], antennas[i+1]
+                except IndexError:
+                    out.append((address[an_start], mouse,
+                                t_start, t_end, t_end-t_start, True))
+                    return out
             out.append((address[an_start], mouse,
                         t_start, t_end, t_end-t_start, True))
-        elif delta_an in [1, 7]:
-            if an_end in same_pipe[an_start]:
-                continue
-            else:
-                out.append((address[an_start], mouse,
-                            t_start, t_end, t_end-t_start, True))
-        elif delta_an in [2, 6]:
+        elif an_end in internal_antennas:
+            an_old_end = an_end
+            while an_end == an_old_end:
+                i = i + 1
+                try:
+                    an_end = antennas[i+1]
+                    t_end = times[i+1]
+                except IndexError:
+                    out.append((address[an_old_end], mouse,
+                                t_start, t_end, t_end-t_start, True))
+                    return out
+            out.append((address[an_old_end], mouse,
+                        t_start, t_end, t_end-t_start, True))
+
+        elif delta_t < threshold:
+            pass
+        elif an_end == an_start:
+            out.append((address[an_start], mouse,
+                        t_start, t_end, delta_t, True))
+        elif an_start in same_pipe and an_end in same_pipe[an_start]:
+            pass
+        elif an_end in same_address[an_start]:
+            out.append((address[an_start], mouse,
+                        t_start, t_end, delta_t, True))
+        elif (min(an_start, an_end), max(an_start, an_end)) in surrounding:
             out.append((surrounding[(min(an_start, an_end),
                                      max(an_start, an_end))],
-                        mouse, t_start, t_end, t_end-t_start, False))
-        elif delta_an in [3, 4, 5]:
-            if an_end in opposite_pipe[an_start]:
-                continue
-            else:
-                out.append((address_not_adjacent[an_start],
-                            mouse, t_start, t_end, t_end-t_start, False))
+                        mouse, t_start, t_end, delta_t, False))
+        elif an_start in opposite_pipe and an_end in opposite_pipe[an_start]:
+            pass
+        else:
+            out.append((address_not_adjacent[an_start],
+                        mouse, t_start, t_end, delta_t, False))
+
+        i = i + 1
+        try:
+            an_start, an_end = antennas[i], antennas[i+1]
+            t_start, t_end = times[i], times[i+1]
+        except IndexError:
+            return out
     return out
 
 
 def get_length(time_start, time_end, binsize):
     return int(np.ceil((time_end - time_start)/binsize))
+
 
 def get_times(binsize, time_start=None, time_end=None):
     if time_start is None:
@@ -507,6 +422,7 @@ def dict_to_array_2D(dictionary, keys1, keys2):
             out[i, j] = dictionary[key1][key2]
     return out
 
+
 def dict_to_array_3D(dictionary, keys1, keys2, keys3):
     shape = (len(keys1), len(keys2), len(keys3))
     out = np.zeros(shape)
@@ -524,22 +440,22 @@ def calc_excess(res, exp_res):
         for key2 in res[key1].keys():
             excess[key1][key2] = OrderedDict()
             for key3 in res[key1][key2].keys():
-                excess[key1][key2][key3] = res[key1][key2][key3] - exp_res[key1][key2][key3]
+                excess[key1][key2][key3] = res[key1][key2][key3]\
+                                           - exp_res[key1][key2][key3]
     return excess
 
 
-def get_dark_light_data(phase, cf, ehs, mice):
-
+def get_dark_light_data(phase, timeline, ecohab_data, mice):
     if phase == "dark" or phase == "DARK" or phase == "Dark":
-        phases = filter_dark(cf.sections())
+        phases = filter_dark(timeline.sections())
     elif phase == "light" or phase == "LIGHT" or phase == "Light":
-        phases = filter_light(cf.sections())
+        phases = filter_light(timeline.sections())
     out_phases = [phase]
-    data = {mouse:[] for mouse in mice}
+    data = {mouse: [] for mouse in mice}
     total_time = 0
     for i, ph in enumerate(phases):
-        time = cf.gettime(ph)
-        out = prepare_data(ehs, mice, time)
+        time = timeline.get_time_from_epoch(ph)
+        out = prepare_data(ecohab_data, mice, time)
         for mouse in mice:
             data[mouse].extend(out[mouse])
         total_time += (time[1] - time[0])
@@ -547,26 +463,26 @@ def get_dark_light_data(phase, cf, ehs, mice):
     return out_phases, {phase: {0: total_time}}, {phase: {0: data}}
 
 
-def prepare_binned_data(ehs, cf, bins, mice):
+def prepare_binned_data(ecohab_data, timeline, bins, mice):
     total_time = OrderedDict()
     data = OrderedDict()
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
-        time = cf.gettime("ALL")
-        total_time["ALL"] =  {0: (time[1] - time[0])}
-        data["ALL"] =  {0: prepare_data(ehs, mice, time)}
+        time = timeline.get_time_from_epoch("ALL")
+        total_time["ALL"] = {0: (time[1] - time[0])}
+        data["ALL"] = {0: prepare_data(ecohab_data, mice, time)}
         keys = [["ALL"], [0]]
     elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
-        phases, total_time, data = get_dark_light_data(bins, cf, ehs, mice)
+        phases, total_time, data = get_dark_light_data(bins, timeline, ecohab_data, mice)
         keys = [list(data.keys()), [0]]
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
-        all_phases = filter_dark_light(cf.sections())
-        shortest_phase = get_shortest_phase_duration(cf)
+        all_phases = filter_dark_light(timeline.sections())
+        shortest_phase = get_shortest_phase_duration(timeline)
         # you can not iterate by phases, if bins are longer than phases
         if bins > shortest_phase:
-            t_start = cf.gettime(all_phases[0])[0]
-            t_end = cf.gettime(all_phases[-1])[-1]
+            t_start = timeline.get_time_from_epoch(all_phases[0])[0]
+            t_end = timeline.get_time_from_epoch(all_phases[-1])[-1]
             bin_labels = [0.0]
             all_phases = []
             times = []
@@ -577,9 +493,9 @@ def prepare_binned_data(ehs, cf, bins, mice):
                 i += 1
                 t_start += bins
         else:
-            all_phases = filter_dark_light(cf.sections())
+            all_phases = filter_dark_light(timeline.sections())
             bin_labels = get_times(bins)
-            times = [cf.gettime(phase) for phase in all_phases]
+            times = [timeline.get_time_from_epoch(phase) for phase in all_phases]
         for i, phase in enumerate(all_phases):
             t_start, t_end = times[i]
             phases.append("%s_%4.2fh" % (phase.replace(" ", "_"), bins/3600))
@@ -591,7 +507,7 @@ def prepare_binned_data(ehs, cf, bins, mice):
                 if t_e > t_end:
                     t_e = t_end
                 time = [t_start, t_e]
-                data[phase][bin_labels[j]] = prepare_data(ehs, mice, time)
+                data[phase][bin_labels[j]] = prepare_data(ecohab_data, mice, time)
                 total_time[phase][bin_labels[j]] = time[1] - time[0]
                 t_start += bins
                 j += 1
@@ -599,19 +515,19 @@ def prepare_binned_data(ehs, cf, bins, mice):
     return phases, total_time, data, keys
 
 
-def extract_directions(times, antennas, last_antenna):
-    direction_dict = {key:[[], []] for key in keys}
+def extract_directions(times, antennas, last_antenna, keys):
+    direction_dict = {key: [[], []] for key in keys}
     change_indices = change_state(antennas)
     for c_idx in change_indices:
         if c_idx + 1 >= len(antennas):
             break
         ant, next_ant = antennas[c_idx], antennas[c_idx + 1]
-        key = get_key_for_frequencies(ant, next_ant)
-        if key is not None:
+        key = "%s %s" % (ant, next_ant)
+        if key in keys:
             try:
                 third_antenna = antennas[c_idx + 2]
             except IndexError:
-               third_antenna = last_antenna
+                third_antenna = last_antenna
             if third_antenna == ant:
                 continue
             direction_dict[key][0].append(times[c_idx])
@@ -619,14 +535,14 @@ def extract_directions(times, antennas, last_antenna):
     return direction_dict
 
 
-def prepare_registrations(ehd, mice, st, en):
+def prepare_registrations(ecohab_data, mice, st, en):
     directions = {}
     for j, mouse1 in enumerate(mice):
-        times_antennas = get_times_antennas(ehd,
+        times_antennas = get_times_antennas(ecohab_data,
                                             mouse1,
                                             st,
                                             en)
-        last_times, last_antennas = get_times_antennas(ehd,
+        last_times, last_antennas = get_times_antennas(ecohab_data,
                                                        mouse1,
                                                        en,
                                                        en+(en-st))
@@ -637,28 +553,30 @@ def prepare_registrations(ehd, mice, st, en):
             last_antenna = None
         directions[mouse1] = extract_directions(times_antennas[0],
                                                 times_antennas[1],
-                                                last_antenna)
+                                                last_antenna,
+                                                ecohab_data.directions)
     return directions
 
 
-def prepare_binned_registrations(ehs, cf, bins, mice):
+
+def prepare_binned_registrations(ecohab_data, timeline, bins, mice,
+                                 function=prepare_registrations):
     total_time = OrderedDict()
     data = OrderedDict()
     if bins in ["ALL", "all", "All"]:
         phases = ["ALL"]
-        time = cf.gettime("ALL")
-        data["ALL"] = {0: prepare_registrations(ehs, mice, *time)}
+        time = timeline.get_time_from_epoch("ALL")
+        data["ALL"] = {0: function(ecohab_data, mice, *time)}
         data_keys = [["ALL"], [0.0]]
-        total_time["ALL"] =  {0: time}
-
+        total_time["ALL"] = {0: time}
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
-        all_phases = filter_dark_light(cf.sections())
-        min_phase = get_shortest_phase_duration(cf)
+        all_phases = filter_dark_light(timeline.sections())
+        min_phase = int(get_shortest_phase_duration(timeline))
         # you can not iterate by phases, if bins are longer than phases
         if bins > min_phase:
-            t_start = cf.gettime(all_phases[0])[0]
-            t_end = cf.gettime(all_phases[-1])[-1]
+            t_start = timeline.get_time_from_epoch(all_phases[0])[0]
+            t_end = timeline.get_time_from_epoch(all_phases[-1])[-1]
             bin_labels = [0.0]
             all_phases = []
             times = []
@@ -669,9 +587,9 @@ def prepare_binned_registrations(ehs, cf, bins, mice):
                 i += 1
                 t_start += bins
         else:
-            all_phases = filter_dark_light(cf.sections())
-            bin_labels = get_times(bins)
-            times = [cf.gettime(phase) for phase in all_phases]
+            all_phases = filter_dark_light(timeline.sections())
+            bin_labels = get_times(bins, time_start=0, time_end=min_phase)
+            times = [timeline.get_time_from_epoch(phase) for phase in all_phases]
         for i, phase in enumerate(all_phases):
             t_start, t_end = times[i]
             phases.append("%s_%4.2fh" % (phase.replace(" ", "_"),
@@ -684,9 +602,9 @@ def prepare_binned_registrations(ehs, cf, bins, mice):
                 if t_e > t_end:
                     t_e = t_end
                 time = (t_start, t_e)
-                data[phase][bin_labels[j]] = prepare_registrations(ehs,
-                                                                   mice,
-                                                                   *time)
+                data[phase][bin_labels[j]] = function(ecohab_data,
+                                                      mice,
+                                                      *time)
                 total_time[phase][bin_labels[j]] = time
                 t_start += bins
                 j += 1
@@ -717,10 +635,10 @@ def make_all_results_dict(phases, bins):
     return result
 
 
-def get_shortest_phase_duration(cf):
+def get_shortest_phase_duration(timeline):
     durs = []
-    for phase in cf.sections():
-        time = cf.gettime(phase)
+    for phase in timeline.sections():
+        time = timeline.get_time_from_epoch(phase)
         durs.append(time[1] - time[0])
     return min(durs)
 

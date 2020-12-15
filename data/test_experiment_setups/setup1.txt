@@ -1,0 +1,20 @@
+[setup]
+name = "ecohab_1"
+
+[cage A]
+entrance_antenna1 = 1
+
+[cage B]
+entrance_antenna1 = 2
+entrance_antenna2 = 3
+
+[cage C]
+entrance_antenna1 = 4
+
+[tunnel 1]
+entrance_antenna1 = 1
+entrance_antenna2 = 2
+
+[tunnel 2]
+entrance antenna1 = 3
+entrance_antenna2 = 4

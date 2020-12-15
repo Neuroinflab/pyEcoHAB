@@ -1,0 +1,11 @@
+[shared compartment 1]
+setup_1_name = ecohab1
+compartment_1_name = cage A
+setup_2_name = ecohab2
+compartment_2_name = cage B
+destination_name = shared cage 1
+
+[rename compartment 1]
+setup_name = ecohab1
+compartment_name = cage C
+destination_name = cage C

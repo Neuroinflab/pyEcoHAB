@@ -11,4 +11,7 @@ Results*
 *csv
 Circular_data_following
 *~
-data/*/results
+data/*/results*
+data/*/Results*
+.cache
+*png
