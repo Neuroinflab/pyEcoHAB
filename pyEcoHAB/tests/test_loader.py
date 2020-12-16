@@ -30,7 +30,7 @@ class TestLoader(unittest.TestCase):
         cls.path_empty = os.path.join(data_path, "empty")
 
     def test_load_empty(self):
-        self.assertRaises(Exception, Loader, self.path_empty) 
+        self.assertRaises(Exception, Loader, self.path_empty)
 
     def test_path(self):
         self.assertEqual(self.path1, self.dataset1.path)

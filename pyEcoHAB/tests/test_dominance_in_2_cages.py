@@ -12,7 +12,6 @@ class TestGetStates(unittest.TestCase):
         cls.dt = 0.1
         cls.t_start = 600.0
         cls.t_end = 800.0
-      
         cls.config1 = SetupConfig(path=data_path,
                                   fname="setup_short_2.txt")
         cls.config2 = SetupConfig(path=data_path,
@@ -49,10 +48,8 @@ class TestGetStates(unittest.TestCase):
                                          cls.config2,
                                          cls.dt)
 
-
     def test_same_length(self):
-        self.assertEqual(len(self.out_1),
-                         len(self.out_2))
+        self.assertEqual(len(self.out_1), len(self.out_2))
 
     def test_different_results_for_different_home_antenna(self):
         for i, x in enumerate(self.out_1):

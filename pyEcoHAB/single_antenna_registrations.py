@@ -9,8 +9,9 @@ from .write_to_file import write_registrations_stats
 from .plotting_functions import single_timeline_heat_map
 
 
-def get_single_antenna_stats(ecohab_data, timeline, binsize, antennas="ALL", res_dir="",
-                             prefix="", remove_mouse="", delimiter=";"):
+def get_single_antenna_stats(ecohab_data, timeline, binsize, antennas="ALL",
+                             res_dir="", prefix="", remove_mouse="",
+                             delimiter=";"):
     """
     Count number and combined durations of registrations of each mouse tag
     by specified antennas in bins of size binsize for tags
@@ -30,7 +31,8 @@ def get_single_antenna_stats(ecohab_data, timeline, binsize, antennas="ALL", res
            Default value is all antennas
         res_dir : string
            destination directory
-           default value is the destination directory established for ecohab_data.
+           default value is the destination directory established for
+           ecohab_data.
         prefix : string
            string added to the name of every generated results file
            default value is the prefix established for ecohab_data
@@ -82,10 +84,10 @@ def get_single_antenna_stats(ecohab_data, timeline, binsize, antennas="ALL", res
             durations[antenna] = OrderedDict()
             for mouse in mice:
                 results = ecohab_data.get_registration_stats(mouse,
-                                                     t_start,
-                                                     t_end,
-                                                     antenna,
-                                                     binsize)
+                                                             t_start,
+                                                             t_end,
+                                                             antenna,
+                                                             binsize)
                 count[antenna][mouse], durations[antenna][mouse] = results
 
             single_timeline_heat_map(durations[antenna],

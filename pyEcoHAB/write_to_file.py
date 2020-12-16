@@ -112,7 +112,7 @@ def save_single_histograms(result, fname, mice, phase, main_directory,
 
 def write_csv_rasters(mice, phases, output, directory,
                       dirname, fname, symmetric=True,
-                      reverse_order=False, delimiter=";"):
+                      reverse=False, delimiter=";"):
     new_name = os.path.join(dirname, 'data')
     directory = utils.check_directory(directory, new_name)
     fname = os.path.join(directory, fname)
@@ -130,7 +130,7 @@ def write_csv_rasters(mice, phases, output, directory,
         new_output, pairs = utils.make_table_of_pairs(output, phases, mice)
     else:
         new_output, pairs = utils.make_table_of_all_mouse_pairs(output, phases,
-                                                          mice, reverse_order)
+                                                                mice, reverse)
     for i, pair in enumerate(pairs):
         f.write(pair)
         for j in range(len(phases)):
@@ -152,8 +152,8 @@ def write_csv_tables(results, phases, mice, main_directory,
         print('Could not write to ', fname)
         return
 
-    phase_pairs = [phases[2*i] + (len(mice) + 2)*delimiter
-                   + phases[2*i + 1]+'\n' for i in range(len(phases)//2)]
+    phase_pairs = [phases[2*i] + (len(mice) + 2)*delimiter +
+                   phases[2*i + 1]+'\n' for i in range(len(phases)//2)]
     new_results = [(results[2*i],
                     results[2*i + 1])for i in range(len(phases)//2)]
     mice_header = ""

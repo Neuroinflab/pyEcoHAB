@@ -656,7 +656,7 @@ class TestAllPairs(unittest.TestCase):
                  ]
         expected = ["Zbysio|Zdzisio", "Henio|Zdzisio", "Zdzisio|Zbysio",
                     "Henio|Zbysio", "Zdzisio|Henio", "Zbysio|Henio"]
-        out = uf.all_mouse_pairs(lista, reverse_order="True")
+        out = uf.all_mouse_pairs(lista, reverse="True")
         self.assertEqual(out, expected)
 
 
@@ -732,13 +732,13 @@ class TestMakeTableOfAllPairs(unittest.TestCase):
         cls.data[0, 0, 2] = 2
         cls.data[0, 1, 2] = 4
         cls.out_data, cls.out = uf.make_table_of_all_mouse_pairs(cls.data,
-                                                           cls.phases,
-                                                           cls.lista,
-                                                           reverse_order=False)
+                                                                 cls.phases,
+                                                                 cls.lista,
+                                                                 reverse=False)
         cls.o_d_rev, cls.o_rev = uf.make_table_of_all_mouse_pairs(cls.data,
-                                                            cls.phases,
-                                                            cls.lista,
-                                                            reverse_order=True)
+                                                                  cls.phases,
+                                                                  cls.lista,
+                                                                  reverse=True)
 
     def test_shape(self):
         out_lista = uf.all_mouse_pairs(self.lista)
@@ -751,7 +751,7 @@ class TestMakeTableOfAllPairs(unittest.TestCase):
 
     def test_lista_rev(self):
         out_lista = uf.all_mouse_pairs(self.lista,
-                                 reverse_order=True)
+                                       reverse=True)
         self.assertEqual(out_lista, self.o_rev)
 
     def test_1st_phase(self):
@@ -1431,11 +1431,11 @@ class TestGetEHSData(unittest.TestCase):
         cls.data = Loader(path)
         cls.t1 = 1286701470+7200
         cls.t2 = 1286701580+7200
-        cls.m_1_a, cls.s1, cls.e1 = uf.get_ecohab_data_data_with_margin(cls.data,
-                                                                "mouse_1",
-                                                                cls.t1,
-                                                                cls.t2,
-                                                                margin=100)
+        cls.m_1_a, cls.s1, cls.e1 = uf.get_ecohab_data_with_margin(cls.data,
+                                                                   "mouse_1",
+                                                                   cls.t1,
+                                                                   cls.t2,
+                                                                   margin=100)
 
     def test_get_ecohab_data_address(self):
         self.assertEqual(["cage C", "cage C", "cage D", "cage C", "cage D",

@@ -87,7 +87,8 @@ def check_mouse1_pushing(antennas1, times1, antennas2, times2,
                     temp_ants.append(a3)
                     temp_times.append(t3)
                     idx = idx + 1
-                if idx == len(antennas1) or config.address[a1] != config.address[a3]:
+                if idx == len(antennas1) or\
+                   config.address[a1] != config.address[a3]:
                     dominance_counter += does_mouse1_push_out(temp_ants,
                                                               temp_times,
                                                               antennas2,
@@ -114,7 +115,8 @@ def tube_dominance_single_phase(ecohab_data, timeline, phase, normalization):
                                                          t_start, t_end)
         for j, mouse2 in enumerate(mice):
             if i != j:
-                m2_times, m2_antennas = utils.get_times_antennas(ecohab_data, mouse2,
+                m2_times, m2_antennas = utils.get_times_antennas(ecohab_data,
+                                                                 mouse2,
                                                                  t_start,
                                                                  t_end)
 
@@ -127,8 +129,8 @@ def tube_dominance_single_phase(ecohab_data, timeline, phase, normalization):
     return dominance
 
 
-def get_tube_dominance(ecohab_data, timeline, prefix="", res_dir="", normalization=None,
-                       delimiter=";"):
+def get_tube_dominance(ecohab_data, timeline, prefix="", res_dir="",
+                       normalization=None, delimiter=";"):
     if normalization is None:
         fname = 'tube_dominance_no_normalization'
     else:
@@ -141,7 +143,8 @@ def get_tube_dominance(ecohab_data, timeline, prefix="", res_dir="", normalizati
     if len(ecohab_data.setup_config.tunnels) == 1:
         dom2.get_tube_dominance_2_cages(ecohab_data, timeline, res_dir, prefix)
         dom2.get_subversion_evaluation(ecohab_data, timeline, res_dir, prefix)
-        dom2.get_visits_to_stimulus_cage(ecohab_data, timeline, res_dir, prefix)
+        dom2.get_visits_to_stimulus_cage(ecohab_data, timeline, res_dir,
+                                         prefix)
     dispatch.evaluate_whole_experiment(ecohab_data, timeline, res_dir, prefix,
                                        tube_dominance_single_phase,
                                        fname, 'dominating mouse',
