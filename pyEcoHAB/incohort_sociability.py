@@ -138,7 +138,7 @@ def expected_time_fraction_together_one_cage(ints1, ints2, total_time):
     return durations_m1/total_time*durations_m2/total_time
 
 
-def mice_together(data_mice, m1, m2, addresses, total_time):
+def mice_together(data_mice, m1, m2, addresses, tot_t):
     """Return the time spent together by two mice and expected time
     assuming independence."""
     time_together = 0
@@ -148,10 +148,10 @@ def mice_together(data_mice, m1, m2, addresses, total_time):
         ints2 = utils.get_intervals(data_mice[m2], address)
         time_together += time_fraction_together_one_cage(ints1,
                                                          ints2,
-                                                         total_time)
+                                                         tot_t)
         exp_time_together += expected_time_fraction_together_one_cage(ints1,
                                                                       ints2,
-                                                                      total_time)
+                                                                      tot_t)
     return time_together, exp_time_together
 
 
@@ -205,7 +205,7 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
            equal 3600 results in 1 h bins.
         res_dir : string
            destination directory
-           default value is the destination directory established 
+           default value is the destination directory established
            for ecohab_data.
         prefix : string
            string added to the name of every generated results file
@@ -229,7 +229,8 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                                                                add_info_mice)
     excess_prefix = "incohort_sociability_excess_time_%s_%s" % (prefix,
                                                                 add_info_mice)
-    phases, time, data, keys = utils.prepare_binned_data(ecohab_data, timeline, binsize,
+    phases, time, data, keys = utils.prepare_binned_data(ecohab_data,
+                                                         timeline, binsize,
                                                          mice)
 
     if isinstance(binsize, int) or isinstance(binsize, float):
@@ -257,13 +258,13 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                                        "additionals", "raster_plots",
                                        "bins_%s" % binsize_name)
     all_phases, bin_labels = keys
+    cages = ecohab_data.cages
     for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase]
         for lab in bin_labels:
             full_results[ph][lab],\
                 full_results_exp[ph][lab] = single_phase_results(data[ph][lab],
-                                                                 mice,
-                                                                 ecohab_data.cages,
+                                                                 mice, cages,
                                                                  time[ph][lab])
 
         write_binned_data(full_results[ph],
@@ -336,32 +337,33 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                           fname_excess, delimiter=delimiter)
     if isinstance(binsize, int) or isinstance(binsize, float):
         if binsize == 43200:
+            out_name = "incohort_sociability_%s_time_ALL_phases_binned.%s"
             write_csv_rasters(mice,
                               all_phases,
                               csv_results_incohort,
                               res_dir,
                               out_dir_rasters_add,
-                              "incohort_sociability_measured_time_ALL_phases_binned.csv",
+                              out_name % ("measured", "csv"),
                               delimiter=delimiter)
             write_csv_rasters(mice,
                               all_phases,
                               csv_results_incohort_exp,
                               res_dir,
                               out_dir_rasters_add,
-                              "incohort_sociability_expected_time_ALL_phases_binned.csv",
+                              out_name % ("expected", "csv"),
                               delimiter=delimiter)
             write_csv_rasters(mice,
                               all_phases,
                               csv_results_incohort - csv_results_incohort_exp,
                               res_dir,
                               out_dir_rasters,
-                              "incohort_sociability_excess_time_ALL_phases_binned.csv",
+                              out_name % ("excess", "csv"),
                               delimiter=delimiter)
             make_RasterPlot(res_dir,
                             out_dir_rasters_add,
                             csv_results_incohort,
                             all_phases,
-                            "incohort_sociability_measured_time_ALL_phases_binned",
+                            out_name % ("measured", "png"),
                             mice,
                             prefix=prefix,
                             to_file=True,
@@ -373,7 +375,7 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                             out_dir_rasters_add,
                             csv_results_incohort_exp,
                             all_phases,
-                            "incohort_sociability_expected_time_ALL_phases_binned",
+                            out_name % ("expected", "png"),
                             mice,
                             prefix=prefix,
                             to_file=True,
@@ -385,7 +387,7 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                             out_dir_rasters,
                             csv_results_incohort-csv_results_incohort_exp,
                             all_phases,
-                            "incohort_sociability_excess_time_ALL_phases_binned",
+                            out_name % ("excess", "png"),
                             mice,
                             prefix=prefix,
                             to_file=True,

@@ -110,6 +110,7 @@ def tube_dominance_single_phase(ecohab_data, timeline, phase, normalization):
     mice = ecohab_data.mice
     t_start, t_end = timeline.get_time_from_epoch(phase)
     dominance = np.zeros((len(mice), len(mice)))
+    setup_config = ecohab_data.setup_config
     for i, mouse1 in enumerate(mice):
         m1_times, m1_antennas = utils.get_times_antennas(ecohab_data, mouse1,
                                                          t_start, t_end)
@@ -124,7 +125,7 @@ def tube_dominance_single_phase(ecohab_data, timeline, phase, normalization):
                                                        m1_times,
                                                        m2_antennas,
                                                        m2_times,
-                                                       ecohab_data.setup_config,
+                                                       setup_config,
                                                        normalization)
     return dominance
 

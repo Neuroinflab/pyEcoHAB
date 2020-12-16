@@ -2068,18 +2068,18 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         path = os.path.join(data_path, "weird_short_3_mice")
         cls.data = Loader(path)
         cls.config = Timeline(path)
-        cls.out_all = uf.prepare_binned_registrations(cls.data,
-                                                      cls.config,
-                                                      "All",
-                                                      ["mouse_1"])
-        cls.out_6h = uf.prepare_binned_registrations(cls.data,
-                                                     cls.config,
-                                                     6*3600,
-                                                     ["mouse_1"])
-        cls.out_24h = uf.prepare_binned_registrations(cls.data,
-                                                      cls.config,
-                                                      24*3600,
-                                                      ["mouse_1"])
+        cls.out_all = uf.get_registrations_bins(cls.data,
+                                                cls.config,
+                                                "All",
+                                                ["mouse_1"])
+        cls.out_6h = uf.get_registrations_bins(cls.data,
+                                               cls.config,
+                                               6*3600,
+                                               ["mouse_1"])
+        cls.out_24h = uf.get_registrations_bins(cls.data,
+                                                cls.config,
+                                                24*3600,
+                                                ["mouse_1"])
 
     def test_all_phases(self):
         self.assertEqual(self.out_all[0], ["ALL"])

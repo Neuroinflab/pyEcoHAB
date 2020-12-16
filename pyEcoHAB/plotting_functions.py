@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 from . import utility_functions as utils
 
 
-
 nbins = 10
 
 
@@ -52,8 +51,8 @@ def make_RasterPlot(main_directory,
                                                         mice)
     else:
         output, pair_labels = utils.make_table_of_all_mouse_pairs(FAM,
-                                                            phases,
-                                                            mice)
+                                                                  phases,
+                                                                  mice)
     fig = plt.figure(figsize=(len(phases), 0.5*FAM.shape[0]))
     ax = fig.add_subplot(111, aspect='equal')
 
@@ -94,7 +93,7 @@ def make_RasterPlot(main_directory,
                 transparent=False,
                 bbox_inches=None,
                 pad_inches=.5,
-                 dpi=100)
+                dpi=100)
     plt.close(fig)
 
 
@@ -220,7 +219,6 @@ def single_in_cohort_soc_plot(results,
     ax = []
     for i in range(1, 5):
         ax.append(fig.add_subplot(2, 2, i))
-   
     im2 = ax[0].imshow(results, vmin=vmin, vmax=vmax,
                        interpolation='none', origin='lower')
     cbar = fig.colorbar(im2)
@@ -290,14 +288,8 @@ def single_in_cohort_soc_plot(results,
     print(fname+'.png')
 
 
-def make_pooled_histograms(res,
-                           res_exp,
-                           phases,
-                           fname,
-                           main_directory,
-                           directory,
-                           prefix,
-                           additional_info):
+def pooled_hists(res, res_exp, phases, fname, main_directory, directory,
+                 prefix, additional_info):
 
     fig, ax = plt.subplots(1, len(phases),
                            figsize=(2.5 + (len(phases) - 1)//2*5, 5))
@@ -414,7 +406,7 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
     fig.savefig(fname + ".png",
                 bbox_inches=None,
                 pad_inches=.5,
-                 dpi=100)
+                dpi=100)
     plt.close(fig)
 
 
@@ -559,10 +551,8 @@ def make_fig_histogram(results, path, title):
     plt.close(fig)
 
 
-def make_pooled_histograms_for_every_mouse(results, fname,
-                                           mice, main_directory,
-                                           directory, prefix,
-                                           additional_info):
+def pooled_hists_for_every_mouse(results, fname, mice, main_directory,
+                                 directory, prefix, additional_info):
     results_following = pool_results_following(results, mice)
     results_followed = pool_results_followed(results, mice)
     new_name_following = "pooled_following"
@@ -622,15 +612,16 @@ def make_visit_duration_histogram(results, time, phase, mice,
                     xticks = False
                     xlabel = None
 
-                minb, maxb, minc, maxc = make_single_histogram(ax[j, i], out,
-                                                               10,
-                                                               title=key,
-                                                               xticks=xticks,
-                                                               yticks=yticks,
-                                                               xlabel=xlabel,
-                                                               ylabel=ylabel,
-                                                               xlogscale=True,
-                                                               fontsize=fontsize)
+                minb, maxb, minc,\
+                    maxc = make_single_histogram(ax[j, i], out,
+                                                 10,
+                                                 title=key,
+                                                 xticks=xticks,
+                                                 yticks=yticks,
+                                                 xlabel=xlabel,
+                                                 ylabel=ylabel,
+                                                 xlogscale=True,
+                                                 fontsize=fontsize)
                 bins.extend([minb, maxb])
                 counts.extend([minc, maxc])
         min_bin, max_bin = min(bins), max(bins)
@@ -649,7 +640,7 @@ def make_visit_duration_histogram(results, time, phase, mice,
         plt.close(fig)
 
 
-def histograms_antenna_transitions(transition_times, setup_config,
+def histograms_antenna_transitions(t_times, setup_config,
                                    main_directory, directory, fname, prefix,
                                    xmin=None, xmax=None, ymin=None, ymax=None,
                                    additional_info=""):
@@ -663,15 +654,15 @@ def histograms_antenna_transitions(transition_times, setup_config,
                                       "tunnels")
     dir_incorrect = os.path.join(directory,
                                  "incorrect_antenna_transition")
-    cage_pair_dict = setup_config.cage_pair_dict()
-    tunnel_pair_dict = setup_config.tunnel_pair_dict()
-    title_double_a = "consecutive reading by antenna %s (entrance to %s) phase %s at %s"
+    cage_pd = setup_config.cage_pair_dict()
+    tunnel_pd = setup_config.tunnel_pair_dict()
+    title_double_a = "consecutive reading by antenna %s (%s) %s at %s"
     title_other = "passing through %s phase %s at %s"
     fname = "%s_%s_%s" % (prefix, fname, additional_info)
     max_count = 0
     nbins = {}
     title = {}
-    designated_fname = {}
+    dest_fname = {}
     dir_name = {}
     xlogscale = {}
     new_xmin = 1000
@@ -679,99 +670,107 @@ def histograms_antenna_transitions(transition_times, setup_config,
     incorrect_transitions = []
     allowed_keys = {}
 
-    for phase in transition_times.keys():
-        allowed_keys[phase] = []
-        xlogscale[phase] = {}
-        nbins[phase] = {}
-        designated_fname[phase] = {}
-        title[phase] = {}
-         
-        for label in transition_times[phase].keys():
-            nbins[phase][label] = {}
-            designated_fname[phase][label] = {}
-            title[phase][label] = {}
-            xlogscale[phase][label] = {}
-            for key in transition_times[phase][label].keys():
-                if not len(transition_times[phase][label][key]):
+    for ph in t_times.keys():
+        allowed_keys[ph] = []
+        xlogscale[ph] = {}
+        nbins[ph] = {}
+        dest_fname[ph] = {}
+        title[ph] = {}
+        for lab in t_times[ph].keys():
+            nbins[ph][lab] = {}
+            dest_fname[ph][lab] = {}
+            title[ph][lab] = {}
+            xlogscale[ph][lab] = {}
+            for key in t_times[ph][lab].keys():
+                if not len(t_times[ph][lab][key]):
                     continue
                 try:
                     first, last = key.split(" ")
                     gen_key = "%s %s" % (min(first, last), max(first, last))
                     if gen_key in setup_config.mismatched_pairs:
-                        incorrect_transitions.extend(transition_times[phase][label][key])
+                        incorrect_transitions.extend(t_times[ph][lab][key])
                         continue
                     else:
-                        allowed_keys[phase].append(key)
+                        allowed_keys[ph].append(key)
                     if first == last:
                         dir_name[key] = dir_correct_same
-                        title[phase][label][key] = title_double_a % (first,
-                                                                     setup_config.address[first],
-                                                                     phase,
-                                                                     label)
-                        designated_fname[phase][label][key] = "%s_%s_%s_%s_start_at_%d" % (fname,
-                                                                                           setup_config.address[first].replace(" ", "_"),
-                                                                                           key.replace(" ", "_"),
-                                                                                           phase.replace(" ", "_"),
-                                                                                           label)
-
+                        title[ph][lab][key] = title_double_a %\
+                            (first,
+                             setup_config.address[first],
+                             ph,
+                             lab)
+                        dest_fname[ph][lab][key] =\
+                            "%s_%s_%s_%s_start_at_%d" %\
+                            (fname,
+                             setup_config.address[first].replace(" ", "_"),
+                             key.replace(" ", "_"),
+                             ph.replace(" ", "_"),
+                             lab)
                     else:
                         if key in setup_config.tunnel_pairs():
                             dir_name[key] = dir_correct_tunnel
-                            title[phase][label][key] = title_other % (tunnel_pair_dict[key],
-                                                                      phase,
-                                                                      label)
-                            designated_fname[phase][label][key] = "%s_%s_%s_%s_start_at_%d" % (fname,
-                                                                                               tunnel_pair_dict[key].replace(" ", "_"),
-                                                                                               key.replace(" ", "_"),
-                                                                                               phase.replace(" ", "_"),
-                                                                                               label)
+                            title[ph][lab][key] = title_other %\
+                                (tunnel_pd[key],
+                                 ph,
+                                 lab)
+                            dest_fname[ph][lab][key] =\
+                                "%s_%s_%s_%s_start_at_%d" %\
+                                (fname,
+                                 tunnel_pd[key].replace(" ", "_"),
+                                 key.replace(" ", "_"),
+                                 ph.replace(" ", "_"),
+                                 lab)
 
                         else:
-                            dir_name[key] = dir_correct_cage 
-                            title[phase][label][key] = title_other % (cage_pair_dict[key],
-                                                                      phase,
-                                                                      label)
-                            designated_fname[phase][label][key] = "%s_%s_%s_%s_start_at_%s" % (fname,
-                                                                                               cage_pair_dict[key].replace(" ", "_"),
-                                                                                               key.replace(" ", "_"),
-                                                                                               phase.replace(" ", "_"),
-                                                                                               label)
+                            dir_name[key] = dir_correct_cage
+                            title[ph][lab][key] = title_other %\
+                                (cage_pd[key],
+                                 ph,
+                                 lab)
+                            dest_fname[ph][lab][key] =\
+                                "%s_%s_%s_%s_start_at_%s" %\
+                                (fname,
+                                 cage_pd[key].replace(" ", "_"),
+                                 key.replace(" ", "_"),
+                                 ph.replace(" ", "_"),
+                                 lab)
 
                 except ValueError:
-                    allowed_keys[phase].append(key)
+                    allowed_keys[ph].append(key)
                     if key == "tunnels":
                         dir_name[key] = dir_correct_tunnel
                     elif key == "cages":
                         dir_name[key] = dir_correct_cage
-                    title[phase][label][key] = "%s phase %s at %s" % (key, phase, label)
-                    designated_fname[phase][label][key] = "%s_%s_%s_start_at_%s" % (fname,
-                                                                                    key.replace(" ", "_"),
-                                                                                    phase.replace(" ", "_"),
-                                                                                    label)
-
-
-                xlogscale[phase][label][key] = True
-                nbins[phase][label][key] = 10
-                if len(transition_times[phase][label][key]) > 1000:
-                    nbins[phase][label][key] = 40
+                    title[ph][lab][key] = "%s phase %s at %s" %\
+                        (key, ph, lab)
+                    dest_fname[ph][lab][key] = "%s_%s_%s_start_at_%s" %\
+                        (fname,
+                         key.replace(" ", "_"),
+                         ph.replace(" ", "_"),
+                         lab)
+                xlogscale[ph][lab][key] = True
+                nbins[ph][lab][key] = 10
+                if len(t_times[ph][lab][key]) > 1000:
+                    nbins[ph][lab][key] = 40
                 while True:
-                    if 0 in transition_times[phase][label][key]:
-                        transition_times[phase][label][key].remove(0)
+                    if 0 in t_times[ph][lab][key]:
+                        t_times[ph][lab][key].remove(0)
                     else:
                         break
-                hist, bins = np.histogram(transition_times[phase][label][key],
-                                          nbins[phase][label][key])
-                if xlogscale[phase][label][key]:
-                    logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]),
+                hist, bins = np.histogram(t_times[ph][lab][key],
+                                          nbins[ph][lab][key])
+                if xlogscale[ph][lab][key]:
+                    logbins = np.logspace(np.log10(bins[0]),
+                                          np.log10(bins[-1]),
                                           len(bins))
-                    hist, bins = np.histogram(transition_times[phase][label][key],
+                    hist, bins = np.histogram(t_times[ph][lab][key],
                                               bins=logbins)
                 if max(hist) > max_count:
-                    max_count = max(hist) 
-                if new_xmin > min(transition_times[phase][label][key]):
-                    new_xmin =  min(transition_times[phase][label][key])
-                if new_xmax < max(transition_times[phase][label][key]):
-                    new_xmax = max(transition_times[phase][label][key])
+                    max_count = max(hist)
+                if new_xmin > min(t_times[ph][lab][key]):
+                    new_xmin = min(t_times[ph][lab][key])
+                if new_xmax < max(t_times[ph][lab][key]):
+                    new_xmax = max(t_times[ph][lab][key])
     if xmin is None:
         xmin = new_xmin
     if xmax is None:
@@ -780,23 +779,21 @@ def histograms_antenna_transitions(transition_times, setup_config,
         ymin = 0
     if ymax is None:
         ymax = max_count
-    for phase in transition_times.keys():
-        for label in transition_times[phase].keys():
-            for key in allowed_keys[phase]:
-                if not len(transition_times[phase][label][key]):
+    for ph in t_times.keys():
+        for lab in t_times[ph].keys():
+            for key in allowed_keys[ph]:
+                if not len(t_times[ph][lab][key]):
                     continue
-            
-                single_histogram_figures(transition_times[phase][label][key],
-                                         designated_fname[phase][label][key],
+                single_histogram_figures(t_times[ph][lab][key],
+                                         dest_fname[ph][lab][key],
                                          main_directory, dir_name[key],
-                                         title[phase][label][key],
-                                         nbins=nbins[phase][label][key],
-                                         xlogscale=xlogscale[phase][label][key],
+                                         title[ph][lab][key],
+                                         nbins=nbins[ph][lab][key],
+                                         xlogscale=xlogscale[ph][lab][key],
                                          xlabel="Transition times (s)",
                                          ylabel="count", xmin=xmin, xmax=xmax,
                                          ymin=0, ymax=ymax,
                                          fontsize=14, median_mean=True)
-   
     single_histogram_figures(incorrect_transitions, "incorrect_transitions",
                              main_directory, dir_incorrect,
                              "Incorrect antenna transitions",

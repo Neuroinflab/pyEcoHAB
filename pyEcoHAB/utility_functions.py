@@ -564,8 +564,8 @@ def prepare_registrations(ecohab_data, mice, st, en):
     return directions
 
 
-def prepare_binned_registrations(ecohab_data, timeline, bins, mice,
-                                 function=prepare_registrations):
+def get_registrations_bins(ecohab_data, timeline, bins, mice,
+                           function=prepare_registrations):
     total_time = OrderedDict()
     data = OrderedDict()
     if bins in ["ALL", "all", "All"]:

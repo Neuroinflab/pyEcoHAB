@@ -153,11 +153,11 @@ def get_antenna_transition_durations(ecohab_data, timeline, bins=12*3600,
         res_dir = ecohab_data.res_dir
     mice = utils.get_mice(ecohab_data.mice, remove_mouse)
     function = utils.get_times_antennas_list_of_mice
-    phases, times, data, keys = utils.prepare_binned_registrations(ecohab_data,
-                                                                   timeline,
-                                                                   bins,
-                                                                   mice,
-                                                                   function)
+    phases, times, data, keys = utils.get_registrations_bins(ecohab_data,
+                                                             timeline,
+                                                             bins,
+                                                             mice,
+                                                             function)
     transitions = antenna_transtions_in_phases(data, times, phases,
                                                keys, ecohab_data.setup_config,
                                                res_dir, prefix, delimiter=";")

@@ -411,7 +411,7 @@ class Merger(EcoHabDataBase):
     provide the path to the experimental setup config. Data  should be provided
     (from all parts of the experiment loaded by Loader) as non-keyworded
     arguments:
-    new_data = Merger(path_to_setup, Loader(path_to_setup_1), 
+    new_data = Merger(path_to_setup, Loader(path_to_setup_1),
     Loader(path_to_setup2))
 
     Merger will rename all antennas to antenna_setup_name, and

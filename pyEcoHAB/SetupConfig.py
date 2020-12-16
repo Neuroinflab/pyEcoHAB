@@ -242,8 +242,8 @@ class SetupConfigMethods(RawConfigParser):
             for ant_2 in other_tunnel_ants:
                 out_other_tunnel_ants += self._go_two_steps(ant_2)
             if len(out_this_antenna + out_other_tunnel_ants):
-                out[ant_1] = sorted(list(set(out_this_antenna
-                                             + out_other_tunnel_ants)))
+                out[ant_1] = sorted(list(set(out_this_antenna +
+                                             out_other_tunnel_ants)))
         return out
 
     def get_cage_address_dict(self):

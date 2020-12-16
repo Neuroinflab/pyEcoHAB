@@ -82,8 +82,8 @@ def calculate_visits_and_durations(data, mice, address, t_start, t_end,
     return visits, durations, all_visits
 
 
-def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="", remove_mouse="",
-                 save_histogram=False, delimiter=";",
+def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="",
+                 remove_mouse="", save_histogram=False, delimiter=";",
                  headers=['Number of visits to',
                           'Total time (sec) in']):
     """Calculate activity of each mouse in time bins across the phases
@@ -118,7 +118,8 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="", remove_m
            equal 3600 results in 1 h bins.
         res_dir : string
            destination directory
-           default value is the destination directory established for ecohab_data.
+           default value is the destination directory established for
+           ecohab_data.
         prefix : string
            string added to the name of every generated results file
            default value is the prefix established for ecohab_data
@@ -196,8 +197,8 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="", remove_m
                                 "other_variables/visit_histograms_binsize_%3.1f"
                                 % (binsize/3600),
                                 prefix, add_info_mice)
-    save_data_cvs(data, phases, mice, bin_labels, fname, res_dir, ecohab_data.cages,
-                  headers)
-    save_data_cvs(data, phases, mice, bin_labels, fname, res_dir, ecohab_data.cages,
-                  headers, target_dir="social_approach")
+    save_data_cvs(data, phases, mice, bin_labels, fname, res_dir,
+                  ecohab_data.cages, headers)
+    save_data_cvs(data, phases, mice, bin_labels, fname, res_dir,
+                  ecohab_data.cages, headers, target_dir="social_approach")
     return data

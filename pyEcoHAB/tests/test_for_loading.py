@@ -661,7 +661,8 @@ class TestTunnelErrors(unittest.TestCase):
         times = [1,   2,  2.5,   3,  4.5, 5.5, 6.5, 7.5, 10.5]
         durations = [3, 600,  3,    34,  55,  66, 1999, 200, 100]
         cls.pred_out = {"1 2": 1, "3 4": 0, "5 6": 1, "7 8": 0}
-        cls.out, cls.tot = uf.incorrect_tunnel_single_mouse(cls.pred_out.keys(),
+        keys = cls.pred_out.keys()
+        cls.out, cls.tot = uf.incorrect_tunnel_single_mouse(keys,
                                                             antennas,
                                                             times, durations)
         cls.pred_tot = {"1 2": 3, "3 4": 1, "5 6": 1, "7 8": 0}

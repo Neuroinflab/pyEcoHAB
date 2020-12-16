@@ -213,18 +213,20 @@ class TestCalculateVisitsDurations(unittest.TestCase):
         binsize = 10
         address = "A"
         cls.mice = ["mouse_1", "mouse_2"]
-        cls.vis, cls.dur, cls.all_v = cv.calculate_visits_and_durations(data,
-                                                                        cls.mice,
-                                                                        address,
-                                                                        t_start,
-                                                                        t_stop,
-                                                                        binsize)
-        cls.visB, cls.durB, cls.all_vB = cv.calculate_visits_and_durations(data,
-                                                                           cls.mice,
-                                                                           "B",
-                                                                           t_start,
-                                                                           t_stop,
-                                                                           binsize)
+        cls.vis, cls.dur,\
+            cls.all_v = cv.calculate_visits_and_durations(data,
+                                                          cls.mice,
+                                                          address,
+                                                          t_start,
+                                                          t_stop,
+                                                          binsize)
+        cls.visB, cls.durB,\
+            cls.all_vB = cv.calculate_visits_and_durations(data,
+                                                           cls.mice,
+                                                           "B",
+                                                           t_start,
+                                                           t_stop,
+                                                           binsize)
 
     def test_keys_1(self):
         self.assertEqual(sorted(self.vis.keys()), sorted(self.mice))

@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# encoding: utf-8
+# -*- encoding: utf-8 -*-
 from __future__ import division, absolute_import, print_function
 """
 Timeline.py
@@ -60,8 +59,8 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
                 fname = 'config.txt'
                 self.path = os.path.join(path, fname)
             else:
-                fname = filter(lambda x: x.startswith('config')
-                               and x.endswith('.txt'),
+                fname = filter(lambda x: x.startswith('config') and
+                               x.endswith('.txt'),
                                os.listdir(path))[0]
                 self.path = os.path.join(path, fname)
         else:
