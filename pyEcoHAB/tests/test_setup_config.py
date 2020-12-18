@@ -156,7 +156,7 @@ class TestGetDicts(unittest.TestCase):
         path = os.path.join(data_path, "test_setups")
         cls.custom = SetupConfig(path=path, fname="setup_internal.txt")
         cls.custom2 = SetupConfig(path=path,
-                                     fname="setup_internal2.txt")
+                                  fname="setup_internal2.txt")
 
     def test_homecage_antenna(self):
         self.assertEqual(self.custom2.homecage_antenna, "2")
@@ -168,7 +168,6 @@ class TestGetDicts(unittest.TestCase):
     def test_stimulus_internals(self):
         out = self.custom2.stimCage_internal_antennas
         self.assertEqual(out, ["7"])
-
 
     def test_default_cages(self):
         out = self.default.get_cages_dict()
@@ -416,6 +415,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
         cls.exp_i_antennas = ExperimentSetupConfig(path3,
                                                    default1=cls.config1,
                                                    custom2=cls.config5)
+
     def test_indentity_compartments(self):
         out = {"ecohab1 cage A": "shared cage 1",
                "ecohab2 cage B": "shared cage 1"}
@@ -634,8 +634,8 @@ class TestExperimentSetupConfig(unittest.TestCase):
                          sorted(self.full_exp.tunnels_dict[key]))
 
     def test_same_tunnel_keys(self):
-        keys = sorted(set(self.experiment_config.all_antennas)
-                      - set(self.experiment_config.internal_antennas))
+        keys = sorted(set(self.experiment_config.all_antennas) -
+                      set(self.experiment_config.internal_antennas))
         self.assertEqual(keys,
                          sorted(self.experiment_config.same_tunnel.keys()))
 
@@ -700,8 +700,8 @@ class TestExperimentSetupConfig(unittest.TestCase):
                          sorted(self.experiment_config.same_tunnel[key]))
 
     def test_same_tunnel_keys_full_exp(self):
-        keys = sorted(set(self.full_exp.all_antennas)
-                      - set(self.full_exp.internal_antennas))
+        keys = sorted(set(self.full_exp.all_antennas) -
+                      set(self.full_exp.internal_antennas))
         self.assertEqual(keys,
                          sorted(self.full_exp.same_tunnel.keys()))
 
@@ -1101,7 +1101,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
                 key = "%s %s" % (min(antenna1, antenna2),
                                  max(antenna1, antenna2))
                 out.add(key)
-        self.assertTrue(sorted(out)==self.exp_i_antennas.all_unique_pairs)
+        self.assertEqual(sorted(out), self.exp_i_antennas.all_unique_pairs)
 
     def test_all_pairs_unique_full(self):
         out = set()
@@ -1118,7 +1118,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
             for antenna2 in self.exp_i_antennas.all_antennas:
                 key = "%s %s" % (antenna1, antenna2)
                 out.add(key)
-        self.assertTrue(sorted(out)==self.exp_i_antennas.all_pairs)
+        self.assertEqual(sorted(out), self.exp_i_antennas.all_pairs)
 
     def test_all_pairs_full(self):
         out = set()
@@ -1138,18 +1138,18 @@ class TestExperimentSetupConfig(unittest.TestCase):
                "3_ecohab_1 7_ecohab_2", "3_ecohab_1 8_ecohab_2",
                "4_ecohab_1 6_ecohab_2", "4_ecohab_1 7_ecohab_2",
                "4_ecohab_1 8_ecohab_2", "5_ecohab_2 7_ecohab_2",
-               "5_ecohab_2 8_ecohab_2", "6_ecohab_2 8_ecohab_2",]
+               "5_ecohab_2 8_ecohab_2", "6_ecohab_2 8_ecohab_2"]
         self.assertEqual(sorted(out),
                          self.full_exp.mismatched_pairs)
-        
+
     def test_mismatched_antennas_2(self):
         out = ["1_custom2 8_custom2", "1_custom2 1_default1",
                "1_custom2 2_default1", "1_custom2 3_default1",
                "1_custom2 4_default1", "1_custom2 5_default1",
                "1_custom2 6_default1", "1_custom2 7_default1",
-               "1_custom2 8_default1", 
-               "1_default1 3_default1", "1_default1 4_default1", 
-               "1_default1 5_default1", "1_default1 6_default1", 
+               "1_custom2 8_default1",
+               "1_default1 3_default1", "1_default1 4_default1",
+               "1_default1 5_default1", "1_default1 6_default1",
                "1_default1 7_default1", "1_default1 7_custom2",
                "2_custom2 2_default1",
                "2_custom2 4_default1", "2_custom2 3_default1",
@@ -1210,8 +1210,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
                            "1_custom2 7_custom2", "7_custom2 1_custom2",
                            "7_custom2 7_custom2", "1_custom2 2_custom2",
                            "2_custom2 8_default1", "2_custom2 1_default1",
-                           "8_default1 2_custom2", "1_default1 2_custom2"
-        ])
+                           "8_default1 2_custom2", "1_default1 2_custom2"])
         calc = self.exp_i_antennas.allowed_pairs()
         self.assertEqual(expected, calc)
 
@@ -1223,8 +1222,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
                            "3_ecohab_1 5_ecohab_2", "5_ecohab_2 3_ecohab_1",
                            "4_ecohab_1 6_ecohab_2", "6_ecohab_2 4_ecohab_1",
                            "6_ecohab_2 8_ecohab_2", "8_ecohab_2 6_ecohab_2",
-                           "5_ecohab_2 7_ecohab_2", "7_ecohab_2 5_ecohab_2",
-        ])
+                           "5_ecohab_2 7_ecohab_2", "7_ecohab_2 5_ecohab_2"])
         calculated = self.full_exp.skipped_one()
         self.assertEqual(expected, calculated)
 
@@ -1244,8 +1242,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
                            "2_custom2 2_default1", "2_default1 2_custom2",
                            "2_custom2 7_default1", "7_default1 2_custom2",
                            "8_custom2 7_default1", "7_default1 8_custom2",
-                           "8_custom2 2_default1", "2_default1 8_custom2",
-        ])
+                           "8_custom2 2_default1", "2_default1 8_custom2"])
         calculated = self.exp_i_antennas.skipped_one()
         self.assertEqual(expected, calculated)
 
@@ -1297,7 +1294,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
         self.assertEqual(sorted(expected), calculated)
 
     def test_skipped_more_2(self):
-        allowed = sorted(["1_default1 3_default1", "3_default1 1_default1",
+        allowed1 = sorted(["1_default1 3_default1", "3_default1 1_default1",
                            "1_default1 7_default1", "7_default1 1_default1",
                            "2_default1 4_default1", "4_default1 2_default1",
                            "2_default1 8_default1", "8_default1 2_default1",
@@ -1312,48 +1309,72 @@ class TestExperimentSetupConfig(unittest.TestCase):
                            "2_custom2 2_default1", "2_default1 2_custom2",
                            "2_custom2 7_default1", "7_default1 2_custom2",
                            "8_custom2 7_default1", "7_default1 8_custom2",
-                           "8_custom2 2_default1", "2_default1 8_custom2",
-        ]) + sorted(["1_default1 8_default1", "1_default1 1_default1",
-                           "1_default1 2_default1", "2_default1 1_default1",
-                           "2_default1 2_default1", "2_default1 3_default1",
-                           "3_default1 2_default1", "3_default1 3_default1",
-                           "3_default1 4_default1", "4_default1 3_default1",
-                           "4_default1 4_default1", "4_default1 5_default1",
-                           "5_default1 4_default1", "5_default1 5_default1",
-                           "5_default1 6_default1", "6_default1 5_default1",
-                           "6_default1 6_default1", "6_default1 7_default1",
-                           "7_default1 6_default1", "7_default1 7_default1",
-                           "7_default1 8_default1", "8_default1 7_default1",
-                           "8_default1 8_default1", "8_default1 1_default1",
-                           "8_custom2 8_custom2", "8_custom2 1_default1",
-                           "1_default1 8_custom2", "8_custom2 8_default1",
-                           "8_default1 8_custom2", "8_custom2 2_custom2",
-                           "2_custom2 8_custom2", "2_custom2 2_custom2",
-                           "2_custom2 1_custom2", "1_custom2 1_custom2",
-                           "1_custom2 7_custom2", "7_custom2 1_custom2",
-                           "7_custom2 7_custom2", "1_custom2 2_custom2",
-                           "2_custom2 8_default1", "2_custom2 1_default1",
-                           "8_default1 2_custom2", "1_default1 2_custom2"
-        ])+ sorted([
-            "1_default1 4_default1", "4_default1 1_default1",
-            "1_default1 6_default1", "6_default1 1_default1",
-            "2_default1 5_default1", "5_default1 2_default1",
-            "2_default1 7_default1", "7_default1 2_default1",
-            "3_default1 6_default1", "6_default1 3_default1",
-            "3_default1 8_default1", "8_default1 3_default1",
-            "4_default1 7_default1", "7_default1 4_default1",
-            "5_default1 8_default1", "8_default1 5_default1",
-            "7_custom2 8_custom2", "8_custom2 7_custom2",
-            "7_custom2 1_default1", "1_default1 7_custom2",
-            "7_custom2 8_default1", "8_default1 7_custom2",
-            "1_custom2 2_default1", "2_default1 1_custom2",
-            "1_custom2 7_default1", "7_default1 1_custom2",
-            "2_custom2 6_default1", "6_default1 2_custom2",
-            "2_custom2 3_default1", "3_default1 2_custom2",
-            "8_custom2 6_default1", "6_default1 8_custom2",
-            "8_custom2 3_default1", "3_default1 8_custom2",
-
-        ])
+                           "8_custom2 2_default1", "2_default1 8_custom2"])
+        allowed2 = sorted(["1_default1 8_default1",
+                           "1_default1 1_default1",
+                           "1_default1 2_default1",
+                           "2_default1 1_default1",
+                           "2_default1 2_default1",
+                           "2_default1 3_default1",
+                           "3_default1 2_default1",
+                           "3_default1 3_default1",
+                           "3_default1 4_default1",
+                           "4_default1 3_default1",
+                           "4_default1 4_default1",
+                           "4_default1 5_default1",
+                           "5_default1 4_default1",
+                           "5_default1 5_default1",
+                           "5_default1 6_default1",
+                           "6_default1 5_default1",
+                           "6_default1 6_default1",
+                           "6_default1 7_default1",
+                           "7_default1 6_default1",
+                           "7_default1 7_default1",
+                           "7_default1 8_default1",
+                           "8_default1 7_default1",
+                           "8_default1 8_default1",
+                           "8_default1 1_default1",
+                           "8_custom2 8_custom2",
+                           "8_custom2 1_default1",
+                           "1_default1 8_custom2",
+                           "8_custom2 8_default1",
+                           "8_default1 8_custom2",
+                           "8_custom2 2_custom2",
+                           "2_custom2 8_custom2",
+                           "2_custom2 2_custom2",
+                           "2_custom2 1_custom2",
+                           "1_custom2 1_custom2",
+                           "1_custom2 7_custom2",
+                           "7_custom2 1_custom2",
+                           "7_custom2 7_custom2",
+                           "1_custom2 2_custom2",
+                           "2_custom2 8_default1",
+                           "2_custom2 1_default1",
+                           "8_default1 2_custom2",
+                           "1_default1 2_custom2"])
+        allowed3 = sorted(["1_default1 4_default1",
+                           "4_default1 1_default1",
+                           "1_default1 6_default1",
+                           "6_default1 1_default1",
+                           "2_default1 5_default1",
+                           "5_default1 2_default1",
+                           "2_default1 7_default1",
+                           "7_default1 2_default1",
+                           "3_default1 6_default1",
+                           "6_default1 3_default1",
+                           "3_default1 8_default1", "8_default1 3_default1",
+                           "4_default1 7_default1", "7_default1 4_default1",
+                           "5_default1 8_default1", "8_default1 5_default1",
+                           "7_custom2 8_custom2", "8_custom2 7_custom2",
+                           "7_custom2 1_default1", "1_default1 7_custom2",
+                           "7_custom2 8_default1", "8_default1 7_custom2",
+                           "1_custom2 2_default1", "2_default1 1_custom2",
+                           "1_custom2 7_default1", "7_default1 1_custom2",
+                           "2_custom2 6_default1", "6_default1 2_custom2",
+                           "2_custom2 3_default1", "3_default1 2_custom2",
+                           "8_custom2 6_default1", "6_default1 8_custom2",
+                           "8_custom2 3_default1", "3_default1 8_custom2"])
+        allowed = allowed1 + allowed2 + allowed3
         all_pairs = self.exp_i_antennas.all_pairs
         expected = []
         for pair in all_pairs:
@@ -1418,8 +1439,7 @@ class TestExperimentSetupConfig(unittest.TestCase):
                     "5_ecohab_2 6_ecohab_2": "ecohab_2 tunnel 2",
                     "6_ecohab_2 5_ecohab_2": "ecohab_2 tunnel 2",
                     "7_ecohab_2 8_ecohab_2": "ecohab_2 tunnel 1",
-                    "8_ecohab_2 7_ecohab_2": "ecohab_2 tunnel 1",
-        }
+                    "8_ecohab_2 7_ecohab_2": "ecohab_2 tunnel 1"}
         calculated = self.full_exp.tunnel_pair_dict()
         self.assertEqual(calculated, expected)
 

@@ -685,8 +685,9 @@ class TestSinglePhaseResults(unittest.TestCase):
                          self.exp_A["mouse_1"]["mouse_1"])
 
     def test_exp_A_1_2(self):
-        self.assertTrue(np.isclose(self.correct_exp_res_A["mouse_1"]["mouse_2"],
-                                   self.exp_A["mouse_1"]["mouse_2"]))
+        out = np.isclose(self.correct_exp_res_A["mouse_1"]["mouse_2"],
+                                   self.exp_A["mouse_1"]["mouse_2"])
+        self.assertTrue(out)
 
     def test_exp_A_2_1(self):
         self.assertEqual(self.correct_exp_res_A["mouse_2"]["mouse_1"],

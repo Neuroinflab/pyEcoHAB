@@ -82,7 +82,7 @@ class DataBase(object):
             if astype is None:
                 return [x[0] for x in zip(self.data[propname][mask_0:mask_1],
                                           self.data['Tag'][mask_0:mask_1])
-                                          if x[1] in mice]
+                        if x[1] in mice]
             elif astype == 'float':
                 return [float(x[0]) for x in zip(
                     self.data[propname][mask_0:mask_1],

@@ -6,7 +6,7 @@ import glob
 import unittest
 import numpy as np
 import pyEcoHAB.utils.for_loading as uf
-import pyEcoHAB.utility_functions as utils
+import pyEcoHAB.utility_functions as ut
 from pyEcoHAB import data_path
 from pyEcoHAB.SetupConfig import SetupConfig
 
@@ -54,7 +54,7 @@ ADDRESS = {
     "8": "cage A",  # "4"
 }
 
-ADDRESS_NON_ADJACENT = {
+NON_ADJACENT = {
     "1": "cage B",  # 1,
     "2": "cage A",  # "4",
     "3": "cage C",  # 2,
@@ -424,17 +424,17 @@ class TestTotalMismatches(unittest.TestCase):
         mice = sorted(set(self.data1["Tag"]))
         all_antennas = self.data1["Antenna"]
         for mouse in mice:
-            idxs = np.where(self.data1["Tag"]==mouse)[0]
+            idxs = np.where(self.data1["Tag"] == mouse)[0]
             for i, idx in enumerate(idxs[:-1]):
                 idx_next = idxs[i+1]
                 a1, a2 = all_antennas[idx], all_antennas[idx_next]
-                key = "%s %s" %(min(a1, a2),  max(a1, a2))
+                key = "%s %s" % (min(a1, a2),  max(a1, a2))
                 if key in self.mismatched_pairs:
                     correct[a1] += 1
                     correct[a2] += 1
         self.assertEqual(correct, res)
 
-        
+
 class TestRunDiagnostics(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -457,8 +457,7 @@ class TestRunDiagnostics(unittest.TestCase):
         cls.mismatch2 = uf.antenna_mismatch(data, config)
         cls.presences2 = uf.check_antenna_presence(data, config, 24*3600)
         res_path = os.path.join(path, "Results")
-        files = glob.glob(os.path.join(res_path
-                                       + "/diagnostics/*.csv"))
+        files = glob.glob(os.path.join(res_path + "/diagnostics/*.csv"))
         for f in files:
             os.remove(f)
 
@@ -469,7 +468,7 @@ class TestRunDiagnostics(unittest.TestCase):
         data1 = uf.from_raw_data(raw_data1)
         config1 = SetupConfig()
         res_path1 = os.path.join(path1, "Results")
-        out =  uf.run_diagnostics(data1, 24*3600, res_path1, config1)
+        out = uf.run_diagnostics(data1, 24*3600, res_path1, config1)
         cls.incorr_tunnel = out[-1]
 
     def test_mismatched_tunnels(self):
@@ -542,8 +541,8 @@ class TestRunDiagnostics(unittest.TestCase):
             if pair in ["3 6", "1 3", "4 6"]:
                 exact_mis = np.round(100*self.mismatch1[pair]/self.length)
                 out += "%s, %d, %3.2f per 100\n" % (pair,
-                                                     self.mismatch1[pair],
-                                                     exact_mis)
+                                                    self.mismatch1[pair],
+                                                    exact_mis)
             else:
                 out += "%s, %d, %3.2f per 100\n" % (pair, 0, 0.00)
         self.assertEqual(out, self.str11)
@@ -575,16 +574,16 @@ class TestTransformVisits(unittest.TestCase):
         path = os.path.join(data_path, "weird_short")
         raw_data = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
-        cls.data = utils.get_animal_position(data["Time"],
-                                             data["Antenna"],
-                                             "mouse_1", 2,
-                                             same_pipe=SAME_PIPE,
-                                             same_address=SAME_ADDRESS,
-                                             opposite_pipe=OPPOSITE_PIPE,
-                                             address=ADDRESS,
-                                             surrounding=SURROUNDING,
-                                             address_not_adjacent=ADDRESS_NON_ADJACENT,
-                                             internal_antennas=[])
+        cls.data = ut.get_animal_position(data["Time"],
+                                          data["Antenna"],
+                                          "mouse_1", 2,
+                                          same_pipe=SAME_PIPE,
+                                          same_address=SAME_ADDRESS,
+                                          opposite_pipe=OPPOSITE_PIPE,
+                                          address=ADDRESS,
+                                          surrounding=SURROUNDING,
+                                          address_not_adjacent=NON_ADJACENT,
+                                          internal_antennas=[])
         cls.visits = uf.transform_visits(cls.data)
 
     def test1(self):
@@ -644,8 +643,8 @@ class TestAppendData(unittest.TestCase):
                          len(self.combined_data))
 
     def test2(self):
-        self.assertTrue(np.all((self.combined_data["Time"][1:]
-                                - self.combined_data["Time"][:-1]) > 0))
+        self.assertTrue(np.all((self.combined_data["Time"][1:] -
+                                self.combined_data["Time"][:-1]) > 0))
 
     def test_mouse3(self):
         indx = np.where(self.combined_data["Tag"] == "mouse_3")[0]
@@ -658,21 +657,23 @@ class TestAppendData(unittest.TestCase):
 class TestTunnelErrors(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        antennas =  ["1", "2", "1", "2", "3", "4", "5", "6", "7"]
-        times =     [1,   2,  2.5,   3,  4.5, 5.5, 6.5, 7.5, 10.5]
+        antennas = ["1", "2", "1", "2", "3", "4", "5", "6", "7"]
+        times = [1,   2,  2.5,   3,  4.5, 5.5, 6.5, 7.5, 10.5]
         durations = [3, 600,  3,    34,  55,  66, 1999, 200, 100]
-        cls.pred_out = {"1 2": 1, "3 4":0, "5 6": 1, "7 8": 0}
-        cls.out, cls.tot = uf.incorrect_tunnel_single_mouse(cls.pred_out.keys(),
+        cls.pred_out = {"1 2": 1, "3 4": 0, "5 6": 1, "7 8": 0}
+        keys = cls.pred_out.keys()
+        cls.out, cls.tot = uf.incorrect_tunnel_single_mouse(keys,
                                                             antennas,
                                                             times, durations)
-        cls.pred_tot = {"1 2": 3, "3 4":1, "5 6": 1, "7 8": 0}
+        cls.pred_tot = {"1 2": 3, "3 4": 1, "5 6": 1, "7 8": 0}
         path = os.path.join(data_path, "weird_very_short_3_mice")
         cls.raw_data = uf.read_single_file(path, "20101010_110000.txt")
         cls.data = uf.from_raw_data(cls.raw_data)
         config = SetupConfig()
-        cls.out_i, cls.out_tot_i = uf.incorrect_tunnel_registrations(cls.data, config)
-        cls.pred_out_i = {"1 2": 0, "3 4": 0, "5 6":2, "7 8":0}
-        cls.pred_tot_i = {"1 2": 2, "3 4": 1, "5 6":7, "7 8":0}
+        cls.out_i, cls.out_tot_i = uf.incorrect_tunnel_registrations(cls.data,
+                                                                     config)
+        cls.pred_out_i = {"1 2": 0, "3 4": 0, "5 6": 2, "7 8": 0}
+        cls.pred_tot_i = {"1 2": 2, "3 4": 1, "5 6": 7, "7 8": 0}
 
     def test_incorrect(self):
         self.assertEqual(self.pred_out, self.out)

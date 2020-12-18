@@ -34,13 +34,13 @@ def list_of_pairs(mice):
     return pair_labels
 
 
-def all_mouse_pairs(mice, reverse_order=False):
+def all_mouse_pairs(mice, reverse=False):
     pair_labels = []
     for mouse1 in mice:
         for mouse2 in mice:
             if mouse1 == mouse2:
                 continue
-            if reverse_order is True:
+            if reverse is True:
                 pair_labels.append('%s|%s' % (mouse2, mouse1))
             else:
                 pair_labels.append('%s|%s' % (mouse1, mouse2))
@@ -61,18 +61,18 @@ def make_table_of_pairs(FAM, phases, mice):
     return output, pair_labels
 
 
-def make_table_of_all_mouse_pairs(FAM, phases, mice, reverse_order=False):
+def make_table_of_all_mouse_pairs(FAM, phases, mice, reverse=False):
     new_shape = (len(mice)*(len(mice)-1), len(phases))
     output = np.zeros(new_shape)
     pair_labels = all_mouse_pairs(mice,
-                                  reverse_order=reverse_order)
+                                  reverse=reverse)
     for i, phase in enumerate(phases):
         count = 0
         for j in range(len(mice)):
             for k in range(len(mice)):
                 if j == k:
                     continue
-                if reverse_order is True:
+                if reverse is True:
                     output[count, i] = FAM[i, k, j]
                 else:
                     output[count, i] = FAM[i, j, k]
@@ -176,14 +176,15 @@ def change_state(antennas):
     return indx
 
 
-def get_times_antennas(ecohab_data, mouse, t_1, t_2):
+def get_times_antennas(e_data, mouse, t_1, t_2):
     if t_1 == 0 and t_2 == -1:
-        ecohab_data.unmask_data()
-        return ecohab_data.get_times(mouse), ecohab_data.get_antennas(mouse)
-    ecohab_data.mask_data(t_1, t_2)
-    antennas, times = ecohab_data.get_antennas(mouse), ecohab_data.get_times(mouse)
-    ecohab_data.unmask_data()
+        e_data.unmask_data()
+        return e_data.get_times(mouse), e_data.get_antennas(mouse)
+    e_data.mask_data(t_1, t_2)
+    antennas, times = e_data.get_antennas(mouse), e_data.get_times(mouse)
+    e_data.unmask_data()
     return times, antennas
+
 
 def get_times_antennas_list_of_mice(ecohab_data, mice, t_1, t_2):
     out = {}
@@ -193,6 +194,7 @@ def get_times_antennas_list_of_mice(ecohab_data, mice, t_1, t_2):
         out[mouse]["times"] = times
         out[mouse]["antennas"] = antennas
     return out
+
 
 def get_states_and_readouts(antennas, times, t1, t2):
     before = get_idx_pre(t1, times)
@@ -300,8 +302,8 @@ def get_indices(t_start, t_end, starts, ends):
     return sorted(list(set(idx_start + idx_end)))
 
 
-def get_ecohab_data_data_with_margin(ecohab_data, mouse, t_start, t_end,
-                             margin=12*3600):
+def get_ecohab_data_with_margin(ecohab_data, mouse, t_start, t_end,
+                                margin=12*3600):
     if t_start == 0 and t_end == -1:
         return ecohab_data.get_visit_addresses(mouse),\
             ecohab_data.get_starttimes(mouse),\
@@ -326,7 +328,8 @@ def prepare_data(ecohab_data, mice, times=None):
     t_start, t_end = times
     for mouse in mice:
         data[mouse] = []
-        ads, sts, ens = get_ecohab_data_data_with_margin(ecohab_data, mouse, t_start, t_end)
+        ads, sts, ens = get_ecohab_data_with_margin(ecohab_data, mouse,
+                                                    t_start, t_end)
         idxs = get_indices(t_start, t_end, sts, ens)
         for i in idxs:
             data[mouse].append((ads[i],
@@ -473,7 +476,8 @@ def prepare_binned_data(ecohab_data, timeline, bins, mice):
         data["ALL"] = {0: prepare_data(ecohab_data, mice, time)}
         keys = [["ALL"], [0]]
     elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
-        phases, total_time, data = get_dark_light_data(bins, timeline, ecohab_data, mice)
+        phases, total_time, data = get_dark_light_data(bins, timeline,
+                                                       ecohab_data, mice)
         keys = [list(data.keys()), [0]]
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
@@ -495,7 +499,8 @@ def prepare_binned_data(ecohab_data, timeline, bins, mice):
         else:
             all_phases = filter_dark_light(timeline.sections())
             bin_labels = get_times(bins)
-            times = [timeline.get_time_from_epoch(phase) for phase in all_phases]
+            times = [timeline.get_time_from_epoch(phase)
+                     for phase in all_phases]
         for i, phase in enumerate(all_phases):
             t_start, t_end = times[i]
             phases.append("%s_%4.2fh" % (phase.replace(" ", "_"), bins/3600))
@@ -507,7 +512,8 @@ def prepare_binned_data(ecohab_data, timeline, bins, mice):
                 if t_e > t_end:
                     t_e = t_end
                 time = [t_start, t_e]
-                data[phase][bin_labels[j]] = prepare_data(ecohab_data, mice, time)
+                data[phase][bin_labels[j]] = prepare_data(ecohab_data, mice,
+                                                          time)
                 total_time[phase][bin_labels[j]] = time[1] - time[0]
                 t_start += bins
                 j += 1
@@ -558,9 +564,8 @@ def prepare_registrations(ecohab_data, mice, st, en):
     return directions
 
 
-
-def prepare_binned_registrations(ecohab_data, timeline, bins, mice,
-                                 function=prepare_registrations):
+def get_registrations_bins(ecohab_data, timeline, bins, mice,
+                           function=prepare_registrations):
     total_time = OrderedDict()
     data = OrderedDict()
     if bins in ["ALL", "all", "All"]:
@@ -589,7 +594,8 @@ def prepare_binned_registrations(ecohab_data, timeline, bins, mice,
         else:
             all_phases = filter_dark_light(timeline.sections())
             bin_labels = get_times(bins, time_start=0, time_end=min_phase)
-            times = [timeline.get_time_from_epoch(phase) for phase in all_phases]
+            times = [timeline.get_time_from_epoch(phase)
+                     for phase in all_phases]
         for i, phase in enumerate(all_phases):
             t_start, t_end = times[i]
             phases.append("%s_%4.2fh" % (phase.replace(" ", "_"),
