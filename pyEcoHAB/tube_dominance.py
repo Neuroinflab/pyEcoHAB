@@ -2,9 +2,6 @@
 from __future__ import print_function, division, absolute_import
 import numpy as np
 from . import utility_functions as utils
-from .write_to_file import save_single_histograms, write_csv_rasters
-from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot
-from .plotting_functions import single_heat_map
 from . import exec_functions as dispatch
 from . import dominance_in_2_cages as dom2
 
@@ -74,7 +71,7 @@ def check_mouse1_pushing(antennas1, times1, antennas2, times2,
     while idx < len(antennas1):
         a1, a2 = antennas1[idx-1:idx+1]
         t1, t2 = times1[idx-1:idx+1]
-        if a1 != a2:
+        if a1 != a2 and a1 in config.same_tunnel and a2 in config.same_tunnel:
             if config.same_tunnel[a1] == config.same_tunnel[a2]:
                 temp_ants = [a1, a2]
                 temp_times = [t1, t2]

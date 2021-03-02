@@ -14,7 +14,7 @@ def evaluate_whole_experiment(ecohab_data, timeline, main_directory,
                               vmin=None, vmax=None,
                               delimiter=";"):
     phases = timeline.sections()
-    phases = utils.filter_dark(phases)
+    phases = utils.filter_dark_light(phases)
     mice = [mouse[-4:] for mouse in ecohab_data.mice]
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     result = np.zeros((len(phases), len(mice), len(mice)))
@@ -54,11 +54,13 @@ def evaluate_whole_experiment(ecohab_data, timeline, main_directory,
                       main_directory,
                       rast_dir,
                       fname_,
-                      delimiter=delimiter)
+                      delimiter=delimiter,
+                      symmetrical=False)
     make_RasterPlot(main_directory,
                     rast_dir,
                     result,
                     phases,
                     fname_,
                     mice,
-                    title=title)
+                    title=title,
+                    symmetrical=False)

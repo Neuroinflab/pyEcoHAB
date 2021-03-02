@@ -370,7 +370,7 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                             vmin=-1,
                             vmax=1,
                             title="Measured in-cohort sociability",
-                            symmetric=True)
+                            symmetrical=True)
             make_RasterPlot(res_dir,
                             out_dir_rasters_add,
                             csv_results_incohort_exp,
@@ -382,7 +382,7 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                             vmin=-1,
                             vmax=1,
                             title="Expected in-cohort sociability",
-                            symmetric=True)
+                            symmetrical=True)
             make_RasterPlot(res_dir,
                             out_dir_rasters,
                             csv_results_incohort-csv_results_incohort_exp,
@@ -394,5 +394,5 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                             vmin=-1,
                             vmax=1,
                             title="Excess in-cohort sociability",
-                            symmetric=True)
+                            symmetrical=True)
     return full_results, full_results_exp
