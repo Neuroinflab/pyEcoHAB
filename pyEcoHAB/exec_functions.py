@@ -13,8 +13,8 @@ def evaluate_whole_experiment(ecohab_data, timeline, main_directory,
                               args=[], remove_mouse=None,
                               vmin=None, vmax=None,
                               delimiter=";"):
-    phases = timeline.sections()
-    phases = utils.filter_dark_light(phases)
+
+    phases = utils.filter_dark_light(timeline.sections())
     mice = [mouse[-4:] for mouse in ecohab_data.mice]
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     result = np.zeros((len(phases), len(mice), len(mice)))
@@ -61,6 +61,6 @@ def evaluate_whole_experiment(ecohab_data, timeline, main_directory,
                     result,
                     phases,
                     fname_,
-                    mice,
+                    ecohab_data.mice,
                     title=title,
                     symmetrical=False)
