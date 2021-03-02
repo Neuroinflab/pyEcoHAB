@@ -111,7 +111,7 @@ def save_single_histograms(result, fname, mice, phase, main_directory,
 
 
 def write_csv_rasters(mice, phases, output, directory,
-                      dirname, fname, symmetric=True,
+                      dirname, fname, symmetrical=True,
                       reverse=False, delimiter=";"):
     new_name = os.path.join(dirname, 'data')
     directory = utils.check_directory(directory, new_name)
@@ -126,7 +126,7 @@ def write_csv_rasters(mice, phases, output, directory,
         header += delimiter + str(phase) + " h"
     header += '\n'
     f.write(header)
-    if symmetric:
+    if symmetrical:
         new_output, pairs = utils.make_table_of_pairs(output, phases, mice)
     else:
         new_output, pairs = utils.make_table_of_all_mouse_pairs(output, phases,

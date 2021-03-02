@@ -35,7 +35,7 @@ def make_RasterPlot(main_directory,
                     vmin=None,
                     vmax=None,
                     title=None,
-                    symmetric=True):
+                    symmetrical=True):
     mice = make_labels(old_mice)
     subdirectory = os.path.join(subdirectory, 'raster_plots')
     new_path = utils.check_directory(main_directory, subdirectory)
@@ -45,7 +45,7 @@ def make_RasterPlot(main_directory,
     assert FAM.shape[1] == len(mice)
     assert FAM.shape[2] == len(mice)
 
-    if symmetric:
+    if symmetrical:
         output, pair_labels = utils.make_table_of_pairs(FAM,
                                                         phases,
                                                         mice)
