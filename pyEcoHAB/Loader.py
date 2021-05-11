@@ -42,7 +42,7 @@ class EcoHabDataBase(object):
            setup_config: SetupConfig or ExperimentSetupConfig
              Geometry of the Eco-Hab setup used to collect data.
         """
-        self.readings = BaseFunctions.Data(data, mask)
+        self.registrations = BaseFunctions.Data(data, mask)
         self.threshold = visit_threshold
         self.mice = self.get_mice()
         self.visits = self._calculate_visits(setup_config)
@@ -53,7 +53,7 @@ class EcoHabDataBase(object):
         """Calculate timings of animal visits to Eco-HAB compartments, using
         a modified algorithm by Alicja Puscian and Szymon Leski. Main
         modification -- if there are internal atennas in cages,
-        readings from internal antennas override other readings
+        registrations from internal antennas override other registrations
         when specifying animal location.
 
         Args:
@@ -63,7 +63,7 @@ class EcoHabDataBase(object):
         """
         tempdata = []
         for mouse in self.mice:
-            times, antennas = utils.get_times_antennas(self.readings,
+            times, antennas = utils.get_times_antennas(self.registrations,
                                                        mouse,
                                                        0, -1)
             out = utils.get_animal_position(times, antennas,
@@ -84,8 +84,8 @@ class EcoHabDataBase(object):
         """Calculate EcoHabBase.visits. Calculate timings of animal visits to
         Eco-HAB compartments, using a modified algorithm by Alicja
         Puscian and Szymon Leski. Main modification -- if there are
-        internal atennas in cages, readings from internal antennas
-        override other readings when specifying animal location.
+        internal atennas in cages, registrations from internal antennas
+        override other registrations when specifying animal location.
 
         Args:
            setup_config: ExperimentSetupConfig or SetupConfig
@@ -99,7 +99,7 @@ class EcoHabDataBase(object):
 
     def mask_data(self, start_time, end_time):
         """
-        Hide readings and visits in ranges (self.session_start, start_time)
+        Hide registrations and visits in ranges (self.session_start, start_time)
         and (end_time, self.session_end).
 
         Args:
@@ -107,29 +107,29 @@ class EcoHabDataBase(object):
            end_time: float
         """
         self.mask = (start_time, end_time)
-        self.readings.mask_data(self.mask)
+        self.registrations.mask_data(self.mask)
         self.visits.mask_data(self.mask)
 
     def unmask_data(self):
-        """Remove the mask - future readings and visits queries will not be
+        """Remove the mask - future registrations and visits queries will not be
         clipped"""
         self.mask = None
-        self.readings.unmask_data()
+        self.registrations.unmask_data()
         self.visits.unmask_data()
 
     def get_antennas(self, mice):
-        return self.readings.getproperty(mice,
+        return self.registrations.getproperty(mice,
                                          'Antenna')
 
     def get_times(self, mice):
-        return self.readings.getproperty(mice,
+        return self.registrations.getproperty(mice,
                                          'Time',
                                          'float')
 
     def get_durations(self, mice):
         """Return duration of registration by antenna for specified animals.
         """
-        return self.readings.getproperty(mice,
+        return self.registrations.getproperty(mice,
                                          'Duration',
                                          'float')
 
@@ -157,7 +157,7 @@ class EcoHabDataBase(object):
         return len(all_antennas)
 
     def get_mice(self):
-        mouse_list = list(set(self.readings.data["Tag"]))
+        mouse_list = list(set(self.registrations.data["Tag"]))
         # new Eco-HAB has a different mouse tag naming convention
         # last five digits are the same whereas in previous version
         # there was a prefix and first digits where the same
@@ -343,7 +343,7 @@ class Loader(EcoHabDataBase):
         rawdata = self._read_in_raw_data(tags)
         data = ufl.from_raw_data(rawdata)
         data = ufl.remove_antennas(data, remove_antennas)
-        # As in antenna readings
+        # As in antenna registrations
         ufl.run_diagnostics(data, self.max_break, self.res_dir,
                             antennas)
         super(Loader, self).__init__(data, self.mask,
@@ -435,7 +435,7 @@ class Merger(EcoHabDataBase):
             setup_name = loader.setup_name
             configs[setup_name] = loader.setup_config
             datasets.append(ufl.rename_antennas(setup_name,
-                                                loader.readings.data))
+                                                loader.registrations.data))
             max_breaks.append(loader.max_break)
 
         data = ufl.append_data_sources(datasets)

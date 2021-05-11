@@ -92,7 +92,7 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="",
     This function counts both visits of every mouse to each Eco-HAB compartment
     and calculates time spent in each compartment. It is based on visits
     calculated while reading in the experiment data, which is based on antenna
-    readings. Activity values are saved as comma separated values in a
+    registrations. Activity values are saved as comma separated values in a
     file with activity_bin_{bin_length}_h.csv in res_dir/activity directory.
     For all filenames bin_length is the length of the bin in
     hours (binsize/3600), e.g. for binsize=3600 activity will be saved in
