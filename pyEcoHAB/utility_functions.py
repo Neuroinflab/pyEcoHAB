@@ -658,3 +658,27 @@ def to_struck(string, fname=""):
             return time.strptime(new_str, '%d.%m.%Y%H:%M:%S %Z')
         except ValueError:
             raise Exception('Wrong date format in %s' % fname)
+
+def diagonal_reflection(matrix_data, mice, binlabels):
+    for bin in binlabels:
+        for mouse1 in mice:
+            for mouse2 in mice:
+                if mouse1 == mouse2:
+                    continue
+                else:
+                     matrix_data[bin][mouse2][mouse1] = matrix_data[bin][mouse1][mouse2]
+    return(matrix_data)
+
+
+def sum_per_mouse(data, mice, binlabels):
+    sum_time = OrderedDict()
+    for bin in binlabels:
+        sum_time[bin] = OrderedDict()
+        for mouse1 in mice:
+            sum_time[bin][mouse1] = OrderedDict()
+            sum = 0
+            for mouse2 in mice:
+                sum += data[bin][mouse1][mouse2]
+            sum_time[bin][mouse1] = sum
+
+    return(sum_time)

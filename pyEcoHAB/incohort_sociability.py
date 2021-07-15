@@ -5,7 +5,7 @@ from collections import OrderedDict
 import numpy as np
 from . import utility_functions as utils
 from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot
-from .write_to_file import write_binned_data, write_csv_rasters
+from .write_to_file import write_binned_data, write_csv_rasters, write_sum_data
 from .write_to_file import write_csv_alone
 
 
@@ -259,6 +259,8 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                                        "bins_%s" % binsize_name)
     all_phases, bin_labels = keys
     cages = ecohab_data.cages
+    excess_time_per_mouse = OrderedDict()
+
     for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase]
         for lab in bin_labels:
@@ -282,11 +284,18 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
         excess_time = utils.calc_excess(full_results[ph],
                                         full_results_exp[ph])
 
+        reflected_excess_time = utils.diagonal_reflection(excess_time, mice, bin_labels)
+        excess_time_per_mouse[ph] = utils.sum_per_mouse(reflected_excess_time,mice, bin_labels)
+
+
+
         write_binned_data(excess_time,
                           'incohort_sociability_excess_time',
                           mice, bin_labels, new_phase, res_dir,
                           out_dir_hist, prefix, additional_info=add_info_mice,
                           delimiter=delimiter)
+
+
         if isinstance(binsize, int) or isinstance(binsize, float):
             if int(binsize) == 12*3600 or int(binsize) == 24*3600:
                 fname = "incohort_sociability_"
@@ -395,4 +404,8 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                             vmax=1,
                             title="Excess in-cohort sociability",
                             symmetrical=True)
+
+        write_sum_data(excess_time_per_mouse, 'excess_incohort_sociability_per_mouse', mice, bin_labels, all_phases,
+                       res_dir, out_dir_hist, prefix, additional_info=add_info_mice, delimiter=delimiter)
+
     return full_results, full_results_exp
