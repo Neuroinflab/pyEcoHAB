@@ -754,5 +754,6 @@ class TestGetIncohortSociability(unittest.TestCase):
         ics.get_incohort_sociability(data, config, 24*3600)
 
 
+
 if __name__ == '__main__':
     unittest.main()

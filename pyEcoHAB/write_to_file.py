@@ -340,3 +340,35 @@ def save_antenna_transitions(transition_times,
                     f.write("%f%s" % (duration, delimiter))
                 f.write("\n")
             f.close()
+
+
+def write_sum_data(data, fname, mice, bin_labels, phases,
+                      path, target_dir, prefix, additional_info="",
+                      delimiter=";"):
+    new_path = os.path.join(path, target_dir, "data")
+    fname = os.path.join(new_path, '%s_%s_%s.csv' % (fname, prefix, additional_info))
+    if not os.path.exists(new_path):
+        os.makedirs(new_path)
+    print(fname)
+    f = open(fname, "w")
+    header = 'mouse'
+
+    for phase in phases:
+        for bin in bin_labels:
+            header += delimiter + str(bin/3600) + "h "+ str(phase)
+    header += '\n'
+    f.write(header)
+
+    for mouse_label in data[phase][bin].keys():
+        f.write(mouse_label + delimiter)
+        for phase in phases:
+            for bin in bin_labels:
+                for mouse in mice:
+                    if mouse == mouse_label:
+                        f.write(str(data[phase][bin][mouse]) + delimiter)
+                    else:
+                        continue
+        f.write("\n")
+    f.close()
+
+
