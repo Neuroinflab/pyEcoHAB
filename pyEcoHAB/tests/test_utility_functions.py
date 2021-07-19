@@ -2200,7 +2200,7 @@ class TestPrepareForSumming(unittest.TestCase):
 
                 cls.excess[key1][key2] = OrderedDict()
                 cls.test_excess[key1][key2] = OrderedDict()
-                cls.test_sum[key1][key2] = 0.8
+                cls.test_sum[key1][key2] = 0.08
                 for key3 in cls.mice:
                     cls.excess[key1][key2][key3] = 0.00
                     cls.test_excess[key1][key2][key3] = 0.04
@@ -2213,7 +2213,7 @@ class TestPrepareForSumming(unittest.TestCase):
 
         reflected_excess_time = uf.diagonal_reflection(self.excess, self.mice, self.bin_labels)
         self.assertEqual(reflected_excess_time, self.test_excess, "False, diagonal reflection test failed")
-        return(reflected_excess_time)
+        return (reflected_excess_time)
 
 
     def test_sum_per_mouse(self):

@@ -676,9 +676,8 @@ def sum_per_mouse(data, mice, binlabels):
         sum_time[bin] = OrderedDict()
         for mouse1 in mice:
             sum_time[bin][mouse1] = OrderedDict()
-            sum = 0
+            sum_time_per_mouse = 0
             for mouse2 in mice:
-                sum += data[bin][mouse1][mouse2]
-            sum_time[bin][mouse1] = sum
-
+                sum_time_per_mouse += data[bin][mouse1][mouse2]
+            sum_time[bin][mouse1] = sum_time_per_mouse
     return(sum_time)
