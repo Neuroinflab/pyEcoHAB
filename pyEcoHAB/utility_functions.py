@@ -670,14 +670,27 @@ def diagonal_reflection(matrix_data, mice, binlabels):
     return(matrix_data)
 
 
-def sum_per_mouse(data, mice, binlabels):
-    sum_time = OrderedDict()
+def sum_per_mouse(data, mice, binlabels, phase, position, boolPhase=bool):
+    sum_value = OrderedDict()
     for bin in binlabels:
-        sum_time[bin] = OrderedDict()
+        sum_value[bin] = OrderedDict()
         for mouse1 in mice:
-            sum_time[bin][mouse1] = OrderedDict()
-            sum_time_per_mouse = 0
+            sum_value[bin][mouse1] = 0
             for mouse2 in mice:
-                sum_time_per_mouse += data[bin][mouse1][mouse2]
-            sum_time[bin][mouse1] = sum_time_per_mouse
-    return(sum_time)
+                if mouse1 == mouse2:
+                    continue
+                else:
+                    if (position == "leader" or position == "sum_per_mouse"):
+                        if boolPhase == True:
+                            sum_value[bin][mouse1] += data[phase][bin][mouse1][mouse2]
+                        else:
+                            sum_value[bin][mouse1] += data[bin][mouse1][mouse2]
+                    elif (position == "follower"):
+                        if boolPhase == True:
+                            sum_value[bin][mouse1] += data[phase][bin][mouse2][mouse1]
+                        else:
+                            sum_value[bin][mouse1] += data[bin][mouse2][mouse1]
+                    else:
+                        print("Position value is invalid, please check it")
+                        exit()
+    return(sum_value)

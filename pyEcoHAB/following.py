@@ -3,6 +3,7 @@ from __future__ import division, absolute_import
 import random
 import os
 import numpy as np
+from collections import OrderedDict
 
 from . import utility_functions as utils
 from .write_to_file import save_single_histograms
@@ -10,11 +11,13 @@ from .write_to_file import write_csv_rasters
 from .write_to_file import write_binned_data
 from .write_to_file import write_interpair_intervals
 from .write_to_file import write_bootstrap_results
+from .write_to_file import write_sum_data
 from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot
 from .plotting_functions import pooled_hists
 from .plotting_functions import make_histograms_for_every_mouse
 from .plotting_functions import pooled_hists_for_every_mouse
 from .plotting_functions import single_histogram_figures
+
 
 
 def insert_interval(candidate_t_start, interval,
@@ -357,8 +360,17 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                                     "durations_dynamic_interactions",
                                     "rasters",
                                     "bin_%s" % binsize)
+
+    mouse_leading_sum = OrderedDict()
+    mouse_following_sum = OrderedDict()
+    mouse_leading_sum_exp = OrderedDict()
+    mouse_following_sum_exp = OrderedDict()
     for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase]
+        mouse_leading_sum[ph] = OrderedDict()
+        mouse_following_sum[ph] = OrderedDict()
+        mouse_leading_sum_exp[ph] = OrderedDict()
+        mouse_following_sum_exp[ph] = OrderedDict()
         for i, lab in enumerate(bin_labels):
             t_start, t_stop = times[ph][lab]
             directions_dict = data[ph][lab]
@@ -379,6 +391,12 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                                                  save_figures=save_figures)
             following_exp[ph][lab], time_together_exp[ph][lab] = out_expected
             add_intervals(interval_details, phase_intervals1)
+
+        mouse_leading_sum[ph] = utils.sum_per_mouse(following, mice, bin_labels, ph, "leader", True)
+        mouse_following_sum[ph] = utils.sum_per_mouse(following, mice, bin_labels, ph, "follower", True)
+
+        mouse_leading_sum_exp[ph] = utils.sum_per_mouse(following_exp, mice, bin_labels, ph, "leader", True)
+        mouse_following_sum_exp[ph] = utils.sum_per_mouse(following_exp, mice, bin_labels, ph, "follower", True)
 
         write_binned_data(following[ph],
                           'dynamic_interactions',
@@ -559,6 +577,17 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                               fname_excess, delimiter=delimiter,
                               symmetrical=False)
 
+    write_sum_data(mouse_leading_sum, "mouse_leading_sum", mice, bin_labels, all_phases, res_dir,
+                   raster_dir_add, prefix, additional_info="ALL", delimiter=";", bool_bins=False)
+    write_sum_data(mouse_following_sum, "mouse_following_sum", mice, bin_labels, all_phases, res_dir,
+                   raster_dir_add, prefix, additional_info="ALL",delimiter=";", bool_bins=False)
+
+    write_sum_data(mouse_leading_sum_exp, "mouse_leading_sum_exp", mice, bin_labels, all_phases, res_dir,
+                   raster_dir_add, prefix, additional_info="ALL", delimiter=";", bool_bins=False)
+    write_sum_data(mouse_following_sum_exp, "mouse_following_sum_exp", mice, bin_labels, all_phases, res_dir,
+                   raster_dir_add, prefix, additional_info="ALL", delimiter=";", bool_bins=False)
+
+
     if isinstance(binsize, int) or isinstance(binsize, float):
         if binsize == 43200:
             write_csv_rasters(mice,
@@ -614,6 +643,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                          other_excess_hist,
                          prefix,
                          additional_info=add_info_mice)
+
 
     if save_times_following:
         make_histograms_for_every_mouse(interval_details,
