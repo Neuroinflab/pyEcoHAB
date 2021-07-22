@@ -3,6 +3,7 @@ from __future__ import division, absolute_import
 import random
 import os
 import numpy as np
+from collections import OrderedDict
 
 from . import utility_functions as utils
 from .write_to_file import save_single_histograms
@@ -16,7 +17,7 @@ from .plotting_functions import pooled_hists
 from .plotting_functions import make_histograms_for_every_mouse
 from .plotting_functions import pooled_hists_for_every_mouse
 from .plotting_functions import single_histogram_figures
-from collections import OrderedDict
+
 
 
 def insert_interval(candidate_t_start, interval,
