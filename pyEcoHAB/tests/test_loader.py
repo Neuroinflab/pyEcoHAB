@@ -83,6 +83,15 @@ class TestLoader(unittest.TestCase):
                                        t_end=1286708768.349)
         self.assertEqual(len(out), 4)
 
+    def test_visits_different_cages_sorted(self):
+        out = self.dataset2.get_visits(t_start=1286708669.65,
+                                       t_end=1286708768.349)
+        expected = True
+        for i, o in enumerate(out[:-1]):
+            if o.t_start > out[i+1].t_start:
+                expected = False
+        self.assertTrue(expected)
+
     def test_visits_different_cages_2(self):
         out = self.dataset2.get_visits(t_start=1286708669.65,
                                        t_end=1286708768.349, cage="cage C")
