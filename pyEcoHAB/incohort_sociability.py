@@ -405,7 +405,11 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                             title="Excess in-cohort sociability",
                             symmetrical=True)
 
-        write_sum_data(excess_time_per_mouse, 'excess_incohort_sociability_per_mouse', mice, bin_labels, all_phases,
-                       res_dir, out_dir_hist, prefix, additional_info=add_info_mice, delimiter=delimiter, bool_bins=True)
+            write_sum_data(excess_time_per_mouse,
+                           'excess_incohort_sociability_per_mouse',
+                           mice, bin_labels, all_phases,
+                           res_dir, out_dir_hist, prefix,
+                           additional_info=add_info_mice,
+                           delimiter=delimiter, bool_bins=True)
 
     return full_results, full_results_exp
