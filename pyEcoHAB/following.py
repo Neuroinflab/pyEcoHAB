@@ -363,14 +363,16 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
 
     mouse_leading_sum = OrderedDict()
     mouse_following_sum = OrderedDict()
-    mouse_leading_sum_exp = OrderedDict()
-    mouse_following_sum_exp = OrderedDict()
+    mouse_leading_sum_excess = OrderedDict()
+    mouse_following_sum_excess = OrderedDict()
+    mouse_activity = OrderedDict()
+    mouse_leading_sum_div_activ = OrderedDict()
+    mouse_following_sum_div_activ = OrderedDict()
+    mouse_leading_sum_div_activ_excess = OrderedDict()
+    mouse_following_sum_div_activ_excess = OrderedDict()
+
     for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase]
-        mouse_leading_sum[ph] = OrderedDict()
-        mouse_following_sum[ph] = OrderedDict()
-        mouse_leading_sum_exp[ph] = OrderedDict()
-        mouse_following_sum_exp[ph] = OrderedDict()
         for i, lab in enumerate(bin_labels):
             t_start, t_stop = times[ph][lab]
             directions_dict = data[ph][lab]
@@ -394,9 +396,9 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
 
         mouse_leading_sum[ph] = utils.sum_per_mouse(following, mice, bin_labels, ph, "leader", True)
         mouse_following_sum[ph] = utils.sum_per_mouse(following, mice, bin_labels, ph, "follower", True)
-
-        mouse_leading_sum_exp[ph] = utils.sum_per_mouse(following_exp, mice, bin_labels, ph, "leader", True)
-        mouse_following_sum_exp[ph] = utils.sum_per_mouse(following_exp, mice, bin_labels, ph, "follower", True)
+        mouse_activity[ph] = utils.mouse_activity(ecohab_data, mice, bin_labels)
+        mouse_leading_sum_div_activ[ph] = utils.divide_sum_activity(mouse_leading_sum[ph], mouse_activity[ph], mice, bin_labels)
+        mouse_following_sum_div_activ[ph] = utils.divide_sum_activity(mouse_following_sum[ph], mouse_activity[ph], mice, bin_labels)
 
         write_binned_data(following[ph],
                           'dynamic_interactions',
@@ -412,6 +414,15 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                           delimiter=delimiter)
         excess_following = utils.calc_excess(following[ph],
                                              following_exp[ph])
+
+        mouse_leading_sum_excess[ph] = utils.sum_per_mouse(following_exp, mice, bin_labels, ph, "leader", True)
+        mouse_following_sum_excess[ph] = utils.sum_per_mouse(following_exp, mice, bin_labels, ph, "follower", True)
+
+        mouse_leading_sum_div_activ_excess[ph] = utils.divide_sum_activity(mouse_leading_sum_excess[ph], mouse_activity[ph], mice,
+                                                                    bin_labels)
+        mouse_following_sum_div_activ_excess[ph] = utils.divide_sum_activity(mouse_following_sum_excess[ph], mouse_activity[ph], mice,
+                                                                      bin_labels)
+
         write_binned_data(excess_following,
                           'dynamic_interactions_excess_%s' % method,
                           mice, bin_labels, new_phase, res_dir,
@@ -578,14 +589,21 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                               symmetrical=False, prefix=prefix)
 
     write_sum_data(mouse_leading_sum, "mouse_leading_sum", mice, bin_labels, all_phases, res_dir,
-                   raster_dir_add, prefix, additional_info="ALL", delimiter=";", bool_bins=False)
+                       raster_dir_add, prefix, additional_info="ALL", delimiter=";", bool_bins=True)
     write_sum_data(mouse_following_sum, "mouse_following_sum", mice, bin_labels, all_phases, res_dir,
-                   raster_dir_add, prefix, additional_info="ALL",delimiter=";", bool_bins=False)
-
-    write_sum_data(mouse_leading_sum_exp, "mouse_leading_sum_exp", mice, bin_labels, all_phases, res_dir,
-                   raster_dir_add, prefix, additional_info="ALL", delimiter=";", bool_bins=False)
-    write_sum_data(mouse_following_sum_exp, "mouse_following_sum_exp", mice, bin_labels, all_phases, res_dir,
-                   raster_dir_add, prefix, additional_info="ALL", delimiter=";", bool_bins=False)
+                       raster_dir_add, prefix, additional_info="ALL",delimiter=";", bool_bins=True)
+    write_sum_data(mouse_leading_sum_excess, "mouse_leading_sum_excess", mice, bin_labels, all_phases, res_dir,
+                       raster_dir_add, prefix, additional_info="ALL", delimiter=";", bool_bins=True)
+    write_sum_data(mouse_following_sum_excess, "mouse_following_sum_excess", mice, bin_labels, all_phases, res_dir,
+                       raster_dir_add, prefix, additional_info="ALL", delimiter=";", bool_bins=True)
+    write_sum_data(mouse_leading_sum_div_activ, "mouse_leading_activity", mice, bin_labels, all_phases, res_dir,
+                       raster_dir_add, prefix, additional_info="ALL", delimiter=";", bool_bins=True)
+    write_sum_data(mouse_following_sum_div_activ, "mouse_following_activity", mice, bin_labels, all_phases, res_dir,
+                       raster_dir_add, prefix, additional_info="ALL", delimiter=";", bool_bins=True)
+    write_sum_data(mouse_leading_sum_div_activ_excess, "mouse_leading_excess_activity", mice, bin_labels, all_phases, res_dir,
+                   raster_dir_add, prefix, additional_info="ALL", delimiter=";", bool_bins=True)
+    write_sum_data(mouse_following_sum_div_activ_excess, "mouse_following_excess_activity", mice, bin_labels, all_phases, res_dir,
+                   raster_dir_add, prefix, additional_info="ALL", delimiter=";", bool_bins=True)
 
 
     if isinstance(binsize, int) or isinstance(binsize, float):
