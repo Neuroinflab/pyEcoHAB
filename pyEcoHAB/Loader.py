@@ -427,7 +427,7 @@ class Merger(EcoHabDataBase):
     loaders:
         Eco-HAB datasets
     """
-    def __init__(self, experiment_config, res_dir, *loaders):
+    def __init__(self, experiment_config, res_dir, *loaders, prefix=None):
         datasets = []
         configs = {}
         max_breaks = []
@@ -441,7 +441,10 @@ class Merger(EcoHabDataBase):
         data = ufl.append_data_sources(datasets)
         mask = None
         self.visit_threshold = max([d.visit_threshold for d in loaders])
-        self.prefix = "merged"
+        if isinstance(prefix, str):
+            self.prefix = "%s_merged_" % prefix
+        else:
+            self.prefix = "merged_"
         today = date.today().strftime("%d.%m.%y")
         self.res_dir = "%s_%s" % (res_dir, today)
         antennas = ExperimentSetupConfig(experiment_config, **configs)
