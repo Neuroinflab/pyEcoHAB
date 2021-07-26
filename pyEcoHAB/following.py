@@ -464,7 +464,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                           raster_dir_add,
                           fname_measured,
                           delimiter=delimiter,
-                          symmetrical=False)
+                          symmetrical=False, prefix=prefix)
         write_csv_rasters(mice,
                           raster_labels,
                           phase_exp_full_results,
@@ -472,7 +472,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                           raster_dir_add,
                           fname_expected,
                           delimiter=delimiter,
-                          symmetrical=False)
+                          symmetrical=False, prefix=prefix)
         write_csv_rasters(mice,
                           raster_labels,
                           phase_full_results - phase_exp_full_results,
@@ -481,7 +481,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                           "excess_following_%s.csv" % new_phase,
                           delimiter=delimiter,
                           symmetrical=False,
-                          reverse=True)
+                          reverse=True, prefix=prefix)
 
         write_csv_rasters(mice,
                           raster_labels,
@@ -490,7 +490,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                           raster_dir,
                           "excess_leading_%s.csv" % new_phase,
                           delimiter=delimiter,
-                          symmetrical=False)
+                          symmetrical=False, prefix=prefix)
 
         if save_times_following:
             write_binned_data(time_together[ph],
@@ -560,7 +560,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                               other_dir,
                               fname_measured,
                               delimiter=delimiter,
-                              symmetrical=False)
+                              symmetrical=False, prefix=prefix)
             write_csv_rasters(mice,
                               raster_labels,
                               phase_exp_full_results,
@@ -568,14 +568,14 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                               other_dir,
                               fname_expected,
                               delimiter=delimiter,
-                              symmetrical=False)
+                              symmetrical=False, prefix=prefix)
             write_csv_rasters(mice,
                               raster_labels,
                               phase_full_results - phase_exp_full_results,
                               res_dir,
                               other_dir,
                               fname_excess, delimiter=delimiter,
-                              symmetrical=False)
+                              symmetrical=False, prefix=prefix)
 
     write_sum_data(mouse_leading_sum, "mouse_leading_sum", mice, bin_labels, all_phases, res_dir,
                    raster_dir_add, prefix, additional_info="ALL", delimiter=";", bool_bins=False)
@@ -599,7 +599,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                               fname_excess,
                               symmetrical=False,
                               delimiter=delimiter,
-                              reverse=True)
+                              reverse=True, prefix=prefix)
             write_csv_rasters(mice,
                               phases,
                               csv_results_following -
@@ -608,7 +608,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                               raster_dir,
                               fname_excess_rev,
                               symmetrical=False,
-                              delimiter=delimiter)
+                              delimiter=delimiter, prefix=prefix)
             write_csv_rasters(mice,
                               phases,
                               csv_results_following,
@@ -617,7 +617,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                               fname_,
                               symmetrical=False,
                               reverse=True,
-                              delimiter=delimiter)
+                              delimiter=delimiter, prefix=prefix)
             write_csv_rasters(mice,
                               phases,
                               csv_results_following,
@@ -625,7 +625,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                               raster_dir_add,
                               fname_rev_,
                               symmetrical=False,
-                              delimiter=delimiter)
+                              delimiter=delimiter, prefix=prefix)
             make_RasterPlot(res_dir,
                             raster_dir,
                             (csv_results_following -
@@ -634,7 +634,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                             fname_excess,
                             mice,
                             title='% excess following',
-                            symmetrical=False)
+                            symmetrical=False, prefix=prefix)
             pooled_hists(following,
                          following_exp,
                          all_phases,
@@ -674,7 +674,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                               "excess_duration_following",
                               symmetrical=False,
                               reverse=True,
-                              delimiter=delimiter)
+                              delimiter=delimiter, prefix=prefix)
             write_csv_rasters(mice,
                               phases,
                               csv_results_time - csv_results_time_exp,
@@ -682,7 +682,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                               other_raster_dir,
                               "excess_duration_leading",
                               symmetrical=False,
-                              delimiter=delimiter)
+                              delimiter=delimiter, prefix=prefix)
             make_RasterPlot(res_dir,
                             other_raster_dir,
                             (csv_results_time - csv_results_time_exp),
@@ -690,5 +690,5 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                             "excess_durations_dynamic_interactions",
                             mice,
                             title='% excess duration dynamic interactions',
-                            symmetrical=False)
+                            symmetrical=False, prefix=prefix)
     return following, following_exp, phases, mice

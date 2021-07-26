@@ -300,7 +300,7 @@ class SetupConfigMethods(RawConfigParser):
 
     def get_directions_dict(self):
         """
-        Return a list of pairs of possible antenna readings, when an animal
+        Return a list of pairs of possible antenna registrations, when an animal
         is crossing a tunnel in any direction, for all tunnels and directions
         in the experimental setup.
         """

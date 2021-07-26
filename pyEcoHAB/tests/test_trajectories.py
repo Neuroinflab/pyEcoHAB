@@ -81,10 +81,10 @@ class TestAntennaTransitions(unittest.TestCase):
 
         cls.calc = tr.get_antenna_transition_durations(cls.data,
                                                        cls.timeline,
-                                                       bins="ALL")
+                                                       binsize="ALL")
         cls.calc_dark = tr.get_antenna_transition_durations(cls.data,
                                                             cls.timeline,
-                                                            bins=1800)
+                                                            binsize=1800)
         for key in cls.expected["ALL"][0.0]:
             line = cls.expected["ALL"][0.0][key]
             cls.expected["ALL"][0.0][key] = [np.round(a, decimals=3)
@@ -248,12 +248,12 @@ class TestGetAntennaTransitions(unittest.TestCase):
     def test_all_phases(self):
         transitions = tr.get_antenna_transition_durations(self.data,
                                                           self.timeline,
-                                                          bins=30*60)
+                                                          binsize=30*60)
 
     def test_ALL(self):
         transitions = tr.get_antenna_transition_durations(self.data,
                                                           self.timeline,
-                                                          bins="ALL")
+                                                          binsize="ALL")
 
 
 class TestTrainsOfSingleAntennaRegistrations(unittest.TestCase):
