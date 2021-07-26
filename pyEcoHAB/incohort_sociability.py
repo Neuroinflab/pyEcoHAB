@@ -285,7 +285,9 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                                         full_results_exp[ph])
 
         reflected_excess_time = utils.diagonal_reflection(excess_time, mice, bin_labels)
-        excess_time_per_mouse[ph] = utils.sum_per_mouse(reflected_excess_time, mice, bin_labels, ph, "sum_per_mouse", False)
+        excess_time_per_mouse[ph] = utils.sum_per_mouse(reflected_excess_time,
+                                                        mice, bin_labels, ph,
+                                                        "sum_per_mouse", False)
 
 
 
@@ -353,21 +355,21 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                               res_dir,
                               out_dir_rasters_add,
                               out_name % ("measured", "csv"),
-                              delimiter=delimiter, prefix=prefix)
+                              delimiter=delimiter)
             write_csv_rasters(mice,
                               all_phases,
                               csv_results_incohort_exp,
                               res_dir,
                               out_dir_rasters_add,
                               out_name % ("expected", "csv"),
-                              delimiter=delimiter, prefix=prefix)
+                              delimiter=delimiter)
             write_csv_rasters(mice,
                               all_phases,
                               csv_results_incohort - csv_results_incohort_exp,
                               res_dir,
                               out_dir_rasters,
                               out_name % ("excess", "csv"),
-                              delimiter=delimiter, prefix=prefix)
+                              delimiter=delimiter)
             make_RasterPlot(res_dir,
                             out_dir_rasters_add,
                             csv_results_incohort,
