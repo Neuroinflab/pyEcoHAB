@@ -86,7 +86,8 @@ def make_RasterPlot(main_directory,
             tick.set_rotation(90)
     fig.subplots_adjust(left=0.25)
     fig.subplots_adjust(bottom=0.25)
-    name = name + prefix
+    if prefix:
+        name = "%s_%s" % (prefix, name)
     new_name = os.path.join(new_path, name)
     print(new_name)
     plt.savefig(new_name+".png",
