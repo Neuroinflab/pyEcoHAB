@@ -55,7 +55,7 @@ def evaluate_whole_experiment(ecohab_data, timeline, main_directory,
                       rast_dir,
                       fname_,
                       delimiter=delimiter,
-                      symmetrical=False)
+                      symmetrical=False, prefix=prefix)
     make_RasterPlot(main_directory,
                     rast_dir,
                     result,
@@ -63,4 +63,4 @@ def evaluate_whole_experiment(ecohab_data, timeline, main_directory,
                     fname_,
                     ecohab_data.mice,
                     title=title,
-                    symmetrical=False)
+                    symmetrical=False, prefix=prefix)

@@ -353,21 +353,21 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                               res_dir,
                               out_dir_rasters_add,
                               out_name % ("measured", "csv"),
-                              delimiter=delimiter)
+                              delimiter=delimiter, prefix=prefix)
             write_csv_rasters(mice,
                               all_phases,
                               csv_results_incohort_exp,
                               res_dir,
                               out_dir_rasters_add,
                               out_name % ("expected", "csv"),
-                              delimiter=delimiter)
+                              delimiter=delimiter, prefix=prefix)
             write_csv_rasters(mice,
                               all_phases,
                               csv_results_incohort - csv_results_incohort_exp,
                               res_dir,
                               out_dir_rasters,
                               out_name % ("excess", "csv"),
-                              delimiter=delimiter)
+                              delimiter=delimiter, prefix=prefix)
             make_RasterPlot(res_dir,
                             out_dir_rasters_add,
                             csv_results_incohort,

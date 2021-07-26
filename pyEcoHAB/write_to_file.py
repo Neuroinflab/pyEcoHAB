@@ -112,10 +112,13 @@ def save_single_histograms(result, fname, mice, phase, main_directory,
 
 def write_csv_rasters(mice, phases, output, directory,
                       dirname, fname, symmetrical=True,
-                      reverse=False, delimiter=";"):
+                      reverse=False, delimiter=";", prefix=""):
     new_name = os.path.join(dirname, 'data')
     directory = utils.check_directory(directory, new_name)
+    if prefix:
+        fname = "%s_%s" % (prefix, fname)
     fname = os.path.join(directory, fname)
+    
     print(fname)
     try:
         f = open(fname, 'w')
