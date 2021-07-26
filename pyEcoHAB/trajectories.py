@@ -111,7 +111,7 @@ def get_cage_tunnel_transitions(t_dict, setup_config):
     return out
 
 
-def get_antenna_transition_durations(ecohab_data, timeline, bins=12*3600,
+def get_antenna_transition_durations(ecohab_data, timeline, binsize=12*3600,
                                      res_dir="", prefix="", remove_mouse="",
                                      delimiter=";"):
     """Save and plot histograms of durations between consecutive tag
@@ -155,7 +155,7 @@ def get_antenna_transition_durations(ecohab_data, timeline, bins=12*3600,
     function = utils.get_times_antennas_list_of_mice
     phases, times, data, keys = utils.get_registrations_bins(ecohab_data,
                                                              timeline,
-                                                             bins,
+                                                             binsize,
                                                              mice,
                                                              function)
     transitions = antenna_transtions_in_phases(data, times, phases,
