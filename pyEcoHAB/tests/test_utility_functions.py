@@ -2225,13 +2225,18 @@ class TestPrepareForSumming(unittest.TestCase):
 
     def test_diagonal_reflection_of_matrix(self):
 
-        reflected_excess_time = uf.diagonal_reflection(self.excess[self.phase[0]], self.mice, self.bin_labels)
-        self.assertEqual(reflected_excess_time, self.test_excess[self.phase[0]], "False, diagonal reflection test failed")
+        reflected_excess_time = uf.diagonal_reflection(self.excess[self.phase[0]],
+                                                       self.mice,
+                                                       self.bin_labels)
+        self.assertEqual(reflected_excess_time,
+                         self.test_excess[self.phase[0]],
+                         "False, diagonal reflection test failed")
         return (reflected_excess_time)
 
     def test_sum_per_mouse_no_phase(self):
         sum_excess_time = uf.sum_per_mouse(self.test_diagonal_reflection_of_matrix(),
-                                           self.mice, self.bin_labels, self.phase[0], "sum_per_mouse", False)
+                                           self.mice, self.bin_labels, self.phase[0],
+                                           "sum_per_mouse", False)
         self.assertEqual(sum_excess_time, self.test_sum[self.phase[0]], "False, sum test failed")
 
     def test_sum_per_mouse_phase(self):
@@ -2242,7 +2247,9 @@ class TestPrepareForSumming(unittest.TestCase):
         self.assertEqual(sum_time, self.test_sum, "False, sum test with phase failed")
 
     def test_divide_sum_activity(self):
-        div_result = uf.divide_sum_activity(self.test_sum[self.phase[0]], self.activity[self.phase[0]], self.mice, self.bin_labels)
+        div_result = uf.divide_sum_activity(self.test_sum[self.phase[0]],
+                                            self.activity[self.phase[0]],
+                                            self.mice, self.bin_labels)
         self.assertEqual(div_result, self.test_activity[self.phase[0]], "False, division test failed")
 
 if __name__ == '__main__':
