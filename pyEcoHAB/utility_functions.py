@@ -721,3 +721,30 @@ def divide_sum_activity(data_sum, data_activ, mice, binlabels):
     return(result)
 
 
+
+def mouse_activity(data, mice, binlabels):
+    visits = OrderedDict()
+    if len(binlabels) == 1:
+        binsize = 43200
+    else:
+        binsize = abs(binlabels[0] - binlabels[1])
+    for i, bin in zip(range(len(binlabels)), binlabels):
+        visits[bin] = OrderedDict()
+        t_s = 1402921162.964 + binlabels[i]
+        t_e = t_s + binsize
+        for mouse in mice:
+            visits[bin][mouse] = data.get_visits(mouse, None, t_s, t_e)
+    return(visits)
+
+def divide_sum_activity(data_sum, data_activ, mice, binlabels):
+    result = OrderedDict()
+    for bin in binlabels:
+        result[bin] = OrderedDict()
+        for mouse in mice:
+            if len(data_activ[bin][mouse]) > 0:
+                result[bin][mouse] = data_sum[bin][mouse] / len(data_activ[bin][mouse])
+            else:
+                result[bin][mouse] = 0
+    return(result)
+
+
