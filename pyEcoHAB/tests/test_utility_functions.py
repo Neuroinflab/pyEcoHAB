@@ -2192,36 +2192,51 @@ class TestPrepareForSumming(unittest.TestCase):
         cls.excess = OrderedDict()
         cls.test_excess = OrderedDict()
         cls.test_sum = OrderedDict()
+        cls.activity = OrderedDict()
+        cls.test_activity = OrderedDict()
 
         for key1 in cls.phase:
             cls.excess[key1] = OrderedDict()
             cls.test_excess[key1] = OrderedDict()
             cls.test_sum[key1] = OrderedDict()
+            cls.activity[key1] = OrderedDict()
+            cls.test_activity[key1] = OrderedDict()
             for key2 in cls.bin_labels:
                 cls.excess[key1][key2] = OrderedDict()
                 cls.test_excess[key1][key2] = OrderedDict()
                 cls.test_sum[key1][key2] = OrderedDict()
+                cls.activity[key1][key2] = OrderedDict()
+                cls.test_activity[key1][key2] = OrderedDict()
                 for key3 in cls.mice:
                     cls.excess[key1][key2][key3] = OrderedDict()
                     cls.test_excess[key1][key2][key3] = OrderedDict()
-                    cls.test_sum[key1][key2][key3] = 0.08
+                    cls.activity[key1][key2][key3] = OrderedDict()
+                    cls.test_activity[key1][key2][key3] = 4/5
+                    cls.test_sum[key1][key2][key3] = 4
                     for key4 in cls.mice:
                         cls.excess[key1][key2][key3][key4] = 0.00
-                        cls.test_excess[key1][key2][key3][key4] = 0.04
+                        cls.test_excess[key1][key2][key3][key4] = 2
                         if key3 == key4:
                             cls.test_excess[key1][key2][key3][key4] = 0.00
                         elif key3 < key4:
-                            cls.excess[key1][key2][key3][key4] = 0.04
+                            cls.excess[key1][key2][key3][key4] = 2
+                    for key5 in range(5):
+                        cls.activity[key1][key2][key3][key5] = 'activity'
 
     def test_diagonal_reflection_of_matrix(self):
 
-        reflected_excess_time = uf.diagonal_reflection(self.excess[self.phase[0]], self.mice, self.bin_labels)
-        self.assertEqual(reflected_excess_time, self.test_excess[self.phase[0]], "False, diagonal reflection test failed")
+        reflected_excess_time = uf.diagonal_reflection(self.excess[self.phase[0]],
+                                                       self.mice,
+                                                       self.bin_labels)
+        self.assertEqual(reflected_excess_time,
+                         self.test_excess[self.phase[0]],
+                         "False, diagonal reflection test failed")
         return (reflected_excess_time)
 
     def test_sum_per_mouse_no_phase(self):
         sum_excess_time = uf.sum_per_mouse(self.test_diagonal_reflection_of_matrix(),
-                                           self.mice, self.bin_labels, self.phase[0], "sum_per_mouse", False)
+                                           self.mice, self.bin_labels, self.phase[0],
+                                           "sum_per_mouse", False)
         self.assertEqual(sum_excess_time, self.test_sum[self.phase[0]], "False, sum test failed")
 
     def test_sum_per_mouse_phase(self):
@@ -2231,6 +2246,11 @@ class TestPrepareForSumming(unittest.TestCase):
                                        self.phase[0], "leader", True)
         self.assertEqual(sum_time, self.test_sum, "False, sum test with phase failed")
 
+    def test_divide_sum_activity(self):
+        div_result = uf.divide_sum_activity(self.test_sum[self.phase[0]],
+                                            self.activity[self.phase[0]],
+                                            self.mice, self.bin_labels)
+        self.assertEqual(div_result, self.test_activity[self.phase[0]], "False, division test failed")
 
 if __name__ == '__main__':
     unittest.main()

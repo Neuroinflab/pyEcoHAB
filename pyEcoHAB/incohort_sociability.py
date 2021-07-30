@@ -285,7 +285,9 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                                         full_results_exp[ph])
 
         reflected_excess_time = utils.diagonal_reflection(excess_time, mice, bin_labels)
-        excess_time_per_mouse[ph] = utils.sum_per_mouse(reflected_excess_time, mice, bin_labels, ph, "sum_per_mouse", False)
+        excess_time_per_mouse[ph] = utils.sum_per_mouse(reflected_excess_time,
+                                                        mice, bin_labels, ph,
+                                                        "sum_per_mouse", False)
 
 
 
