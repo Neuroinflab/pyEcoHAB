@@ -745,6 +745,34 @@ class TestSinglePhaseResults(unittest.TestCase):
         self.assertEqual(self.correct_res["mouse_2"]["mouse_2"],
                          self.out["mouse_2"]["mouse_2"])
 
+class TestTimeInTube(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+
+        cls.bin_labels = ["0.0"]
+        cls.mice = ['mouse_1', 'mouse_2', 'mouse_3']
+        cls.data = {
+            "0.0":{
+                "mouse_1": [["cage B", 0, 2],
+                            ["cage A", 3, 4],
+                            ["cage D", 5, 7],
+                            ["cage C", 8, 9]],
+
+                "mouse_2": [["cage B", 0, 2],
+                            ["cage A", 3, 4],
+                            ["cage D", 5, 7],
+                            ["cage C", 8, 9]],
+
+                "mouse_3": [["cage B", 0, 2],
+                            ["cage A", 3, 4],
+                            ["cage D", 5, 7],
+                            ["cage C", 8, 9]],
+            }
+        }
+    def test_tube_time(self):
+        test_time = ics.time_in_tube(self.data, self.mice, self.bin_labels)
+        print(test_time)
+
 
 class TestGetIncohortSociability(unittest.TestCase):
     def test_run(cls):
@@ -752,6 +780,7 @@ class TestGetIncohortSociability(unittest.TestCase):
         config = Timeline(sample_data)
         ics.get_incohort_sociability(data, config, 3600)
         ics.get_incohort_sociability(data, config, 24*3600)
+
 
 
 

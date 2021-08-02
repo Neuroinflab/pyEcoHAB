@@ -670,29 +670,33 @@ def diagonal_reflection(matrix_data, mice, binlabels):
     return(matrix_data)
 
 
-def sum_per_mouse(data, mice, binlabels, phase, position, boolPhase=bool):
+def sum_per_mouse(data, mice, binlabels, phase, position, boolPhase=bool, is_mouse2=bool):
     sum_value = OrderedDict()
     for bin in binlabels:
         sum_value[bin] = OrderedDict()
         for mouse1 in mice:
             sum_value[bin][mouse1] = 0
-            for mouse2 in mice:
-                if mouse1 == mouse2:
-                    continue
-                else:
-                    if (position == "leader" or position == "sum_per_mouse"):
-                        if boolPhase == True:
-                            sum_value[bin][mouse1] += data[phase][bin][mouse1][mouse2]
-                        else:
-                            sum_value[bin][mouse1] += data[bin][mouse1][mouse2]
-                    elif (position == "follower"):
-                        if boolPhase == True:
-                            sum_value[bin][mouse1] += data[phase][bin][mouse2][mouse1]
-                        else:
-                            sum_value[bin][mouse1] += data[bin][mouse2][mouse1]
+            if is_mouse2 == True:
+                for mouse2 in mice:
+                    if mouse1 == mouse2:
+                        continue
                     else:
-                        print("Position value is invalid, please check it")
-                        exit()
+                        if (position == "leader" or position == "sum_per_mouse"):
+                            if boolPhase == True:
+                                sum_value[bin][mouse1] += data[phase][bin][mouse1][mouse2]
+                            else:
+                                sum_value[bin][mouse1] += data[bin][mouse1][mouse2]
+                        elif (position == "follower"):
+                            if boolPhase == True:
+                                sum_value[bin][mouse1] += data[phase][bin][mouse2][mouse1]
+                            else:
+                                sum_value[bin][mouse1] += data[bin][mouse2][mouse1]
+                        else:
+                            print("Position value is invalid, please check it")
+                            exit()
+            else:
+                for i in list(data[bin][mouse1].keys()):
+                    sum_value[bin][mouse1] += data[bin][mouse1][i]
     return(sum_value)
 
 def mouse_activity(data, mice, binlabels):
@@ -747,4 +751,26 @@ def divide_sum_activity(data_sum, data_activ, mice, binlabels):
                 result[bin][mouse] = 0
     return(result)
 
+def mean(numerator, denominator, mice, binlabels):
+    result = OrderedDict()
+    for bin in binlabels:
+        result[bin] = OrderedDict()
+        for mouse in mice:
+            result[bin][mouse] = numerator[bin][mouse] / denominator
+    return(result)
+
+def standard_error(data, mean, N, mice, binlabels):
+    result = OrderedDict()
+    for bin in binlabels:
+        result[bin] = OrderedDict()
+        for mouse in mice:
+            result[bin][mouse] = 0
+            for i in list(data[bin][mouse].keys()):
+                result[bin][mouse] += (data[bin][mouse][i] - mean[bin][mouse])**(2)
+            if N[bin][mouse] !=0 and N[bin][mouse]>1:
+                result[bin][mouse] = (result[bin][mouse]/(N[bin][mouse]-1)**(1/2))**(1/2)
+                result[bin][mouse] = result[bin][mouse] / (N[bin][mouse])**(1/2)
+            else:
+                result[bin][mouse] = 0
+    return (result)
 

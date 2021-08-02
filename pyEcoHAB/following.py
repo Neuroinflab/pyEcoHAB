@@ -394,8 +394,8 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
             following_exp[ph][lab], time_together_exp[ph][lab] = out_expected
             add_intervals(interval_details, phase_intervals1)
 
-        mouse_leading_sum[ph] = utils.sum_per_mouse(following, mice, bin_labels, ph, "leader", True)
-        mouse_following_sum[ph] = utils.sum_per_mouse(following, mice, bin_labels, ph, "follower", True)
+        mouse_leading_sum[ph] = utils.sum_per_mouse(following, mice, bin_labels, ph, "leader", True, True)
+        mouse_following_sum[ph] = utils.sum_per_mouse(following, mice, bin_labels, ph, "follower", True, True)
         mouse_activity[ph] = utils.mouse_activity(ecohab_data, mice, bin_labels)
         mouse_leading_sum_div_activ[ph] = utils.divide_sum_activity(mouse_leading_sum[ph],
                                                                     mouse_activity[ph],
@@ -419,8 +419,8 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
         excess_following = utils.calc_excess(following[ph],
                                              following_exp[ph])
 
-        mouse_leading_sum_excess[ph] = utils.sum_per_mouse(following_exp, mice, bin_labels, ph, "leader", True)
-        mouse_following_sum_excess[ph] = utils.sum_per_mouse(following_exp, mice, bin_labels, ph, "follower", True)
+        mouse_leading_sum_excess[ph] = utils.sum_per_mouse(following_exp, mice, bin_labels, ph, "leader", True, True)
+        mouse_following_sum_excess[ph] = utils.sum_per_mouse(following_exp, mice, bin_labels, ph, "follower", True, True)
         mouse_leading_sum_div_activ_excess[ph] = utils.divide_sum_activity(mouse_leading_sum_excess[ph],
                                                                            mouse_activity[ph],
                                                                            mice, bin_labels)

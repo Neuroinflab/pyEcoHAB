@@ -378,4 +378,40 @@ def write_sum_data(data, fname, mice, bin_labels, phases,
         f.write("\n")
     f.close()
 
+def write_two_values(data1, data2, list_of_param, fname, mice, bin_labels, phases,
+                      path, target_dir, prefix, additional_info="",
+                      delimiter=";"):
+    new_path = os.path.join(path, target_dir, "data")
+    fname = os.path.join(new_path, '%s_%s_%s.csv' % (fname, prefix, additional_info))
+    if not os.path.exists(new_path):
+        os.makedirs(new_path)
+    print(fname)
+    f = open(fname, "w")
+    header = 'mouse'
+
+    for phase in phases:
+        for bin in bin_labels:
+            for param in list_of_param:
+                header += delimiter + str(param)+ " " + str(bin / 3600) + "h " + str(phase)
+    header += '\n'
+    f.write(header)
+
+    phase = phases[0]
+    bin = bin_labels[0]
+    for mouse_label in data1[phase][bin].keys():
+        f.write(mouse_label + delimiter)
+        for phase in phases:
+            for bin in bin_labels:
+                for param in list_of_param:
+                    for mouse in mice:
+                        if mouse == mouse_label:
+                            if param == list_of_param[0]:
+                                f.write(str(data1[phase][bin][mouse]) + delimiter)
+                            elif param == list_of_param[1]:
+                                f.write(str(data2[phase][bin][mouse]) + delimiter)
+                        else:
+                            continue
+        f.write("\n")
+    f.close()
+
 
