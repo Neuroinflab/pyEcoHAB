@@ -5,6 +5,8 @@ import time
 import sys
 from collections import OrderedDict
 import numpy as np
+
+
 # NamedDict class was originally written by Zbyszek Jędrzejewski-Szmek
 # and Avrama Blackwell for moose_nerp https://github.com/neurord/moose_nerp
 
@@ -659,41 +661,48 @@ def to_struck(string, fname=""):
         except ValueError:
             raise Exception('Wrong date format in %s' % fname)
 
+
 def diagonal_reflection(matrix_data, mice, binlabels):
+    result = matrix_data
     for bin in binlabels:
         for mouse1 in mice:
             for mouse2 in mice:
                 if mouse1 == mouse2:
                     continue
                 else:
-                     matrix_data[bin][mouse2][mouse1] = matrix_data[bin][mouse1][mouse2]
-    return(matrix_data)
+                    result[bin][mouse2][mouse1] = result[bin][mouse1][mouse2]
+    return(result)
 
 
-def sum_per_mouse(data, mice, binlabels, phase, position, boolPhase=bool):
+def sum_per_mouse(data, mice, binlabels, phase, position, boolPhase=bool, is_mouse2=bool):
     sum_value = OrderedDict()
     for bin in binlabels:
         sum_value[bin] = OrderedDict()
         for mouse1 in mice:
             sum_value[bin][mouse1] = 0
-            for mouse2 in mice:
-                if mouse1 == mouse2:
-                    continue
-                else:
-                    if (position == "leader" or position == "sum_per_mouse"):
-                        if boolPhase == True:
-                            sum_value[bin][mouse1] += data[phase][bin][mouse1][mouse2]
-                        else:
-                            sum_value[bin][mouse1] += data[bin][mouse1][mouse2]
-                    elif (position == "follower"):
-                        if boolPhase == True:
-                            sum_value[bin][mouse1] += data[phase][bin][mouse2][mouse1]
-                        else:
-                            sum_value[bin][mouse1] += data[bin][mouse2][mouse1]
+            if is_mouse2 == True:
+                for mouse2 in mice:
+                    if mouse1 == mouse2:
+                        continue
                     else:
-                        print("Position value is invalid, please check it")
-                        exit()
-    return(sum_value)
+                        if (position == "leader" or position == "sum_per_mouse"):
+                            if boolPhase == True:
+                                sum_value[bin][mouse1] += data[phase][bin][mouse1][mouse2]
+                            else:
+                                sum_value[bin][mouse1] += data[bin][mouse1][mouse2]
+                        elif (position == "follower"):
+                            if boolPhase == True:
+                                sum_value[bin][mouse1] += data[phase][bin][mouse2][mouse1]
+                            else:
+                                sum_value[bin][mouse1] += data[bin][mouse2][mouse1]
+                        else:
+                            print("Position value is invalid, please check it")
+                            exit()
+            else:
+                for i in list(data[bin][mouse1].keys()):
+                    sum_value[bin][mouse1] += data[bin][mouse1][i]
+    return (sum_value)
+
 
 def mouse_activity(data, mice, binlabels):
     visits = OrderedDict()
@@ -707,7 +716,8 @@ def mouse_activity(data, mice, binlabels):
         t_e = t_s + binsize
         for mouse in mice:
             visits[bin][mouse] = data.get_visits(mouse, None, t_s, t_e)
-    return(visits)
+    return (visits)
+
 
 def divide_sum_activity(data_sum, data_activ, mice, binlabels):
     result = OrderedDict()
@@ -718,8 +728,7 @@ def divide_sum_activity(data_sum, data_activ, mice, binlabels):
                 result[bin][mouse] = data_sum[bin][mouse] / len(data_activ[bin][mouse])
             else:
                 result[bin][mouse] = 0
-    return(result)
-
+    return (result)
 
 
 def mouse_activity(data, mice, binlabels):
@@ -734,7 +743,8 @@ def mouse_activity(data, mice, binlabels):
         t_e = t_s + binsize
         for mouse in mice:
             visits[bin][mouse] = data.get_visits(mouse, None, t_s, t_e)
-    return(visits)
+    return (visits)
+
 
 def divide_sum_activity(data_sum, data_activ, mice, binlabels):
     result = OrderedDict()
@@ -745,6 +755,33 @@ def divide_sum_activity(data_sum, data_activ, mice, binlabels):
                 result[bin][mouse] = data_sum[bin][mouse] / len(data_activ[bin][mouse])
             else:
                 result[bin][mouse] = 0
-    return(result)
+    return (result)
 
 
+def mean(numerator, denominator, mice, binlabels):
+    result = OrderedDict()
+    for bin in binlabels:
+        result[bin] = OrderedDict()
+        for mouse in mice:
+            result[bin][mouse] = numerator[bin][mouse] / denominator
+    return (result)
+
+
+def standard_error(data, mean, mice, binlabels):
+    result = OrderedDict()
+    for bin in binlabels:
+        result[bin] = OrderedDict()
+        for mouse1 in mice:
+            result[bin][mouse1] = 0
+            N = len(data[bin][mouse1])-1
+            for mouse2 in mice:
+                if mouse1 != mouse2:
+                    result[bin][mouse1] += (data[bin][mouse1][mouse2] - mean[bin][mouse1]) ** (2)
+                else:
+                    continue
+            if N != 0 and N > 1:
+                result[bin][mouse1] = (result[bin][mouse1] / (N - 1)) ** (1 / 2)
+                result[bin][mouse1] = result[bin][mouse1] / (N) ** (1 / 2)
+            else:
+                result[bin][mouse1] = 0
+    return (result)

@@ -2178,7 +2178,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         data_keys = [["1_x", "2_x"],
                      [0.0]]
 
-class TestPrepareForSumming(unittest.TestCase):
+class TestMath(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.phase = ['EMPTY 1 dark']
@@ -2189,11 +2189,15 @@ class TestPrepareForSumming(unittest.TestCase):
             cls.bin_labels.append(cls.binsizes[4] * i);
         cls.mice = ['0065-0136651817', '0065-0136653169', '0065-0136655780']
 
+
         cls.excess = OrderedDict()
         cls.test_excess = OrderedDict()
         cls.test_sum = OrderedDict()
         cls.activity = OrderedDict()
         cls.test_activity = OrderedDict()
+        cls.test = OrderedDict()
+        cls.test_error = OrderedDict()
+
 
         for key1 in cls.phase:
             cls.excess[key1] = OrderedDict()
@@ -2201,18 +2205,24 @@ class TestPrepareForSumming(unittest.TestCase):
             cls.test_sum[key1] = OrderedDict()
             cls.activity[key1] = OrderedDict()
             cls.test_activity[key1] = OrderedDict()
+            cls.test[key1] = OrderedDict()
+            cls.test_error[key1] = OrderedDict()
             for key2 in cls.bin_labels:
                 cls.excess[key1][key2] = OrderedDict()
                 cls.test_excess[key1][key2] = OrderedDict()
                 cls.test_sum[key1][key2] = OrderedDict()
                 cls.activity[key1][key2] = OrderedDict()
                 cls.test_activity[key1][key2] = OrderedDict()
+                cls.test[key1][key2] = OrderedDict()
+                cls.test_error[key1][key2] = OrderedDict()
                 for key3 in cls.mice:
                     cls.excess[key1][key2][key3] = OrderedDict()
                     cls.test_excess[key1][key2][key3] = OrderedDict()
                     cls.activity[key1][key2][key3] = OrderedDict()
                     cls.test_activity[key1][key2][key3] = 4/5
                     cls.test_sum[key1][key2][key3] = 4
+                    cls.test[key1][key2][key3] = 2
+                    cls.test_error[key1][key2][key3] = 0
                     for key4 in cls.mice:
                         cls.excess[key1][key2][key3][key4] = 0.00
                         cls.test_excess[key1][key2][key3][key4] = 2
@@ -2222,6 +2232,9 @@ class TestPrepareForSumming(unittest.TestCase):
                             cls.excess[key1][key2][key3][key4] = 2
                     for key5 in range(5):
                         cls.activity[key1][key2][key3][key5] = 'activity'
+
+
+
 
     def test_diagonal_reflection_of_matrix(self):
 
@@ -2236,14 +2249,15 @@ class TestPrepareForSumming(unittest.TestCase):
     def test_sum_per_mouse_no_phase(self):
         sum_excess_time = uf.sum_per_mouse(self.test_diagonal_reflection_of_matrix(),
                                            self.mice, self.bin_labels, self.phase[0],
-                                           "sum_per_mouse", False)
+                                           "sum_per_mouse", False, True)
         self.assertEqual(sum_excess_time, self.test_sum[self.phase[0]], "False, sum test failed")
+        return(sum_excess_time)
 
     def test_sum_per_mouse_phase(self):
         sum_time = OrderedDict()
         sum_time[self.phase[0]] = self.test_diagonal_reflection_of_matrix()
         sum_time[self.phase[0]] = uf.sum_per_mouse(sum_time, self.mice, self.bin_labels,
-                                       self.phase[0], "leader", True)
+                                       self.phase[0], "leader", True, True)
         self.assertEqual(sum_time, self.test_sum, "False, sum test with phase failed")
 
     def test_divide_sum_activity(self):
@@ -2251,6 +2265,22 @@ class TestPrepareForSumming(unittest.TestCase):
                                             self.activity[self.phase[0]],
                                             self.mice, self.bin_labels)
         self.assertEqual(div_result, self.test_activity[self.phase[0]], "False, division test failed")
+
+    def test_mean(self):
+        mean_result = uf.mean(self.test_sum_per_mouse_no_phase(),
+                              len(self.mice)-1,
+                              self.mice,
+                              self.bin_labels)
+        self.assertEqual(mean_result, self.test[self.phase[0]], "False, mean test failed")
+        return(mean_result)
+
+    def test_standard_error(self):
+        a = self.test_diagonal_reflection_of_matrix()
+        error_result = uf.standard_error(a,
+                                         self.test_mean(),
+                                         self.mice, self.bin_labels)
+        self.assertEqual(error_result, self.test_error[self.phase[0]], "False, standard error test failed")
+        return(error_result)
 
 if __name__ == '__main__':
     unittest.main()
