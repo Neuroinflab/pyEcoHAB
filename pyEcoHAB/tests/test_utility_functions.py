@@ -2196,8 +2196,6 @@ class TestMath(unittest.TestCase):
         cls.activity = OrderedDict()
         cls.test_activity = OrderedDict()
         cls.test = OrderedDict()
-        cls.time_in_tube = OrderedDict()
-        cls.in_tube_number = OrderedDict()
         cls.test_error = OrderedDict()
 
 
@@ -2208,8 +2206,6 @@ class TestMath(unittest.TestCase):
             cls.activity[key1] = OrderedDict()
             cls.test_activity[key1] = OrderedDict()
             cls.test[key1] = OrderedDict()
-            cls.time_in_tube[key1] = OrderedDict()
-            cls.in_tube_number[key1] = OrderedDict()
             cls.test_error[key1] = OrderedDict()
             for key2 in cls.bin_labels:
                 cls.excess[key1][key2] = OrderedDict()
@@ -2218,8 +2214,6 @@ class TestMath(unittest.TestCase):
                 cls.activity[key1][key2] = OrderedDict()
                 cls.test_activity[key1][key2] = OrderedDict()
                 cls.test[key1][key2] = OrderedDict()
-                cls.time_in_tube[key1][key2] = OrderedDict()
-                cls.in_tube_number[key1][key2] = OrderedDict()
                 cls.test_error[key1][key2] = OrderedDict()
                 for key3 in cls.mice:
                     cls.excess[key1][key2][key3] = OrderedDict()
@@ -2228,9 +2222,7 @@ class TestMath(unittest.TestCase):
                     cls.test_activity[key1][key2][key3] = 4/5
                     cls.test_sum[key1][key2][key3] = 4
                     cls.test[key1][key2][key3] = 2
-                    cls.time_in_tube[key1][key2][key3] = OrderedDict()
-                    cls.in_tube_number[key1][key2][key3] = 5
-                    cls.test_error[key1][key2][key3] = 1.0606601717798212
+                    cls.test_error[key1][key2][key3] = 0
                     for key4 in cls.mice:
                         cls.excess[key1][key2][key3][key4] = 0.00
                         cls.test_excess[key1][key2][key3][key4] = 2
@@ -2240,7 +2232,6 @@ class TestMath(unittest.TestCase):
                             cls.excess[key1][key2][key3][key4] = 2
                     for key5 in range(5):
                         cls.activity[key1][key2][key3][key5] = 'activity'
-                        cls.time_in_tube[key1][key2][key3][key5] = 0.5
 
 
 
@@ -2284,9 +2275,9 @@ class TestMath(unittest.TestCase):
         return(mean_result)
 
     def test_standard_error(self):
-        error_result = uf.standard_error(self.time_in_tube[self.phase[0]],
+        a = self.test_diagonal_reflection_of_matrix()
+        error_result = uf.standard_error(a,
                                          self.test_mean(),
-                                         self.in_tube_number[self.phase[0]],
                                          self.mice, self.bin_labels)
         self.assertEqual(error_result, self.test_error[self.phase[0]], "False, standard error test failed")
         return(error_result)

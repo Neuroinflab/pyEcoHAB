@@ -168,21 +168,6 @@ def single_phase_results(data, mice, addresses, total_time):
                                                          total_time)
     return res, res_exp
 
-def time_in_tube(data, mice, binlabels):
-    tube_transition = OrderedDict()
-    tube_time = OrderedDict()
-    for bin in binlabels:
-        tube_transition[bin] = OrderedDict()
-        tube_time[bin] = OrderedDict()
-        for mouse in mice:
-            tube_time[bin][mouse] = OrderedDict()
-            for i in range(len(data[bin][mouse])):
-                if i < len(data[bin][mouse])-1:
-                    if data[bin][mouse][i][0] != data[bin][mouse][i+1][0]:
-                        tube_time[bin][mouse][i] = data[bin][mouse][i+1][1] - data[bin][mouse][i][2]
-            tube_transition[bin][mouse] = len(tube_time[bin][mouse])
-    return(tube_transition, tube_time)
-
 
 def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                              prefix="", remove_mouse="", delimiter=";"):
@@ -316,19 +301,11 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                           out_dir_hist, prefix, additional_info=add_info_mice,
                           delimiter=delimiter)
 
-        tube_transition_number[ph], tube_time[ph] = time_in_tube(data[ph],
-                                                                 mice,
-                                                                 bin_labels)
-        tube_time_sum[ph] = utils.sum_per_mouse(tube_time[ph],
-                                                mice, bin_labels,
-                                                ph, None,
-                                                False, False)
         mean_excess_time_per_mouse[ph] = utils.mean(excess_time_per_mouse[ph],
                                                     len(mice)-1,
                                                     mice, bin_labels)
-        standard_error_per_mouse[ph] = utils.standard_error(tube_time[ph],
+        standard_error_per_mouse[ph] = utils.standard_error(reflected_excess_time,
                                                             mean_excess_time_per_mouse[ph],
-                                                            tube_transition_number[ph],
                                                             mice, bin_labels)
 
 
