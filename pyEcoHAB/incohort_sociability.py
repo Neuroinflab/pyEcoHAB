@@ -263,9 +263,6 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
     excess_time_per_mouse = OrderedDict()
     mean_excess_time_per_mouse = OrderedDict()
     standard_error_per_mouse = OrderedDict()
-    tube_time = OrderedDict()
-    tube_time_sum = OrderedDict()
-    tube_transition_number = OrderedDict()
 
     for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase]
