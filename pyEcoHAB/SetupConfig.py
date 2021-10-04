@@ -94,7 +94,7 @@ class SetupConfigMethods(RawConfigParser):
             if not len(cage_dict[sec]):
                 print("Did not register any antennas associated with %s", sec)
         if not len(list(cage_dict.keys())):
-            print("Did not registered any cages in this setup")
+            print("Did not register any cages in this setup")
         return cage_dict
 
     def get_tunnels_dict(self):
@@ -113,7 +113,7 @@ class SetupConfigMethods(RawConfigParser):
             if not len(tunnel_dict[sec]):
                 print("Did not register any antennas associated with %s", sec)
         if not len(list(tunnel_dict.keys())):
-            print("Did not registered any tunnels in this setup")
+            print("Did not register any tunnels in this setup")
         return tunnel_dict
 
     @property
@@ -583,6 +583,7 @@ class SetupConfig(SetupConfigMethods):
         SetupConfigMethods.__init__(self)
         full_path = self.find_path(path, fname, "standard_setup.txt",
                                    'setup.txt', "setup*.txt")
+        print(full_path)
         self.read(full_path)
         self.make_definitions()
 
