@@ -33,4 +33,5 @@ jobs:
           TZ : CET
       run: |
         pip install pytest
+	python setup.py install --user
         python -m pytest
