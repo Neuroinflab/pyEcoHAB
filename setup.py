@@ -25,7 +25,7 @@ setuptools.setup(
     python_requires=">=3.6",
     include_package_data=True,
     package_data={'pyEcoHAB': ['data/*',
-                               'data/BALB_VPA_data_cohort_1',
+                               'data/BALB_VPA_data_cohort_1/*',
                                'data/BALB_VPA_data_cohort_1_divided/*',
                                'data/BALB_VPA_data_cohort_1_divided/*/*',
                                'data/empty',
