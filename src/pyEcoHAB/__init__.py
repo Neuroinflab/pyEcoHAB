@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
 import os
 ecohab_loc = os.path.dirname(os.path.abspath(__file__))
 data_path = os.path.join(ecohab_loc, 'data')

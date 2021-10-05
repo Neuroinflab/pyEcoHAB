@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
 # -*- coding: utf-8 -*-
 """
 Created on Fri Mar 24 13:38:58 2017

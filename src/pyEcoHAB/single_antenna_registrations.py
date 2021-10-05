@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 import os

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
 #!/usr/bin/env python
 from __future__ import print_function, division, absolute_import
 import unittest

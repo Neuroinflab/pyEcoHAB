@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
 import setuptools
 
 with open("README.rst", "r", encoding="utf-8") as fh:
