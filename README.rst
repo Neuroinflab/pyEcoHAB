@@ -269,8 +269,8 @@ An experiment consisiting of a standard Eco-HAB setup with additional internal a
 This config file consists of two parts. The first part consisting of sections [shared compartment 1] and [shared compartment 2] specifies parts of the experimental setups that are shared by both submodules. In this case it is cage A, which has two entrance antennas, which are part of the setup named default, and an entrance antenna, which is a part of the setup named internal, and cage C. In this sections we specify locations and set the name that will be used in results files (in this case cage A and cage C). For clarity pyEcoHAB, when merging different setups into one modular dataset, adds setup names to names of the cages and tunnels that are not shared by different setups. One can rename these locations for easier further data analysis.
 
 
-This library is available under `GPL3 license
-<http://www.gnu.org/licenses/gpl-3.0>`_.
+This library is available under `LGPL-2.1-or-later
+<https://spdx.org/licenses/LGPL-2.1-or-later.html>`_.
 
 Authors
 -------
