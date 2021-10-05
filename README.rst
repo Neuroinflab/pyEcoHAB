@@ -3,11 +3,15 @@ pyEcoHAB package
 
 pyEcoHAB is a Python library for loading and analyzing behavioral data obtained in experiments performed with the Eco-HAB. Eco-HAB is a system for fully automated and ecologically relevant assessment of social impairments in mice.
 
-pyEcoHAB supports both Python2 and Python3.
+pyEcoHAB supports Python3.
 
 pyEcoHAB allows for easy access to antenna registrations. It implements a heuristic calculating timing and duration of animal visists to Eco-HAB compartments. It also provides methods for determining mouse activity (number of visits and time spent in each chamber), in-cohort sociability, solitude (time mouse spent alone in Eco-HAB chambers) and following.
 
-Install
+Installation:
+
+pip install git+https://github.com/Neuroinflab/pyEcoHAB.git  --user
+ 
+
 To read-in and analyze a sample data-set type:
 
 >>> import pyEcoHAB
