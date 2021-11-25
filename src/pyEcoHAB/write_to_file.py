@@ -33,8 +33,7 @@ def write_single_chamber(f, header, phases, mice, time, data_stim,
                     else:
                         lines[k] += delimiter + str(data_stim[phase][mouse][k])
                 except IndexError:
-                    print("Phase too short", phase)
-                    pass
+                    lines[k] += delimiter
 
         for line in lines:
             f.write(line + '\n')

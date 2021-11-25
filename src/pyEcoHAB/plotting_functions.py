@@ -581,7 +581,7 @@ def pooled_hists_for_every_mouse(results, fname, mice, main_directory,
 def make_visit_duration_histogram(results, time, phase, mice,
                                   fname, main_directory,
                                   directory, prefix, additional_info):
-    place = {"A": 0, "B": 1, "C": 2, "D": 3}
+
     dir_name = os.path.join(main_directory, directory)
     dir_name = utils.check_directory(dir_name, "figs")
 
@@ -598,8 +598,7 @@ def make_visit_duration_histogram(results, time, phase, mice,
         if nrows == 1:
             ax = np.expand_dims(ax, 0)
         bins, counts = [], []
-        for key in results:
-            i = place[key]
+        for i, key in enumerate(sorted(results.keys())):
             for j, out in enumerate(results[key][mouse]):
                 if i:
                     yticks = False
