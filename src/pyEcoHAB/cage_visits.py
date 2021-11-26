@@ -113,10 +113,11 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="",
            Eco-HAB dataset.
         timeline : Timeline
            timeline of the experiment.
-        binsize : number (seconds)
+        binsize : number (seconds) or string
            time bins for calculating activity.
            A number value specifies number of seconds in each bin, e.g. binsize
            equal 3600 results in 1 h bins.
+           whole_phase -- calculate activity in each phase
         res_dir : string
            destination directory
            default value is the destination directory established for
@@ -147,25 +148,34 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="",
     if res_dir == "":
         res_dir = ecohab_data.res_dir
     phases = utils.filter_dark_light(timeline.sections())
-    fname = '%sactivity_bin_%3.2f_h.csv' % (prefix,
-                                            binsize/3600)
-    histogram_fname = 'activity_histograms_bin_%3.1f_h' % (binsize/3600)
+
     mice = utils.get_mice(ecohab_data.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
+    if isinstance(binsize, int) or isinstance(binsize, float):
+        binlen = binsize
+        fname = '%sactivity_bin_%3.2f_h.csv' % (prefix,
+                                            binsize/3600)
+        histogram_fname = 'activity_histograms_bin_%3.1f_h' % (binsize/3600)
 
-    if binsize > 12*3600:
-        t_start = timeline.get_time_from_epoch(phases[0])[0]
-        t_end = timeline.get_time_from_epoch(phases[-1])[-1]
-        phases = []
-        times = []
-        i = 1
-        while t_start < t_end:
-            times.append((t_start, t_start + binsize))
-            phases.append("%d_x" % i)
-            i += 1
-            t_start += binsize
+        if binlen > 12*3600:
+            t_start = timeline.get_time_from_epoch(phases[0])[0]
+            t_end = timeline.get_time_from_epoch(phases[-1])[-1]
+            phases = []
+            times = []
+            i = 1
+            while t_start < t_end:
+                times.append((t_start, t_start + binlen))
+                phases.append("%d_x" % i)
+                i += 1
+                t_start += binsize
+        else:
+            times = [timeline.get_time_from_epoch(phase) for phase in phases]
     else:
         times = [timeline.get_time_from_epoch(phase) for phase in phases]
+        fname = '%sactivity_bin_%s.csv' % (prefix,
+                                            binsize)
+        histogram_fname = 'activity_histograms_bin_%s' % binsize
+
     phase_len = max([t2-t1 for (t1, t2) in times])
     data = {c: {0: {}, 1: {}} for c in ecohab_data.cages}
     ecohab_data_data = utils.prepare_data(ecohab_data, mice)
@@ -173,14 +183,19 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="",
     for idx_phase, phase in enumerate(phases):
         t_start, t_end = times[idx_phase]
         visits_in_cages = {}
-        bin_labels[phase] = utils.get_times(binsize, time_end=phase_len)
+        if isinstance(binsize, str):
+            binlen = t_end-t_start
+            bin_labels[phase] = utils.get_times(binlen, time_end=binlen)
+        else:
+            bin_labels[phase] = utils.get_times(binlen, time_end=phase_len)
         for address in ecohab_data.cages:
             visit_data = calculate_visits_and_durations(ecohab_data_data,
                                                         mice,
                                                         address,
                                                         t_start,
                                                         t_end,
-                                                        binsize)
+                                                        binlen)
+            print(bin_labels[phase], visit_data[0])
             data[address][0][phase] = visit_data[0]
             data[address][1][phase] = visit_data[1]
             visits_in_cages[address] = visit_data[2]
@@ -189,17 +204,17 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="",
                                           bin_labels[phase],
                                           phase, mice,
                                           histogram_fname, res_dir,
-                                          "other_variables/visit_histograms_binsize_%3.1f"
-                                          % (binsize/3600),
+                                          "other_variables/visit_histograms_binlen_%3.1f"
+                                          % (binlen/3600),
                                           prefix, add_info_mice)
             save_visit_duration(visits_in_cages,
                                 bin_labels[phase],
                                 phase, mice,
                                 histogram_fname, res_dir,
-                                "other_variables/visit_histograms_binsize_%3.1f"
-                                % (binsize/3600),
+                                "other_variables/visit_histograms_binlen_%3.1f"
+                                % (binlen/3600),
                                 prefix, add_info_mice)
-
+    
     save_data_cvs(data, phases, mice, bin_labels, fname, res_dir,
                   ecohab_data.cages, headers)
     save_data_cvs(data, phases, mice, bin_labels, fname, res_dir,
