@@ -517,7 +517,6 @@ def prepare_binned_data(ecohab_data, timeline, bins, mice):
         if bins > shortest_phase:
             t_start = timeline.get_time_from_epoch(all_phases[0])[0]
             t_end = timeline.get_time_from_epoch(all_phases[-1])[-1]
-            bin_labels = {}
             all_phases = []
             times = []
             i = 1
@@ -602,28 +601,45 @@ def get_registrations_bins(ecohab_data, timeline, bins, mice,
         phases = ["ALL"]
         time = timeline.get_time_from_epoch("ALL")
         data["ALL"] = {0: function(ecohab_data, mice, *time)}
-        data_keys = [["ALL"], [0.0]]
+        data_keys = [["ALL"], {"ALL": [0.0]}]
         total_time["ALL"] = {0: time}
+    elif isinstance(bins, str) and bins.lower() in ["whole_phase", "whole phase"]:
+        phases = []
+        all_phases = filter_dark_light(timeline.sections())
+        phases = [phase.replace(" ", "_") for phase in all_phases]
+        times = [timeline.get_time_from_epoch(phase)
+                     for phase in all_phases]
+        data = OrderedDict()
+        total_time = OrderedDict()
+        bin_labels = {}
+        for phase in all_phases:
+            bin_labels[phase] = [0]
+            time = timeline.get_time_from_epoch(phase)
+            total_time[phase] = {}
+            total_time[phase][0] = time[-1] - time[0]
+            data[phase] = {}
+            data[phase][0] = function(ecohab_data, mice,
+                                      *time)
+        data_keys = [all_phases, bin_labels]
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
         all_phases = filter_dark_light(timeline.sections())
         min_phase = int(get_shortest_phase_duration(timeline))
+        bin_labels = {}
         # you can not iterate by phases, if bins are longer than phases
         if bins > min_phase:
             t_start = timeline.get_time_from_epoch(all_phases[0])[0]
             t_end = timeline.get_time_from_epoch(all_phases[-1])[-1]
-            bin_labels = [0.0]
             all_phases = []
             times = []
             i = 1
             while t_start < t_end:
                 times.append((t_start, t_start + bins))
                 all_phases.append("%d_x" % i)
+                bin_labels["%d_x" % i] = [0]
                 i += 1
                 t_start += bins
         else:
-            all_phases = filter_dark_light(timeline.sections())
-            bin_labels = get_times(bins, time_start=0, time_end=min_phase)
             times = [timeline.get_time_from_epoch(phase)
                      for phase in all_phases]
         for i, phase in enumerate(all_phases):
@@ -632,16 +648,17 @@ def get_registrations_bins(ecohab_data, timeline, bins, mice,
                                          bins/3600))
             data[phase] = OrderedDict()
             total_time[phase] = OrderedDict()
+            bin_labels[phase] = get_times(bins, time_end=t_end-t_start)
             j = 0
             while t_start < t_end:
                 t_e = t_start + bins
                 if t_e > t_end:
                     t_e = t_end
                 time = (t_start, t_e)
-                data[phase][bin_labels[j]] = function(ecohab_data,
+                data[phase][bin_labels[phase][j]] = function(ecohab_data,
                                                       mice,
                                                       *time)
-                total_time[phase][bin_labels[j]] = time
+                total_time[phase][bin_labels[phase][j]] = time
                 t_start += bins
                 j += 1
             data_keys = [all_phases, bin_labels]
@@ -703,8 +720,7 @@ def diagonal_reflection(matrix_data, mice, binlabels):
     return result
 
 
-def sum_per_mouse(data, mice, binlabels, phase, position, boolPhase=bool,
-                  is_mouse2=bool):
+def sum_per_mouse(data, mice, binlabels, position, is_mouse2=bool):
     sum_value = OrderedDict()
     for bi in binlabels:
         sum_value[bi] = OrderedDict()
@@ -718,14 +734,8 @@ def sum_per_mouse(data, mice, binlabels, phase, position, boolPhase=bool,
                         continue
                     else:
                         if (position == "leader" or position == "sum_per_mouse"):
-                            if boolPhase == True:
-                                sum_value[bi][mouse1] += data[phase][bi][mouse1][mouse2]
-                            else:
                                 sum_value[bi][mouse1] += data[bi][mouse1][mouse2]
                         elif (position == "follower"):
-                            if boolPhase == True:
-                                sum_value[bi][mouse1] += data[phase][bi][mouse2][mouse1]
-                            else:
                                 sum_value[bi][mouse1] += data[bi][mouse2][mouse1]
                         else:
                             print("Position value is invalid, please check it")

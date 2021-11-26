@@ -374,7 +374,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
 
     for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase]
-        for i, lab in enumerate(bin_labels):
+        for i, lab in enumerate(bin_labels[ph]):
             t_start, t_stop = times[ph][lab]
             directions_dict = data[ph][lab]
             out = following_matrices(directions_dict, mice, t_start, t_stop,
@@ -394,44 +394,52 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                                                  save_figures=save_figures)
             following_exp[ph][lab], time_together_exp[ph][lab] = out_expected
             add_intervals(interval_details, phase_intervals1)
-
-        mouse_leading_sum[ph] = utils.sum_per_mouse(following, mice, bin_labels, ph, "leader", True, True)
-        mouse_following_sum[ph] = utils.sum_per_mouse(following, mice, bin_labels, ph, "follower", True, True)
-        mouse_activity[ph] = utils.mouse_activity(ecohab_data, mice, bin_labels)
+        print(bin_labels[ph], following[ph].keys())
+        mouse_leading_sum[ph] = utils.sum_per_mouse(following[ph], mice,
+                                                    bin_labels[ph],
+                                                    "leader", True)
+        mouse_following_sum[ph] = utils.sum_per_mouse(following[ph], mice,
+                                                      bin_labels[ph],
+                                                      "follower", True)
+        mouse_activity[ph] = utils.mouse_activity(ecohab_data, mice, bin_labels[ph])
         mouse_leading_sum_div_activ[ph] = utils.divide_sum_activity(mouse_leading_sum[ph],
                                                                     mouse_activity[ph],
-                                                                    mice, bin_labels)
+                                                                    mice, bin_labels[ph])
         mouse_following_sum_div_activ[ph] = utils.divide_sum_activity(mouse_following_sum[ph],
                                                                       mouse_activity[ph],
-                                                                      mice, bin_labels)
+                                                                      mice, bin_labels[ph])
 
         write_binned_data(following[ph],
                           'dynamic_interactions',
-                          mice, bin_labels, new_phase, res_dir,
+                          mice, bin_labels[ph], new_phase, res_dir,
                           hist_dir_add,
                           prefix, additional_info=add_info_mice,
                           delimiter=delimiter)
         write_binned_data(following_exp[ph],
                           'dynamic_interactions_expected_%s' % method,
-                          mice, bin_labels, new_phase, res_dir,
+                          mice, bin_labels[ph], new_phase, res_dir,
                           hist_dir_add,
                           prefix, additional_info=add_info_mice,
                           delimiter=delimiter)
         excess_following = utils.calc_excess(following[ph],
                                              following_exp[ph])
 
-        mouse_leading_sum_excess[ph] = utils.sum_per_mouse(following_exp, mice, bin_labels, ph, "leader", True, True)
-        mouse_following_sum_excess[ph] = utils.sum_per_mouse(following_exp, mice, bin_labels, ph, "follower", True, True)
+        mouse_leading_sum_excess[ph] = utils.sum_per_mouse(following_exp[ph], mice,
+                                                           bin_labels[ph], "leader",
+                                                           True)
+        mouse_following_sum_excess[ph] = utils.sum_per_mouse(following_exp[ph], mice,
+                                                             bin_labels[ph],
+                                                             "follower", True)
         mouse_leading_sum_div_activ_excess[ph] = utils.divide_sum_activity(mouse_leading_sum_excess[ph],
                                                                            mouse_activity[ph],
-                                                                           mice, bin_labels)
+                                                                           mice, bin_labels[ph])
         mouse_following_sum_div_activ_excess[ph] = utils.divide_sum_activity(mouse_following_sum_excess[ph],
                                                                              mouse_activity[ph],
-                                                                             mice, bin_labels)
+                                                                             mice, bin_labels[ph])
 
         write_binned_data(excess_following,
                           'dynamic_interactions_excess_%s' % method,
-                          mice, bin_labels, new_phase, res_dir,
+                          mice, bin_labels[ph], new_phase, res_dir,
                           hist_dir,
                           prefix, additional_info=add_info_mice,
                           delimiter=delimiter)
@@ -467,12 +475,12 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
         fname_measured = "%s_%s.csv" % (meas_prefix, new_phase)
         fname_excess = "%s_%s.csv" % (excess_prefix, new_phase)
         fname_expected = "%s_%s.csv" % (exp_prefix, new_phase)
-        raster_labels = [bin_label/3600 for bin_label in bin_labels]
+        raster_labels = [bin_label/3600 for bin_label in bin_labels[ph]]
         phase_full_results = utils.dict_to_array_3D(following[ph],
-                                                    bin_labels,
+                                                    bin_labels[ph],
                                                     mice, mice)
         phase_exp_full_results = utils.dict_to_array_3D(following_exp[ph],
-                                                        bin_labels,
+                                                        bin_labels[ph],
                                                         mice, mice)
         write_csv_rasters(mice,
                           raster_labels,
@@ -512,14 +520,14 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
         if save_times_following:
             write_binned_data(time_together[ph],
                               'durations_dynamic_interactions',
-                              mice, bin_labels, new_phase, res_dir,
+                              mice, bin_labels[ph], new_phase, res_dir,
                               other_dir,
                               prefix, additional_info=add_info_mice,
                               delimiter=delimiter)
             write_binned_data(time_together_exp[ph],
                               'durations_dynamic_interactions_expected_%s'
                               % method,
-                              mice, bin_labels, new_phase, res_dir,
+                              mice, bin_labels[ph], new_phase, res_dir,
                               other_dir,
                               prefix, additional_info=add_info_mice,
                               delimiter=delimiter)
@@ -528,7 +536,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
             write_binned_data(excess_time,
                               'durations_dynamic_interactions_expected_%s'
                               % method,
-                              mice, bin_labels, new_phase, res_dir,
+                              mice, bin_labels[ph], new_phase, res_dir,
                               other_dir,
                               prefix, additional_info=add_info_mice,
                               delimiter=delimiter)
@@ -563,12 +571,12 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                     csv_results_time_exp[idx_phase] = exp_res
             fname_measured = "%s_%s.csv" % (meas_prefix_dur, new_phase)
             fname_expected = "%s_%s.csv" % (exp_prefix_dur, new_phase)
-            raster_labels = [bin_label/3600 for bin_label in bin_labels]
+            raster_labels = [bin_label/3600 for bin_label in bin_labels[ph]]
             phase_full_results = utils.dict_to_array_3D(following[ph],
-                                                        bin_labels,
+                                                        bin_labels[ph],
                                                         mice, mice)
             phase_exp_full_results = utils.dict_to_array_3D(following_exp[ph],
-                                                            bin_labels,
+                                                            bin_labels[ph],
                                                             mice, mice)
             write_csv_rasters(mice,
                               raster_labels,

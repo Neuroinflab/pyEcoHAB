@@ -2112,7 +2112,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         self.assertEqual(self.out_all[2], out)
 
     def test_all_keys(self):
-        self.assertEqual(self.out_all[3], [["ALL"], [0.0]])
+        self.assertEqual(self.out_all[3], [["ALL"], {"ALL": [0.0]}])
 
     def test_6h_phases(self):
         self.assertEqual(self.out_6h[0], ["1_dark_6.00h",
@@ -2260,32 +2260,30 @@ class TestMath(unittest.TestCase):
                          "False, diagonal reflection test failed")
         return (reflected_excess_time)
 
-    def test_sum_per_mouse_no_phase(self):
-        sum_excess_time = uf.sum_per_mouse(self.test_diagonal_reflection_of_matrix(),
-                                           self.mice, self.bin_labels, self.phase[0],
-                                           "sum_per_mouse", False, True)
-        self.assertEqual(sum_excess_time, self.test_sum[self.phase[0]], "False, sum test failed")
-        return(sum_excess_time)
 
-    def test_sum_per_mouse_phase(self):
+    def test_sum_per_mouse(self):
         sum_time = OrderedDict()
         sum_time[self.phase[0]] = self.test_diagonal_reflection_of_matrix()
-        sum_time[self.phase[0]] = uf.sum_per_mouse(sum_time, self.mice, self.bin_labels,
-                                       self.phase[0], "leader", True, True)
+        sum_time[self.phase[0]] = uf.sum_per_mouse(sum_time[self.phase[0]],
+                                                            self.mice,
+                                                            self.bin_labels[self.phase[0]],
+                                                            "leader", True)
         self.assertEqual(sum_time, self.test_sum, "False, sum test with phase failed")
 
     def test_divide_sum_activity(self):
         div_result = uf.divide_sum_activity(self.test_sum[self.phase[0]],
                                             self.activity[self.phase[0]],
                                             self.mice, self.bin_labels)
-        self.assertEqual(div_result, self.test_activity[self.phase[0]], "False, division test failed")
+        self.assertEqual(div_result, self.test_activity[self.phase[0]],
+                         "False, division test failed")
 
     def test_mean(self):
-        mean_result = uf.mean(self.test_sum_per_mouse_no_phase(),
+        mean_result = uf.mean(self.test_sum_per_mouse(),
                               len(self.mice)-1,
                               self.mice,
                               self.bin_labels)
-        self.assertEqual(mean_result, self.test[self.phase[0]], "False, mean test failed")
+        self.assertEqual(mean_result, self.test[self.phase[0]],
+                         "False, mean test failed")
         return(mean_result)
 
     def test_standard_error(self):
@@ -2293,7 +2291,8 @@ class TestMath(unittest.TestCase):
         error_result = uf.standard_error(a,
                                          self.test_mean(),
                                          self.mice, self.bin_labels)
-        self.assertEqual(error_result, self.test_error[self.phase[0]], "False, standard error test failed")
+        self.assertEqual(error_result, self.test_error[self.phase[0]],
+                         "False, standard error test failed")
         return(error_result)
 
 if __name__ == '__main__':
