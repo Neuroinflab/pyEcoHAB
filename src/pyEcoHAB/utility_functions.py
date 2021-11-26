@@ -445,7 +445,6 @@ def dict_to_array_3D(dictionary, keys1, keys2, keys3):
 
 def calc_excess(res, exp_res):
     excess = OrderedDict()
-    print(res)
     for key1 in res.keys():
         excess[key1] = OrderedDict()
         for key2 in res[key1].keys():
@@ -491,6 +490,24 @@ def prepare_binned_data(ecohab_data, timeline, bins, mice):
         for key in data.keys():
             labels[key] = [0]
         keys = [list(data.keys()), labels]
+    elif isinstance(bins, str) and bins.lower() in ["whole_phase", "whole phase"]:
+        phases = []
+        all_phases = filter_dark_light(timeline.sections())
+        phases = [phase.replace(" ", "_") for phase in all_phases]
+        times = [timeline.get_time_from_epoch(phase)
+                     for phase in all_phases]
+        data = OrderedDict()
+        total_time = OrderedDict()
+        bin_labels = {}
+        for phase in all_phases:
+            bin_labels[phase] = [0]
+            time = timeline.get_time_from_epoch(phase)
+            total_time[phase] = {}
+            total_time[phase][0] = time[-1] - time[0]
+            data[phase] = {}
+            data[phase][0] =  prepare_data(ecohab_data, mice,
+                                           time)
+        keys = [all_phases, bin_labels]
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
         all_phases = filter_dark_light(timeline.sections())
@@ -650,7 +667,6 @@ def make_all_results_dict(phases, bins):
         result[phase] = OrderedDict()
         for bin1 in bins[phase]:
             result[phase][bin1] = 0
-    print(result)
     return result
 
 

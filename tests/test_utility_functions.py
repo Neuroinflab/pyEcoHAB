@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #!/usr/bin/env python
 # encoding: utf-8
-from __future__ import print_function, division, absolute_import
 import os
 import unittest
 import random
@@ -1848,6 +1847,12 @@ class TestPrepareBinnedData(unittest.TestCase):
                                                                 cls.config,
                                                                 "ALL",
                                                                 ["mouse_1"])
+        cls.whole_phases, cls.whole_total_time,\
+            cls.whole_data, cls.whole_keys = uf.prepare_binned_data(cls.data,
+                                                                    cls.config,
+                                                                    "whole phase",
+                                                                    ["mouse_1"])
+
         cls.dark_phases, cls.dark_total_time,\
             cls.dark_data, cls.dark_keys = uf.prepare_binned_data(cls.data,
                                                                   cls.config,
@@ -1886,13 +1891,26 @@ class TestPrepareBinnedData(unittest.TestCase):
         self.assertEqual(self.all_total_time, time_dict)
 
     def test_all_data(self):
-        data = {"mouse_1": uf.prepare_data(self.data, ["mouse_1"])}
+        data =  uf.prepare_data(self.data, ["mouse_1"])
         all_data = {"ALL": {0: data}}
+        self.assertEqual(self.all_data, all_data)
 
     def test_all_keys(self):
-        keys = [["ALL"], [0]]
+        keys = [["ALL"], {"ALL": [0]}]
         self.assertEqual(keys, self.all_keys)
 
+    def test_whole_phases(self):
+        self.assertEqual(self.whole_phases, ["1_dark", "1_light"])
+
+    def test_whole_time(self):
+        time_dict = {"1 dark": {0: 1800}, "1 light": {0: 1800}}
+        self.assertEqual(self.whole_total_time, time_dict)
+
+    def test_whole_keys(self):
+        keys = [["1 dark", "1 light"],
+                {"1 dark": [0], "1 light": [0]}]
+        self.assertEqual(keys, self.whole_keys)
+    
     def test_dark_phases(self):
         self.assertEqual(self.dark_phases, ["DARK"])
 
@@ -1900,12 +1918,8 @@ class TestPrepareBinnedData(unittest.TestCase):
         time_dict = {"DARK": {0: 1800.0}}
         self.assertEqual(self.dark_total_time, time_dict)
 
-    def test_dark_data(self):
-        data = {"mouse_1": uf.prepare_data(self.data, ["mouse_1"])}
-        dark_data = {"DARK": {0: data}}
-
     def test_dark_keys(self):
-        keys = [["DARK"], [0]]
+        keys = [["DARK"], {"DARK": [0]}]
         self.assertEqual(keys, self.dark_keys)
 
     def test_light_phases(self):
@@ -1915,18 +1929,14 @@ class TestPrepareBinnedData(unittest.TestCase):
         time_dict = {"LIGHT": {0: 1800.0}}
         self.assertEqual(self.light_total_time, time_dict)
 
-    def test_light_data(self):
-        data = {"mouse_1": uf.prepare_data(self.data, ["mouse_1"])}
-        light_data = {"LIGHT": {0: data}}
-
     def test_light_keys(self):
-        keys = [["LIGHT"], [0]]
+        keys = [["LIGHT"], {"LIGHT": [0]}]
         self.assertEqual(keys, self.light_keys)
 
     def test_bins_keys(self):
-        keys = [["1 dark", "1 light"], [i*100. for i in range(1800//100)]]
-        print(self.keys_100s_bins)
-        print(keys)
+        keys = [["1 dark", "1 light"],
+                {"1 dark": [i*100. for i in range(1800//100)],
+                 "1 light": [i*100. for i in range(1800//100)]}]
         self.assertEqual(keys, self.keys_100s_bins)
 
     def test_bins_data_1st_bin(self):
@@ -1964,7 +1974,8 @@ class TestPrepareBinnedData(unittest.TestCase):
                          self.total_time_24h_bins)
 
     def test_keys_24_h(self):
-        self.assertEqual(self.keys24h_b, [['1_x', '2_x'], [0.0]])
+        self.assertEqual(self.keys24h_b,
+                         [['1_x', '2_x'], {'1_x': [0.0], '2_x': [0.0]}])
 
     def test_data_1_bin(self):
         self.assertEqual(self.data24h_b["1_x"][0.0]["mouse_1"][-1],
@@ -2187,9 +2198,9 @@ class TestMath(unittest.TestCase):
         cls.phase = ['EMPTY 1 dark']
         cls.binsizes = [1800, 3600, 1.5 * 3600, 7200, 14400, 43200]
         cls.bins = 12 * 3600 / cls.binsizes[4]
-        cls.bin_labels = []
+        cls.bin_labels = {"EMPTY 1 dark": []}
         for i in np.arange(0, cls.bins, 1):
-            cls.bin_labels.append(cls.binsizes[4] * i);
+            cls.bin_labels["EMPTY 1 dark"].append(cls.binsizes[4] * i);
         cls.mice = ['0065-0136651817', '0065-0136653169', '0065-0136655780']
 
 

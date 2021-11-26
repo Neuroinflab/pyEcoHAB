@@ -242,6 +242,12 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                                              len(mice)))
             csv_results_incohort_exp = np.zeros((len(phases), len(mice),
                                                  len(mice)))
+    elif isinstance(binsize, str) and binsize.lower() in ["whole_phase", "whole phase"]:
+        binsize_name = binsize
+        csv_results_incohort = np.zeros((len(phases), len(mice),
+                                         len(mice)))
+        csv_results_incohort_exp = np.zeros((len(phases), len(mice),
+                                             len(mice)))
     else:
         binsize_name = binsize
     if time == 0:
@@ -329,7 +335,24 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                                           prefix+add_info_mice)
                 csv_results_incohort[idx_phase] = res
                 csv_results_incohort_exp[idx_phase] = exp_res
-
+        elif isinstance(binsize, str):
+            if binsize.lower() in ["whole_phase", "whole phase"]:
+                fname = "incohort_sociability_"
+                res = utils.dict_to_array_2D(full_results[ph][0],
+                                             mice, mice)
+                exp_res = utils.dict_to_array_2D(full_results_exp[ph][0],
+                                             mice, mice)
+                single_in_cohort_soc_plot(res,
+                                          exp_res,
+                                          mice,
+                                          new_phase,
+                                          fname,
+                                          res_dir,
+                                          out_dir_hist,
+                                          prefix+add_info_mice)
+                csv_results_incohort[idx_phase] = res
+                csv_results_incohort_exp[idx_phase] = exp_res
+        
         fname_measured = "%s_%s.csv" % (meas_prefix, new_phase)
         fname_excess = "%s_%s.csv" % (excess_prefix, new_phase)
         fname_expected = "%s_%s.csv" % (exp_prefix, new_phase)
@@ -361,81 +384,80 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                           out_dir_rasters,
                           fname_excess, delimiter=delimiter)
 
-    if isinstance(binsize, int) or isinstance(binsize, float):
-        if binsize == 43200:
-            out_name = "incohort_sociability_%s_time_ALL_phases_binned.%s"
-            write_csv_rasters(mice,
-                              all_phases,
-                              csv_results_incohort,
-                              res_dir,
-                              out_dir_rasters_add,
-                              out_name % ("measured", "csv"),
-                              delimiter=delimiter, prefix=prefix)
-            write_csv_rasters(mice,
-                              all_phases,
-                              csv_results_incohort_exp,
-                              res_dir,
-                              out_dir_rasters_add,
-                              out_name % ("expected", "csv"),
-                              delimiter=delimiter, prefix=prefix)
-            write_csv_rasters(mice,
-                              all_phases,
-                              csv_results_incohort - csv_results_incohort_exp,
-                              res_dir,
-                              out_dir_rasters,
-                              out_name % ("excess", "csv"),
-                              delimiter=delimiter, prefix=prefix)
-            make_RasterPlot(res_dir,
-                            out_dir_rasters_add,
-                            csv_results_incohort,
-                            all_phases,
-                            out_name % ("measured", "png"),
-                            mice,
-                            prefix=prefix,
-                            to_file=True,
-                            vmin=-1,
-                            vmax=1,
-                            title="Measured in-cohort sociability",
-                            symmetrical=True)
-            make_RasterPlot(res_dir,
-                            out_dir_rasters_add,
-                            csv_results_incohort_exp,
-                            all_phases,
-                            out_name % ("expected", "png"),
-                            mice,
-                            prefix=prefix,
-                            to_file=True,
-                            vmin=-1,
-                            vmax=1,
-                            title="Expected in-cohort sociability",
-                            symmetrical=True)
-            make_RasterPlot(res_dir,
-                            out_dir_rasters,
-                            csv_results_incohort-csv_results_incohort_exp,
-                            all_phases,
-                            out_name % ("excess", "png"),
-                            mice,
-                            prefix=prefix,
-                            to_file=True,
-                            vmin=-1,
-                            vmax=1,
-                            title="Excess in-cohort sociability",
-                            symmetrical=True)
+    if isinstance(binsize, str) and binsize.lower() in ["whole_phase", "whole phase"]:
+        out_name = "incohort_sociability_%s_time_ALL_phases_binned.%s"
+        write_csv_rasters(mice,
+                          all_phases,
+                          csv_results_incohort,
+                          res_dir,
+                          out_dir_rasters_add,
+                          out_name % ("measured", "csv"),
+                          delimiter=delimiter, prefix=prefix)
+        write_csv_rasters(mice,
+                          all_phases,
+                          csv_results_incohort_exp,
+                          res_dir,
+                          out_dir_rasters_add,
+                          out_name % ("expected", "csv"),
+                          delimiter=delimiter, prefix=prefix)
+        write_csv_rasters(mice,
+                          all_phases,
+                          csv_results_incohort - csv_results_incohort_exp,
+                          res_dir,
+                          out_dir_rasters,
+                          out_name % ("excess", "csv"),
+                          delimiter=delimiter, prefix=prefix)
+        make_RasterPlot(res_dir,
+                        out_dir_rasters_add,
+                        csv_results_incohort,
+                        all_phases,
+                        out_name % ("measured", "png"),
+                        mice,
+                        prefix=prefix,
+                        to_file=True,
+                        vmin=-1,
+                        vmax=1,
+                        title="Measured in-cohort sociability",
+                        symmetrical=True)
+        make_RasterPlot(res_dir,
+                        out_dir_rasters_add,
+                        csv_results_incohort_exp,
+                        all_phases,
+                        out_name % ("expected", "png"),
+                        mice,
+                        prefix=prefix,
+                        to_file=True,
+                        vmin=-1,
+                        vmax=1,
+                        title="Expected in-cohort sociability",
+                        symmetrical=True)
+        make_RasterPlot(res_dir,
+                        out_dir_rasters,
+                        csv_results_incohort-csv_results_incohort_exp,
+                        all_phases,
+                        out_name % ("excess", "png"),
+                        mice,
+                        prefix=prefix,
+                        to_file=True,
+                        vmin=-1,
+                        vmax=1,
+                        title="Excess in-cohort sociability",
+                        symmetrical=True)
 
-        write_sum_data(excess_time_per_mouse,
-                       'excess_incohort_sociability_per_mouse',
-                       mice, bin_labels, all_phases,
-                       res_dir, out_dir_hist, prefix,
-                       additional_info=add_info_mice,
-                       delimiter=delimiter, bool_bins=True)
+    write_sum_data(excess_time_per_mouse,
+                   'excess_incohort_sociability_per_mouse',
+                   mice, bin_labels, all_phases,
+                   res_dir, out_dir_hist, prefix,
+                   additional_info=add_info_mice,
+                   delimiter=delimiter, bool_bins=True)
 
-        write_two_values(mean_excess_time_per_mouse,
-                         standard_error_per_mouse,
-                         ['mean', 'standard error'],
-                         'mean_and_standard_error_per_mouse',
-                         mice, bin_labels, all_phases,
-                         res_dir, out_dir_hist, prefix,
-                         additional_info=add_info_mice,
-                         delimiter=delimiter)
+    write_two_values(mean_excess_time_per_mouse,
+                     standard_error_per_mouse,
+                     ['mean', 'standard error'],
+                     'mean_and_standard_error_per_mouse',
+                     mice, bin_labels, all_phases,
+                     res_dir, out_dir_hist, prefix,
+                     additional_info=add_info_mice,
+                     delimiter=delimiter)
 
     return full_results, full_results_exp
