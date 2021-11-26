@@ -1924,7 +1924,9 @@ class TestPrepareBinnedData(unittest.TestCase):
         self.assertEqual(keys, self.light_keys)
 
     def test_bins_keys(self):
-        keys = [["1 dark", "1 light"], [i*100 for i in range(12*3600//100)]]
+        keys = [["1 dark", "1 light"], [i*100. for i in range(1800//100)]]
+        print(self.keys_100s_bins)
+        print(keys)
         self.assertEqual(keys, self.keys_100s_bins)
 
     def test_bins_data_1st_bin(self):

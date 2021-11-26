@@ -71,15 +71,16 @@ def write_binned_data(data_stim, fname, mice, bin_labels, phase,
     header = make_header_for_activity(mice, delimiter)
 
     f.write(header+'\n')
-
-    assert len(bin_labels) == len(data_stim.keys())
     for mouse1 in mice:
         lines = [mouse1 for l in range(len(bin_labels))]
         for j, mouse2 in enumerate(mice):
             for k, t in enumerate(bin_labels):
                 if not j:
                     lines[k] += '%s%3.2f' % (delimiter, t/3600)
-                lines[k] += delimiter + str(data_stim[t][mouse1][mouse2])
+                try:
+                    lines[k] += delimiter + str(data_stim[t][mouse1][mouse2])
+                except TypeError:
+                    lines[k] += delimiter
         for line in lines:
             f.write(line + '\n')
     f.close()
@@ -358,21 +359,24 @@ def write_sum_data(data, fname, mice, bin_labels, phases,
 
     for phase in phases:
         if bool_bins == True:
-            for bin in bin_labels:
+            for bin in bin_labels[phase]:
                 header += delimiter + str(bin/3600) + "h "+ str(phase)
         else:
             header += delimiter + str(phase)
     header += '\n'
     f.write(header)
     phase = phases[0]
-    bin = bin_labels[0]
-    for mouse_label in data[phase][bin].keys():
+
+    for mouse_label in mice:
         f.write(mouse_label + delimiter)
         for phase in phases:
-            for bin in bin_labels:
+            for bi in bin_labels[phase]:
                 for mouse in mice:
                     if mouse == mouse_label:
-                        f.write(str(data[phase][bin][mouse]) + delimiter)
+                        try:
+                            f.write(str(data[phase][bi][mouse]) + delimiter)
+                        except KeyError:
+                            f.write(delimiter)
                     else:
                         continue
         f.write("\n")
@@ -390,25 +394,25 @@ def write_two_values(data1, data2, list_of_param, fname, mice, bin_labels, phase
     header = 'mouse'
 
     for phase in phases:
-        for bin in bin_labels:
+        for bi in bin_labels[phase]:
             for param in list_of_param:
-                header += delimiter + str(param)+ " " + str(bin / 3600) + "h " + str(phase)
+                header += delimiter + str(param)+ " " + str(bi/3600)+"h " + str(phase)
     header += '\n'
     f.write(header)
 
     phase = phases[0]
-    bin = bin_labels[0]
-    for mouse_label in data1[phase][bin].keys():
+
+    for mouse_label in mice:
         f.write(mouse_label + delimiter)
         for phase in phases:
-            for bin in bin_labels:
+            for bi in bin_labels[phase]:
                 for param in list_of_param:
                     for mouse in mice:
                         if mouse == mouse_label:
                             if param == list_of_param[0]:
-                                f.write(str(data1[phase][bin][mouse]) + delimiter)
+                                f.write(str(data1[phase][bi][mouse]) + delimiter)
                             elif param == list_of_param[1]:
-                                f.write(str(data2[phase][bin][mouse]) + delimiter)
+                                f.write(str(data2[phase][bi][mouse]) + delimiter)
                         else:
                             continue
         f.write("\n")
