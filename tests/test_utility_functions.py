@@ -1847,17 +1847,21 @@ class TestPrepareBinnedData(unittest.TestCase):
                                                                 cls.config,
                                                                 "ALL",
                                                                 ["mouse_1"])
-        cls.whole_phases, cls.whole_total_time,\
-            cls.whole_data, cls.whole_keys = uf.prepare_binned_data(cls.data,
-                                                                    cls.config,
-                                                                    "whole phase",
-                                                                    ["mouse_1"])
+        cls.whole_phases,\
+            cls.whole_total_time,\
+            cls.whole_data,\
+            cls.whole_keys = uf.prepare_binned_data(cls.data,
+                                                    cls.config,
+                                                    "whole phase",
+                                                    ["mouse_1"])
 
-        cls.dark_phases, cls.dark_total_time,\
-            cls.dark_data, cls.dark_keys = uf.prepare_binned_data(cls.data,
-                                                                  cls.config,
-                                                                  "DARK",
-                                                                  ["mouse_1"])
+        cls.dark_phases,\
+            cls.dark_total_time,\
+            cls.dark_data,\
+            cls.dark_keys = uf.prepare_binned_data(cls.data,
+                                                   cls.config,
+                                                   "DARK",
+                                                   ["mouse_1"])
         cls.light_phases, cls.light_total_time,\
             cls.light_data,\
             cls.light_keys = uf.prepare_binned_data(cls.data,
@@ -1891,7 +1895,7 @@ class TestPrepareBinnedData(unittest.TestCase):
         self.assertEqual(self.all_total_time, time_dict)
 
     def test_all_data(self):
-        data =  uf.prepare_data(self.data, ["mouse_1"])
+        data = uf.prepare_data(self.data, ["mouse_1"])
         all_data = {"ALL": {0: data}}
         self.assertEqual(self.all_data, all_data)
 
@@ -1910,7 +1914,7 @@ class TestPrepareBinnedData(unittest.TestCase):
         keys = [["1 dark", "1 light"],
                 {"1 dark": [0], "1 light": [0]}]
         self.assertEqual(keys, self.whole_keys)
-    
+
     def test_dark_phases(self):
         self.assertEqual(self.dark_phases, ["DARK"])
 
@@ -2302,7 +2306,7 @@ class TestMath(unittest.TestCase):
                 for mouse in self.mice:
                     predicted_result[phase][lab][mouse] = 2*i
         self.assertEqual(sorted(out), sorted(predicted_result))
-                    
+
     def test_divide_sum_following(self):
         act = uf.sum_activity(self.activity, self.phases, self.mice,
                               self.labels)

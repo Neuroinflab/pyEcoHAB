@@ -396,7 +396,8 @@ def write_two_values(data1, data2, list_of_param, fname, mice, bin_labels, phase
     for phase in phases:
         for bi in bin_labels[phase]:
             for param in list_of_param:
-                header += delimiter + str(param)+ " " + str(bi/3600)+"h " + str(phase)
+                header += delimiter + str(param)+ " "
+                header += str(bi/3600) + "h " + str(phase)
     header += '\n'
     f.write(header)
 
@@ -410,9 +411,11 @@ def write_two_values(data1, data2, list_of_param, fname, mice, bin_labels, phase
                     for mouse in mice:
                         if mouse == mouse_label:
                             if param == list_of_param[0]:
-                                f.write(str(data1[phase][bi][mouse]) + delimiter)
+                                f.write(str(data1[phase][bi][mouse])
+                                        + delimiter)
                             elif param == list_of_param[1]:
-                                f.write(str(data2[phase][bi][mouse]) + delimiter)
+                                f.write(str(data2[phase][bi][mouse])
+                                        + delimiter)
                         else:
                             continue
         f.write("\n")

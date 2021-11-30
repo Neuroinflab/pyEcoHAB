@@ -154,7 +154,7 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="",
     if isinstance(binsize, int) or isinstance(binsize, float):
         binlen = binsize
         fname = '%sactivity_bin_%3.2f_h.csv' % (prefix,
-                                            binsize/3600)
+                                                binsize/3600)
         histogram_fname = 'activity_histograms_bin_%3.1f_h' % (binsize/3600)
 
         if binlen > 12*3600:
@@ -183,7 +183,7 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="",
             times = [timeline.get_time_from_epoch(phase) for phase in phases]
 
         fname = '%sactivity_bin_%s.csv' % (prefix,
-                                               binsize)
+                                           binsize)
         histogram_fname = 'activity_histograms_bin_%s' % binsize
 
     phase_len = max([t2-t1 for (t1, t2) in times])
@@ -223,7 +223,7 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="",
                                 "other_variables/visit_histograms_binlen_%3.1f"
                                 % (binlen/3600),
                                 prefix, add_info_mice)
-    
+
     save_data_cvs(data, phases, mice, bin_labels, fname, res_dir,
                   ecohab_data.cages, headers)
     save_data_cvs(data, phases, mice, bin_labels, fname, res_dir,

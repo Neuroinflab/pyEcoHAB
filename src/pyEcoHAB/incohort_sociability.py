@@ -282,7 +282,7 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                                                                  time[ph][lab])
             except KeyError:
                 continue
-            
+
         write_binned_data(full_results[ph],
                           'incohort_sociability_measured_time',
                           mice, bin_labels[ph], new_phase, res_dir,
@@ -317,7 +317,7 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
 
 
         if isinstance(binsize, int) or isinstance(binsize, float):
-            if  int(binsize) == 24*3600:
+            if int(binsize) == 24*3600:
                 fname = "incohort_sociability_"
                 res = utils.dict_to_array_2D(full_results[ph][0],
                                              mice, mice)
@@ -339,7 +339,7 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                 res = utils.dict_to_array_2D(full_results[ph][0],
                                              mice, mice)
                 exp_res = utils.dict_to_array_2D(full_results_exp[ph][0],
-                                             mice, mice)
+                                                 mice, mice)
                 single_in_cohort_soc_plot(res,
                                           exp_res,
                                           mice,
@@ -350,7 +350,6 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                                           prefix+add_info_mice)
                 csv_results_incohort[idx_phase] = res
                 csv_results_incohort_exp[idx_phase] = exp_res
-        
         fname_measured = "%s_%s.csv" % (meas_prefix, new_phase)
         fname_excess = "%s_%s.csv" % (excess_prefix, new_phase)
         fname_expected = "%s_%s.csv" % (exp_prefix, new_phase)

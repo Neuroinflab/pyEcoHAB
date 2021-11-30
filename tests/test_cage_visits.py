@@ -293,6 +293,7 @@ class TestCalculateVisitsDurations(unittest.TestCase):
                    [10], [10], [10], [], [], []]
         self.assertEqual(all_vis, self.all_vB["mouse_2"])
 
+
 class TestGetActivity(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

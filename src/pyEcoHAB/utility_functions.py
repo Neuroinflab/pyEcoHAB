@@ -439,7 +439,6 @@ def dict_to_array_3D(dictionary, keys1, keys2, keys3):
                     out[i, j, k] = dictionary[key1][key2][key3]
                 except TypeError:
                     out[i, j, k] = 0
-                    
     return out
 
 
@@ -452,7 +451,6 @@ def calc_excess(res, exp_res):
             for key3 in res[key1][key2].keys():
                 excess[key1][key2][key3] = res[key1][key2][key3]\
                     - exp_res[key1][key2][key3]
-        
     return excess
 
 
@@ -490,12 +488,13 @@ def prepare_binned_data(ecohab_data, timeline, bins, mice):
         for key in data.keys():
             labels[key] = [0]
         keys = [list(data.keys()), labels]
-    elif isinstance(bins, str) and bins.lower() in ["whole_phase", "whole phase"]:
+    elif (isinstance(bins, str) and
+          bins.lower() in ["whole_phase", "whole phase"]):
         phases = []
         all_phases = filter_dark_light(timeline.sections())
         phases = [phase.replace(" ", "_") for phase in all_phases]
         times = [timeline.get_time_from_epoch(phase)
-                     for phase in all_phases]
+                 for phase in all_phases]
         data = OrderedDict()
         total_time = OrderedDict()
         bin_labels = {}
@@ -505,8 +504,8 @@ def prepare_binned_data(ecohab_data, timeline, bins, mice):
             total_time[phase] = {}
             total_time[phase][0] = time[-1] - time[0]
             data[phase] = {}
-            data[phase][0] =  prepare_data(ecohab_data, mice,
-                                           time)
+            data[phase][0] = prepare_data(ecohab_data, mice,
+                                          time)
         keys = [all_phases, bin_labels]
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
@@ -542,7 +541,7 @@ def prepare_binned_data(ecohab_data, timeline, bins, mice):
                     t_e = t_end
                 time = [t_start, t_e]
                 data[phase][bin_labels[phase][j]] = prepare_data(ecohab_data, mice,
-                                                          time)
+                                                                 time)
                 total_time[phase][bin_labels[phase][j]] = time[1] - time[0]
                 t_start += bins
                 j += 1
@@ -609,7 +608,7 @@ def get_registrations_bins(ecohab_data, timeline, bins, mice,
         all_phases = filter_dark_light(timeline.sections())
         phases = [phase.replace(" ", "_") for phase in all_phases]
         times = [timeline.get_time_from_epoch(phase)
-                     for phase in all_phases]
+                 for phase in all_phases]
         data = OrderedDict()
         total_time = OrderedDict()
         bin_labels = {}
@@ -755,13 +754,11 @@ def sum_activity(activity, phases, mice, bin_labels):
             visits[phase][lab] = OrderedDict()
             for mouse in mice:
                 visits[phase][lab][mouse] = 0
-   
     for A in activity.keys():
         for phase in activity[A][0].keys():
             for i, lab in enumerate(bin_labels[phase]):
                 for mouse in mice:
                     visits[phase][lab][mouse] += activity[A][0][phase][mouse][i]
-            
     return visits
 
 
@@ -769,7 +766,6 @@ def divide_sum_activity(data_sum, data_activ):
     """
     Following/Leading (data_sum) dicts are: [phase][bin_label][mouse]
     activity (data) dict is [phase][bin_label][mouse]
-    
     """
     result = OrderedDict()
     for label in data_sum.keys():
