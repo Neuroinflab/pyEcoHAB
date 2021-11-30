@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-from __future__ import division, print_function, absolute_import
 import numpy as np
 import os
 from collections import OrderedDict
@@ -118,6 +117,7 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="",
            A number value specifies number of seconds in each bin, e.g. binsize
            equal 3600 results in 1 h bins.
            whole_phase -- calculate activity in each phase
+           ALL -- calculate activity for the whole experiment
         res_dir : string
            destination directory
            default value is the destination directory established for
@@ -170,10 +170,20 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="",
                 t_start += binsize
         else:
             times = [timeline.get_time_from_epoch(phase) for phase in phases]
-    else:
-        times = [timeline.get_time_from_epoch(phase) for phase in phases]
+    elif isinstance(binsize, str):
+        if binsize.lower() == "all":
+            if "ALL" in timeline.sections():
+                times = [timeline.get_time_from_epoch("ALL")]
+            elif "All" in timeline.sections():
+                times = [timeline.get_time_from_epoch("All")]
+            elif "all" in timeline.sections():
+                times = [timeline.get_time_from_epoch("all")]
+            phases = ["ALL"]
+        else:
+            times = [timeline.get_time_from_epoch(phase) for phase in phases]
+
         fname = '%sactivity_bin_%s.csv' % (prefix,
-                                            binsize)
+                                               binsize)
         histogram_fname = 'activity_histograms_bin_%s' % binsize
 
     phase_len = max([t2-t1 for (t1, t2) in times])
@@ -195,7 +205,6 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="",
                                                         t_start,
                                                         t_end,
                                                         binlen)
-            print(bin_labels[phase], visit_data[0])
             data[address][0][phase] = visit_data[0]
             data[address][1][phase] = visit_data[1]
             visits_in_cages[address] = visit_data[2]
