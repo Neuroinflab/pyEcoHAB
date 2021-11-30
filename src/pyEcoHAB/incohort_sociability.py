@@ -298,11 +298,10 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
         excess_time = utils.calc_excess(full_results[ph],
                                         full_results_exp[ph])
 
-        reflected_excess_time = utils.diagonal_reflection(excess_time, mice,
-                                                          bin_labels[ph])
+        reflected_excess_time = utils.diagonal_reflection_3D(excess_time)
         excess_time_per_mouse[ph] = utils.sum_per_mouse(reflected_excess_time,
-                                                        mice, bin_labels[ph], ph,
-                                                        "sum_per_mouse", False, True)
+                                                        mice, bin_labels[ph],
+                                                        "leader")
 
         write_binned_data(excess_time,
                           'incohort_sociability_excess_time',
@@ -311,11 +310,10 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                           delimiter=delimiter)
 
         mean_excess_time_per_mouse[ph] = utils.mean(excess_time_per_mouse[ph],
-                                                    len(mice)-1,
-                                                    mice, bin_labels[ph])
+                                                    len(mice)-1)
         standard_error_per_mouse[ph] = utils.standard_error(reflected_excess_time,
                                                             mean_excess_time_per_mouse[ph],
-                                                            mice, bin_labels[ph])
+                                                            len(mice)-1)
 
 
         if isinstance(binsize, int) or isinstance(binsize, float):

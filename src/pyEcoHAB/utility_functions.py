@@ -603,7 +603,8 @@ def get_registrations_bins(ecohab_data, timeline, bins, mice,
         data["ALL"] = {0: function(ecohab_data, mice, *time)}
         data_keys = [["ALL"], {"ALL": [0.0]}]
         total_time["ALL"] = {0: time}
-    elif isinstance(bins, str) and bins.lower() in ["whole_phase", "whole phase"]:
+    elif (isinstance(bins, str)
+          and bins.lower() in ["whole_phase", "whole phase"]):
         phases = []
         all_phases = filter_dark_light(timeline.sections())
         phases = [phase.replace(" ", "_") for phase in all_phases]
@@ -616,7 +617,7 @@ def get_registrations_bins(ecohab_data, timeline, bins, mice,
             bin_labels[phase] = [0]
             time = timeline.get_time_from_epoch(phase)
             total_time[phase] = {}
-            total_time[phase][0] = time[-1] - time[0]
+            total_time[phase][0] = (time[0], time[-1])
             data[phase] = {}
             data[phase][0] = function(ecohab_data, mice,
                                       *time)
@@ -706,138 +707,107 @@ def to_struck(string, fname=""):
             raise Exception('Wrong date format in %s' % fname)
 
 
-def diagonal_reflection(matrix_data, mice, binlabels):
-    result = matrix_data
-    for bi in binlabels:
-        if isinstance(result[bi], int) or isinstance(result[bi], float):
-            continue
-        for mouse1 in mice:
-            for mouse2 in mice:
-                if mouse1 == mouse2:
-                    continue
+def diagonal_reflection_3D(matrix_data):
+    result = OrderedDict()
+    for key1 in matrix_data.keys():
+        result[key1] = OrderedDict()
+        for key2 in matrix_data[key1].keys():
+            result[key1][key2] = OrderedDict()
+            for key3 in matrix_data[key1][key2].keys():
+                if key2 == key3:
+                    result[key1][key2][key3] = matrix_data[key1][key2][key3]
+                elif matrix_data[key1][key2][key3] == 0:
+                    result[key1][key2][key3] = matrix_data[key1][key3][key2]
                 else:
-                    result[bi][mouse2][mouse1] = result[bi][mouse1][mouse2]
+                    result[key1][key2][key3] = matrix_data[key1][key2][key3]
     return result
 
 
-def sum_per_mouse(data, mice, binlabels, position, is_mouse2=bool):
+def sum_per_mouse(data, mice, binlabels, position="leader"):
+    """
+    position can either be leader or follower.
+    """
     sum_value = OrderedDict()
     for bi in binlabels:
         sum_value[bi] = OrderedDict()
-        if isinstance(data[bi], int) or isinstance(data[bi], float):
-            continue
         for mouse1 in mice:
             sum_value[bi][mouse1] = 0
-            if is_mouse2 == True:
-                for mouse2 in mice:
-                    if mouse1 == mouse2:
-                        continue
-                    else:
-                        if (position == "leader" or position == "sum_per_mouse"):
-                                sum_value[bi][mouse1] += data[bi][mouse1][mouse2]
-                        elif (position == "follower"):
-                                sum_value[bi][mouse1] += data[bi][mouse2][mouse1]
-                        else:
-                            print("Position value is invalid, please check it")
-                            exit()
-            else:
-                for i in list(data[bi][mouse1].keys()):
-                    sum_value[bi][mouse1] += data[bi][mouse1][i]
-    return (sum_value)
-
-
-def mouse_activity(data, mice, binlabels):
-    visits = OrderedDict()
-    if len(binlabels) == 1:
-        binsize = 43200
-    else:
-        binsize = abs(binlabels[0] - binlabels[1])
-    for i, bi in zip(range(len(binlabels)), binlabels):
-        visits[bi] = OrderedDict()
-        t_s = 1402921162.964 + binlabels[i]
-        t_e = t_s + binsize
-        for mouse in mice:
-            visits[bi][mouse] = data.get_visits(mouse, None, t_s, t_e)
-    return (visits)
-
-
-def divide_sum_activity(data_sum, data_activ, mice, binlabels):
-    result = OrderedDict()
-    for bi in binlabels:
-        result[bi] = OrderedDict()
-        for mouse in mice:
-            if len(data_activ[bi][mouse]) > 0:
-                result[bi][mouse] = data_sum[bi][mouse] / len(data_activ[bi][mouse])
-            else:
-                result[bi][mouse] = 0
-    return (result)
-
-
-def mouse_activity(data, mice, binlabels):
-    visits = OrderedDict()
-    if len(binlabels) == 1:
-        binsize = 43200
-    else:
-        binsize = abs(binlabels[0] - binlabels[1])
-    for i, bi in zip(range(len(binlabels)), binlabels):
-        visits[bi] = OrderedDict()
-        t_s = 1402921162.964 + binlabels[i]
-        t_e = t_s + binsize
-        for mouse in mice:
-            visits[bi][mouse] = data.get_visits(mouse, None, t_s, t_e)
-    return (visits)
-
-
-def divide_sum_activity(data_sum, data_activ, mice, binlabels):
-    result = OrderedDict()
-    for bi in binlabels:
-        result[bi] = OrderedDict()
-        for mouse in mice:
-            if len(data_activ[bi][mouse]) > 0:
-                result[bi][mouse] = data_sum[bi][mouse] / len(data_activ[bi][mouse])
-            else:
-                result[bi][mouse] = 0
-    return (result)
-
-
-def mean(numerator, denominator, mice, binlabels):
-    result = OrderedDict()
-    for bi in binlabels:
-        result[bi] = OrderedDict()
-        if bi not in numerator:
-            continue
-        for mouse in mice:
-            if mouse not in numerator[bi]:
-                result[bi][mouse] = 0
-            else:
-                result[bi][mouse] = numerator[bi][mouse] / denominator
-    return (result)
-
-
-def standard_error(data, mean, mice, binlabels):
-    result = OrderedDict()
-    for bi in binlabels:
-        result[bi] = OrderedDict()
-        if bi not in data:
-            continue
-        for mouse1 in mice:
-            result[bi][mouse1] = 0
-            try:
-                N = len(data[bi][mouse1])-1
-            except TypeError:
-                N = 0
             for mouse2 in mice:
+                if mouse1 == mouse2:
+                    continue
+                if position == "leader":
+                    sum_value[bi][mouse1] += data[bi][mouse1][mouse2]
+                elif position == "follower":
+                    sum_value[bi][mouse1] += data[bi][mouse2][mouse1]
+    return sum_value
+
+
+def sum_activity(activity, phases, mice, bin_labels):
+    """Activity data is in the dictionary [address][phase][mouse][bin_no]
+    Following dicts are: [phase][bin_label][mouse_lead][mouse_follow]
+    we want activity in the form [phase][bin_label][mouse],
+    so dividing is easy
+    """
+    visits = OrderedDict()
+    for phase in phases:
+        visits[phase] = OrderedDict()
+        for i, lab in enumerate(bin_labels[phase]):
+            visits[phase][lab] = OrderedDict()
+            for mouse in mice:
+                visits[phase][lab][mouse] = 0
+   
+    for A in activity.keys():
+        for phase in activity[A][0].keys():
+            for i, lab in enumerate(bin_labels[phase]):
+                for mouse in mice:
+                    visits[phase][lab][mouse] += activity[A][0][phase][mouse][i]
+            
+    return visits
+
+
+def divide_sum_activity(data_sum, data_activ):
+    """
+    Following/Leading (data_sum) dicts are: [phase][bin_label][mouse]
+    activity (data) dict is [phase][bin_label][mouse]
+    
+    """
+    result = OrderedDict()
+    for label in data_sum.keys():
+        result[label] = OrderedDict()
+        for mouse in data_sum[label].keys():
+            fol = data_sum[label][mouse]
+            act = data_activ[label][mouse]
+            try:
+                result[label][mouse] = fol/act
+            except ZeroDivisionError:
+                result[label][mouse] = 0
+    return result
+
+
+def mean(numerator, N):
+    result = OrderedDict()
+    for key1 in numerator.keys():
+        result[key1] = OrderedDict()
+        for key2 in numerator[key1].keys():
+            result[key1][key2] = numerator[key1][key2] / N
+    return result
+
+
+def standard_error(data, mean, N):
+    result = OrderedDict()
+    for key1 in data.keys():
+        result[key1] = OrderedDict()
+        for mouse1 in data[key1].keys():
+            result[key1][mouse1] = 0
+            for mouse2 in data[key1][mouse1]:
                 if mouse1 != mouse2:
-                    try:
-                        result[bi][mouse1] += (data[bi][mouse1][mouse2]
-                                               - mean[bi][mouse1]) ** (2)
-                    except TypeError:
-                        pass
+                    result[key1][mouse1] += (data[key1][mouse1][mouse2]
+                                             - mean[key1][mouse1]) ** (2)
                 else:
                     continue
             if N > 1:
-                result[bi][mouse1] = (result[bi][mouse1] / (N - 1)) ** (1 / 2)
-                result[bi][mouse1] = result[bi][mouse1] / (N) ** (1 / 2)
+                denom = N*(N-1)
+                result[key1][mouse1] = (result[key1][mouse1] / denom) ** (0.5)
             else:
                 result[bi][mouse1] = 0
-    return (result)
+    return result
