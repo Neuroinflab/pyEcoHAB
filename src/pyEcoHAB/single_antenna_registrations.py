@@ -99,11 +99,13 @@ def get_single_antenna_stats(ecohab_data, timeline, binsize, antennas="ALL",
                                      binsize,
                                      antenna,
                                      out_dir)
+        new_fname_count = "%s_%s" % (fname_count, antenna)
+        new_fname_durations = "%s_%s" % (fname_durations, antenna)
         write_registrations_stats(count, phase, mice, binsize,
-                                  fname_count, res_dir,
+                                  new_fname_count, res_dir,
                                   out_dir, prefix,
                                   add_info=add_info_mice, delimiter=";")
         write_registrations_stats(durations, phase, mice, binsize,
-                                  fname_durations, res_dir,
+                                  new_fname_durations, res_dir,
                                   out_dir, prefix,
                                   add_info=add_info_mice, delimiter=";")
