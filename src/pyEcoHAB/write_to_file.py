@@ -337,6 +337,7 @@ def save_antenna_transitions(transition_times,
         for label in transition_times[phase].keys():
             new_fname = "%s_%s_%s.csv" % (fname, new_phase, label)
             new_path = os.path.join(out_dir, new_fname)
+            print(new_path)
             f = open(new_path, "w")
             for key in transition_times[phase][label].keys():
                 f.write("%s%s" % (key, delimiter))
