@@ -282,7 +282,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
 
     if isinstance(binsize, int) or isinstance(binsize, float):
         binsize_name = "%3.2f_h" % (binsize/3600)
-        if int(binsize) == 43200 or int(binsize) == 24*3600:
+        if int(binsize) == 24*3600:
             csv_results_following = np.zeros((len(phases), len(mice),
                                               len(mice)))
             csv_results_following_exp = np.zeros((len(phases), len(mice),
@@ -292,6 +292,17 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                                              len(mice)))
                 csv_results_time_exp = np.zeros((len(phases), len(mice),
                                                  len(mice)))
+    elif isinstance(binsize, str) and binsize.lower() in ["whole_phase", "whole phase"]:
+        binsize_name = binsize
+        csv_results_following = np.zeros((len(phases), len(mice),
+                                          len(mice)))
+        csv_results_following_exp = np.zeros((len(phases), len(mice),
+                                              len(mice)))
+        if save_times_following:
+            csv_results_time = np.zeros((len(phases), len(mice),
+                                         len(mice)))
+            csv_results_time_exp = np.zeros((len(phases), len(mice),
+                                             len(mice)))
     else:
         binsize_name = binsize
     if return_median:
@@ -374,7 +385,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
     mouse_following_sum_div_activ_excess = OrderedDict()
     visits = get_activity(ecohab_data, timeline, binsize)
     mouse_activity = utils.sum_activity(visits, all_phases, mice, bin_labels)
-    print(times)
+
     for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase]
         for i, lab in enumerate(bin_labels[ph]):
@@ -443,7 +454,35 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                           delimiter=delimiter)
 
         if isinstance(binsize, int) or isinstance(binsize, float):
-            if int(binsize) == 12*3600 or int(binsize) == 24*3600:
+            if int(binsize) == 24*3600:
+                fname = "dynamic_interactions_N_%d_%s" % (N, method)
+                res = utils.dict_to_array_2D(following[ph][0],
+                                             mice, mice)
+                exp_res = utils.dict_to_array_2D(following_exp[ph][0],
+                                                 mice, mice)
+                single_in_cohort_soc_plot(res,
+                                          exp_res,
+                                          mice,
+                                          new_phase,
+                                          fname,
+                                          res_dir,
+                                          hist_dir,
+                                          prefix+add_info_mice,
+                                          hist=False,
+                                          vmin=0,
+                                          vmax=vmax,
+                                          vmin1=vmin1,
+                                          vmax1=vmax1,
+                                          titles=['# dynamic interactions',
+                                                  '# expected dynamic interactions',
+                                                  '# excess dynamic interactions',
+                                                  'histogram of # excess dynamic interactions', ],
+                                          labels=['following mouse',
+                                                  'followed mouse'])
+                csv_results_following[idx_phase] = res
+                csv_results_following_exp[idx_phase] = exp_res
+        elif isinstance(binsize, str):
+            if binsize.lower() in ["whole phase", "whole_phase"]:
                 fname = "dynamic_interactions_N_%d_%s" % (N, method)
                 res = utils.dict_to_array_2D(following[ph][0],
                                              mice, mice)
@@ -539,7 +578,36 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                               prefix, additional_info=add_info_mice,
                               delimiter=delimiter)
             if isinstance(binsize, int) or isinstance(binsize, float):
-                if int(binsize) == 12*3600 or int(binsize) == 24*3600:
+                if int(binsize) == 24*3600:
+                    fname = "durations_dynamic_interactions_N_%d_%s" % (N,
+                                                                        method)
+                    res = utils.dict_to_array_2D(time_together[ph][0],
+                                                 mice, mice)
+                    exp_res = utils.dict_to_array_2D(time_together_exp[ph][0],
+                                                     mice, mice)
+                    single_in_cohort_soc_plot(res,
+                                              exp_res,
+                                              mice,
+                                              new_phase,
+                                              fname,
+                                              res_dir,
+                                              other_dir,
+                                              prefix+add_info_mice,
+                                              hist=False,
+                                              vmin=0,
+                                              vmax=vmaxt,
+                                              vmin1=vmin1t,
+                                              vmax1=vmax1t,
+                                              titles=['Fraction of duration dynamics interation',
+                                                      '# expected duration',
+                                                      '# excess duration',
+                                                      'histogram of # excess duration dynamic interactions', ],
+                                              labels=['following mouse',
+                                                      'followed mouse'])
+                    csv_results_time[idx_phase] = res
+                    csv_results_time_exp[idx_phase] = exp_res
+            elif isinstance(binsize, str):
+                if binsize.lower() in ["whole phase", "whole_phase"]:
                     fname = "durations_dynamic_interactions_N_%d_%s" % (N,
                                                                         method)
                     res = utils.dict_to_array_2D(time_together[ph][0],
@@ -673,9 +741,8 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                    delimiter=";",
                    bool_bins=True)
 
-
-    if isinstance(binsize, int) or isinstance(binsize, float):
-        if binsize == 43200:
+    if isinstance(binsize, str):
+        if binsize.lower() in ["whole phase", "whole_phase"]:
             write_csv_rasters(mice,
                               phases,
                               csv_results_following -
@@ -751,7 +818,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                                   res_dir, "dynamic_interactions_intervals",
                                   prefix, additional_info=add_info_mice,
                                   delimiter=delimiter)
-        if binsize == 43200:
+    if isinstance(binsize, str) and binsize.lower() in ["whole phase", "whole_phase"]:
             write_csv_rasters(mice,
                               phases,
                               csv_results_time - csv_results_time_exp,

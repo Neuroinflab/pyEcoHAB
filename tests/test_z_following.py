@@ -344,11 +344,21 @@ class TestExecution(unittest.TestCase):
 
     def test_long_bin(self):
         fol.get_dynamic_interactions(self.data, self.config, 1,
+                                     save_distributions=True,
+                                     save_figures=True,
+                                     return_median=True, delimiter=";",
+                                     save_times_following=True,
+                                     seed=1,
                                      binsize=24*3600)
 
     def test_whole_phase_uneven(self):
         fol.get_dynamic_interactions(self.data, self.uneven, 1,
-                                     binsize="whole phase")
+                                     binsize="whole phase",
+                                     save_distributions=True,
+                                     save_figures=True,
+                                     return_median=True, delimiter=";",
+                                     save_times_following=True,
+                                     seed=1)
 
 
 if __name__ == '__main__':

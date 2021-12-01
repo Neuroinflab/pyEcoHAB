@@ -398,7 +398,7 @@ def write_two_values(data1, data2, list_of_param, fname, mice, bin_labels, phase
         for bi in bin_labels[phase]:
             for param in list_of_param:
                 header += delimiter + str(param)+ " "
-                header += str(bi/3600) + "h " + str(phase)
+                header += str(bi / 3600) + "h " + str(phase)
     header += '\n'
     f.write(header)
 

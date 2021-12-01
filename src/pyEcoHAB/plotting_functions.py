@@ -285,7 +285,7 @@ def single_in_cohort_soc_plot(results,
     fig.subplots_adjust(wspace=0.25)
     fig.subplots_adjust(hspace=0.3)
     fig.savefig(fname+'.png', dpi=100,  bbox_inches=None,
-                pad_inches=0.5)
+                pad_inches=2)
     plt.close(fig)
     print(fname+'.png')
 
