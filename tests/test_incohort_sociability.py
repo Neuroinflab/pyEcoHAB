@@ -748,12 +748,23 @@ class TestSinglePhaseResults(unittest.TestCase):
 
 
 class TestGetIncohortSociability(unittest.TestCase):
-    def test_run(cls):
-        data = Loader(sample_data)
-        config = Timeline(sample_data)
-        ics.get_incohort_sociability(data, config, 3600)
-        ics.get_incohort_sociability(data, config, 24*3600)
+    @classmethod
+    def setUpClass(cls):
+        cls.data = Loader(sample_data)
+        cls.config = Timeline(sample_data)
+        cls.uneven = Timeline(data_path, "uneven_phases.txt")
 
+    def test_run_3600(self):
+        ics.get_incohort_sociability(self.data, self.config, 3600)
+
+    def test_run_dayandnight(self):
+        ics.get_incohort_sociability(self.data, self.config, 24*3600)
+
+    def test_run_whole_phase(self):
+        ics.get_incohort_sociability(self.data, self.config, "whole phase")
+
+    def test_run_whole_phase_uneven(self):
+        ics.get_incohort_sociability(self.data, self.uneven, "whole phase")
 
 
 

@@ -30,7 +30,7 @@ def antenna_transtions_in_phases(data, phase_bounds, phases,
     all_phases, bin_labels = data_keys
     for idx_phase, ph in enumerate(all_phases):
         transition_times[ph] = {}
-        for i, lab in enumerate(bin_labels):
+        for i, lab in enumerate(bin_labels[ph]):
             t_start, t_stop = phase_bounds[ph][lab]
             tunnels_antennas_dict = data[ph][lab]
             transition_times[ph][lab] = {}
@@ -204,11 +204,10 @@ def get_registration_trains(ecohab_data):
                                    fname_count, ecohab_data.res_dir, directory,
                                    title=title,
                                    xlabel="#registrations")
-    save_antenna_transitions(registration_trains, ["ALL"],
-                             "train_durations.csv",
-                             ecohab_data.res_dir, "", directory)
-    save_antenna_transitions(counts_in_trains, ["ALL"], "counts_in_trains.csv",
-                             ecohab_data.res_dir, "", directory)
+    save_antenna_transitions(registration_trains, "transition_durations_ALL.csv",
+                             ecohab_data.res_dir, ecohab_data.prefix, directory)
+    save_antenna_transitions(counts_in_trains,  "counts_in_trains_ALL.csv",
+                             ecohab_data.res_dir, ecohab_data.prefix, directory)
     return registration_trains, counts_in_trains
 
 

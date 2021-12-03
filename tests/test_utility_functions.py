@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #!/usr/bin/env python
 # encoding: utf-8
-from __future__ import print_function, division, absolute_import
 import os
 import unittest
 import random
@@ -1848,11 +1847,21 @@ class TestPrepareBinnedData(unittest.TestCase):
                                                                 cls.config,
                                                                 "ALL",
                                                                 ["mouse_1"])
-        cls.dark_phases, cls.dark_total_time,\
-            cls.dark_data, cls.dark_keys = uf.prepare_binned_data(cls.data,
-                                                                  cls.config,
-                                                                  "DARK",
-                                                                  ["mouse_1"])
+        cls.whole_phases,\
+            cls.whole_total_time,\
+            cls.whole_data,\
+            cls.whole_keys = uf.prepare_binned_data(cls.data,
+                                                    cls.config,
+                                                    "whole phase",
+                                                    ["mouse_1"])
+
+        cls.dark_phases,\
+            cls.dark_total_time,\
+            cls.dark_data,\
+            cls.dark_keys = uf.prepare_binned_data(cls.data,
+                                                   cls.config,
+                                                   "DARK",
+                                                   ["mouse_1"])
         cls.light_phases, cls.light_total_time,\
             cls.light_data,\
             cls.light_keys = uf.prepare_binned_data(cls.data,
@@ -1886,12 +1895,25 @@ class TestPrepareBinnedData(unittest.TestCase):
         self.assertEqual(self.all_total_time, time_dict)
 
     def test_all_data(self):
-        data = {"mouse_1": uf.prepare_data(self.data, ["mouse_1"])}
+        data = uf.prepare_data(self.data, ["mouse_1"])
         all_data = {"ALL": {0: data}}
+        self.assertEqual(self.all_data, all_data)
 
     def test_all_keys(self):
-        keys = [["ALL"], [0]]
+        keys = [["ALL"], {"ALL": [0]}]
         self.assertEqual(keys, self.all_keys)
+
+    def test_whole_phases(self):
+        self.assertEqual(self.whole_phases, ["1_dark", "1_light"])
+
+    def test_whole_time(self):
+        time_dict = {"1 dark": {0: 1800}, "1 light": {0: 1800}}
+        self.assertEqual(self.whole_total_time, time_dict)
+
+    def test_whole_keys(self):
+        keys = [["1 dark", "1 light"],
+                {"1 dark": [0], "1 light": [0]}]
+        self.assertEqual(keys, self.whole_keys)
 
     def test_dark_phases(self):
         self.assertEqual(self.dark_phases, ["DARK"])
@@ -1900,12 +1922,8 @@ class TestPrepareBinnedData(unittest.TestCase):
         time_dict = {"DARK": {0: 1800.0}}
         self.assertEqual(self.dark_total_time, time_dict)
 
-    def test_dark_data(self):
-        data = {"mouse_1": uf.prepare_data(self.data, ["mouse_1"])}
-        dark_data = {"DARK": {0: data}}
-
     def test_dark_keys(self):
-        keys = [["DARK"], [0]]
+        keys = [["DARK"], {"DARK": [0]}]
         self.assertEqual(keys, self.dark_keys)
 
     def test_light_phases(self):
@@ -1915,16 +1933,14 @@ class TestPrepareBinnedData(unittest.TestCase):
         time_dict = {"LIGHT": {0: 1800.0}}
         self.assertEqual(self.light_total_time, time_dict)
 
-    def test_light_data(self):
-        data = {"mouse_1": uf.prepare_data(self.data, ["mouse_1"])}
-        light_data = {"LIGHT": {0: data}}
-
     def test_light_keys(self):
-        keys = [["LIGHT"], [0]]
+        keys = [["LIGHT"], {"LIGHT": [0]}]
         self.assertEqual(keys, self.light_keys)
 
     def test_bins_keys(self):
-        keys = [["1 dark", "1 light"], [i*100 for i in range(12*3600//100)]]
+        keys = [["1 dark", "1 light"],
+                {"1 dark": [i*100. for i in range(1800//100)],
+                 "1 light": [i*100. for i in range(1800//100)]}]
         self.assertEqual(keys, self.keys_100s_bins)
 
     def test_bins_data_1st_bin(self):
@@ -1962,7 +1978,8 @@ class TestPrepareBinnedData(unittest.TestCase):
                          self.total_time_24h_bins)
 
     def test_keys_24_h(self):
-        self.assertEqual(self.keys24h_b, [['1_x', '2_x'], [0.0]])
+        self.assertEqual(self.keys24h_b,
+                         [['1_x', '2_x'], {'1_x': [0.0], '2_x': [0.0]}])
 
     def test_data_1_bin(self):
         self.assertEqual(self.data24h_b["1_x"][0.0]["mouse_1"][-1],
@@ -2099,7 +2116,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         self.assertEqual(self.out_all[2], out)
 
     def test_all_keys(self):
-        self.assertEqual(self.out_all[3], [["ALL"], [0.0]])
+        self.assertEqual(self.out_all[3], [["ALL"], {"ALL": [0.0]}])
 
     def test_6h_phases(self):
         self.assertEqual(self.out_6h[0], ["1_dark_6.00h",
@@ -2182,106 +2199,161 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
 class TestMath(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.phase = ['EMPTY 1 dark']
-        cls.binsizes = [1800, 3600, 1.5 * 3600, 7200, 14400, 43200]
-        cls.bins = 12 * 3600 / cls.binsizes[4]
-        cls.bin_labels = []
-        for i in np.arange(0, cls.bins, 1):
-            cls.bin_labels.append(cls.binsizes[4] * i);
-        cls.mice = ['0065-0136651817', '0065-0136653169', '0065-0136655780']
+        cls.mice = ["Zyzio", "Dyzio", "Genio", "Gucio"]
+        cls.matrix_half1 = OrderedDict()
+        labels = [1, 2, 3]
+        for label in labels:
+            cls.matrix_half1[label] = OrderedDict()
+            for mouse in cls.mice:
+                cls.matrix_half1[label][mouse] = OrderedDict()
+                for mouse2 in cls.mice:
+                    if mouse == mouse2:
+                        cls.matrix_half1[label][mouse][mouse2] = 0
+                    elif mouse2 == "Zyzio" and mouse != "Zyzio":
+                        cls.matrix_half1[label][mouse][mouse2] = 3
+                    else:
+                        cls.matrix_half1[label][mouse][mouse2] = 0
+        cls.matrix_half2 = OrderedDict()
+        for label in labels:
+            cls.matrix_half2[label] = OrderedDict()
+            for mouse in cls.mice:
+                cls.matrix_half2[label][mouse] = OrderedDict()
+                for mouse2 in cls.mice[::-1]:
+                    if mouse == mouse2:
+                        cls.matrix_half2[label][mouse][mouse2] = 0
+                    elif mouse2 == "Zyzio" and mouse != "Zyzio":
+                        cls.matrix_half2[label][mouse][mouse2] = 3
+                    else:
+                        cls.matrix_half2[label][mouse][mouse2] = 0
+        cls.matrix_ = OrderedDict()
+        for label in labels:
+            cls.matrix_[label] = OrderedDict()
+            for mouse in cls.mice:
+                cls.matrix_[label][mouse] = OrderedDict()
+                for mouse2 in cls.mice:
+                    if mouse == mouse2:
+                        cls.matrix_[label][mouse][mouse2] = 0
+                    elif mouse2 == "Zyzio" and mouse != "Zyzio":
+                        cls.matrix_[label][mouse][mouse2] = 3
+                    elif mouse == "Zyzio" and mouse2 != "Zyzio":
+                        cls.matrix_[label][mouse][mouse2] = 3
+                    else:
+                        cls.matrix_[label][mouse][mouse2] = 0
 
-
-        cls.excess = OrderedDict()
-        cls.test_excess = OrderedDict()
-        cls.test_sum = OrderedDict()
+        cls.expected_sum = OrderedDict()
+        for label in labels:
+            cls.expected_sum[label] = OrderedDict()
+            for mouse in cls.mice:
+                cls.expected_sum[label][mouse] = 3
+        cls.phases = ["1 dark", "1 light"]
         cls.activity = OrderedDict()
-        cls.test_activity = OrderedDict()
-        cls.test = OrderedDict()
-        cls.test_error = OrderedDict()
+        cls.addresses = [1, 2]
+        for add in cls.addresses:
+            cls.activity[add] = OrderedDict()
+            cls.activity[add][0] = OrderedDict()
+            for phase in cls.phases:
+                cls.activity[add][0][phase] = OrderedDict()
+                for mouse in cls.mice:
+                    cls.activity[add][0][phase][mouse] = []
+                    for i in range(len(labels)):
+                        cls.activity[add][0][phase][mouse].append(i)
+        cls.labels = OrderedDict()
+        for phase in cls.phases:
+            cls.labels[phase] = labels
 
+    def test_diag_ref_1(self):
+        out = uf.diagonal_reflection_3D(self.matrix_half1)
+        self.assertEqual(sorted(out), sorted(self.matrix_))
 
-        for key1 in cls.phase:
-            cls.excess[key1] = OrderedDict()
-            cls.test_excess[key1] = OrderedDict()
-            cls.test_sum[key1] = OrderedDict()
-            cls.activity[key1] = OrderedDict()
-            cls.test_activity[key1] = OrderedDict()
-            cls.test[key1] = OrderedDict()
-            cls.test_error[key1] = OrderedDict()
-            for key2 in cls.bin_labels:
-                cls.excess[key1][key2] = OrderedDict()
-                cls.test_excess[key1][key2] = OrderedDict()
-                cls.test_sum[key1][key2] = OrderedDict()
-                cls.activity[key1][key2] = OrderedDict()
-                cls.test_activity[key1][key2] = OrderedDict()
-                cls.test[key1][key2] = OrderedDict()
-                cls.test_error[key1][key2] = OrderedDict()
-                for key3 in cls.mice:
-                    cls.excess[key1][key2][key3] = OrderedDict()
-                    cls.test_excess[key1][key2][key3] = OrderedDict()
-                    cls.activity[key1][key2][key3] = OrderedDict()
-                    cls.test_activity[key1][key2][key3] = 4/5
-                    cls.test_sum[key1][key2][key3] = 4
-                    cls.test[key1][key2][key3] = 2
-                    cls.test_error[key1][key2][key3] = 0
-                    for key4 in cls.mice:
-                        cls.excess[key1][key2][key3][key4] = 0.00
-                        cls.test_excess[key1][key2][key3][key4] = 2
-                        if key3 == key4:
-                            cls.test_excess[key1][key2][key3][key4] = 0.00
-                        elif key3 < key4:
-                            cls.excess[key1][key2][key3][key4] = 2
-                    for key5 in range(5):
-                        cls.activity[key1][key2][key3][key5] = 'activity'
+    def test_diag_ref_2(self):
+        out = uf.diagonal_reflection_3D(self.matrix_half2)
+        self.assertEqual(sorted(out), sorted(self.matrix_))
 
+    def test_sum_per_mouse_1(self):
+        ref_matrix = uf.diagonal_reflection_3D(self.matrix_half1)
+        out = uf.sum_per_mouse(ref_matrix, self.mice,
+                               self.labels[self.phases[0]],
+                               position="leader")
+        self.assertEqual(sorted(out), sorted(self.expected_sum))
 
+    def test_sum_per_mouse_2(self):
+        ref_matrix = uf.diagonal_reflection_3D(self.matrix_half1)
+        out1 = uf.sum_per_mouse(ref_matrix, self.mice,
+                                self.labels[self.phases[0]],
+                                position="follower")
+        out2 = uf.sum_per_mouse(ref_matrix, self.mice,
+                                self.labels[self.phases[0]],
+                                position="leader")
+        self.assertEqual(sorted(out1), sorted(out2))
 
+    def test_sum_per_mouse_difference(self):
+        out1 = uf.sum_per_mouse(self.matrix_half1, self.mice,
+                                self.labels[self.phases[0]],
+                                position="follower")
+        out2 = uf.sum_per_mouse(self.matrix_half2, self.mice,
+                                self.labels[self.phases[0]],
+                                position="leader")
+        self.assertEqual(sorted(out1), sorted(out2))
 
-    def test_diagonal_reflection_of_matrix(self):
+    def test_sum_activity(self):
+        out = uf.sum_activity(self.activity, self.phases, self.mice,
+                              self.labels)
+        predicted_result = OrderedDict()
+        for phase in self.phases:
+            predicted_result[phase] = OrderedDict()
+            for i, lab in enumerate(self.labels[phase]):
+                predicted_result[phase][lab] = OrderedDict()
+                for mouse in self.mice:
+                    predicted_result[phase][lab][mouse] = 2*i
+        self.assertEqual(sorted(out), sorted(predicted_result))
 
-        reflected_excess_time = uf.diagonal_reflection(self.excess[self.phase[0]],
-                                                       self.mice,
-                                                       self.bin_labels)
-        self.assertEqual(reflected_excess_time,
-                         self.test_excess[self.phase[0]],
-                         "False, diagonal reflection test failed")
-        return (reflected_excess_time)
-
-    def test_sum_per_mouse_no_phase(self):
-        sum_excess_time = uf.sum_per_mouse(self.test_diagonal_reflection_of_matrix(),
-                                           self.mice, self.bin_labels, self.phase[0],
-                                           "sum_per_mouse", False, True)
-        self.assertEqual(sum_excess_time, self.test_sum[self.phase[0]], "False, sum test failed")
-        return(sum_excess_time)
-
-    def test_sum_per_mouse_phase(self):
-        sum_time = OrderedDict()
-        sum_time[self.phase[0]] = self.test_diagonal_reflection_of_matrix()
-        sum_time[self.phase[0]] = uf.sum_per_mouse(sum_time, self.mice, self.bin_labels,
-                                       self.phase[0], "leader", True, True)
-        self.assertEqual(sum_time, self.test_sum, "False, sum test with phase failed")
-
-    def test_divide_sum_activity(self):
-        div_result = uf.divide_sum_activity(self.test_sum[self.phase[0]],
-                                            self.activity[self.phase[0]],
-                                            self.mice, self.bin_labels)
-        self.assertEqual(div_result, self.test_activity[self.phase[0]], "False, division test failed")
+    def test_divide_sum_following(self):
+        act = uf.sum_activity(self.activity, self.phases, self.mice,
+                              self.labels)
+        following = OrderedDict()
+        expected = OrderedDict()
+        for phase in act.keys():
+            following[phase] = OrderedDict()
+            expected[phase] = OrderedDict()
+            for i, lab in enumerate(act[phase].keys()):
+                following[phase][lab] = OrderedDict()
+                expected[phase][lab] = OrderedDict()
+                for mouse in act[phase][lab].keys():
+                    following[phase][lab][mouse] = 2
+                    expected[phase][lab][mouse] = i
+        out = uf.divide_sum_activity(act[self.phases[0]],
+                                     following[self.phases[0]])
+        self.assertEqual(sorted(out), sorted(expected[self.phases[0]]))
 
     def test_mean(self):
-        mean_result = uf.mean(self.test_sum_per_mouse_no_phase(),
-                              len(self.mice)-1,
-                              self.mice,
-                              self.bin_labels)
-        self.assertEqual(mean_result, self.test[self.phase[0]], "False, mean test failed")
-        return(mean_result)
+        out1 = uf.sum_per_mouse(self.matrix_half1, self.mice,
+                                self.labels[self.phases[0]],
+                                position="follower")
+        res = uf.mean(out1, 1)
+        self.assertEqual(out1, res)
 
-    def test_standard_error(self):
-        a = self.test_diagonal_reflection_of_matrix()
-        error_result = uf.standard_error(a,
-                                         self.test_mean(),
-                                         self.mice, self.bin_labels)
-        self.assertEqual(error_result, self.test_error[self.phase[0]], "False, standard error test failed")
-        return(error_result)
+    def test_mean_2(self):
+        out1 = uf.sum_per_mouse(self.matrix_half1, self.mice,
+                                self.labels[self.phases[0]],
+                                position="follower")
+        res = uf.mean(out1, 2)
+        for key1 in out1.keys():
+            for key2 in out1[key1].keys():
+                out1[key1][key2] = out1[key1][key2]/2
+        self.assertEqual(out1, res)
+
+    def test_std_1(self):
+        out1 = uf.sum_per_mouse(self.matrix_half1, self.mice,
+                                self.labels[self.phases[0]],
+                                position="follower")
+        mean1 = uf.mean(out1, 2)
+        std1 = uf.standard_error(self.matrix_half1, mean1, 2)
+        expected = OrderedDict()
+        for key1 in mean1.keys():
+            expected[key1] = OrderedDict()
+            for key2 in mean1[key1].keys():
+                expected[key1][key2] = 0
+        self.assertEqual(sorted(expected), sorted(std1))
 
 if __name__ == '__main__':
     unittest.main()

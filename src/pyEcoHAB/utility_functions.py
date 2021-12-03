@@ -435,7 +435,10 @@ def dict_to_array_3D(dictionary, keys1, keys2, keys3):
     for i, key1 in enumerate(keys1):
         for j, key2 in enumerate(keys2):
             for k, key3 in enumerate(keys3):
-                out[i, j, k] = dictionary[key1][key2][key3]
+                try:
+                    out[i, j, k] = dictionary[key1][key2][key3]
+                except TypeError:
+                    out[i, j, k] = 0
     return out
 
 
@@ -447,7 +450,7 @@ def calc_excess(res, exp_res):
             excess[key1][key2] = OrderedDict()
             for key3 in res[key1][key2].keys():
                 excess[key1][key2][key3] = res[key1][key2][key3]\
-                                           - exp_res[key1][key2][key3]
+                    - exp_res[key1][key2][key3]
     return excess
 
 
@@ -477,36 +480,58 @@ def prepare_binned_data(ecohab_data, timeline, bins, mice):
         time = timeline.get_time_from_epoch("ALL")
         total_time["ALL"] = {0: (time[1] - time[0])}
         data["ALL"] = {0: prepare_data(ecohab_data, mice, time)}
-        keys = [["ALL"], [0]]
+        keys = [["ALL"], {"ALL": [0]}]
     elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
         phases, total_time, data = get_dark_light_data(bins, timeline,
                                                        ecohab_data, mice)
-        keys = [list(data.keys()), [0]]
+        labels = {}
+        for key in data.keys():
+            labels[key] = [0]
+        keys = [list(data.keys()), labels]
+    elif (isinstance(bins, str) and
+          bins.lower() in ["whole_phase", "whole phase"]):
+        phases = []
+        all_phases = filter_dark_light(timeline.sections())
+        phases = [phase.replace(" ", "_") for phase in all_phases]
+        times = [timeline.get_time_from_epoch(phase)
+                 for phase in all_phases]
+        data = OrderedDict()
+        total_time = OrderedDict()
+        bin_labels = {}
+        for phase in all_phases:
+            bin_labels[phase] = [0]
+            time = timeline.get_time_from_epoch(phase)
+            total_time[phase] = {}
+            total_time[phase][0] = time[-1] - time[0]
+            data[phase] = {}
+            data[phase][0] = prepare_data(ecohab_data, mice,
+                                          time)
+        keys = [all_phases, bin_labels]
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
         all_phases = filter_dark_light(timeline.sections())
         shortest_phase = get_shortest_phase_duration(timeline)
+        bin_labels = {}
         # you can not iterate by phases, if bins are longer than phases
         if bins > shortest_phase:
             t_start = timeline.get_time_from_epoch(all_phases[0])[0]
             t_end = timeline.get_time_from_epoch(all_phases[-1])[-1]
-            bin_labels = [0.0]
             all_phases = []
             times = []
             i = 1
             while t_start < t_end:
                 times.append((t_start, t_start + bins))
                 all_phases.append("%d_x" % i)
+                bin_labels["%d_x" % i] = [0]
                 i += 1
                 t_start += bins
         else:
-            all_phases = filter_dark_light(timeline.sections())
-            bin_labels = get_times(bins)
             times = [timeline.get_time_from_epoch(phase)
                      for phase in all_phases]
         for i, phase in enumerate(all_phases):
             t_start, t_end = times[i]
             phases.append("%s_%4.2fh" % (phase.replace(" ", "_"), bins/3600))
+            bin_labels[phase] = get_times(bins, time_end=t_end-t_start)
             data[phase] = OrderedDict()
             total_time[phase] = OrderedDict()
             j = 0
@@ -515,9 +540,9 @@ def prepare_binned_data(ecohab_data, timeline, bins, mice):
                 if t_e > t_end:
                     t_e = t_end
                 time = [t_start, t_e]
-                data[phase][bin_labels[j]] = prepare_data(ecohab_data, mice,
-                                                          time)
-                total_time[phase][bin_labels[j]] = time[1] - time[0]
+                data[phase][bin_labels[phase][j]] = prepare_data(ecohab_data, mice,
+                                                                 time)
+                total_time[phase][bin_labels[phase][j]] = time[1] - time[0]
                 t_start += bins
                 j += 1
         keys = [all_phases, bin_labels]
@@ -575,28 +600,46 @@ def get_registrations_bins(ecohab_data, timeline, bins, mice,
         phases = ["ALL"]
         time = timeline.get_time_from_epoch("ALL")
         data["ALL"] = {0: function(ecohab_data, mice, *time)}
-        data_keys = [["ALL"], [0.0]]
+        data_keys = [["ALL"], {"ALL": [0.0]}]
         total_time["ALL"] = {0: time}
+    elif (isinstance(bins, str)
+          and bins.lower() in ["whole_phase", "whole phase"]):
+        phases = []
+        all_phases = filter_dark_light(timeline.sections())
+        phases = [phase.replace(" ", "_") for phase in all_phases]
+        times = [timeline.get_time_from_epoch(phase)
+                 for phase in all_phases]
+        data = OrderedDict()
+        total_time = OrderedDict()
+        bin_labels = {}
+        for phase in all_phases:
+            bin_labels[phase] = [0]
+            time = timeline.get_time_from_epoch(phase)
+            total_time[phase] = {}
+            total_time[phase][0] = (time[0], time[-1])
+            data[phase] = {}
+            data[phase][0] = function(ecohab_data, mice,
+                                      *time)
+        data_keys = [all_phases, bin_labels]
     elif isinstance(bins, int) or isinstance(bins, float):
         phases = []
         all_phases = filter_dark_light(timeline.sections())
         min_phase = int(get_shortest_phase_duration(timeline))
+        bin_labels = {}
         # you can not iterate by phases, if bins are longer than phases
         if bins > min_phase:
             t_start = timeline.get_time_from_epoch(all_phases[0])[0]
             t_end = timeline.get_time_from_epoch(all_phases[-1])[-1]
-            bin_labels = [0.0]
             all_phases = []
             times = []
             i = 1
             while t_start < t_end:
                 times.append((t_start, t_start + bins))
                 all_phases.append("%d_x" % i)
+                bin_labels["%d_x" % i] = [0]
                 i += 1
                 t_start += bins
         else:
-            all_phases = filter_dark_light(timeline.sections())
-            bin_labels = get_times(bins, time_start=0, time_end=min_phase)
             times = [timeline.get_time_from_epoch(phase)
                      for phase in all_phases]
         for i, phase in enumerate(all_phases):
@@ -605,16 +648,17 @@ def get_registrations_bins(ecohab_data, timeline, bins, mice,
                                          bins/3600))
             data[phase] = OrderedDict()
             total_time[phase] = OrderedDict()
+            bin_labels[phase] = get_times(bins, time_end=t_end-t_start)
             j = 0
             while t_start < t_end:
                 t_e = t_start + bins
                 if t_e > t_end:
                     t_e = t_end
                 time = (t_start, t_e)
-                data[phase][bin_labels[j]] = function(ecohab_data,
+                data[phase][bin_labels[phase][j]] = function(ecohab_data,
                                                       mice,
                                                       *time)
-                total_time[phase][bin_labels[j]] = time
+                total_time[phase][bin_labels[phase][j]] = time
                 t_start += bins
                 j += 1
             data_keys = [all_phases, bin_labels]
@@ -638,9 +682,8 @@ def make_all_results_dict(phases, bins):
     result = OrderedDict()
     for phase in phases:
         result[phase] = OrderedDict()
-        for bin1 in bins:
+        for bin1 in bins[phase]:
             result[phase][bin1] = 0
-
     return result
 
 
@@ -663,126 +706,104 @@ def to_struck(string, fname=""):
             raise Exception('Wrong date format in %s' % fname)
 
 
-def diagonal_reflection(matrix_data, mice, binlabels):
-    result = matrix_data
-    for bin in binlabels:
+def diagonal_reflection_3D(matrix_data):
+    result = OrderedDict()
+    for key1 in matrix_data.keys():
+        result[key1] = OrderedDict()
+        for key2 in matrix_data[key1].keys():
+            result[key1][key2] = OrderedDict()
+            for key3 in matrix_data[key1][key2].keys():
+                if key2 == key3:
+                    result[key1][key2][key3] = matrix_data[key1][key2][key3]
+                elif matrix_data[key1][key2][key3] == 0:
+                    result[key1][key2][key3] = matrix_data[key1][key3][key2]
+                else:
+                    result[key1][key2][key3] = matrix_data[key1][key2][key3]
+    return result
+
+
+def sum_per_mouse(data, mice, binlabels, position="leader"):
+    """
+    position can either be leader or follower.
+    """
+    sum_value = OrderedDict()
+    for bi in binlabels:
+        sum_value[bi] = OrderedDict()
         for mouse1 in mice:
+            sum_value[bi][mouse1] = 0
             for mouse2 in mice:
                 if mouse1 == mouse2:
                     continue
-                else:
-                    result[bin][mouse2][mouse1] = result[bin][mouse1][mouse2]
-    return(result)
+                if position == "leader":
+                    sum_value[bi][mouse1] += data[bi][mouse1][mouse2]
+                elif position == "follower":
+                    sum_value[bi][mouse1] += data[bi][mouse2][mouse1]
+    return sum_value
 
 
-def sum_per_mouse(data, mice, binlabels, phase, position, boolPhase=bool, is_mouse2=bool):
-    sum_value = OrderedDict()
-    for bin in binlabels:
-        sum_value[bin] = OrderedDict()
-        for mouse1 in mice:
-            sum_value[bin][mouse1] = 0
-            if is_mouse2 == True:
-                for mouse2 in mice:
-                    if mouse1 == mouse2:
-                        continue
-                    else:
-                        if (position == "leader" or position == "sum_per_mouse"):
-                            if boolPhase == True:
-                                sum_value[bin][mouse1] += data[phase][bin][mouse1][mouse2]
-                            else:
-                                sum_value[bin][mouse1] += data[bin][mouse1][mouse2]
-                        elif (position == "follower"):
-                            if boolPhase == True:
-                                sum_value[bin][mouse1] += data[phase][bin][mouse2][mouse1]
-                            else:
-                                sum_value[bin][mouse1] += data[bin][mouse2][mouse1]
-                        else:
-                            print("Position value is invalid, please check it")
-                            exit()
-            else:
-                for i in list(data[bin][mouse1].keys()):
-                    sum_value[bin][mouse1] += data[bin][mouse1][i]
-    return (sum_value)
-
-
-def mouse_activity(data, mice, binlabels):
+def sum_activity(activity, phases, mice, bin_labels):
+    """Activity data is in the dictionary [address][phase][mouse][bin_no]
+    Following dicts are: [phase][bin_label][mouse_lead][mouse_follow]
+    we want activity in the form [phase][bin_label][mouse],
+    so dividing is easy
+    """
     visits = OrderedDict()
-    if len(binlabels) == 1:
-        binsize = 43200
-    else:
-        binsize = abs(binlabels[0] - binlabels[1])
-    for i, bin in zip(range(len(binlabels)), binlabels):
-        visits[bin] = OrderedDict()
-        t_s = 1402921162.964 + binlabels[i]
-        t_e = t_s + binsize
-        for mouse in mice:
-            visits[bin][mouse] = data.get_visits(mouse, None, t_s, t_e)
-    return (visits)
+    for phase in phases:
+        visits[phase] = OrderedDict()
+        for i, lab in enumerate(bin_labels[phase]):
+            visits[phase][lab] = OrderedDict()
+            for mouse in mice:
+                visits[phase][lab][mouse] = 0
+    for A in activity.keys():
+        for phase in activity[A][0].keys():
+            for i, lab in enumerate(bin_labels[phase]):
+                for mouse in mice:
+                    visits[phase][lab][mouse] += activity[A][0][phase][mouse][i]
+    return visits
 
 
-def divide_sum_activity(data_sum, data_activ, mice, binlabels):
+def divide_sum_activity(data_sum, data_activ):
+    """
+    Following/Leading (data_sum) dicts are: [phase][bin_label][mouse]
+    activity (data) dict is [phase][bin_label][mouse]
+    """
     result = OrderedDict()
-    for bin in binlabels:
-        result[bin] = OrderedDict()
-        for mouse in mice:
-            if len(data_activ[bin][mouse]) > 0:
-                result[bin][mouse] = data_sum[bin][mouse] / len(data_activ[bin][mouse])
-            else:
-                result[bin][mouse] = 0
-    return (result)
+    for label in data_sum.keys():
+        result[label] = OrderedDict()
+        for mouse in data_sum[label].keys():
+            fol = data_sum[label][mouse]
+            act = data_activ[label][mouse]
+            try:
+                result[label][mouse] = fol/act
+            except ZeroDivisionError:
+                result[label][mouse] = 0
+    return result
 
 
-def mouse_activity(data, mice, binlabels):
-    visits = OrderedDict()
-    if len(binlabels) == 1:
-        binsize = 43200
-    else:
-        binsize = abs(binlabels[0] - binlabels[1])
-    for i, bin in zip(range(len(binlabels)), binlabels):
-        visits[bin] = OrderedDict()
-        t_s = 1402921162.964 + binlabels[i]
-        t_e = t_s + binsize
-        for mouse in mice:
-            visits[bin][mouse] = data.get_visits(mouse, None, t_s, t_e)
-    return (visits)
-
-
-def divide_sum_activity(data_sum, data_activ, mice, binlabels):
+def mean(numerator, N):
     result = OrderedDict()
-    for bin in binlabels:
-        result[bin] = OrderedDict()
-        for mouse in mice:
-            if len(data_activ[bin][mouse]) > 0:
-                result[bin][mouse] = data_sum[bin][mouse] / len(data_activ[bin][mouse])
-            else:
-                result[bin][mouse] = 0
-    return (result)
+    for key1 in numerator.keys():
+        result[key1] = OrderedDict()
+        for key2 in numerator[key1].keys():
+            result[key1][key2] = numerator[key1][key2] / N
+    return result
 
 
-def mean(numerator, denominator, mice, binlabels):
+def standard_error(data, mean, N):
     result = OrderedDict()
-    for bin in binlabels:
-        result[bin] = OrderedDict()
-        for mouse in mice:
-            result[bin][mouse] = numerator[bin][mouse] / denominator
-    return (result)
-
-
-def standard_error(data, mean, mice, binlabels):
-    result = OrderedDict()
-    for bin in binlabels:
-        result[bin] = OrderedDict()
-        for mouse1 in mice:
-            result[bin][mouse1] = 0
-            N = len(data[bin][mouse1])-1
-            for mouse2 in mice:
+    for key1 in data.keys():
+        result[key1] = OrderedDict()
+        for mouse1 in data[key1].keys():
+            result[key1][mouse1] = 0
+            for mouse2 in data[key1][mouse1]:
                 if mouse1 != mouse2:
-                    result[bin][mouse1] += (data[bin][mouse1][mouse2] - mean[bin][mouse1]) ** (2)
+                    result[key1][mouse1] += (data[key1][mouse1][mouse2]
+                                             - mean[key1][mouse1]) ** (2)
                 else:
                     continue
-            if N != 0 and N > 1:
-                result[bin][mouse1] = (result[bin][mouse1] / (N - 1)) ** (1 / 2)
-                result[bin][mouse1] = result[bin][mouse1] / (N) ** (1 / 2)
+            if N > 1:
+                denom = N*(N-1)
+                result[key1][mouse1] = (result[key1][mouse1] / denom) ** (0.5)
             else:
-                result[bin][mouse1] = 0
-    return (result)
+                result[bi][mouse1] = 0
+    return result

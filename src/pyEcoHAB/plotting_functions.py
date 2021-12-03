@@ -285,7 +285,7 @@ def single_in_cohort_soc_plot(results,
     fig.subplots_adjust(wspace=0.25)
     fig.subplots_adjust(hspace=0.3)
     fig.savefig(fname+'.png', dpi=100,  bbox_inches=None,
-                pad_inches=0.5)
+                pad_inches=2)
     plt.close(fig)
     print(fname+'.png')
 
@@ -581,7 +581,7 @@ def pooled_hists_for_every_mouse(results, fname, mice, main_directory,
 def make_visit_duration_histogram(results, time, phase, mice,
                                   fname, main_directory,
                                   directory, prefix, additional_info):
-    place = {"A": 0, "B": 1, "C": 2, "D": 3}
+
     dir_name = os.path.join(main_directory, directory)
     dir_name = utils.check_directory(dir_name, "figs")
 
@@ -598,8 +598,7 @@ def make_visit_duration_histogram(results, time, phase, mice,
         if nrows == 1:
             ax = np.expand_dims(ax, 0)
         bins, counts = [], []
-        for key in results:
-            i = place[key]
+        for i, key in enumerate(sorted(results.keys())):
             for j, out in enumerate(results[key][mouse]):
                 if i:
                     yticks = False

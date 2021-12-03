@@ -1,9 +1,13 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 from __future__ import print_function, division, absolute_import
 import unittest
+from collections import OrderedDict
+
 import numpy as np
 from pyEcoHAB import cage_visits as cv
-
+from pyEcoHAB import sample_data, data_path
+from pyEcoHAB import Loader
+from pyEcoHAB import Timeline
 
 class TestGetVisits(unittest.TestCase):
     def test_intervals_only_in_the_bin(self):
@@ -288,6 +292,46 @@ class TestCalculateVisitsDurations(unittest.TestCase):
         all_vis = [[], [3], [], [],
                    [10], [10], [10], [], [], []]
         self.assertEqual(all_vis, self.all_vB["mouse_2"])
+
+
+class TestGetActivity(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.data = Loader(sample_data)
+        cls.config = Timeline(sample_data)
+        cls.uneven = Timeline(data_path, "uneven_phases.txt")
+        cls.ALL = cv.get_activity(cls.data, cls.config, "ALL")
+        cls.whole_phases = cv.get_activity(cls.data, cls.config, "whole phase")
+        cls.whole_uneven = cv.get_activity(cls.data, cls.uneven, "whole phase")
+        cls.uneven_12h = cv.get_activity(cls.data, cls.uneven, 12*3600)
+
+    def test_ALL(self):
+        out = []
+        for add in self.ALL.keys():
+            out.extend(sorted(self.ALL[add][0].keys()))
+            out.extend(sorted(self.ALL[add][1].keys()))
+        self.assertEqual(["ALL"], list(set(out)))
+
+    def test_whole_phases(self):
+        out = []
+        for add in self.whole_phases.keys():
+            out.extend(sorted(self.whole_phases[add][0].keys()))
+            out.extend(sorted(self.whole_phases[add][1].keys()))
+        self.assertEqual(sorted(self.config.sections()[:-1]), sorted(set(out)))
+
+    def test_uneven(self):
+        S = OrderedDict()
+        for address in self.uneven_12h.keys():
+            S[address] = OrderedDict()
+            S[address][0] = OrderedDict()
+            S[address][1] = OrderedDict()
+            for phase in self.uneven_12h[address][0].keys():
+                S[address][0][phase] = OrderedDict()
+                S[address][1][phase] = OrderedDict()
+                for mouse in self.uneven_12h[address][0][phase].keys():
+                    S[address][0][phase] = [sum(self.uneven_12h[address][0][phase][mouse])]
+                    S[address][1][phase] = [sum(self.uneven_12h[address][0][phase][mouse])]
+        self.assertEqual(sorted(S), sorted(self.whole_uneven))
 
 
 if __name__ == '__main__':

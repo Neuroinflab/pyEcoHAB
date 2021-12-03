@@ -7,7 +7,7 @@ from pyEcoHAB import following as fol
 from pyEcoHAB import utility_functions as uf
 from pyEcoHAB import Loader
 from pyEcoHAB import Timeline
-from pyEcoHAB import sample_data
+from pyEcoHAB import sample_data, data_path
 from pyEcoHAB import SetupConfig
 
 
@@ -327,6 +327,7 @@ class TestExecution(unittest.TestCase):
     def setUpClass(cls):
         cls.data = Loader(sample_data)
         cls.config = Timeline(sample_data)
+        cls.uneven = Timeline(data_path, "uneven_phases.txt")
 
     def test_phases(self):
         fol.get_dynamic_interactions(self.data, self.config, 1,
@@ -343,7 +344,21 @@ class TestExecution(unittest.TestCase):
 
     def test_long_bin(self):
         fol.get_dynamic_interactions(self.data, self.config, 1,
+                                     save_distributions=True,
+                                     save_figures=True,
+                                     return_median=True, delimiter=";",
+                                     save_times_following=True,
+                                     seed=1,
                                      binsize=24*3600)
+
+    def test_whole_phase_uneven(self):
+        fol.get_dynamic_interactions(self.data, self.uneven, 1,
+                                     binsize="whole phase",
+                                     save_distributions=True,
+                                     save_figures=True,
+                                     return_median=True, delimiter=";",
+                                     save_times_following=True,
+                                     seed=1)
 
 
 if __name__ == '__main__':

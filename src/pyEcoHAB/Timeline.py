@@ -8,10 +8,11 @@ Created by Szymon Łęski on 2013-02-19.
 
 """
 import os
-import numpy as np
+from configparser import RawConfigParser, NoSectionError
 import sys
 import time
 import calendar
+import numpy as np
 import matplotlib as mpl
 if os.environ.get('DISPLAY', '') == '':
     print('no display found. Using non-interactive Agg backend')
@@ -23,10 +24,8 @@ from pyEcoHAB import utility_functions as uf
 from pyEcoHAB.utils import for_loading as fl
 
 
-if sys.version_info < (3, 0):
-    from ConfigParser import RawConfigParser, NoSectionError
-else:
-    from configparser import RawConfigParser, NoSectionError
+
+
 
 
 class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
