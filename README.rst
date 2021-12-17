@@ -26,7 +26,7 @@ Standart data analysis script used by the Laboratory of Emotions' Neurobiology w
 
 >>> import os
 >>> import pyEcoHAB
->>> binsizes = [1800, 3600, 1.5*3600, 7200, 14400, 43200]
+>>> binsizes = [1800, 3600, 1.5*3600, 7200, 14400, "whole_phase"]
 >>> path = pyEcoHAB.sample_data
 >>> res_dir = os.path.join(path, "results")
 >>> ehd = pyEcoHAB.Loader(path, res_dir=res_dir)
@@ -39,7 +39,9 @@ Standart data analysis script used by the Laboratory of Emotions' Neurobiology w
 ...     pyEcoHAB.get_activity(ehd, config, binsize)
 ...     pyEcoHAB.get_incohort_sociability(ehd, config, binsize)
 ... 
->>> pyEcoHAB.get_dynamic_interactions(ehd, config, 1000)
+>>> pyEcoHAB.get_dynamic_interactions(ehd, config, 1000, binsize="whole_phase")
+
+Specifying binsize equal to "whole_phase" will result in calculating the relevant behavioral variable for entire phases (as specified in config) regardless of the phase length.
 
 Results of the data analysis can be found in pyEcoHAB/data/BALB_VPA_data_cohort_1/results/
 
