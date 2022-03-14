@@ -603,7 +603,8 @@ def get_registrations_bins(ecohab_data, timeline, bins, mice,
         data_keys = [["ALL"], {"ALL": [0.0]}]
         total_time["ALL"] = {0: time}
     elif (isinstance(bins, str)
-          and bins.lower() in ["whole_phase", "whole phase"]):
+          and bins.lower() in ["whole_phase", "whole phase", "whole phases",
+                               "whole_phases"]):
         phases = []
         all_phases = filter_dark_light(timeline.sections())
         phases = [phase.replace(" ", "_") for phase in all_phases]
@@ -662,6 +663,25 @@ def get_registrations_bins(ecohab_data, timeline, bins, mice,
                 t_start += bins
                 j += 1
             data_keys = [all_phases, bin_labels]
+    else:
+        phases = []
+        all_phases = filter_dark_light(timeline.sections())
+        phases = [phase.replace(" ", "_") for phase in all_phases]
+        times = [timeline.get_time_from_epoch(phase)
+                 for phase in all_phases]
+        data = OrderedDict()
+        total_time = OrderedDict()
+        bin_labels = {}
+        for phase in all_phases:
+            bin_labels[phase] = [0]
+            time = timeline.get_time_from_epoch(phase)
+            total_time[phase] = {}
+            total_time[phase][0] = (time[0], time[-1])
+            data[phase] = {}
+            data[phase][0] = function(ecohab_data, mice,
+                                      *time)
+        data_keys = [all_phases, bin_labels]
+            
     return phases, total_time, data, data_keys
 
 

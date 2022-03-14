@@ -257,7 +257,7 @@ def add_intervals(all_intervals, phase_intervals):
         all_intervals[mouse].extend(phase_intervals[mouse])
 
 
-def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
+def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                              res_dir="", prefix="", remove_mouse=None,
                              save_distributions=True, save_figures=False,
                              return_median=False, delimiter=";",
@@ -292,7 +292,8 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize=12*3600,
                                              len(mice)))
                 csv_results_time_exp = np.zeros((len(phases), len(mice),
                                                  len(mice)))
-    elif isinstance(binsize, str) and binsize.lower() in ["whole_phase", "whole phase"]:
+    elif isinstance(binsize, str) and binsize.lower() in ["whole_phase",
+                                                          "whole phase"]:
         binsize_name = binsize
         csv_results_following = np.zeros((len(phases), len(mice),
                                           len(mice)))

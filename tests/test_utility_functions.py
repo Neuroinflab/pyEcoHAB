@@ -2098,7 +2098,15 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
                                                 cls.config,
                                                 24*3600,
                                                 ["mouse_1"])
-
+        cls.out_wp = uf.get_registrations_bins(cls.data,
+                                               cls.config,
+                                               "whole phase",
+                                               ["mouse_1"])
+        cls.out_wperr = uf.get_registrations_bins(cls.data,
+                                                  cls.config,
+                                                  "wholephase",
+                                                  ["mouse_1"])
+        
     def test_all_phases(self):
         self.assertEqual(self.out_all[0], ["ALL"])
 
@@ -2122,6 +2130,17 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         self.assertEqual(self.out_6h[0], ["1_dark_6.00h",
                                           "1_light_6.00h",
                                           "2_dark_6.00h"])
+
+    def test_whole_phases_keys(self):
+        self.assertEqual(self.out_wp[0], ["1_dark",
+                                          "1_light",
+                                          "2_dark"])
+                        
+    def test_error_keys(self):
+        self.assertEqual(self.out_wperr[0], ["1_dark",
+                                          "1_light",
+                                          "2_dark"])
+
 
     def test_6h_data(self):
         phases = ["1 dark", "1 light", "2 dark"]
