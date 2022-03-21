@@ -36,9 +36,11 @@ def make_RasterPlot(main_directory,
                     vmin=None,
                     vmax=None,
                     title=None,
-                    symmetrical=True):
+                    symmetrical=True,
+                    full_dir_tree=True):
     mice = make_labels(old_mice)
-    subdirectory = os.path.join(subdirectory, 'raster_plots')
+    if full_dir_tree:
+        subdirectory = os.path.join(subdirectory, 'raster_plots')
     new_path = utils.check_directory(main_directory, subdirectory)
     if title:
         plt.suptitle(title, fontsize=14, fontweight='bold')
@@ -209,10 +211,13 @@ def single_in_cohort_soc_plot(results,
                               titles=['% time together',
                                       'Expected % time together',
                                       'Excess % time together',
-                                      'Probability distribution of excess % time together'],
-                              labels=['', '']):
-
-    new_name = os.path.join(directory, 'figs')
+                                      'Probability dist of excess % time together'],
+                              labels=['', ''],
+                              full_dir_tree=True):
+    if full_dir_tree:
+        new_name = os.path.join(directory, 'figs')
+    else:
+        new_name = directory
     directory = utils.check_directory(main_directory, new_name)
     fname = os.path.join(directory, '%s_%s_%s' % (fname, prefix, phase))
     print(fname)
@@ -291,7 +296,7 @@ def single_in_cohort_soc_plot(results,
 
 
 def pooled_hists(res, res_exp, phases, fname, main_directory, directory,
-                 prefix, additional_info):
+                 prefix, additional_info, full_dir_tree=True):
 
     fig, ax = plt.subplots(1, len(phases),
                            figsize=(2.5 + (len(phases) - 1)//2*5, 5))
@@ -328,9 +333,11 @@ def pooled_hists(res, res_exp, phases, fname, main_directory, directory,
     for x in ax:
         x.set_xlim([min_bins, max_bins + 1])
         x.set_ylim([min_count, max_count + 3])
-    new_name = os.path.join(directory, 'figs')
-    directory = utils.check_directory(main_directory, new_name)
-    fname = os.path.join(directory, '%s_%s_%s' % (fname, prefix, new_phase))
+    if full_dir_tree:
+        directory = os.path.join(directory, 'figs')
+    directory = utils.check_directory(main_directory, directory)
+    fname = os.path.join(directory, '%s_%s_%s' % (fname, prefix,
+                                                  new_phase))
     if len(phases) > 1:
         fig.subplots_adjust(wspace=0.15)
     fig.savefig(fname + '.png', dpi=100, bbox_inches=None,
@@ -339,7 +346,8 @@ def pooled_hists(res, res_exp, phases, fname, main_directory, directory,
 
 
 def make_histograms_for_every_mouse(results, fname, mice, main_directory,
-                                    directory, prefix, additional_info):
+                                    directory, prefix, additional_info,
+                                    full_dir_tree=True):
     """
     results should be a dictionary of lists
     """
@@ -391,9 +399,9 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
         for x in s:
             x.set_xlim([min_bin, max_bin + 1])
             x.set_ylim([min_count, max_count + 3])
-
-    new_dir = os.path.join(directory, 'figs')
-    dir_name = utils.check_directory(main_directory, new_dir)
+    if full_dir_tree:
+        directory = os.path.join(directory, 'figs')
+    dir_name = utils.check_directory(main_directory, directory)
     plt.gcf().text(0.02, 0.5, "Followed mouse", fontsize=28, rotation=90)
     plt.gcf().text(0.5, 0.02, "Following mouse", fontsize=28)
 
@@ -440,9 +448,13 @@ def single_histogram_figures(single_results, fname, main_directory,
                              fontsize=14, xlogscale=False,
                              ylogscale=False, xmin=None, xmax=None,
                              ymin=None, ymax=None,
-                             median_mean=False, add_text=""):
+                             median_mean=False, add_text="",
+                             full_dir_tree=True):
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-    new_dir = os.path.join(path, 'figs')
+    if full_dir_tree:
+        new_dir = os.path.join(path, 'figs')
+    else:
+        new_dir = path
     dir_name = utils.check_directory(main_directory, new_dir)
     new_fname = os.path.join(dir_name, fname)
     if nbins is False:
@@ -554,14 +566,15 @@ def make_fig_histogram(results, path, title):
 
 
 def pooled_hists_for_every_mouse(results, fname, mice, main_directory,
-                                 directory, prefix, additional_info):
+                                 directory, prefix, additional_info,
+                                 full_dir_tree=True):
     results_following = pool_results_following(results, mice)
     results_followed = pool_results_followed(results, mice)
     new_name_following = "pooled_following"
     new_name_followed = "pooled_followed"
-
-    new_dir = os.path.join(directory, 'figs')
-    dir_name = utils.check_directory(main_directory, new_dir)
+    if full_dir_tree:
+        directory = os.path.join(directory, 'figs')
+    dir_name = utils.check_directory(main_directory, directory)
 
     if prefix != "":
         new_name_following = '%s_%s_%s' % (fname, prefix, new_name_following)

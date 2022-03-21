@@ -58,8 +58,11 @@ def save_data_cvs(data, phases, mice, bin_labels, fname,
 
 def write_binned_data(data_stim, fname, mice, bin_labels, phase,
                       path, target_dir, prefix, additional_info="",
-                      delimiter=";"):
-    new_path = os.path.join(path, target_dir, "data")
+                      delimiter=";", full_dir_tree=True):
+    if full_dir_tree:
+        new_path = os.path.join(path, target_dir, "data")
+    else:
+        new_path = os.path.join(path, target_dir)
     fname = os.path.join(new_path, '%s_%s_%s_%s.csv' % (fname,
                                                         prefix,
                                                         phase,
@@ -88,8 +91,11 @@ def write_binned_data(data_stim, fname, mice, bin_labels, phase,
 
 def save_single_histograms(result, fname, mice, phase, main_directory,
                            directory, prefix, additional_info="",
-                           delimiter=";"):
-    new_name = os.path.join(directory, 'data')
+                           delimiter=";", full_dir_tree=True):
+    if full_dir_tree:
+        new_name = os.path.join(directory, 'data')
+    else:
+        new_name = directory
     directory = utils.check_directory(main_directory, new_name)
     fname = os.path.join(directory, '%s_%s_%s_%s.csv' % (fname,
                                                          prefix,
@@ -113,8 +119,12 @@ def save_single_histograms(result, fname, mice, phase, main_directory,
 
 def write_csv_rasters(mice, phases, output, directory,
                       dirname, fname, symmetrical=True,
-                      reverse=False, delimiter=";", prefix=""):
-    new_name = os.path.join(dirname, 'data')
+                      reverse=False, delimiter=";", prefix="",
+                      full_dir_tree=True):
+    if full_dir_tree:
+        new_name = os.path.join(dirname, 'data')
+    else:
+        new_name = directory
     directory = utils.check_directory(directory, new_name)
     if prefix:
         fname = "%s_%s" % (prefix, fname)
@@ -223,8 +233,12 @@ def write_csv_alone(alone, phases, main_directory, prefix,
 def write_interpair_intervals(results, main_directory,
                               directory, fname, prefix,
                               additional_info="",
-                              delimiter=";"):
-    new_name = os.path.join(main_directory, 'data')
+                              delimiter=";",
+                              full_dir_tree=True):
+    if full_dir_tree:
+        new_name = os.path.join(main_directory, 'data')
+    else:
+        new_name = main_directory
     directory = utils.check_directory(directory, new_name)
     fname = os.path.join(directory, '%s_%s_%s.csv' % (fname,
                                                       prefix,
@@ -273,9 +287,13 @@ def save_visit_duration(results, time, phase, mice,
 def write_bootstrap_results(results, phase, mice_list,
                             fname, main_directory,
                             directory, prefix,
-                            add_info="", delimiter=";"):
+                            add_info="", delimiter=";",
+                            full_dir_tree=True):
     new_dir = os.path.join(main_directory, directory)
-    new_dir = utils.check_directory(new_dir, "data")
+    if full_dir_tree:
+        new_dir = utils.check_directory(new_dir, "data")
+    else:
+        new_dir = utils.check_directory(new_dir)
     new_name = os.path.join(new_dir, '%s_%s_%s_%s.csv' % (fname,
                                                           phase.replace(' ',
                                                                         '_'),
@@ -348,10 +366,15 @@ def save_antenna_transitions(transition_times,
 
 
 def write_sum_data(data, fname, mice, bin_labels, phases,
-                      path, target_dir, prefix, additional_info="",
-                      delimiter=";", bool_bins=bool):
-    new_path = os.path.join(path, target_dir, "data")
-    fname = os.path.join(new_path, '%s_%s_%s.csv' % (fname, prefix, additional_info))
+                   path, target_dir, prefix, additional_info="",
+                   delimiter=";", bool_bins=bool,
+                   full_dir_tree=True):
+    if full_dir_tree:
+        new_path = os.path.join(path, target_dir, "data")
+    else:
+        new_path = os.path.join(path, target_dir)
+    fname = os.path.join(new_path, '%s_%s_%s.csv' % (fname, prefix,
+                                                     additional_info))
     if not os.path.exists(new_path):
         os.makedirs(new_path)
     print(fname)
