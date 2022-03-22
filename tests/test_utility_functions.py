@@ -2106,7 +2106,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
                                                   cls.config,
                                                   "wholephase",
                                                   ["mouse_1"])
-        
+
     def test_all_phases(self):
         self.assertEqual(self.out_all[0], ["ALL"])
 
@@ -2135,12 +2135,11 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         self.assertEqual(self.out_wp[0], ["1_dark",
                                           "1_light",
                                           "2_dark"])
-                        
+
     def test_error_keys(self):
         self.assertEqual(self.out_wperr[0], ["1_dark",
-                                          "1_light",
-                                          "2_dark"])
-
+                                             "1_light",
+                                             "2_dark"])
 
     def test_6h_data(self):
         phases = ["1 dark", "1 light", "2 dark"]

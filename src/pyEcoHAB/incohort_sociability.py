@@ -203,7 +203,7 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
         timeline : Timeline
            timeline of the experiment.
         binsize : string or number
-           time bins for calculating in-cohort sociability. Possible string 
+           time bins for calculating in-cohort sociability. Possible string
            values are:
            "ALL" -- calculate in-cohort sociability for the whole experiment,
            "dark" -- calculate in-cohort sociabiliy for all dark phases,
@@ -230,7 +230,6 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
         prefix = ecohab_data.prefix
     if res_dir == "":
         res_dir = ecohab_data.res_dir
-    
     mice = utils.get_mice(ecohab_data.mice, remove_mouse)
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     meas_prefix = "incohort_sociability_measured_time_%s_%s" % (prefix,
@@ -422,7 +421,7 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
     if isinstance(binsize, str) and binsize.lower() in ["whole_phase",
                                                         "whole phase",
                                                         "whole_phases",
-                                                        "whole phases",]:
+                                                        "whole phases"]:
         if full_dir_tree:
             out_name = "incohort_sociability_%s_time_ALL_phases_binned.%s"
         else:
@@ -504,7 +503,7 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                      standard_error_per_mouse,
                      ['mean', 'standard error'],
                      'mean_and_standard_error_per_mouse_%s'
-                     %binsize_name,
+                     % binsize_name,
                      mice, bin_labels, all_phases,
                      res_dir, out_dir_hist, prefix,
                      additional_info=add_info_mice,

@@ -339,7 +339,7 @@ class TestExecution(unittest.TestCase):
     def test_ALL(self):
         fol.get_dynamic_interactions(self.data, self.config, 1,
                                      binsize="ALL")
-        
+
     def test_ALL(self):
         fol.get_dynamic_interactions(self.data, self.config, 1,
                                      binsize="ALL",
@@ -350,6 +350,7 @@ class TestExecution(unittest.TestCase):
                                      return_median=True, delimiter=";",
                                      save_times_following=True,
                                      full_dir_tree=False)
+
     def test_short_2(self):
         fol.get_dynamic_interactions(self.data, self.config, 1,
                                      binsize=4800,
