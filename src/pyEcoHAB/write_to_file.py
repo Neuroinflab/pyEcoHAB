@@ -124,7 +124,7 @@ def write_csv_rasters(mice, phases, output, directory,
     if full_dir_tree:
         new_name = os.path.join(dirname, 'data')
     else:
-        new_name = directory
+        new_name = dirname
     directory = utils.check_directory(directory, new_name)
     if prefix:
         fname = "%s_%s" % (prefix, fname)
