@@ -242,8 +242,11 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                                              len(mice)))
             csv_results_incohort_exp = np.zeros((len(phases), len(mice),
                                                  len(mice)))
-    elif isinstance(binsize, str) and binsize.lower() in ["whole_phase", "whole phase"]:
-        binsize_name = binsize
+    elif isinstance(binsize, str) and binsize.lower() in ["whole_phase",
+                                                          "whole phase",
+                                                          "whole phases",
+                                                          "whole_phases"]:
+        binsize_name = binsize.replace(" ", "_")
         csv_results_incohort = np.zeros((len(phases), len(mice),
                                          len(mice)))
         csv_results_incohort_exp = np.zeros((len(phases), len(mice),

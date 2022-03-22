@@ -297,8 +297,10 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                 csv_results_time_exp = np.zeros((len(phases), len(mice),
                                                  len(mice)))
     elif isinstance(binsize, str) and binsize.lower() in ["whole_phase",
-                                                          "whole phase"]:
-        binsize_name = binsize
+                                                          "whole phase",
+                                                          "whole_phases",
+                                                          "whole phases"]:
+        binsize_name = binsize.replace(" ", "_")
         csv_results_following = np.zeros((len(phases), len(mice),
                                           len(mice)))
         csv_results_following_exp = np.zeros((len(phases), len(mice),
@@ -309,7 +311,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
             csv_results_time_exp = np.zeros((len(phases), len(mice),
                                              len(mice)))
     else:
-        binsize_name = binsize
+        binsize_name = binsize.replace(" ", "_")
     if return_median:
         method = "median_N_%d" % N
     else:
