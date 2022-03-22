@@ -318,17 +318,30 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
         method = "mean_N_%d" % N
     fname = 'dynamics_interactions_%s_%s' % (method, add_info_mice)
     fname_ = 'following_%s%s.csv' % (prefix, add_info_mice)
-    fname_rev_ = 'leading_%s%s.csv' % (prefix, add_info_mice)
+
     fname_beg = 'following_excess'
     fname_rev = 'leading_excess'
-    fname_excess = '%s_%s_%s%s.csv' % (fname_beg,
-                                       method,
-                                       prefix,
-                                       add_info_mice)
-    fname_excess_rev = '%s_%s_%s%s.csv' % (fname_rev,
+    if full_dir_tree:
+        fname_excess = '%s_%s_%s%s.csv' % (fname_beg,
                                            method,
                                            prefix,
                                            add_info_mice)
+        fname_excess_rev = '%s_%s_%s%s.csv' % (fname_rev,
+                                               method,
+                                               prefix,
+                                               add_info_mice)
+        fname_rev_ = 'leading_%s%s.csv' % (prefix, add_info_mice)
+    else:
+        fname_excess = 'rasters_%s_%s_%s%s.csv' % (fname_beg,
+                                                   method,
+                                                   prefix,
+                                                   add_info_mice)
+        fname_excess_rev = 'rasters_%s_%s_%s%s.csv' % (fname_rev,
+                                                       method,
+                                                       prefix,
+                                                       add_info_mice)
+        fname_rev_ = 'rasters_leading_%s%s.csv' % (prefix, add_info_mice)
+        
     keys = utils.all_mouse_pairs(mice)
     interval_details = {key: [] for key in keys}
     if ecohab_data.how_many_antennas() > 2:
@@ -345,41 +358,55 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
         vmaxt = 0.01
         vmin1t = -0.01
         vmax1t = 0.01
-    raster_dir = os.path.join("dynamic_interactions", "raster_plots",
-                              "bins_%s" % binsize_name)
-    raster_dir_add = os.path.join('dynamic_interactions', 'additionals',
-                                  'raster_plots', "bins_%s" % binsize_name)
-    hist_dir = os.path.join('dynamic_interactions', 'histograms',
-                            "bins_%s" % binsize_name)
-    hist_dir_add = os.path.join("dynamic_interactions", "additionals",
-                                "histograms", "bins_%s" % binsize_name)
-    other_dir = os.path.join('other_variables',
-                             'durations_dynamic_interactions', 'histograms',
-                             "bins_%s" % binsize_name)
-    other_hist = os.path.join("other_variables",
-                              "histograms_of_dynamic_interactions_intervals",
-                              "bins_%s" % binsize_name)
-    other_excess_hist = os.path.join('other_variables',
-                                     'dynamic_interactions_excess_histograms',
-                                     "bins_%s" % binsize_name)
+    if full_dir_tree:
+        raster_dir = os.path.join("dynamic_interactions", "raster_plots",
+                                  "bins_%s" % binsize_name)
+        raster_dir_add = os.path.join('dynamic_interactions', 'additionals',
+                                      'raster_plots', "bins_%s" % binsize_name)
+        hist_dir = os.path.join('dynamic_interactions', 'histograms',
+                                "bins_%s" % binsize_name)
+        hist_dir_add = os.path.join("dynamic_interactions", "additionals",
+                                    "histograms", "bins_%s" % binsize_name)
+        other_dir = os.path.join('other_variables',
+                                 'durations_dynamic_interactions', 'histograms',
+                                 "bins_%s" % binsize_name)
+        other_hist = os.path.join("other_variables",
+                                  "histograms_of_dynamic_interactions_intervals",
+                                  "bins_%s" % binsize_name)
+        other_excess_hist = os.path.join('other_variables',
+                                         'dynamic_interactions_excess_histograms',
+                                         "bins_%s" % binsize_name)
+        other_raster_dir = os.path.join("other_variables",
+                                        "durations_dynamic_interactions",
+                                        "rasters",
+                                        "bin_%s" % binsize)
+    else:
+        raster_dir = "dynamic_interactions"
+        raster_dir_add = 'dynamic_interactions',
+        hist_dir = 'dynamic_interactions'
+        hist_dir_add = "dynamic_interactions", 
+        other_dir = os.path.join('other_variables',
+                                 'durations_dynamic_interactions')
+        other_hist = os.path.join("other_variables",
+                                  "histograms_of_dynamic_interactions_intervals")
+        other_excess_hist = os.path.join('other_variables',
+                                         'dynamic_interactions_excess_histograms')
+        
+        other_raster_dir = os.path.join("other_variables",
+                                        "durations_dynamic_interactions")
     meas_prefix = "measured_dynamic_interactions_%s_%s" % (prefix,
                                                            add_info_mice)
     exp_prefix = "expected_dynamic_interactions_%s_%s" % (prefix,
                                                           add_info_mice)
     excess_prefix = "excess_dynamic_interactions_%s_%s" % (prefix,
                                                            add_info_mice)
-
+    
     meas_prefix_dur = "durations_dynamic_interactions_%s_%s" %\
         (prefix, add_info_mice)
     exp_prefix_dur = "exp_durations_dynamic_interactions_%s_%s" %\
         (prefix, add_info_mice)
     excess_prefix_dur = "excess_durations_dynamic_interactions_%s_%s" %\
         (prefix, add_info_mice)
-
-    other_raster_dir = os.path.join("other_variables",
-                                    "durations_dynamic_interactions",
-                                    "rasters",
-                                    "bin_%s" % binsize)
 
     mouse_leading_sum = OrderedDict()
     mouse_following_sum = OrderedDict()
@@ -426,14 +453,22 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                                                                     mouse_activity[ph])
         mouse_following_sum_div_activ[ph] = utils.divide_sum_activity(mouse_following_sum[ph],
                                                                       mouse_activity[ph])
+        if full_dir_tree:
+            meas_fname = meas_prefix
+            exp_fname = exp_prefix
+            excess_fname = excess_prefix
+        else:
+            meas_fname = "histograms_%s" % meas_prefix
+            exp_fname = "histograms_%s" % exp_prefix
+            excess_fname = "histograms_%s" % excess_prefix
         write_binned_data(following[ph],
-                          'dynamic_interactions',
+                          meas_fname,
                           mice, bin_labels[ph], new_phase, res_dir,
                           hist_dir_add,
                           prefix, additional_info=add_info_mice,
                           delimiter=delimiter, full_dir_tree=full_dir_tree)
         write_binned_data(following_exp[ph],
-                          'dynamic_interactions_expected_%s' % method,
+                          '%s_%s' % (exp_fname, method),
                           mice, bin_labels[ph], new_phase, res_dir,
                           hist_dir_add,
                           prefix, additional_info=add_info_mice,
@@ -456,7 +491,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                                                                              mouse_activity[ph])
 
         write_binned_data(excess_following,
-                          'dynamic_interactions_excess_%s' % method,
+                          '%s_%s' % (excess_fname, method),
                           mice, bin_labels[ph], new_phase, res_dir,
                           hist_dir,
                           prefix, additional_info=add_info_mice,
@@ -464,7 +499,10 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
 
         if isinstance(binsize, int) or isinstance(binsize, float):
             if int(binsize) == 24*3600:
-                fname = "dynamic_interactions_N_%d_%s" % (N, method)
+                if full_dir_tree:
+                    fname = "dynamic_interactions_N_%d_%s" % (N, method)
+                else:
+                    fname = "histograms_dynamic_interactions_N_%d_%s" % (N, method)
                 res = utils.dict_to_array_2D(following[ph][0],
                                              mice, mice)
                 exp_res = utils.dict_to_array_2D(following_exp[ph][0],
@@ -492,7 +530,9 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                 csv_results_following[idx_phase] = res
                 csv_results_following_exp[idx_phase] = exp_res
         elif isinstance(binsize, str):
-            if binsize.lower() in ["whole phase", "whole_phase"]:
+            if binsize.lower() in ["whole phase", "whole_phase",
+                                   "whole phases", "whole_phases"]:
+                
                 fname = "dynamic_interactions_N_%d_%s" % (N, method)
                 res = utils.dict_to_array_2D(following[ph][0],
                                              mice, mice)
@@ -520,9 +560,19 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                                           full_dir_tree=full_dir_tree)
                 csv_results_following[idx_phase] = res
                 csv_results_following_exp[idx_phase] = exp_res
-        fname_measured = "%s_%s.csv" % (meas_prefix, new_phase)
-        fname_excess = "%s_%s.csv" % (excess_prefix, new_phase)
-        fname_expected = "%s_%s.csv" % (exp_prefix, new_phase)
+        if full_dir_tree:
+            fname_measured = "%s_%s.csv" % (meas_prefix, new_phase)
+            fname_excess = "%s_%s.csv" % (excess_prefix, new_phase)
+            fname_expected = "%s_%s.csv" % (exp_prefix, new_phase)
+            leading_fname = "excess_leading_%s" % new_phase
+            following_fname = "excess_following_%s" % new_phase
+        else:
+            fname_measured = "raster_%s_%s.csv" % (meas_prefix, new_phase)
+            fname_excess = "raster_%s_%s.csv" % (excess_prefix, new_phase)
+            fname_expected = "raster_%s_%s.csv" % (exp_prefix, new_phase)
+            leading_fname = "raster_excess_leading_%s" % new_phase
+            following_fname = "raster_excess_following_%s" % new_phase
+
         raster_labels = [bin_label/3600 for bin_label in bin_labels[ph]]
         phase_full_results = utils.dict_to_array_3D(following[ph],
                                                     bin_labels[ph],
@@ -553,7 +603,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                           phase_full_results - phase_exp_full_results,
                           res_dir,
                           raster_dir,
-                          "excess_following_%s.csv" % new_phase,
+                          following_fname,
                           delimiter=delimiter,
                           symmetrical=False,
                           reverse=True, prefix=prefix,
@@ -564,22 +614,26 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                           phase_full_results - phase_exp_full_results,
                           res_dir,
                           raster_dir,
-                          "excess_leading_%s.csv" % new_phase,
+                          leading_fname,
                           delimiter=delimiter,
                           symmetrical=False, prefix=prefix,
                           full_dir_tree=full_dir_tree)
 
         if save_times_following:
+            if full_dir_tree:
+                fname_times = 'durations_dynamic_interactions'
+            else:
+                fname_times = 'histogram_durations_dynamic_interactions'
             write_binned_data(time_together[ph],
-                              'durations_dynamic_interactions',
+                              fname_times,
                               mice, bin_labels[ph], new_phase, res_dir,
                               other_dir,
                               prefix, additional_info=add_info_mice,
                               delimiter=delimiter,
                               full_dir_tree=full_dir_tree)
             write_binned_data(time_together_exp[ph],
-                              'durations_dynamic_interactions_expected_%s'
-                              % method,
+                              '%s_expected_%s'
+                              % (fname_times, method),
                               mice, bin_labels[ph], new_phase, res_dir,
                               other_dir,
                               prefix, additional_info=add_info_mice,
@@ -588,8 +642,8 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
             excess_time = utils.calc_excess(time_together[ph],
                                             time_together[ph])
             write_binned_data(excess_time,
-                              'durations_dynamic_interactions_expected_%s'
-                              % method,
+                              '%s_expected_%s'
+                              % (fname_times, method),
                               mice, bin_labels[ph], new_phase, res_dir,
                               other_dir,
                               prefix, additional_info=add_info_mice,
@@ -597,8 +651,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                               full_dir_tree=full_dir_tree)
             if isinstance(binsize, int) or isinstance(binsize, float):
                 if int(binsize) == 24*3600:
-                    fname = "durations_dynamic_interactions_N_%d_%s" % (N,
-                                                                        method)
+                    fname = "%s_N_%d_%s" % (fname_times, N, method)
                     res = utils.dict_to_array_2D(time_together[ph][0],
                                                  mice, mice)
                     exp_res = utils.dict_to_array_2D(time_together_exp[ph][0],
@@ -626,9 +679,9 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                     csv_results_time[idx_phase] = res
                     csv_results_time_exp[idx_phase] = exp_res
             elif isinstance(binsize, str):
-                if binsize.lower() in ["whole phase", "whole_phase"]:
-                    fname = "durations_dynamic_interactions_N_%d_%s" % (N,
-                                                                        method)
+                if binsize.lower() in ["whole phase", "whole_phase",
+                                       "whole phases", "whole_phases"]:
+                    fname = "%s_N_%d_%s" % (fname_times, N, method)
                     res = utils.dict_to_array_2D(time_together[ph][0],
                                                  mice, mice)
                     exp_res = utils.dict_to_array_2D(time_together_exp[ph][0],
@@ -655,8 +708,15 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                                               full_dir_tree=full_dir_tree)
                     csv_results_time[idx_phase] = res
                     csv_results_time_exp[idx_phase] = exp_res
-            fname_measured = "%s_%s.csv" % (meas_prefix_dur, new_phase)
-            fname_expected = "%s_%s.csv" % (exp_prefix_dur, new_phase)
+            if full_dir_tree:
+                r_fname_measured = "%s_%s.csv" % (meas_prefix_dur, new_phase)
+                r_fname_expected = "%s_%s.csv" % (exp_prefix_dur, new_phase)
+                r_fname_excess = "%s_%s.csv" % (excess_prefix_dur, new_phase)
+            else:
+                r_fname_measured = "raster_%s_%s.csv" % (meas_prefix_dur, new_phase)
+                r_fname_expected = "raster_%s_%s.csv" % (exp_prefix_dur, new_phase)
+                r_fname_excess = "raster_%s_%s.csv" % (excess_prefix_dur, new_phase)
+
             raster_labels = [bin_label/3600 for bin_label in bin_labels[ph]]
             phase_full_results = utils.dict_to_array_3D(following[ph],
                                                         bin_labels[ph],
@@ -669,7 +729,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                               phase_full_results,
                               res_dir,
                               other_dir,
-                              fname_measured,
+                              r_fname_measured,
                               delimiter=delimiter,
                               symmetrical=False, prefix=prefix,
                               full_dir_tree=full_dir_tree)
@@ -678,7 +738,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                               phase_exp_full_results,
                               res_dir,
                               other_dir,
-                              fname_expected,
+                              r_fname_expected,
                               delimiter=delimiter,
                               symmetrical=False, prefix=prefix,
                               full_dir_tree=full_dir_tree)
@@ -687,12 +747,12 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                               phase_full_results - phase_exp_full_results,
                               res_dir,
                               other_dir,
-                              fname_excess, delimiter=delimiter,
+                              r_fname_excess, delimiter=delimiter,
                               symmetrical=False, prefix=prefix,
                               full_dir_tree=full_dir_tree)
 
     write_sum_data(mouse_leading_sum,
-                   "mouse_leading_sum",
+                   "mouse_leading_sum_%s" % binsize_name,
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -702,7 +762,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                    bool_bins=True,
                    full_dir_tree=full_dir_tree)
     write_sum_data(mouse_following_sum,
-                   "mouse_following_sum",
+                   "mouse_following_sum_%s" % binsize_name,
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -712,7 +772,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                    bool_bins=True,
                    full_dir_tree=full_dir_tree)
     write_sum_data(mouse_leading_sum_excess,
-                   "mouse_leading_sum_excess",
+                   "mouse_leading_sum_excess_%s"  % binsize_name,
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -722,7 +782,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                    bool_bins=True,
                    full_dir_tree=full_dir_tree)
     write_sum_data(mouse_following_sum_excess,
-                   "mouse_following_sum_excess",
+                   "mouse_following_sum_excess_%s" % binsize_name,
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -732,7 +792,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                    bool_bins=True,
                    full_dir_tree=full_dir_tree)
     write_sum_data(mouse_leading_sum_div_activ,
-                   "mouse_leading_activity",
+                   "mouse_leading_activity_%s" % binsize_name,
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -742,7 +802,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                    bool_bins=True,
                    full_dir_tree=full_dir_tree)
     write_sum_data(mouse_following_sum_div_activ,
-                   "mouse_following_activity",
+                   "mouse_following_activity_%s" % binsize_name,
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -752,7 +812,8 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                    bool_bins=True,
                    full_dir_tree=full_dir_tree)
     write_sum_data(mouse_leading_sum_div_activ_excess,
-                   "mouse_leading_activity_excess",
+                   "mouse_leading_activity_excess_%s"
+                   % binsize_name,
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -762,7 +823,8 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                    bool_bins=True,
                    full_dir_tree=full_dir_tree)
     write_sum_data(mouse_following_sum_div_activ_excess,
-                   "mouse_following_activity_excess",
+                   "mouse_following_activity_excess_%s"
+                   % binsize_name,
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -773,7 +835,8 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                    full_dir_tree=full_dir_tree)
 
     if isinstance(binsize, str):
-        if binsize.lower() in ["whole phase", "whole_phase"]:
+        if binsize.lower() in ["whole phase", "whole_phase",
+                               "whole_phases", "whole phases"]:
             write_csv_rasters(mice,
                               phases,
                               csv_results_following -
@@ -858,14 +921,15 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                                   prefix, additional_info=add_info_mice,
                                   delimiter=delimiter,
                                   full_dir_tree=full_dir_tree)
-    if isinstance(binsize, str) and binsize.lower() in ["whole phase", "whole_phase"]:
+    if isinstance(binsize, str) and binsize.lower() in ["whole phase", "whole_phase",
+                                                        "whole_phases", "whole phases"]:
         if save_times_following:
             write_csv_rasters(mice,
                               phases,
                               csv_results_time - csv_results_time_exp,
                               res_dir,
                               other_raster_dir,
-                              "excess_duration_following",
+                              "raster_excess_duration_following",
                               symmetrical=False,
                               reverse=True,
                               delimiter=delimiter, prefix=prefix,
@@ -875,7 +939,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                               csv_results_time - csv_results_time_exp,
                               res_dir,
                               other_raster_dir,
-                              "excess_duration_leading",
+                              "raster_excess_duration_leading",
                               symmetrical=False,
                               delimiter=delimiter, prefix=prefix,
                               full_dir_tree=full_dir_tree)
@@ -883,7 +947,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                             other_raster_dir,
                             (csv_results_time - csv_results_time_exp),
                             phases,
-                            "excess_durations_dynamic_interactions",
+                            "raster_excess_durations_dynamic_interactions",
                             mice,
                             title='% excess duration dynamic interactions',
                             symmetrical=False, prefix=prefix,

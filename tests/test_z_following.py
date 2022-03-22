@@ -337,10 +337,29 @@ class TestExecution(unittest.TestCase):
                                      save_times_following=True)
 
     def test_ALL(self):
-        fol.get_dynamic_interactions(self.data, self.config, 1, binsize="ALL")
+        fol.get_dynamic_interactions(self.data, self.config, 1,
+                                     binsize="ALL")
         
     def test_ALL(self):
-        fol.get_dynamic_interactions(self.data, self.config, 1, binsize="ALL",
+        fol.get_dynamic_interactions(self.data, self.config, 1,
+                                     binsize="ALL",
+                                     res_dir=os.path.join(self.data.path,
+                                                          "Resu2"),
+                                     save_distributions=True,
+                                     save_figures=True,
+                                     return_median=True, delimiter=";",
+                                     save_times_following=True,
+                                     full_dir_tree=False)
+    def test_short_2(self):
+        fol.get_dynamic_interactions(self.data, self.config, 1,
+                                     binsize=4800,
+                                     res_dir=os.path.join(self.data.path,
+                                                          "Resu2"),
+
+                                     save_distributions=True,
+                                     save_figures=True,
+                                     return_median=True, delimiter=";",
+                                     save_times_following=True,
                                      full_dir_tree=False)
 
     def test_short_bin(self):
