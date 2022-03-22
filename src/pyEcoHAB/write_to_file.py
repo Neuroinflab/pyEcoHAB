@@ -406,11 +406,15 @@ def write_sum_data(data, fname, mice, bin_labels, phases,
         f.write("\n")
     f.close()
 
-def write_two_values(data1, data2, list_of_param, fname, mice, bin_labels, phases,
-                      path, target_dir, prefix, additional_info="",
-                      delimiter=";"):
-    new_path = os.path.join(path, target_dir, "data")
-    fname = os.path.join(new_path, '%s_%s_%s.csv' % (fname, prefix, additional_info))
+def write_two_values(data1, data2, list_of_param, fname, mice, bin_labels,
+                     phases, path, target_dir, prefix, additional_info="",
+                     delimiter=";", full_dir_tree=True):
+    if full_dir_tree:
+        new_path = os.path.join(path, target_dir, "data")
+    else:
+        new_path = os.path.join(path, target_dir)
+    fname = os.path.join(new_path, '%s_%s_%s.csv' % (fname, prefix,
+                                                     additional_info))
     if not os.path.exists(new_path):
         os.makedirs(new_path)
     print(fname)
