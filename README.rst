@@ -288,6 +288,9 @@ Authors
 Acknowledgements
 ----------------
 This software was supported by the Polish National Science Centre grant 2017/27/B/NZ4/02025.
+This is a project of the `Laboratory of Neuroinformatics
+<https://neuroinflab.wordpress.com/>`_
+in the Nencki Institute of Experimental Biology, Polish Academy of Sciences.
 
 Prerequisites
 -------------
