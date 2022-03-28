@@ -56,26 +56,13 @@ def insert_interval(candidate_t_start, interval,
 
 
 def generate_intervals(t_starts, t_stops, duration):
-    intervals = sorted(utils.get_interval_durations_2_lists(t_starts,
-                                                            t_stops),
-                       reverse=True)
     new_t_starts, new_t_stops = [], []
-    ints_len = len(intervals)
-    i = 0
-    iterations = 0
-    while i < ints_len:
-        interval = intervals[i]
-        can_t_start = random.randrange(0, duration)
-        out = insert_interval(can_t_start, interval,
-                              new_t_starts, new_t_stops,
-                              duration)
-        iterations += 1
-        i += out
-        if iterations > 2*ints_len:
-            # start over
-            i = 0
-            iterations = 0
-            new_t_starts, new_t_stops = [], []
+    for i, t_start in enumerate(t_starts):
+        new_t_starts.append(t_start + duration)
+        new_t_stops.append(t_stops[i] + duration)
+    if len(t_stops) > len(t_starts):
+        for t_stop in t_stops[len(t_start)-1:]:
+           new_t_stops.append(t_stop + duration)
     return new_t_starts, new_t_stops
 
 
@@ -96,8 +83,9 @@ def bootstrap_single_phase(directions_dict, mice_list,
     new_directions = {}
     for i in range(N):
         for mouse in mice_list:
+            shift = random.randrange(0, 3600)
             new_directions[mouse] = gen_directions_dict(directions_dict[mouse],
-                                                        t_stop - t_start, keys)
+                                                        shift, keys)
         out = following_matrices(new_directions, mice_list,
                                  t_start, t_stop, keys)
         for m1 in mice_list:
