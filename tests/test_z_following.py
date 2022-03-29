@@ -180,10 +180,10 @@ class TestIntervalGeneration(unittest.TestCase):
       
    
     def test_t_starts(self):
-        self.assertEqual(cls.out1[0], [43, 45, 50])
+        self.assertEqual(self.out1[0], [43, 45, 50])
 
     def test_t_ends(self):
-        self.assertEqual(cls.out1[1], [44, 48, 52])
+        self.assertEqual(self.out1[1], [44, 48, 52])
 
 
 class TestExecution(unittest.TestCase):
