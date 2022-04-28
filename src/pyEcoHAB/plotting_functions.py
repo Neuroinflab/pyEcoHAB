@@ -40,6 +40,9 @@ def make_RasterPlot(main_directory,
                     symmetrical=True,
                     full_dir_tree=True):
     mice = make_labels(old_mice)
+
+    if len(set(old_mice)) != len(set(mice)):
+        return
     if full_dir_tree:
         subdirectory = os.path.join(subdirectory, 'raster_plots')
     new_path = utils.check_directory(main_directory, subdirectory)
