@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-from __future__ import division, print_function, absolute_import
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import os
 import numpy as np
 from .write_to_file import save_single_histograms, write_csv_rasters

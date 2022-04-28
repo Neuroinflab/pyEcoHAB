@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function, division, absolute_import
 import numpy as np
 from . import utility_functions as utils
 from . import exec_functions as dispatch
