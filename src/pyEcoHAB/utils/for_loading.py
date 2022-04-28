@@ -204,7 +204,7 @@ def remove_antennas(data, antennas):
     return new_data
 
 
-def remove_ghost_tags(raw_data, legal_tags="ALL"):
+def remove_ghost_tags(raw_data, legal_tags="ALL", ghost_tags=False):
     """
     Leave animal tag registrations that are trustworthy.
 
@@ -221,13 +221,33 @@ def remove_ghost_tags(raw_data, legal_tags="ALL"):
     Returns:
        a list of lists or an 2D array (the same type as raw_data)
     """
+    if ghost_tags:
+        how_many_days = 1
+        how_many_appearances = 50
+        ghost_mice = []
+        counters = {}
+        all_mice = []
+        for d in raw_data:
+            mouse = d[4]
+            if mouse not in counters:
+                counters[mouse] = 0
+            if mouse not in all_mice:
+                all_mice.append(mouse)
+            counters[mouse] += 1
+        legal_tags = []
+        for mouse in counters:
+            if counters[mouse] < how_many_appearances:
+                if mouse not in ghost_mice:
+                    ghost_mice.append(mouse)
+        for mouse in all_mice:
+            if mouse not in ghost_mice:
+                legal_tags.append(mouse)
     if legal_tags == "ALL":
         return raw_data
 
     new_data = []
     if isinstance(legal_tags, basestring):
         legal_tags = [legal_tags]
-
     for d in raw_data:
         mouse = d[4]
         if mouse in legal_tags:

@@ -340,7 +340,8 @@ class Loader(EcoHabDataBase):
             res_dir = "%s_%s" % (res_dir, today)
         self.res_dir = ufl.results_path(self.path, res_dir)
         # Read in data
-        rawdata = self._read_in_raw_data(tags)
+        ghost_tags = kwargs.pop("check_for_ghost_tags", False)
+        rawdata = self._read_in_raw_data(tags, ghost_tags)
         data = ufl.from_raw_data(rawdata)
         data = ufl.remove_antennas(data, remove_antennas)
         # As in antenna registrations
@@ -358,7 +359,7 @@ class Loader(EcoHabDataBase):
         self.home_internal_antennas = antennas.homecage_internal_antennas
         self.stimulus_internal_antennas = antennas.stimCage_internal_antennas
 
-    def _read_in_raw_data(self, tags):
+    def _read_in_raw_data(self, tags, ghost_tags):
         """Reads in data from files in self.path.
         Removes ghost tags from data"""
         raw_data = []
@@ -370,7 +371,7 @@ class Loader(EcoHabDataBase):
             raw_data += ufl.read_single_file(self.path, f_name)
             days.add(f_name.split('_')[0])
         data = ufl.remove_ghost_tags(raw_data,
-                                     legal_tags=tags)
+                                     legal_tags=tags, ghost_tags=ghost_tags)
         data.sort(key=lambda x: ufl.time_to_sec(x[1]))
         return data
 
