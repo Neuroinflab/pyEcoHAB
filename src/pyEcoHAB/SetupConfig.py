@@ -704,7 +704,7 @@ class ExperimentSetupConfig(SetupConfigMethods):
         destination_name = cage A
 
         "cage A" of ecohab_1 is named "cage D" in ecohab_2. In all relevant
-        result files this cage is going to be called "shared cage".
+        result files this cage is going to be called "cage A".
 
         For modular experiments pyEcoHAB will add setup name to
         compartment name. To avoid weird sounding compartment names
