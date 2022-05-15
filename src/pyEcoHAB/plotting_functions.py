@@ -215,7 +215,7 @@ def single_in_cohort_soc_plot(results,
                               titles=['% time together',
                                       'Expected % time together',
                                       'Excess % time together',
-                                      'Probability dist of excess % time together'],
+                                      'Histogram of excess % time together'],
                               labels=['', ''],
                               full_dir_tree=True):
     if full_dir_tree:
