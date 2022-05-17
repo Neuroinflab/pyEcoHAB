@@ -144,8 +144,12 @@ class TestMerger(unittest.TestCase):
 
     def test_incohort_sociability_2(self):
         config = Timeline(sample_data)
-        out_1 = get_incohort_sociability(self.data, config, 24*3600)
-        out_2 = get_incohort_sociability(self.original_data, config, 24*3600)
+        out_1 = get_incohort_sociability(self.data, config,
+                                         "whole_phase")
+        out_2 = get_incohort_sociability(self.original_data, config,
+                                         "whole_phase")
+        print(out_1)
+        print(out_2)
         self.assertEqual(out_1, out_2)
 
     def test_solitude(self):
