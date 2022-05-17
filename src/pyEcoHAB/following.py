@@ -6,6 +6,7 @@ import os
 import numpy as np
 from collections import OrderedDict
 
+from .BaseFunctions import Data
 from . import get_activity
 from . import utility_functions as utils
 from .write_to_file import write_csv_rasters
@@ -19,6 +20,24 @@ from .plotting_functions import pooled_hists
 from .plotting_functions import make_histograms_for_every_mouse
 from .plotting_functions import pooled_hists_for_every_mouse
 from .plotting_functions import single_histogram_figures
+
+def randomly_shift_data(data, mice, N):
+    shift_dict = {}
+    for mouse in mice:
+        shift_dict[mouse] = random.random.uniform(-1800., 1800.)
+    new_data = data.copy()
+    for line in new_data:
+        key = line[-1]
+        line[1] = line[1] + shift_dict[key]
+    return new_data
+
+def generate_surrogate_data(e_data, timeline, binsize, mice, N):
+    #mask = None
+    out_data = []
+    for i in range(N):
+        new_data = randomly_shift_data(e_data, mice)
+        out_data.append(Data(new_data, None)
+    
 
 
 def generate_intervals(t_starts, t_stops, duration):
@@ -44,7 +63,7 @@ def bootstrap_single_phase(directions_dict, mice_list,
     new_directions = {}
     for i in range(N):
         for mouse in mice_list:
-            shift = random.randrange(0, 3600)
+            shift = random.randrange(-1800, 1800)
             new_directions[mouse] = gen_directions_dict(directions_dict[mouse],
                                                         shift, keys)
         out = following_matrices(new_directions, mice_list,
@@ -313,12 +332,15 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                                   "bins_%s" % binsize_name)
         raster_dir_add = os.path.join('dynamic_interactions_shifted_sur', 'additionals',
                                       'raster_plots', "bins_%s" % binsize_name)
-        hist_dir = os.path.join('dynamic_interactions_shifted_sur', 'histograms',
+        hist_dir = os.path.join('dynamic_interactions_shifted_sur',
+                                'histograms',
                                 "bins_%s" % binsize_name)
-        hist_dir_add = os.path.join("dynamic_interactions_shifted_sur", "additionals",
+        hist_dir_add = os.path.join("dynamic_interactions_shifted_sur",
+                                    "additionals",
                                     "histograms", "bins_%s" % binsize_name)
         other_dir = os.path.join('other_variables',
-                                 'durations_dynamic_interactions_shifted_sur', 'histograms',
+                                 'durations_dynamic_interactions_shifted_sur',
+                                 'histograms',
                                  "bins_%s" % binsize_name)
         other_hist = os.path.join("other_variables",
                                   "histograms_of_dynamic_interactions_shifted_sur_intervals",
