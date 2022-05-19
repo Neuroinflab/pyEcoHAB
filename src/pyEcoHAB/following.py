@@ -21,14 +21,18 @@ from .plotting_functions import make_histograms_for_every_mouse
 from .plotting_functions import pooled_hists_for_every_mouse
 from .plotting_functions import single_histogram_figures
 
+
 def randomly_shift_data(data, mice, N):
     shift_dict = {}
     for mouse in mice:
         shift_dict[mouse] = random.random.uniform(-1800., 1800.)
-    new_data = data.copy()
-    for line in new_data:
+    new_data = None
+    for line in data:
         key = line[-1]
-        line[1] = line[1] + shift_dict[key]
+        try:
+            line[1] = line[1] + shift_dict[key]
+        except TypeError:
+            
     return new_data
 
 def generate_surrogate_data(e_data, timeline, binsize, mice, N):
@@ -36,36 +40,37 @@ def generate_surrogate_data(e_data, timeline, binsize, mice, N):
     out_data = []
     for i in range(N):
         new_data = randomly_shift_data(e_data, mice)
-        out_data.append(Data(new_data, None)
-    
+        dataE = Data(new_data, None)
+
+        phases, total_time, data, data_keys = get_registrations_bins(dataE,
+                                                                     timeline,
+                                                                     binsize,
+                                                                     mice)
+        out_data.append(data)
 
 
-def generate_intervals(t_starts, t_stops, duration):
-    new_t_starts = [t_start + duration for t_start in t_starts]
-    new_t_stops = [t_stop + duration for t_stop in t_stops]
-    return new_t_starts, new_t_stops
+def reshape_surrogate_data(data):
+    # data is a list of dictionaries, we need a dictionary of lists
 
-
-def gen_directions_dict(directions_dict, duration, keys):
-    new_dict = {}
-    for key in keys:
-        old_intervals = directions_dict[key]
-        new_dict[key] = generate_intervals(old_intervals[0],
-                                           old_intervals[1],
-                                           duration)
-    return new_dict
+    out_data = {}
+    for i, x in enumerate(data):
+        # first dict
+        for key1 in x.keys():
+            if not i:
+                out_data[key1] = {}
+            for key2 in x[key1]:
+                if not i:
+                    out_data[key1][key2] = []
+                out_data[key1][key2].append(x[key1][key2])
+    return out_data
 
 
 def bootstrap_single_phase(directions_dict, mice_list,
-                           t_start, t_stop, keys, N=1000):
+                           t_start, t_stop, keys):
     followings = utils.make_results_dict(mice_list, tolist=True)
     times_together = utils.make_results_dict(mice_list, tolist=True)
     new_directions = {}
-    for i in range(N):
-        for mouse in mice_list:
-            shift = random.randrange(-1800, 1800)
-            new_directions[mouse] = gen_directions_dict(directions_dict[mouse],
-                                                        shift, keys)
+    for i, new_directions in enumerate(direction_list):
         out = following_matrices(new_directions, mice_list,
                                  t_start, t_stop, keys)
         for m1 in mice_list:
@@ -76,7 +81,8 @@ def bootstrap_single_phase(directions_dict, mice_list,
     return followings, times_together
 
 
-def resample_single_phase(directions_dict, mice, t_start, t_stop, N, phase,
+
+def resample_single_phase(directions_dict, mice, t_start, t_stop, phase,
                           keys, return_median=False, save_figures=False,
                           save_distributions=True, res_dir=None, prefix=None,
                           stf=False, full_dir_tree=True):
@@ -93,8 +99,7 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, N, phase,
     followings, times_following = bootstrap_single_phase(directions_dict,
                                                          mice,
                                                          t_start, t_stop,
-                                                         keys,
-                                                         N=N)
+                                                         keys)
     binsize = (t_stop - t_start)/3600
     hist_dir = os.path.join("other_variables",
                             "dynamic_interactions_hists",
@@ -245,6 +250,8 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                                                                   timeline,
                                                                   binsize,
                                                                   mice)
+    surrogate_data = generate_surrogate_data(ecohab_data, timeline, binsize, mice, N)
+    sur_data_dict = reshape_surrogate_data
     if isinstance(seed, int):
         random.seed(seed)
     all_phases, bin_labels = data_keys
