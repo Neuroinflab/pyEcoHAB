@@ -5,7 +5,7 @@ import os
 import numpy as np
 from collections import OrderedDict
 
-from .BaseFunctions import Data
+from .Loader import PseudoLoader
 from . import get_activity
 from . import utility_functions as utils
 from .write_to_file import write_csv_rasters
@@ -37,10 +37,10 @@ def generate_surrogate_data(e_data, timeline, binsize, mice, N):
     out_data = []
     for i in range(N):
         new_data = randomly_shift_data(e_data.registrations.data)
-        dataE = Data(new_data, None)
+        dataE = PseudoLoader(new_data, e_data.setup_config)
         phases, total_time, data, data_keys = utils.get_registrations_bins(dataE, timeline, binsize, mice)
         out_data.append(data)
-
+    return out_data
 
 def reshape_surrogate_data(data):
     # data is a list of dictionaries, we need a dictionary of lists
@@ -244,7 +244,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                                                                   binsize,
                                                                   mice)
     surrogate_data = generate_surrogate_data(ecohab_data, timeline, binsize, mice, N)
-    sur_data_dict = reshape_surrogate_data
+    sur_data_dict = reshape_surrogate_data(surrogate_data)
     if isinstance(seed, int):
         np.random.seed(seed)
     all_phases, bin_labels = data_keys
