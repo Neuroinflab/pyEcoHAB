@@ -55,6 +55,7 @@ def save_data_cvs(data, phases, mice, bin_labels, fname,
             f.write("%s %s\n" % (h, stim))
             write_single_chamber(f, head, phases, mice, bin_labels,
                                  data[stim][j], delimiter, floats=j)
+    f.close()
 
 
 def write_binned_data(data_stim, fname, mice, bin_labels, phase,

@@ -63,7 +63,7 @@ def bootstrap_single_phase(directions_dict, mice_list,
     followings = utils.make_results_dict(mice_list, tolist=True)
     times_together = utils.make_results_dict(mice_list, tolist=True)
     new_directions = {}
-    for i, new_directions in enumerate(direction_list):
+    for i, new_directions in enumerate(directions_dict):
         out = following_matrices(new_directions, mice_list,
                                  t_start, t_stop, keys)
         for m1 in mice_list:
