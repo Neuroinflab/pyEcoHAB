@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import random
 import os
 import numpy as np
 from collections import OrderedDict
@@ -22,30 +21,24 @@ from .plotting_functions import pooled_hists_for_every_mouse
 from .plotting_functions import single_histogram_figures
 
 
-def randomly_shift_data(data, mice, N):
+def randomly_shift_data(data): 
     shift_dict = {}
+    mice = list(set(data[:]["Tag"]))
     for mouse in mice:
-        shift_dict[mouse] = random.random.uniform(-1800., 1800.)
-    new_data = None
-    for line in data:
+        shift_dict[mouse] = np.random.uniform(-1800., 1800.)
+    new_data = data.copy()
+    for i, line in enumerate(data):
         key = line[-1]
-        try:
-            line[1] = line[1] + shift_dict[key]
-        except TypeError:
-            
+        new_data[i]["Time"] = line["Time"] + shift_dict[key]
     return new_data
 
 def generate_surrogate_data(e_data, timeline, binsize, mice, N):
     #mask = None
     out_data = []
     for i in range(N):
-        new_data = randomly_shift_data(e_data, mice)
+        new_data = randomly_shift_data(e_data.registrations.data)
         dataE = Data(new_data, None)
-
-        phases, total_time, data, data_keys = get_registrations_bins(dataE,
-                                                                     timeline,
-                                                                     binsize,
-                                                                     mice)
+        phases, total_time, data, data_keys = utils.get_registrations_bins(dataE, timeline, binsize, mice)
         out_data.append(data)
 
 
@@ -253,7 +246,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
     surrogate_data = generate_surrogate_data(ecohab_data, timeline, binsize, mice, N)
     sur_data_dict = reshape_surrogate_data
     if isinstance(seed, int):
-        random.seed(seed)
+        np.random.seed(seed)
     all_phases, bin_labels = data_keys
     following = utils.make_all_results_dict(*data_keys)
     following_exp = utils.make_all_results_dict(*data_keys)

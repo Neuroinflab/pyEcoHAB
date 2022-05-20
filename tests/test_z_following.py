@@ -24,8 +24,10 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
         antennas2 = ["8", "1", "2", "3", "4", "5"]
         times2 = [10, 16, 19, 19.5, 22, 25]
         config = SetupConfig()
-        dir1 = uf.extract_directions(times1, antennas1, 3, config.directions)
-        dir2 = uf.extract_directions(times2, antennas2, 6, config.directions)
+        dir1 = uf.extract_directions(times1, antennas1, 3,
+                                     config.directions)
+        dir2 = uf.extract_directions(times2, antennas2, 6,
+                                     config.directions)
         res = fol.following_single_pair(dir1, dir2, config.directions)
         cls.out1, cls.time_together1, cls.intervals1 = res
 
@@ -33,19 +35,26 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
         times1 = [15, 16.5, 19, 20, 21]
         antennas2 = ["8", "1", "2", "3", "4", "5"]
         times2 = [10, 16, 19, 19.5, 22, 25]
-        dir1 = uf.extract_directions(times1, antennas1, 6, config.directions)
-        dir2 = uf.extract_directions(times2, antennas2, 6, config.directions)
-        res = fol.following_single_pair(dir2, dir1, config.directions)
+        dir1 = uf.extract_directions(times1, antennas1, 6,
+                                     config.directions)
+        dir2 = uf.extract_directions(times2, antennas2, 6,
+                                     config.directions)
+        res = fol.following_single_pair(dir2, dir1,
+                                        config.directions)
         cls.out2, cls.time_together2, cls.intervals2 = res
 
-        antennas1 = ["1", "2", "3", "4", "5",  "6", "7",  "8", "1", "2"]
+        antennas1 = ["1", "2", "3", "4", "5",  "6", "7",
+                     "8", "1", "2"]
         times1 = [15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34]
         antennas2 = ["8", "1", "2", "3", "4", "5", "6",
                      "7", "8", "1", "2"]
         times2 = [10, 16, 19, 19.5, 22, 25, 26, 27, 28, 31, 35]
-        dir1 = uf.extract_directions(times1, antennas1, 3, config.directions)
-        dir2 = uf.extract_directions(times2, antennas2, 3, config.directions)
-        res = fol.following_single_pair(dir1, dir2, config.directions)
+        dir1 = uf.extract_directions(times1, antennas1, 3,
+                                     config.directions)
+        dir2 = uf.extract_directions(times2, antennas2, 3,
+                                     config.directions)
+        res = fol.following_single_pair(dir1, dir2,
+                                        config.directions)
         cls.out3, cls.time_together3, cls.intervals3 = res
 
     def test_following_11(self):
@@ -167,23 +176,6 @@ class TestFollowingMatrices(unittest.TestCase):
     def test_interval_details_empty(self):
         self.assertEqual(self.time_together["mouse3"]["mouse2"], 0)
 
-
-class TestIntervalGeneration(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        t_starts = [3, 5, 10]
-        t_ends = [4, 8, 12]
-        cls.intervals = set(uf.get_interval_durations_2_lists(t_starts,
-                                                              t_ends))
-        duration = 40
-        cls.out1 = fol.generate_intervals(t_starts, t_ends, duration)
-      
-   
-    def test_t_starts(self):
-        self.assertEqual(self.out1[0], [43, 45, 50])
-
-    def test_t_ends(self):
-        self.assertEqual(self.out1[1], [44, 48, 52])
 
 
 class TestExecution(unittest.TestCase):
