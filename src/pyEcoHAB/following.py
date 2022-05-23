@@ -46,24 +46,24 @@ def reshape_surrogate_data(data):
     # data is a list of dictionaries, we need a dictionary of lists
 
     out_data = {}
-    for i, x in enumerate(data):
+    for x in data:
         # first dict
         for key1 in x.keys():
-            if not i:
+            if key1 not in out_data:
                 out_data[key1] = {}
-            for key2 in x[key1]:
-                if not i:
+            for key2 in x[key1].keys():
+                if key2 not in out_data[key1]:
                     out_data[key1][key2] = []
                 out_data[key1][key2].append(x[key1][key2])
     return out_data
 
 
-def bootstrap_single_phase(directions_dict, mice_list,
+def bootstrap_single_phase(direction_dict, mice_list,
                            t_start, t_stop, keys):
     
     followings = utils.make_results_dict(mice_list, tolist=True)
     times_together = utils.make_results_dict(mice_list, tolist=True)
-    for i, new_directions in enumerate(directions_dict):
+    for i, new_directions in enumerate(direction_dict):
         out = following_matrices(new_directions, mice_list,
                                  t_start, t_stop, keys)
         for m1 in mice_list:
@@ -83,7 +83,7 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, phase,
     of the resampled following distribution
 
     stf: save times following"""
-
+    N = len(directions_dict)
     if res_dir is None:
         res_dir = ecohab_data.res_dir
     if prefix is None:
@@ -172,9 +172,7 @@ def following_single_pair(direction_m1, direction_m2, keys):
     followings = 0
     intervals = []
     time_together = 0
-    
     for key in keys:
-  
         out = following_single_direction(direction_m1[key],
                                          direction_m2[key])
         f_single_dir, time_single_dir, ints_single_dir = out
@@ -244,8 +242,10 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                                                                   timeline,
                                                                   binsize,
                                                                   mice)
-    surrogate_data = generate_surrogate_data(ecohab_data, timeline, binsize, mice, N)
-    sur_data_dict = reshape_surrogate_data(surrogate_data)
+    surrogate_data = generate_surrogate_data(ecohab_data, timeline,
+                                             binsize, mice, N)
+    
+    sur_data_list = reshape_surrogate_data(surrogate_data)
     if isinstance(seed, int):
         np.random.seed(seed)
     all_phases, bin_labels = data_keys
@@ -401,11 +401,10 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                                      ecohab_data.directions)
             following[ph][lab], time_together[ph][lab], phase_intervals1 = out
             duration = t_stop - t_start
-            out_expected = resample_single_phase(sur_data_dict[ph][lab],
+            out_expected = resample_single_phase(sur_data_list[ph][lab],
                                                  mice,
                                                  t_start,
                                                  t_stop,
-                                                 N,
                                                  new_phase,
                                                  ecohab_data.directions,
                                                  res_dir=res_dir,
