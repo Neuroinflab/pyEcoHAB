@@ -60,9 +60,9 @@ def reshape_surrogate_data(data):
 
 def bootstrap_single_phase(directions_dict, mice_list,
                            t_start, t_stop, keys):
+    
     followings = utils.make_results_dict(mice_list, tolist=True)
     times_together = utils.make_results_dict(mice_list, tolist=True)
-    new_directions = {}
     for i, new_directions in enumerate(directions_dict):
         out = following_matrices(new_directions, mice_list,
                                  t_start, t_stop, keys)
@@ -168,14 +168,15 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, phase,
     return out_followings, out_times
 
 
-def following_single_pair(directions_m1, directions_m2, keys):
+def following_single_pair(direction_m1, direction_m2, keys):
     followings = 0
     intervals = []
     time_together = 0
-
+    
     for key in keys:
-        out = following_single_direction(directions_m1[key],
-                                         directions_m2[key])
+  
+        out = following_single_direction(direction_m1[key],
+                                         direction_m2[key])
         f_single_dir, time_single_dir, ints_single_dir = out
         followings += f_single_dir
         time_together += time_single_dir
@@ -395,11 +396,12 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
         for i, lab in enumerate(bin_labels[ph]):
             t_start, t_stop = times[ph][lab]
             directions_dict = data[ph][lab]
+           
             out = following_matrices(directions_dict, mice, t_start, t_stop,
                                      ecohab_data.directions)
             following[ph][lab], time_together[ph][lab], phase_intervals1 = out
             duration = t_stop - t_start
-            out_expected = resample_single_phase(directions_dict,
+            out_expected = resample_single_phase(sur_data_dict[ph][lab],
                                                  mice,
                                                  t_start,
                                                  t_stop,
