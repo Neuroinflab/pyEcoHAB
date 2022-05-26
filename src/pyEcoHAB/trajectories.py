@@ -4,7 +4,7 @@
 import os
 from collections import OrderedDict
 import numpy as np
-from pyEcoHAB import utility_functions as utils
+from pyEcoHAB.utils import general as utils
 from pyEcoHAB.plotting_functions import single_histogram_figures
 from pyEcoHAB.plotting_functions import histograms_antenna_transitions
 from pyEcoHAB.utils.for_loading import save_mismatches

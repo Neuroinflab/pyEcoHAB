@@ -14,7 +14,7 @@ if os.environ.get('DISPLAY', '') == '':
     print('no display found. Using non-interactive Agg backend')
     mpl.use('Agg')
 import matplotlib.pyplot as plt
-from . import utility_functions as utils
+from .utils import general as utils
 
 
 nbins = 10

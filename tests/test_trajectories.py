@@ -5,7 +5,6 @@ import unittest
 import os
 import numpy as np
 from pyEcoHAB import trajectories as tr
-from pyEcoHAB import utility_functions as uf
 from pyEcoHAB import Loader
 from pyEcoHAB import Timeline
 from pyEcoHAB import data_path

@@ -4,7 +4,7 @@
 import os
 from collections import OrderedDict
 import numpy as np
-from . import utility_functions as utils
+from .utils import general as utils
 from .plotting_functions import single_in_cohort_soc_plot
 from .plotting_functions import make_RasterPlot
 from .write_to_file import write_binned_data

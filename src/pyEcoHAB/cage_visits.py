@@ -4,7 +4,7 @@
 import numpy as np
 import os
 from collections import OrderedDict
-from . import utility_functions as utils
+from .utils import general as utils
 from .write_to_file import save_data_cvs, save_visit_duration
 from .plotting_functions import make_visit_duration_histogram
 

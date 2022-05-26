@@ -7,7 +7,7 @@ import glob
 import unittest
 import numpy as np
 import pyEcoHAB.utils.for_loading as uf
-import pyEcoHAB.utility_functions as ut
+import pyEcoHAB.utils.general as ut
 from pyEcoHAB import data_path
 from pyEcoHAB.SetupConfig import SetupConfig
 

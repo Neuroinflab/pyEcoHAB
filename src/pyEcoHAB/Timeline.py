@@ -20,8 +20,8 @@ if os.environ.get('DISPLAY', '') == '':
 import matplotlib.ticker
 import matplotlib.dates as mpd
 import matplotlib.pyplot as plt
-from pyEcoHAB import utility_functions as uf
-from pyEcoHAB.utils import for_loading as fl
+from .utils import general as uf
+from .utils import for_loading as fl
 
 
 

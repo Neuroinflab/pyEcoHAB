@@ -5,7 +5,7 @@ import os
 import numpy as np
 from collections import OrderedDict
 
-from . import utility_functions as utils
+from .utils import general as utils
 from .write_to_file import write_registrations_stats
 from .plotting_functions import single_timeline_heat_map
 

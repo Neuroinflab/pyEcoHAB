@@ -3,7 +3,7 @@ from __future__ import print_function, division, absolute_import
 import unittest
 import os
 from pyEcoHAB import following as fol
-from pyEcoHAB import utility_functions as uf
+from pyEcoHAB.utils import general as uf
 from pyEcoHAB import Loader
 from pyEcoHAB import Timeline
 from pyEcoHAB import sample_data, data_path
@@ -14,6 +14,7 @@ try:
     basestring
 except NameError:
     basestring = str
+
 
 
 class TestFollowing2ndMouseInPipe(unittest.TestCase):

@@ -4,7 +4,6 @@ import os
 import unittest
 
 import pyEcoHAB.utils.for_loading as uf
-import pyEcoHAB.utility_functions as utils
 from pyEcoHAB import data_path
 from pyEcoHAB.Loader import EcoHabDataBase, Loader
 from pyEcoHAB import Timeline

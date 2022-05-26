@@ -2,7 +2,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
-from . import utility_functions as utils
+from .utils import general as utils
 from . import exec_functions as dispatch
 from .write_to_file import write_csv_alone
 

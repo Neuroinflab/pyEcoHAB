@@ -6,7 +6,7 @@ import numpy as np
 from .write_to_file import save_single_histograms, write_csv_rasters
 from .plotting_functions import single_in_cohort_soc_plot, make_RasterPlot
 from .plotting_functions import single_heat_map
-from . import utility_functions as utils
+from .utils import general as utils
 
 
 def evaluate_whole_experiment(ecohab_data, timeline, main_directory,

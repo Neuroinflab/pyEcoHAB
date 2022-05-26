@@ -9,7 +9,7 @@ import calendar
 from collections import OrderedDict
 import numpy as np
 
-import pyEcoHAB.utility_functions as uf
+from pyEcoHAB.utils import general as uf
 from pyEcoHAB import data_path
 from pyEcoHAB import Loader
 from pyEcoHAB import Timeline

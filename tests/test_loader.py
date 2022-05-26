@@ -5,7 +5,6 @@ import unittest
 from datetime import date
 import numpy as np
 import pyEcoHAB.utils.for_loading as uf
-import pyEcoHAB.utility_functions as utils
 from pyEcoHAB import data_path, sample_data
 from pyEcoHAB.SetupConfig import SetupConfig
 from pyEcoHAB import Loader, Merger, Timeline

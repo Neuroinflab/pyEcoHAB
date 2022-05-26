@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 import os
 import numpy as np
-from . import utility_functions as utils
+from .utils import general as utils
 
 
 def make_header_for_activity(phases, delimiter):
