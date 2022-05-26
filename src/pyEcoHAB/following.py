@@ -21,8 +21,6 @@ from .plotting_functions import pooled_hists_for_every_mouse
 from .plotting_functions import single_histogram_figures
 
 
-
-
 def bootstrap_single_phase(direction_dict, mice_list,
                            t_start, t_stop, keys):
     
@@ -208,8 +206,10 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                                                                   timeline,
                                                                   binsize,
                                                                   mice,function)
+    
     surrogate_data = rdg.generate_surrogate_data(ecohab_data, timeline,
-                                             binsize, mice, N)
+                                                 binsize, mice, N,
+                                                 function)
     
     sur_data_list = rdg.reshape_surrogate_data(surrogate_data)
     if isinstance(seed, int):

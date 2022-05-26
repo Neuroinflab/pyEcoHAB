@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import numpy as np
 from . import general as utils
 from . import BaseFunctions
@@ -34,8 +37,8 @@ class PseudoLoader(object):
         self.registrations.mask_data(self.mask)
 
     def unmask_data(self):
-        """Remove the mask - future registrations and visits queries will not be
-        clipped"""
+        """Remove the mask - future registrations and visits 
+        queries will not be clipped"""
         self.mask = None
         self.registrations.unmask_data()
 
@@ -56,8 +59,7 @@ def get_shifts(mice_list):
 
 
 def randomly_shift_data(data): 
-    shift_dict = {}
-    mice = list(set(data[:]["Tag"]))
+    mice = sorted(set(data[:]["Tag"]))
     new_data = data.copy()
     shift_dict = get_shifts(mice)
     for i, line in enumerate(data):
@@ -65,10 +67,9 @@ def randomly_shift_data(data):
         new_data[i]["Time"] = line["Time"] + shift_dict[key]
     return new_data
 
-def generate_surrogate_data(e_data, timeline, binsize, mice, N):
-    #mask = None
+
+def generate_surrogate_data(e_data, timeline, binsize, mice, N, func):
     out_data = []
-    func = utils.prepare_registrations
     for i in range(N):
         new_data = randomly_shift_data(e_data.registrations.data)
         dataE = PseudoLoader(new_data, e_data.setup_config)
