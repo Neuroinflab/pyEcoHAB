@@ -593,7 +593,7 @@ def prepare_registrations(ecohab_data, mice, st, en):
 
 
 def get_registrations_bins(ecohab_data, timeline, bins, mice,
-                           function=prepare_registrations):
+                           function):
     total_time = OrderedDict()
     data = OrderedDict()
     if bins in ["ALL", "all", "All"]:
@@ -603,7 +603,8 @@ def get_registrations_bins(ecohab_data, timeline, bins, mice,
         data_keys = [["ALL"], {"ALL": [0.0]}]
         total_time["ALL"] = {0: time}
     elif (isinstance(bins, str)
-          and bins.lower() in ["whole_phase", "whole phase", "whole phases",
+          and bins.lower() in ["whole_phase", "whole phase",
+                               "whole phases",
                                "whole_phases"]):
         phases = []
         all_phases = filter_dark_light(timeline.sections())

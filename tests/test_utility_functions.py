@@ -2089,23 +2089,28 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         cls.out_all = uf.get_registrations_bins(cls.data,
                                                 cls.config,
                                                 "All",
-                                                ["mouse_1"])
+                                                ["mouse_1"],
+                                                uf.prepare_registrations)
         cls.out_6h = uf.get_registrations_bins(cls.data,
                                                cls.config,
                                                6*3600,
-                                               ["mouse_1"])
+                                               ["mouse_1"],
+                                               uf.prepare_registrations)
         cls.out_24h = uf.get_registrations_bins(cls.data,
                                                 cls.config,
                                                 24*3600,
-                                                ["mouse_1"])
+                                                ["mouse_1"],
+                                                uf.prepare_registrations)
         cls.out_wp = uf.get_registrations_bins(cls.data,
                                                cls.config,
                                                "whole phase",
-                                               ["mouse_1"])
+                                               ["mouse_1"],
+                                               uf.prepare_registrations)
         cls.out_wperr = uf.get_registrations_bins(cls.data,
                                                   cls.config,
                                                   "wholephase",
-                                                  ["mouse_1"])
+                                                  ["mouse_1"],
+                                                uf.prepare_registrations)
 
     def test_all_phases(self):
         self.assertEqual(self.out_all[0], ["ALL"])
