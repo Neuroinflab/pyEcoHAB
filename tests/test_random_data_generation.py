@@ -92,9 +92,6 @@ class TestGenerateSurrogateData(unittest.TestCase):
         timeline = Timeline(path)
         cls.dataset = Loader(path)
         cls.data = cls.dataset.registrations.data
-        np.random.seed(1)
-        cls.shifts_dict_1 = rdg.get_shifts(cls.dataset.mice)
-        cls.shifts_dict_2 = rdg.get_shifts(cls.dataset.mice)
         cls.N = 2
         np.random.seed(1)
         func = utils.prepare_registrations
@@ -105,6 +102,44 @@ class TestGenerateSurrogateData(unittest.TestCase):
                                                     cls.N, func)
     def test_length(self):
         self.assertEqual(self.N, len(self.surrogate))
+
+    def test_keys_1(self):
+        self.assertEqual(sorted(self.surrogate[0].keys()),
+                         sorted(self.surrogate[1].keys()))
+    
+    def test_keys_11(self):
+        self.assertEqual(sorted(self.surrogate[0].keys()),
+                         sorted(["1 dark", "1 light", "2 dark"]))
+
+    def test_assert_different_values(self):
+        self.assertFalse(self.surrogate[0]["1 dark"][0] ==
+                         self.surrogate[1]["1 dark"][0])
+
+
+class TestReshapeSurrogateData(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_3_mice")
+        timeline = Timeline(path)
+        cls.dataset = Loader(path)
+        cls.data = cls.dataset.registrations.data
+        cls.N = 2
+        np.random.seed(1)
+        func = utils.prepare_registrations
+        cls.surrogate = rdg.generate_surrogate_data(cls.dataset,
+                                                    timeline,
+                                                    "whole_phases",
+                                                    cls.dataset.mice,
+                                                    cls.N, func)
+        cls.reshaped = rdg.reshape_surrogate_data(cls.surrogate)
+
+    def test_reshaped_1(self):
+        self.assertEqual(self.reshaped["1 dark"][0][0],
+                         self.surrogate[0]["1 dark"][0])
+
+    def test_reshaped_2(self):
+        self.assertEqual(self.reshaped["1 dark"][0][1],
+                         self.surrogate[1]["1 dark"][0])
 
 if __name__ == '__main__':
     unittest.main()
