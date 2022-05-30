@@ -658,8 +658,8 @@ def get_registrations_bins(ecohab_data, timeline, bins, mice,
                     t_e = t_end
                 time = (t_start, t_e)
                 data[phase][bin_labels[phase][j]] = function(ecohab_data,
-                                                      mice,
-                                                      *time)
+                                                             mice,
+                                                             *time)
                 total_time[phase][bin_labels[phase][j]] = time
                 t_start += bins
                 j += 1

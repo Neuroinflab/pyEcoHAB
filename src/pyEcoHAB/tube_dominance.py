@@ -128,26 +128,79 @@ def tube_dominance_single_phase(ecohab_data, timeline, phase, normalization):
     return dominance
 
 
-def get_tube_dominance(ecohab_data, timeline, prefix="", res_dir="",
-                       normalization=None, delimiter=";"):
-    if normalization is None:
-        fname = 'tube_dominance_no_normalization'
-    else:
-        fname = 'tube_dominance_%s' % normalization
+def get_tube_dominance(ecohab_data, timeline, N, binsize="whole_phase",
+                       res_dir="", prefix="", remove_mouse=None,
+                       save_distributions=True, save_figures=False,
+                       return_median=False, delimiter=";",
+                       save_times_following=False, seed=None,
+                       full_dir_tree=True):
+    
     if prefix == "":
         prefix = ecohab_data.prefix
     if res_dir == "":
         res_dir = ecohab_data.res_dir
 
-    if len(ecohab_data.setup_config.tunnels) == 1:
-        dom2.get_tube_dominance_2_cages(ecohab_data, timeline, res_dir, prefix)
-        dom2.get_subversion_evaluation(ecohab_data, timeline, res_dir, prefix)
-        dom2.get_visits_to_stimulus_cage(ecohab_data, timeline, res_dir,
-                                         prefix)
-    dispatch.evaluate_whole_experiment(ecohab_data, timeline, res_dir, prefix,
-                                       tube_dominance_single_phase,
-                                       fname, 'dominating mouse',
-                                       'pushed out mouse',
-                                       '# dominances',
-                                       args=[normalization], vmin=0, vmax=25,
-                                       delimiter=delimiter)
+    add_info_mice = utils.add_info_mice_filename(remove_mouse)
+    mice = utils.get_mice(ecohab_data.mice, remove_mouse)
+
+    # if len(ecohab_data.setup_config.tunnels) == 1:
+    #     dom2.get_tube_dominance_2_cages(ecohab_data, timeline, N, binsize, res_dir, prefix)
+    #     dom2.get_subversion_evaluation(ecohab_data, timeline, N, binsize, res_dir, prefix)
+    #     dom2.get_visits_to_stimulus_cage(ecohab_data, timeline, res_dir,
+    #                                      prefix)
+    
+    phases = utils.filter_dark_light(timeline.sections())
+    function = utils.get_times_antennas_list_of_mice
+    phases, times, data, data_keys = utils.get_registrations_bins(ecohab_data,
+                                                                  timeline,
+                                                                  binsize,
+                                                                  mice,
+                                                                  function)
+    # result = np.zeros((len(phases), len(mice), len(mice)))
+    # fname_ = '%s_%s%s.csv' % (fname, prefix, add_info_mice)
+    # hist_dir = os.path.join("other_variables", fname, 'histograms')
+    # rast_dir = os.path.join("other_variables", fname, 'raster_plots')
+    # for i, phase in enumerate(phases):
+    #     if len(args):
+    #         result[i] = func(ecohab_data, timeline, phase, *args)
+    #     else:
+    #         result[i] = func(ecohab_data, timeline, phase)
+    #     save_single_histograms(result[i],
+    #                            fname,
+    #                            ecohab_data.mice,
+    #                            phase,
+    #                            main_directory,
+    #                            hist_dir,
+    #                            prefix,
+    #                            additional_info=add_info_mice,
+    #                            delimiter=delimiter)
+    #     single_heat_map(result[i],
+    #                     fname,
+    #                     main_directory,
+    #                     mice,
+    #                     prefix,
+    #                     phase,
+    #                     xlabel=xlabel,
+    #                     ylabel=ylabel,
+    #                     subdirectory=hist_dir,
+    #                     vmax=vmin,
+    #                     vmin=vmax,
+    #                     xticks=mice,
+    #                     yticks=mice)
+    # write_csv_rasters(ecohab_data.mice,
+    #                   phases,
+    #                   result,
+    #                   main_directory,
+    #                   rast_dir,
+    #                   fname_,
+    #                   delimiter=delimiter,
+    #                   symmetrical=False, prefix=prefix)
+    # make_RasterPlot(main_directory,
+    #                 rast_dir,
+    #                 result,
+    #                 phases,
+    #                 fname_,
+    #                 ecohab_data.mice,
+    #                 title=title,
+    #                 symmetrical=False, prefix=prefix)
+
