@@ -141,5 +141,21 @@ class TestReshapeSurrogateData(unittest.TestCase):
         self.assertEqual(self.reshaped["1 dark"][0][1],
                          self.surrogate[1]["1 dark"][0])
 
+    def test_reshaped_3(self):
+        self.assertEqual(self.reshaped["1 light"][0][0],
+                         self.surrogate[0]["1 light"][0])
+
+    def test_reshaped_4(self):
+        self.assertEqual(self.reshaped["1 light"][0][1],
+                         self.surrogate[1]["1 light"][0])
+
+    def test_reshaped_5(self):
+        self.assertEqual(self.reshaped["2 dark"][0][0],
+                         self.surrogate[0]["2 dark"][0])
+
+    def test_reshaped_6(self):
+        self.assertEqual(self.reshaped["2 dark"][0][1],
+                         self.surrogate[1]["2 dark"][0])
+
 if __name__ == '__main__':
     unittest.main()
