@@ -195,23 +195,44 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                              return_median=False, delimiter=";",
                              save_times_following=False, seed=None,
                              full_dir_tree=True):
+
+    return exec_fun(ecohab_data, timeline, N, name="dynamic_interactions",
+                    action1_name="leading", action2_name="follwing",
+                    data_prep=utils.prepare_registrations,
+                    function=following_matrices, binsize=binsize,
+                    res_dir=res_dir, prefix=prefix, remove_mouse=remove_mouse,
+                    save_distributions=save_distributions,
+                    save_figures=save_figures, return_median=return_median,
+                    delimiter=delimiter, save_times=save_times, seed=seed,
+                    full_dir_tree=full_dir_tree)
+
+
+def exec_fun(ecohab_data, timeline, N, name, action1_name,
+             action2_name, data_prep, function, binsize,
+             res_dir, prefix, remove_mouse,
+             save_distributions, save_figures,
+             return_median, delimiter,
+             save_times, seed,
+             full_dir_tree):
+
+    if isinstance(seed, int):
+        np.random.seed(seed)
     if res_dir == "":
         res_dir = ecohab_data.res_dir
     if prefix == "":
         prefix = ecohab_data.prefix
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
     mice = utils.get_mice(ecohab_data.mice, remove_mouse)
-    function = utils.prepare_registrations
+
     phases, times, data, data_keys = utils.get_registrations_bins(ecohab_data,
                                                                   timeline,
                                                                   binsize,
-                                                                  mice,function)
-    
+                                                                  mice, data_prep)
+
     surrogate_data = rdg.generate_surrogate_data(ecohab_data, timeline,
                                                  binsize, mice, N,
                                                  function)
 
-    
     sur_data_list = rdg.reshape_surrogate_data(surrogate_data)
     all_phases, bin_labels = data_keys
     action1 = utils.make_all_results_dict(*data_keys)
