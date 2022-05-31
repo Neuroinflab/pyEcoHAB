@@ -29,7 +29,7 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
                                      config.directions)
         dir2 = uf.extract_directions(times2, antennas2, 6,
                                      config.directions)
-        res = fol.following_single_pair(dir1, dir2, config.directions)
+        res = fol.following_single_pair(dir1, dir2)
         cls.out1, cls.time_together1, cls.intervals1 = res
 
         antennas1 = ["1", "2", "3", "4", "5"]
@@ -40,8 +40,7 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
                                      config.directions)
         dir2 = uf.extract_directions(times2, antennas2, 6,
                                      config.directions)
-        res = fol.following_single_pair(dir2, dir1,
-                                        config.directions)
+        res = fol.following_single_pair(dir2, dir1)
         cls.out2, cls.time_together2, cls.intervals2 = res
 
         antennas1 = ["1", "2", "3", "4", "5",  "6", "7",
@@ -54,8 +53,7 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
                                      config.directions)
         dir2 = uf.extract_directions(times2, antennas2, 3,
                                      config.directions)
-        res = fol.following_single_pair(dir1, dir2,
-                                        config.directions)
+        res = fol.following_single_pair(dir1, dir2)
         cls.out3, cls.time_together3, cls.intervals3 = res
 
     def test_following_11(self):
@@ -115,7 +113,7 @@ class TestFollowingMatrices(unittest.TestCase):
                                                            config.directions)
         out = fol.following_matrices(directions_dict,
                                      mice_list,
-                                     0, 1000, config.directions)
+                                     0, 1000)
         cls.following = out[0]
         cls.time_together = out[1]
         cls.interval_details = out[2]
@@ -191,7 +189,7 @@ class TestExecution(unittest.TestCase):
                                      save_distributions=True,
                                      save_figures=True, return_median=False,
                                      delimiter=";",
-                                     save_times_following=True)
+                                     save_times=True)
 
     def test_ALL(self):
         fol.get_dynamic_interactions(self.data, self.config, 1,
@@ -205,7 +203,7 @@ class TestExecution(unittest.TestCase):
                                      save_distributions=True,
                                      save_figures=True,
                                      return_median=True, delimiter=";",
-                                     save_times_following=True,
+                                     save_times=True,
                                      full_dir_tree=False)
 
     def test_short_2(self):
@@ -217,7 +215,7 @@ class TestExecution(unittest.TestCase):
                                      save_distributions=True,
                                      save_figures=True,
                                      return_median=True, delimiter=";",
-                                     save_times_following=True,
+                                     save_times=True,
                                      full_dir_tree=False)
 
     def test_short_bin(self):
@@ -228,7 +226,7 @@ class TestExecution(unittest.TestCase):
                                      save_distributions=True,
                                      save_figures=True,
                                      return_median=True, delimiter=";",
-                                     save_times_following=True,
+                                     save_times=True,
                                      seed=1,
                                      binsize=24*3600)
 
@@ -238,7 +236,7 @@ class TestExecution(unittest.TestCase):
                                      save_distributions=True,
                                      save_figures=True,
                                      return_median=True, delimiter=";",
-                                     save_times_following=True,
+                                     save_times=True,
                                      seed=1)
 
 

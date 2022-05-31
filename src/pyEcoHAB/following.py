@@ -22,13 +22,13 @@ from .plotting_functions import single_histogram_figures
 
 
 def bootstrap_single_phase(direction_dict, mice_list,
-                           t_start, t_stop, keys):
+                           t_start, t_stop):
     
     followings = utils.make_results_dict(mice_list, tolist=True)
     times_together = utils.make_results_dict(mice_list, tolist=True)
     for i, new_directions in enumerate(direction_dict):
         out = following_matrices(new_directions, mice_list,
-                                 t_start, t_stop, keys)
+                                 t_start, t_stop)
         for m1 in mice_list:
             for m2 in mice_list:
                 if m1 != m2:
@@ -54,8 +54,7 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, phase,
 
     followings, times_following = bootstrap_single_phase(directions_dict,
                                                          mice,
-                                                         t_start, t_stop,
-                                                         keys)
+                                                         t_start, t_stop)
     binsize = (t_stop - t_start)/3600
     hist_dir = os.path.join("other_variables",
                             "dynamic_interactions_hists",
@@ -131,11 +130,12 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, phase,
     return out_followings, out_times
 
 
-def following_single_pair(direction_m1, direction_m2, keys):
+def following_single_pair(direction_m1, direction_m2):
     followings = 0
     intervals = []
     time_together = 0
-    for key in keys:
+    assert direction_m1.keys() == direction_m2.keys()
+    for key in direction_m1.keys():
         out = following_single_direction(direction_m1[key],
                                          direction_m2[key])
         f_single_dir, time_single_dir, ints_single_dir = out
@@ -145,7 +145,7 @@ def following_single_pair(direction_m1, direction_m2, keys):
     return followings, time_together, intervals
 
 
-def following_matrices(directions_dict, mice, t_start, t_stop, keys):
+def following_matrices(directions_dict, mice, t_start, t_stop):
     assert t_stop - t_start > 0
     durations = t_stop - t_start
     followings = utils.make_results_dict(mice)
@@ -157,7 +157,7 @@ def following_matrices(directions_dict, mice, t_start, t_stop, keys):
             if mouse1 == mouse2:
                 continue
             out = following_single_pair(directions_dict[mouse1],
-                                        directions_dict[mouse2], keys)
+                                        directions_dict[mouse2])
             followings[mouse1][mouse2], time_in_pipe, mouse_intervals = out
             time_together[mouse1][mouse2] = time_in_pipe/durations
             key = "%s|%s" % (mouse1, mouse2)
@@ -193,7 +193,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                              res_dir="", prefix="", remove_mouse=None,
                              save_distributions=True, save_figures=False,
                              return_median=False, delimiter=";",
-                             save_times_following=False, seed=None,
+                             save_times=False, seed=None,
                              full_dir_tree=True):
 
     return exec_fun(ecohab_data, timeline, N, name="dynamic_interactions",
@@ -231,7 +231,7 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
 
     surrogate_data = rdg.generate_surrogate_data(ecohab_data, timeline,
                                                  binsize, mice, N,
-                                                 function)
+                                                 data_prep)
 
     sur_data_list = rdg.reshape_surrogate_data(surrogate_data)
     all_phases, bin_labels = data_keys
@@ -385,8 +385,7 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
             t_start, t_stop = times[ph][lab]
             directions_dict = data[ph][lab]
            
-            out = function(directions_dict, mice, t_start, t_stop,
-                           ecohab_data.directions)
+            out = function(directions_dict, mice, t_start, t_stop)
             action1[ph][lab], time_together[ph][lab], phase_intervals1 = out
             duration = t_stop - t_start
             out_expected = resample_single_phase(sur_data_list[ph][lab],

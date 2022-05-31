@@ -132,7 +132,7 @@ def get_tube_dominance(ecohab_data, timeline, N, binsize="whole_phase",
                        res_dir="", prefix="", remove_mouse=None,
                        save_distributions=True, save_figures=False,
                        return_median=False, delimiter=";",
-                       save_times_following=False, seed=None,
+                       save_times=False, seed=None,
                        full_dir_tree=True):
     
     if prefix == "":

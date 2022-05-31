@@ -199,7 +199,7 @@ class TestExecution(unittest.TestCase):
     def test(self):
         data = Loader(sample_data)
         config = Timeline(sample_data)
-        tubed.get_tube_dominance(data, config)
+        tubed.get_tube_dominance(data, config, 1)
 
 
 if __name__ == '__main__':
