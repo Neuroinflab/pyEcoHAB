@@ -190,6 +190,12 @@ class TestExecution(unittest.TestCase):
                                      save_figures=True, return_median=False,
                                      delimiter=";",
                                      save_times=True)
+    def test_phases_2(self):
+        fol.get_dynamic_interactions(self.data, self.config, 1,
+                                     save_distributions=False,
+                                     save_figures=False, return_median=False,
+                                     delimiter=";",
+                                     save_times=False)
 
     def test_ALL(self):
         fol.get_dynamic_interactions(self.data, self.config, 1,

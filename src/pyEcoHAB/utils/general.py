@@ -743,9 +743,9 @@ def diagonal_reflection_3D(matrix_data):
     return result
 
 
-def sum_per_mouse(data, mice, binlabels, position="leader"):
+def sum_per_mouse(data, mice, binlabels, position="leading"):
     """
-    position can either be leader or follower.
+    position can either be leading or following.
     """
     sum_value = OrderedDict()
     for bi in binlabels:
@@ -755,9 +755,9 @@ def sum_per_mouse(data, mice, binlabels, position="leader"):
             for mouse2 in mice:
                 if mouse1 == mouse2:
                     continue
-                if position == "leader":
+                if position == "leading":
                     sum_value[bi][mouse1] += data[bi][mouse1][mouse2]
-                elif position == "follower":
+                elif position == "following":
                     sum_value[bi][mouse1] += data[bi][mouse2][mouse1]
     return sum_value
 

@@ -22,24 +22,24 @@ from .plotting_functions import single_histogram_figures
 
 
 def bootstrap_single_phase(direction_dict, mice_list,
-                           t_start, t_stop):
+                           t_start, t_stop, function):
     
-    followings = utils.make_results_dict(mice_list, tolist=True)
+    action_count = utils.make_results_dict(mice_list, tolist=True)
     times_together = utils.make_results_dict(mice_list, tolist=True)
     for i, new_directions in enumerate(direction_dict):
-        out = following_matrices(new_directions, mice_list,
-                                 t_start, t_stop)
+        out = function(new_directions, mice_list,
+                       t_start, t_stop)
         for m1 in mice_list:
             for m2 in mice_list:
                 if m1 != m2:
-                    followings[m1][m2].append(out[0][m1][m2])
+                    action_count[m1][m2].append(out[0][m1][m2])
                     times_together[m1][m2].append(out[1][m1][m2])
-    return followings, times_together
+    return action_count, times_together
 
 
 
 def resample_single_phase(directions_dict, mice, t_start, t_stop, phase,
-                          keys, return_median=False, save_figures=False,
+                          var_name, function, return_median=False, save_figures=False,
                           save_distributions=True, res_dir=None, prefix=None,
                           stf=False, full_dir_tree=True):
     """If return_median is False, function returns mean value
@@ -51,83 +51,84 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, phase,
         res_dir = ecohab_data.res_dir
     if prefix is None:
         prefix = ecohab_data.prefix
-
-    followings, times_following = bootstrap_single_phase(directions_dict,
+    suff = var_name.split("_")[0][0]+var_name.split("_")[1][0]
+    name = var_name.replace("_", " ")
+    actions, action_durations = bootstrap_single_phase(directions_dict,
                                                          mice,
-                                                         t_start, t_stop)
+                                                         t_start, t_stop, function)
     binsize = (t_stop - t_start)/3600
     hist_dir = os.path.join("other_variables",
-                            "dynamic_interactions_hists",
+                            "%s_hists" % var_name,
                             "bin_%4.2f" % binsize)
     hist_time_dir = os.path.join("other_variables",
-                                 "durations_dynamic_interactions_hists",
+                                 "durations_%s_hists" % var_name,
                                  "bin_%4.2f" % binsize)
-    fname_following = "%s_DI_count_dist_%d_%4.2f" % (prefix, N, binsize)
-    fname_times = "%s_DI_durations_dis_%d_%4.2f" % (prefix, N, binsize)
+    fname_following = "%s_%s_count_dist_%d_%4.2f" % (prefix, suff, N, binsize)
+    fname_times = "%s_%s_durations_dis_%d_%4.2f" % (prefix, suff, N, binsize)
     if save_figures:
         for mouse1 in mice:
             for mouse2 in mice:
                 if mouse1 == mouse2:
                     continue
                 key = "%s_%s" % (mouse1, mouse2)
-                fname1 = "%s%s_hist_%s_%s_N_%d_%4.2f" % (prefix, "DI",
+                fname1 = "%s%s_hist_%s_%s_N_%d_%4.2f" % (prefix, suff,
                                                          phase.replace(' ',
                                                                        '_'),
                                                          key, N, binsize)
                 fname2 = "%s%s_hist_%s_%s_N_%d_%4.2f" % (prefix,
-                                                         "durations_DI",
+                                                         "durations_%s" % suff,
                                                          phase.replace(' ',
                                                                        '_'),
                                                          key, N, binsize)
-                single_histogram_figures(followings[mouse1][mouse2],
+                single_histogram_figures(actions[mouse1][mouse2],
                                          fname1, res_dir,
                                          hist_dir,
-                                         "Dynamic interactions count",
-                                         xlabel="dynamic interactions",
+                                         "%s count" % name,
+                                         xlabel=name,
                                          ylabel="count",
                                          median_mean=True,
                                          full_dir_tree=full_dir_tree)
                 if stf:
-                    single_histogram_figures(times_following[mouse1][mouse2],
+                    single_histogram_figures(action_durations[mouse1][mouse2],
                                              fname2,
                                              res_dir,
                                              hist_time_dir,
-                                             "Dynamic interaction durations",
+                                             "%s durations" % name,
                                              xlabel="duration",
                                              ylabel="count", nbins=10,
                                              median_mean=True,
                                              full_dir_tree=full_dir_tree)
     dist_dir_fol = os.path.join("other_variables",
-                                "dynamic_interactions_hists",
+                                "%s_hists" % var_name,
                                 "bin_%4.2f" % binsize)
     dist_dir_time = os.path.join("other_variables",
-                                 "durations_dynamic_interactions_hists",
+                                 "durations_%s_hists" % var_name,
                                  "bin_%4.2f" % binsize)
     if save_distributions:
-        write_bootstrap_results(followings, phase, mice,
+        write_bootstrap_results(actions, phase, mice,
                                 fname_following, res_dir,
                                 dist_dir_fol, prefix,
                                 full_dir_tree=full_dir_tree)
         if stf:
-            write_bootstrap_results(times_following, phase, mice,
+            write_bootstrap_results(action_durations, phase, mice,
                                     fname_times, res_dir,
                                     dist_dir_time,
                                     prefix,
                                     full_dir_tree=full_dir_tree)
-    out_followings = utils.make_results_dict(mice)
+    out_actions = utils.make_results_dict(mice)
     out_times = utils.make_results_dict(mice)
     for m1 in mice:
         for m2 in mice:
             if m1 == m2:
                 continue
             if return_median:
-                out_followings[m1][m2] = np.median(followings[m1][m2])
-                out_times[m1][m2] = np.median(times_following[m1][m2])
+                out_actions[m1][m2] = np.median(actions[m1][m2])
+                out_times[m1][m2] = np.median(action_durations[m1][m2])
             else:
-                out_followings[m1][m2] = np.mean(followings[m1][m2])
-                out_times[m1][m2] = np.mean(times_following[m1][m2])
+                out_actions[m1][m2] = np.mean(actions[m1][m2])
+                out_times[m1][m2] = np.mean(action_durations[m1][m2])
 
-    return out_followings, out_times
+    return out_actions, out_times
 
 
 def following_single_pair(direction_m1, direction_m2):
@@ -191,13 +192,13 @@ def add_intervals(all_intervals, phase_intervals):
 
 def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                              res_dir="", prefix="", remove_mouse=None,
-                             save_distributions=True, save_figures=False,
+                             save_distributions=False, save_figures=False,
                              return_median=False, delimiter=";",
                              save_times=False, seed=None,
                              full_dir_tree=True):
 
-    return exec_fun(ecohab_data, timeline, N, name="dynamic_interactions",
-                    action1_name="leading", action2_name="follwing",
+    return exec_fun(ecohab_data, timeline, N, var_name="dynamic_interactions",
+                    action1_name="leading", action2_name="following",
                     data_prep=utils.prepare_registrations,
                     function=following_matrices, binsize=binsize,
                     res_dir=res_dir, prefix=prefix, remove_mouse=remove_mouse,
@@ -207,7 +208,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                     full_dir_tree=full_dir_tree)
 
 
-def exec_fun(ecohab_data, timeline, N, name, action1_name,
+def exec_fun(ecohab_data, timeline, N, var_name, action1_name,
              action2_name, data_prep, function, binsize,
              res_dir, prefix, remove_mouse,
              save_distributions, save_figures,
@@ -222,6 +223,7 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
     if prefix == "":
         prefix = ecohab_data.prefix
     add_info_mice = utils.add_info_mice_filename(remove_mouse)
+    name = var_name.replace("_", " ")
     mice = utils.get_mice(ecohab_data.mice, remove_mouse)
 
     phases, times, data, data_keys = utils.get_registrations_bins(ecohab_data,
@@ -235,18 +237,18 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
 
     sur_data_list = rdg.reshape_surrogate_data(surrogate_data)
     all_phases, bin_labels = data_keys
-    action1 = utils.make_all_results_dict(*data_keys)
-    action1_exp = utils.make_all_results_dict(*data_keys)
+    action_m = utils.make_all_results_dict(*data_keys)
+    action_m_exp = utils.make_all_results_dict(*data_keys)
     time_together = utils.make_all_results_dict(*data_keys)
     time_together_exp = utils.make_all_results_dict(*data_keys)
 
     if isinstance(binsize, int) or isinstance(binsize, float):
         binsize_name = "%3.2f_h" % (binsize/3600)
         if int(binsize) == 24*3600:
-            csv_results_action1 = np.zeros((len(phases), len(mice),
-                                              len(mice)))
-            csv_results_action1_exp = np.zeros((len(phases), len(mice),
-                                                  len(mice)))
+            csv_results_action_m = np.zeros((len(phases), len(mice),
+                                            len(mice)))
+            csv_results_action_m_exp = np.zeros((len(phases), len(mice),
+                                                len(mice)))
             if save_times:
                 csv_results_time = np.zeros((len(phases), len(mice),
                                              len(mice)))
@@ -257,10 +259,10 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                                                           "whole_phases",
                                                           "whole phases"]:
         binsize_name = binsize.replace(" ", "_")
-        csv_results_action1 = np.zeros((len(phases), len(mice),
-                                          len(mice)))
-        csv_results_action1_exp = np.zeros((len(phases), len(mice),
-                                              len(mice)))
+        csv_results_action_m = np.zeros((len(phases), len(mice),
+                                        len(mice)))
+        csv_results_action_m_exp = np.zeros((len(phases), len(mice),
+                                            len(mice)))
         if save_times:
             csv_results_time = np.zeros((len(phases), len(mice),
                                          len(mice)))
@@ -272,31 +274,31 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
         method = "median_N_%d" % N
     else:
         method = "mean_N_%d" % N
-    fname = 'dynamics_interactions_%s_%s' % (method, add_info_mice)
-    fname_ = 'following_%s%s.csv' % (prefix, add_info_mice)
+    fname = '%s_%s_%s' % (var_name, method, add_info_mice)
+    fname_csv = '%s_%s_%s.csv' % (action2_name, prefix, add_info_mice)
 
-    fname_beg = 'following_excess'
-    fname_rev = 'leading_excess'
+    fname_beg = '%s_excess' % action2_name
+    fname_rev = '%s_excess' % action1_name
     if full_dir_tree:
-        fname_excess = '%s_%s_%s%s.csv' % (fname_beg,
-                                           method,
-                                           prefix,
-                                           add_info_mice)
-        fname_excess_rev = '%s_%s_%s%s.csv' % (fname_rev,
-                                               method,
-                                               prefix,
-                                               add_info_mice)
-        fname_rev_ = 'leading_%s%s.csv' % (prefix, add_info_mice)
+        fname_exc = '%s_%s_%s%s.csv' % (fname_beg,
+                                        method,
+                                        prefix,
+                                        add_info_mice)
+        fname_exc_rev = '%s_%s_%s%s.csv' % (fname_rev,
+                                            method,
+                                            prefix,
+                                            add_info_mice)
+        fname_rev_ = '%s_%s%s.csv' % (action1_name, prefix, add_info_mice)
     else:
-        fname_excess = 'rasters_%s_%s_%s%s.csv' % (fname_beg,
-                                                   method,
-                                                   prefix,
-                                                   add_info_mice)
-        fname_excess_rev = 'rasters_%s_%s_%s%s.csv' % (fname_rev,
-                                                       method,
-                                                       prefix,
-                                                       add_info_mice)
-        fname_rev_ = 'rasters_leading_%s%s.csv' % (prefix, add_info_mice)
+        fname_exc = 'rasters_%s_%s_%s%s.csv' % (fname_beg,
+                                                method,
+                                                prefix,
+                                                add_info_mice)
+        fname_exc_rev = 'rasters_%s_%s_%s%s.csv' % (fname_rev,
+                                                    method,
+                                                    prefix,
+                                                    add_info_mice)
+        fname_rev_ = 'rasters_%s_%s_%s.csv' % (action1_name, prefix, add_info_mice)
 
     keys = utils.all_mouse_pairs(mice)
     interval_details = {key: [] for key in keys}
@@ -315,67 +317,62 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
         vmin1t = -0.01
         vmax1t = 0.01
     if full_dir_tree:
-        raster_dir = os.path.join("dynamic_interactions",
+        raster_dir = os.path.join(var_name,
                                   "raster_plots",
                                   "bins_%s" % binsize_name)
-        raster_dir_add = os.path.join('dynamic_interactions',
+        raster_dir_add = os.path.join(var_name,
                                       'additionals',
                                       'raster_plots', "bins_%s" % binsize_name)
-        hist_dir = os.path.join('dynamic_interactions',
+        hist_dir = os.path.join(var_name,
                                 'histograms',
                                 "bins_%s" % binsize_name)
-        hist_dir_add = os.path.join("dynamic_interactions",
+        hist_dir_add = os.path.join(var_name,
                                     "additionals",
                                     "histograms", "bins_%s" % binsize_name)
         other_dir = os.path.join('other_variables',
-                                 'durations_dynamic_interactions',
+                                 'durations_%s' % var_name,
                                  'histograms',
                                  "bins_%s" % binsize_name)
         other_hist = os.path.join("other_variables",
-                                  "histograms_of_dynamic_interactions_intervals",
+                                  "histograms_of_%s_intervals" % var_name,
                                   "bins_%s" % binsize_name)
-        other_excess_hist = os.path.join('other_variables',
-                                         'dynamic_interactions_excess_histograms',
-                                         "bins_%s" % binsize_name)
+        other_exc_hist = os.path.join('other_variables',
+                                      '%s_excess_histograms' % var_name,
+                                      "bins_%s" % binsize_name)
         other_raster_dir = os.path.join("other_variables",
-                                        "durations_dynamic_interactions",
+                                        "durations_%s" % var_name,
                                         "rasters",
                                         "bin_%s" % binsize)
     else:
-        raster_dir = "dynamic_interactions"
-        raster_dir_add = 'dynamic_interactions'
-        hist_dir = 'dynamic_interactions'
-        hist_dir_add = "dynamic_interactions"
+        raster_dir = var_name
+        raster_dir_add = var_name
+        hist_dir = var_name
+        hist_dir_add = var_name
+        suff = var_name.split("_")[0][0]+var_name.split("_")[1][0]
         other_dir = os.path.join('other_variables',
-                                 'durations_DI')
+                                 'durations_%s' % suff)
         other_hist = os.path.join("other_variables",
-                                  "histograms_of_DI_intervals")
-        other_excess_hist = os.path.join('other_variables',
-                                         'DI_excess_histograms')
+                                  "histograms_of_%s_intervals" % suff)
+        other_exc_hist = os.path.join('other_variables',
+                                      '%s_excess_histograms' % suff)
         other_raster_dir = os.path.join("other_variables",
-                                        "durations_DI")
-    meas_prefix = "measured_dynamic_interactions_%s_%s" % (prefix,
-                                                           add_info_mice)
-    exp_prefix = "expected_dynamic_interactions_%s_%s" % (prefix,
-                                                          add_info_mice)
-    excess_prefix = "excess_dynamic_interactions_%s_%s" % (prefix,
-                                                           add_info_mice)
-    meas_prefix_dur = "durations_dynamic_interactions_%s_%s" %\
-        (prefix, add_info_mice)
-    exp_prefix_dur = "exp_durations_dynamic_interactions_%s_%s" %\
-        (prefix, add_info_mice)
-    excess_prefix_dur = "excess_durations_dynamic_interactions_%s_%s" %\
-        (prefix, add_info_mice)
+                                        "durations_%s" % suff)
+    meas_prefix = "measured_%s_%s_%s" % (var_name, prefix, add_info_mice)
+    exp_prefix = "expected_%s_%s_%s" % (var_name, prefix, add_info_mice)
+    exc_prefix = "excess_%s_%s_%s" % (var_name, prefix, add_info_mice)
+    meas_prefix_dur = "durations_%s_%s_%s" % (var_name, prefix, add_info_mice)
+    exp_prefix_dur = "exp_durations_%s_%s_%s" % (var_name, prefix, add_info_mice)
+    exc_prefix_dur = "excess_durations_%s_%s_%s" % (var_name, prefix, add_info_mice)
 
     mouse_action2_sum = OrderedDict()
     mouse_action1_sum = OrderedDict()
-    mouse_action2_sum_excess = OrderedDict()
-    mouse_action1_sum_excess = OrderedDict()
+    mouse_action2_sum_exc = OrderedDict()
+    mouse_action1_sum_exc = OrderedDict()
     mouse_activity = OrderedDict()
     mouse_action2_sum_div_activ = OrderedDict()
     mouse_action1_sum_div_activ = OrderedDict()
-    mouse_action2_sum_div_activ_excess = OrderedDict()
-    mouse_action1_sum_div_activ_excess = OrderedDict()
+    mouse_action2_sum_div_activ_exc = OrderedDict()
+    mouse_action1_sum_div_activ_exc = OrderedDict()
     visits = get_activity(ecohab_data, timeline, binsize)
     mouse_activity = utils.sum_activity(visits, all_phases, mice, bin_labels)
 
@@ -386,70 +383,70 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
             directions_dict = data[ph][lab]
            
             out = function(directions_dict, mice, t_start, t_stop)
-            action1[ph][lab], time_together[ph][lab], phase_intervals1 = out
+            action_m[ph][lab], time_together[ph][lab], phase_intervals1 = out
             duration = t_stop - t_start
             out_expected = resample_single_phase(sur_data_list[ph][lab],
                                                  mice,
                                                  t_start,
                                                  t_stop,
                                                  new_phase,
-                                                 ecohab_data.directions,
+                                                 var_name,
+                                                 function,
                                                  res_dir=res_dir,
                                                  prefix=prefix,
                                                  stf=save_times,
                                                  save_figures=save_figures,
                                                  full_dir_tree=full_dir_tree)
-            action1_exp[ph][lab], time_together_exp[ph][lab] = out_expected
+            action_m_exp[ph][lab], time_together_exp[ph][lab] = out_expected
             add_intervals(interval_details, phase_intervals1)
-        mouse_action2_sum[ph] = utils.sum_per_mouse(action1[ph], mice,
+        mouse_action2_sum[ph] = utils.sum_per_mouse(action_m[ph], mice,
                                                     bin_labels[ph],
-                                                    "leader")
-        mouse_action1_sum[ph] = utils.sum_per_mouse(action1[ph], mice,
+                                                    action2_name)
+        mouse_action1_sum[ph] = utils.sum_per_mouse(action_m[ph], mice,
                                                     bin_labels[ph],
-                                                    "follower")
+                                                    action1_name)
         mouse_action2_sum_div_activ[ph] = utils.divide_sum_activity(mouse_action2_sum[ph],
                                                                     mouse_activity[ph])
         mouse_action1_sum_div_activ[ph] = utils.divide_sum_activity(mouse_action1_sum[ph],
-                                                                      mouse_activity[ph])
+                                                                    mouse_activity[ph])
         if full_dir_tree:
             meas_fname = meas_prefix
             exp_fname = exp_prefix
-            excess_fname = excess_prefix
+            exc_fname = exc_prefix
         else:
             meas_fname = "histograms_%s" % meas_prefix
             exp_fname = "histograms_%s" % exp_prefix
-            excess_fname = "histograms_%s" % excess_prefix
-        write_binned_data(action1[ph],
+            exc_fname = "histograms_%s" % exc_prefix
+        write_binned_data(action_m[ph],
                           meas_fname,
                           mice, bin_labels[ph], new_phase, res_dir,
                           hist_dir_add,
                           prefix, additional_info=add_info_mice,
                           delimiter=delimiter, full_dir_tree=full_dir_tree)
-        write_binned_data(action1_exp[ph],
+        write_binned_data(action_m_exp[ph],
                           '%s_%s' % (exp_fname, method),
                           mice, bin_labels[ph], new_phase, res_dir,
                           hist_dir_add,
                           prefix, additional_info=add_info_mice,
                           delimiter=delimiter,
                           full_dir_tree=full_dir_tree)
-        excess_action1 = utils.calc_excess(action1[ph],
-                                             action1_exp[ph])
+        exc_action_m = utils.calc_excess(action_m[ph], action_m_exp[ph])
 
-        mouse_action2_sum_excess[ph] = utils.sum_per_mouse(action1_exp[ph],
-                                                           mice,
-                                                           bin_labels[ph],
-                                                           "leader")
-        mouse_action1_sum_excess[ph] = utils.sum_per_mouse(action1_exp[ph],
-                                                             mice,
-                                                             bin_labels[ph],
-                                                             "follower")
-        mouse_action2_sum_div_activ_excess[ph] = utils.divide_sum_activity(mouse_action2_sum_excess[ph],
-                                                                           mouse_activity[ph])
-        mouse_action1_sum_div_activ_excess[ph] = utils.divide_sum_activity(mouse_action1_sum_excess[ph],
-                                                                             mouse_activity[ph])
+        mouse_action2_sum_exc[ph] = utils.sum_per_mouse(action_m_exp[ph],
+                                                        mice,
+                                                        bin_labels[ph],
+                                                        action2_name)
+        mouse_action1_sum_exc[ph] = utils.sum_per_mouse(action_m_exp[ph],
+                                                        mice,
+                                                        bin_labels[ph],
+                                                        action1_name)
+        mouse_action2_sum_div_activ_exc[ph] = utils.divide_sum_activity(mouse_action2_sum_exc[ph],
+                                                                        mouse_activity[ph])
+        mouse_action1_sum_div_activ_exc[ph] = utils.divide_sum_activity(mouse_action1_sum_exc[ph],
+                                                                        mouse_activity[ph])
 
-        write_binned_data(excess_action1,
-                          '%s_%s' % (excess_fname, method),
+        write_binned_data(exc_action_m,
+                          '%s_%s' % (exc_fname, method),
                           mice, bin_labels[ph], new_phase, res_dir,
                           hist_dir,
                           prefix, additional_info=add_info_mice,
@@ -458,13 +455,12 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
         if isinstance(binsize, int) or isinstance(binsize, float):
             if int(binsize) == 24*3600:
                 if full_dir_tree:
-                    fname = "dynamic_interactions_N_%d_%s" % (N, method)
+                    fname = "%s_N_%d_%s" % (var_name, N, method)
                 else:
-                    fname = "histograms_dynamic_interactions_N_%d_%s" % (N,
-                                                                         method)
-                res = utils.dict_to_array_2D(action1[ph][0],
+                    fname = "histograms_%s_N_%d_%s" % (var_name, N, method)
+                res = utils.dict_to_array_2D(action_m[ph][0],
                                              mice, mice)
-                exp_res = utils.dict_to_array_2D(action1_exp[ph][0],
+                exp_res = utils.dict_to_array_2D(action_m_exp[ph][0],
                                                  mice, mice)
                 single_in_cohort_soc_plot(res,
                                           exp_res,
@@ -479,22 +475,22 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                                           vmax=vmax,
                                           vmin1=vmin1,
                                           vmax1=vmax1,
-                                          titles=['# dynamic interactions',
-                                                  '# expected dynamic interactions',
-                                                  '# excess dynamic interactions',
-                                                  'histogram of # excess dynamic interactions', ],
-                                          labels=['following mouse',
-                                                  'followed mouse'],
+                                          titles=['# %s' % name,
+                                                  '# expected %s' % name,
+                                                  '# excess %s' % name,
+                                                  'histogram of # excess %s' %name],
+                                          labels=['%s mouse' % action2_name,
+                                                  '%s mouse' % action1_name],
                                           full_dir_tree=full_dir_tree)
-                csv_results_action1[idx_phase] = res
-                csv_results_action1_exp[idx_phase] = exp_res
+                csv_results_action_m[idx_phase] = res
+                csv_results_action_m_exp[idx_phase] = exp_res
         elif isinstance(binsize, str):
             if binsize.lower() in ["whole phase", "whole_phase",
                                    "whole phases", "whole_phases"]:
-                fname = "dynamic_interactions_N_%d_%s" % (N, method)
-                res = utils.dict_to_array_2D(action1[ph][0],
+                fname = "%s_N_%d_%s" % (var_name, N, method)
+                res = utils.dict_to_array_2D(action_m[ph][0],
                                              mice, mice)
-                exp_res = utils.dict_to_array_2D(action1_exp[ph][0],
+                exp_res = utils.dict_to_array_2D(action_m_exp[ph][0],
                                                  mice, mice)
                 single_in_cohort_soc_plot(res,
                                           exp_res,
@@ -509,33 +505,33 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                                           vmax=vmax,
                                           vmin1=vmin1,
                                           vmax1=vmax1,
-                                          titles=['# dynamic interactions',
-                                                  '# expected dynamic interactions',
-                                                  '# excess dynamic interactions',
-                                                  'histogram of # excess dynamic interactions', ],
-                                          labels=['following mouse',
-                                                  'followed mouse'],
+                                          titles=['# %s' % name,
+                                                  '# expected %s' % name,
+                                                  '# excess %s' % name,
+                                                  'histogram of # excess %s' % name],
+                                          labels=['%s mouse' % action2_name,
+                                                  '%s mouse' % action1_name],
                                           full_dir_tree=full_dir_tree)
-                csv_results_action1[idx_phase] = res
-                csv_results_action1_exp[idx_phase] = exp_res
+                csv_results_action_m[idx_phase] = res
+                csv_results_action_m_exp[idx_phase] = exp_res
         if full_dir_tree:
             fname_measured = "%s_%s.csv" % (meas_prefix, new_phase)
-            fname_excess = "%s_%s.csv" % (excess_prefix, new_phase)
+            fname_exc = "%s_%s.csv" % (exc_prefix, new_phase)
             fname_expected = "%s_%s.csv" % (exp_prefix, new_phase)
-            action2_fname = "excess_leading_%s" % new_phase
-            action1_fname = "excess_following_%s" % new_phase
+            action2_fname = "excess_%s_%s" % (action2_name, new_phase)
+            action1_fname = "excess_%s_%s" % (action1_name, new_phase)
         else:
             fname_measured = "raster_%s_%s.csv" % (meas_prefix, new_phase)
-            fname_excess = "raster_%s_%s.csv" % (excess_prefix, new_phase)
+            fname_exc = "raster_%s_%s.csv" % (exc_prefix, new_phase)
             fname_expected = "raster_%s_%s.csv" % (exp_prefix, new_phase)
-            action2_fname = "raster_excess_leading_%s" % new_phase
-            action1_fname = "raster_excess_following_%s" % new_phase
+            action2_fname = "raster_excess_%s_%s" % (action2_name, new_phase)
+            action1_fname = "raster_excess_%s_%s" % (action1_name, new_phase)
 
         raster_labels = [bin_label/3600 for bin_label in bin_labels[ph]]
-        phase_full_results = utils.dict_to_array_3D(action1[ph],
+        phase_full_results = utils.dict_to_array_3D(action_m[ph],
                                                     bin_labels[ph],
                                                     mice, mice)
-        phase_exp_full_results = utils.dict_to_array_3D(action1_exp[ph],
+        phase_exp_full_results = utils.dict_to_array_3D(action_m_exp[ph],
                                                         bin_labels[ph],
                                                         mice, mice)
         write_csv_rasters(mice,
@@ -579,9 +575,9 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
 
         if save_times:
             if full_dir_tree:
-                fname_times = 'durations_dynamic_interactions'
+                fname_times = 'durations_%s' % var_name
             else:
-                fname_times = 'histogram_durations_dynamic_interactions'
+                fname_times = 'histogram_durations_%s' % var_name
             write_binned_data(time_together[ph],
                               fname_times,
                               mice, bin_labels[ph], new_phase, res_dir,
@@ -597,9 +593,9 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                               prefix, additional_info=add_info_mice,
                               delimiter=delimiter,
                               full_dir_tree=full_dir_tree)
-            excess_time = utils.calc_excess(time_together[ph],
-                                            time_together[ph])
-            write_binned_data(excess_time,
+            exc_time = utils.calc_excess(time_together[ph],
+                                         time_together[ph])
+            write_binned_data(exc_time,
                               '%s_expected_%s'
                               % (fname_times, method),
                               mice, bin_labels[ph], new_phase, res_dir,
@@ -627,12 +623,12 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                                               vmax=vmaxt,
                                               vmin1=vmin1t,
                                               vmax1=vmax1t,
-                                              titles=['Fraction of duration dynamics interation',
+                                              titles=['Fraction of duration %s' % name,
                                                       '# expected duration',
                                                       '# excess duration',
-                                                      'histogram of # excess duration dynamic interactions', ],
-                                              labels=['following mouse',
-                                                      'followed mouse'],
+                                                      'histogram of # excess duration %s' % name],
+                                              labels=['%s mouse' % action2_name,
+                                                      '%s mouse' % action1_name],
                                               full_dir_tree=full_dir_tree)
                     csv_results_time[idx_phase] = res
                     csv_results_time_exp[idx_phase] = exp_res
@@ -657,32 +653,33 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                                               vmax=vmaxt,
                                               vmin1=vmin1t,
                                               vmax1=vmax1t,
-                                              titles=['Fraction of duration dynamics interation',
+                                              titles=['Fraction of duration %s' % name,
                                                       '# expected duration',
                                                       '# excess duration',
-                                                      'histogram of # excess duration dynamic interactions', ],
-                                              labels=['following mouse',
-                                                      'followed mouse'],
+                                                      'histogram of # excess duration %s'
+                                                      % name ],
+                                              labels=['%s mouse' % action2_name,
+                                                      '%s mouse' % action1_name],
                                               full_dir_tree=full_dir_tree)
                     csv_results_time[idx_phase] = res
                     csv_results_time_exp[idx_phase] = exp_res
             if full_dir_tree:
                 r_fname_measured = "%s_%s.csv" % (meas_prefix_dur, new_phase)
                 r_fname_expected = "%s_%s.csv" % (exp_prefix_dur, new_phase)
-                r_fname_excess = "%s_%s.csv" % (excess_prefix_dur, new_phase)
+                r_fname_exc = "%s_%s.csv" % (exc_prefix_dur, new_phase)
             else:
                 r_fname_measured = "raster_%s_%s.csv" % (meas_prefix_dur,
                                                          new_phase)
                 r_fname_expected = "raster_%s_%s.csv" % (exp_prefix_dur,
                                                          new_phase)
-                r_fname_excess = "raster_%s_%s.csv" % (excess_prefix_dur,
-                                                       new_phase)
+                r_fname_exc = "raster_%s_%s.csv" % (exc_prefix_dur,
+                                                    new_phase)
 
             raster_labels = [bin_label/3600 for bin_label in bin_labels[ph]]
-            phase_full_results = utils.dict_to_array_3D(action1[ph],
+            phase_full_results = utils.dict_to_array_3D(action_m[ph],
                                                         bin_labels[ph],
                                                         mice, mice)
-            phase_exp_full_results = utils.dict_to_array_3D(action1_exp[ph],
+            phase_exp_full_results = utils.dict_to_array_3D(action_m_exp[ph],
                                                             bin_labels[ph],
                                                             mice, mice)
             write_csv_rasters(mice,
@@ -708,22 +705,12 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                               phase_full_results - phase_exp_full_results,
                               res_dir,
                               other_dir,
-                              r_fname_excess, delimiter=delimiter,
+                              r_fname_exc, delimiter=delimiter,
                               symmetrical=False, prefix=prefix,
                               full_dir_tree=full_dir_tree)
 
-    write_sum_data(mouse_action2_sum,
-                   "mouse_leading_sum_%s" % binsize_name,
-                   mice, bin_labels, all_phases,
-                   res_dir,
-                   raster_dir_add,
-                   prefix,
-                   additional_info="ALL",
-                   delimiter=";",
-                   bool_bins=True,
-                   full_dir_tree=full_dir_tree)
     write_sum_data(mouse_action1_sum,
-                   "mouse_following_sum_%s" % binsize_name,
+                   "mouse_%s_sum_%s" % (action1_name, binsize_name),
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -732,8 +719,8 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                    delimiter=";",
                    bool_bins=True,
                    full_dir_tree=full_dir_tree)
-    write_sum_data(mouse_action2_sum_excess,
-                   "mouse_leading_sum_excess_%s" % binsize_name,
+    write_sum_data(mouse_action2_sum,
+                   "mouse_%s_sum_%s" % (action1_name, binsize_name),
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -742,8 +729,8 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                    delimiter=";",
                    bool_bins=True,
                    full_dir_tree=full_dir_tree)
-    write_sum_data(mouse_action1_sum_excess,
-                   "mouse_following_sum_excess_%s" % binsize_name,
+    write_sum_data(mouse_action1_sum_exc,
+                   "mouse_%s_sum_excess_%s" % (action1_name, binsize_name),
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -752,8 +739,9 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                    delimiter=";",
                    bool_bins=True,
                    full_dir_tree=full_dir_tree)
-    write_sum_data(mouse_action2_sum_div_activ,
-                   "mouse_leading_activity_%s" % binsize_name,
+    write_sum_data(mouse_action1_sum_exc,
+                   "mouse_%s_sum_excess_%s" % (action2_name,
+                                               binsize_name),
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -763,7 +751,7 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                    bool_bins=True,
                    full_dir_tree=full_dir_tree)
     write_sum_data(mouse_action1_sum_div_activ,
-                   "mouse_following_activity_%s" % binsize_name,
+                   "mouse_%s_activity_%s" % (action1_name, binsize_name),
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -772,9 +760,8 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                    delimiter=";",
                    bool_bins=True,
                    full_dir_tree=full_dir_tree)
-    write_sum_data(mouse_action2_sum_div_activ_excess,
-                   "mouse_leading_activity_excess_%s"
-                   % binsize_name,
+    write_sum_data(mouse_action2_sum_div_activ,
+                   "mouse_%s_activity_%s" % (action2_name, binsize_name),
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -783,9 +770,20 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                    delimiter=";",
                    bool_bins=True,
                    full_dir_tree=full_dir_tree)
-    write_sum_data(mouse_action1_sum_div_activ_excess,
-                   "mouse_following_activity_excess_%s"
-                   % binsize_name,
+    write_sum_data(mouse_action1_sum_div_activ_exc,
+                   "mouse_%s_activity_excess_%s"
+                   % (action1_name, binsize_name),
+                   mice, bin_labels, all_phases,
+                   res_dir,
+                   raster_dir_add,
+                   prefix,
+                   additional_info="ALL",
+                   delimiter=";",
+                   bool_bins=True,
+                   full_dir_tree=full_dir_tree)
+    write_sum_data(mouse_action2_sum_div_activ_exc,
+                   "mouse_%s_activity_excess_%s"
+                   % (action1_name, binsize_name),
                    mice, bin_labels, all_phases,
                    res_dir,
                    raster_dir_add,
@@ -800,38 +798,38 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                                "whole_phases", "whole phases"]:
             write_csv_rasters(mice,
                               phases,
-                              csv_results_action1 -
-                              csv_results_action1_exp,
+                              csv_results_action_m -
+                              csv_results_action_m_exp,
                               res_dir,
                               raster_dir,
-                              fname_excess,
+                              fname_exc,
                               symmetrical=False,
                               delimiter=delimiter,
                               reverse=True, prefix=prefix,
                               full_dir_tree=full_dir_tree)
             write_csv_rasters(mice,
                               phases,
-                              csv_results_action1 -
-                              csv_results_action1_exp,
+                              csv_results_action_m -
+                              csv_results_action_m_exp,
                               res_dir,
                               raster_dir,
-                              fname_excess_rev,
+                              fname_exc_rev,
                               symmetrical=False,
                               delimiter=delimiter, prefix=prefix,
                               full_dir_tree=full_dir_tree)
             write_csv_rasters(mice,
                               phases,
-                              csv_results_action1,
+                              csv_results_action_m,
                               res_dir,
                               raster_dir_add,
-                              fname_,
+                              fname_csv,
                               symmetrical=False,
                               reverse=True,
                               delimiter=delimiter, prefix=prefix,
                               full_dir_tree=full_dir_tree)
             write_csv_rasters(mice,
                               phases,
-                              csv_results_action1,
+                              csv_results_action_m,
                               res_dir,
                               raster_dir_add,
                               fname_rev_,
@@ -840,20 +838,20 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                               full_dir_tree=full_dir_tree)
             make_RasterPlot(res_dir,
                             raster_dir,
-                            (csv_results_action1 -
-                             csv_results_action1_exp),
+                            (csv_results_action_m -
+                             csv_results_action_m_exp),
                             phases,
-                            fname_excess,
+                            fname_exc,
                             mice,
-                            title='% excess following',
+                            title='excess %s' % action2_name,
                             symmetrical=False, prefix=prefix,
                             full_dir_tree=full_dir_tree)
-            pooled_hists(action1,
-                         action1_exp,
+            pooled_hists(action_m,
+                         action_m_exp,
                          all_phases,
-                         'dynamic_interactions_histogram',
+                         '%s_histogram' % var_name,
                          res_dir,
-                         other_excess_hist,
+                         other_exc_hist,
                          prefix,
                          additional_info=add_info_mice,
                          full_dir_tree=full_dir_tree)
@@ -861,7 +859,7 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
 
     if save_times:
         make_histograms_for_every_mouse(interval_details,
-                                        "dynamic_interactions_intervals_hist",
+                                        "%s_intervals_hist" % var_name,
                                         mice,
                                         res_dir,
                                         other_hist,
@@ -869,7 +867,7 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                                         additional_info=add_info_mice,
                                         full_dir_tree=full_dir_tree)
         pooled_hists_for_every_mouse(interval_details,
-                                     "dynamic_interactions_intervals_hist",
+                                     "%s_intervals_hist" % var_name,
                                      mice,
                                      res_dir,
                                      other_hist,
@@ -878,7 +876,7 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                                      full_dir_tree=full_dir_tree)
         write_interpair_intervals(interval_details,
                                   other_hist,
-                                  res_dir, "dynamic_interactions_intervals",
+                                  res_dir, "%s_intervals" % var_name,
                                   prefix, additional_info=add_info_mice,
                                   delimiter=delimiter,
                                   full_dir_tree=full_dir_tree)
@@ -892,7 +890,7 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                               csv_results_time - csv_results_time_exp,
                               res_dir,
                               other_raster_dir,
-                              "raster_excess_duration_following",
+                              "raster_excess_duration_%s" % action2_name,
                               symmetrical=False,
                               reverse=True,
                               delimiter=delimiter, prefix=prefix,
@@ -902,7 +900,7 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                               csv_results_time - csv_results_time_exp,
                               res_dir,
                               other_raster_dir,
-                              "raster_excess_duration_leading",
+                              "raster_excess_duration_%s" % action1_name,
                               symmetrical=False,
                               delimiter=delimiter, prefix=prefix,
                               full_dir_tree=full_dir_tree)
@@ -910,9 +908,9 @@ def exec_fun(ecohab_data, timeline, N, name, action1_name,
                             other_raster_dir,
                             (csv_results_time - csv_results_time_exp),
                             phases,
-                            "raster_excess_durations_dynamic_interactions",
+                            "raster_excess_durations_%s" % var_name,
                             mice,
-                            title='% excess duration dynamic interactions',
+                            title='% excess duration %s' % name,
                             symmetrical=False, prefix=prefix,
                             full_dir_tree=full_dir_tree)
-    return action1, action1_exp, phases, mice
+    return action_m, action_m_exp, phases, mice

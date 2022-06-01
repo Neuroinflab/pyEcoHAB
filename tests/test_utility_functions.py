@@ -2296,26 +2296,26 @@ class TestMath(unittest.TestCase):
         ref_matrix = uf.diagonal_reflection_3D(self.matrix_half1)
         out = uf.sum_per_mouse(ref_matrix, self.mice,
                                self.labels[self.phases[0]],
-                               position="leader")
+                               position="leading")
         self.assertEqual(sorted(out), sorted(self.expected_sum))
 
     def test_sum_per_mouse_2(self):
         ref_matrix = uf.diagonal_reflection_3D(self.matrix_half1)
         out1 = uf.sum_per_mouse(ref_matrix, self.mice,
                                 self.labels[self.phases[0]],
-                                position="follower")
+                                position="following")
         out2 = uf.sum_per_mouse(ref_matrix, self.mice,
                                 self.labels[self.phases[0]],
-                                position="leader")
+                                position="leading")
         self.assertEqual(sorted(out1), sorted(out2))
 
     def test_sum_per_mouse_difference(self):
         out1 = uf.sum_per_mouse(self.matrix_half1, self.mice,
                                 self.labels[self.phases[0]],
-                                position="follower")
+                                position="following")
         out2 = uf.sum_per_mouse(self.matrix_half2, self.mice,
                                 self.labels[self.phases[0]],
-                                position="leader")
+                                position="leading")
         self.assertEqual(sorted(out1), sorted(out2))
 
     def test_sum_activity(self):
@@ -2351,14 +2351,14 @@ class TestMath(unittest.TestCase):
     def test_mean(self):
         out1 = uf.sum_per_mouse(self.matrix_half1, self.mice,
                                 self.labels[self.phases[0]],
-                                position="follower")
+                                position="following")
         res = uf.mean(out1, 1)
         self.assertEqual(out1, res)
 
     def test_mean_2(self):
         out1 = uf.sum_per_mouse(self.matrix_half1, self.mice,
                                 self.labels[self.phases[0]],
-                                position="follower")
+                                position="following")
         res = uf.mean(out1, 2)
         for key1 in out1.keys():
             for key2 in out1[key1].keys():
@@ -2368,7 +2368,7 @@ class TestMath(unittest.TestCase):
     def test_std_1(self):
         out1 = uf.sum_per_mouse(self.matrix_half1, self.mice,
                                 self.labels[self.phases[0]],
-                                position="follower")
+                                position="following")
         mean1 = uf.mean(out1, 2)
         std1 = uf.standard_error(self.matrix_half1, mean1, 2)
         expected = OrderedDict()
