@@ -54,8 +54,8 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, phase,
     suff = (var_name.split("_")[0][0]+var_name.split("_")[1][0]).upper()
     name = var_name.replace("_", " ")
     actions, action_durations = bootstrap_single_phase(directions_dict,
-                                                         mice,
-                                                         t_start, t_stop, function)
+                                                       mice,
+                                                       t_start, t_stop, function)
     binsize = (t_stop - t_start)/3600
     hist_dir = os.path.join("other_variables",
                             "%s_hists" % var_name,

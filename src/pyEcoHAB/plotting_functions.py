@@ -95,7 +95,7 @@ def make_RasterPlot(main_directory,
     if prefix:
         name = "%s_%s" % (prefix, name)
     new_name = os.path.join(new_path, name)
-    print(new_name)
+    #print(new_name)
     plt.savefig(new_name+".png",
                 transparent=False,
                 bbox_inches=None,
@@ -190,7 +190,7 @@ def single_timeline_heat_map(result,
         subdirectory = os.path.join(subdirectory, 'figs')
     dir_name = utils.check_directory(directory, subdirectory)
     new_name = os.path.join(dir_name, name)
-    print(new_name)
+    #print(new_name)
     fig.subplots_adjust(left=0.25)
     fig.subplots_adjust(bottom=0.25)
     fig.savefig(new_name + ".png", transparent=False, bbox_inches=None,
@@ -223,7 +223,6 @@ def single_in_cohort_soc_plot(results,
         new_name = directory
     directory = utils.check_directory(main_directory, new_name)
     fname = os.path.join(directory, '%s_%s_%s' % (fname, prefix, phase))
-    print(fname)
     label_mice = make_labels(mice)
     fig = plt.figure(figsize=(10, 6))
     ax = []
@@ -295,7 +294,7 @@ def single_in_cohort_soc_plot(results,
     fig.savefig(fname+'.png', dpi=100,  bbox_inches=None,
                 pad_inches=2)
     plt.close(fig)
-    print(fname+'.png')
+    #print(fname+'.png')
 
 
 def pooled_hists(res, res_exp, phases, fname, main_directory, directory,
@@ -414,7 +413,7 @@ def make_histograms_for_every_mouse(results, fname, mice, main_directory,
         new_name = '%s_%s' % (fname, new_name)
 
     fname = os.path.join(dir_name, new_name)
-    print(fname)
+    #print(fname)
     fig.subplots_adjust(wspace=0.15)
     fig.savefig(fname + ".png",
                 bbox_inches=None,
@@ -476,7 +475,7 @@ def single_histogram_figures(single_results, fname, main_directory,
                 bbox_inches=None,
                 pad_inches=.5,
                 dpi=100)
-    print(new_fname)
+    print(new_fname + ".png")
     plt.close(fig)
 
 
@@ -564,7 +563,7 @@ def make_fig_histogram(results, path, title):
     fig.savefig(path + ".png", dpi=100,
                 bbox_inches=None,
                 pad_inches=.5)
-    print(path)
+    #print(path)
     plt.close(fig)
 
 
@@ -653,7 +652,7 @@ def make_visit_duration_histogram(results, time, phase, mice,
         fig.savefig(new_name + ".png", dpi=100,
                     bbox_inches=None,
                     pad_inches=.5)
-        print(new_name)
+        #print(new_name)
         plt.close(fig)
 
 

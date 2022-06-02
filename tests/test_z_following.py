@@ -184,33 +184,33 @@ class TestExecution(unittest.TestCase):
         cls.config = Timeline(sample_data)
         cls.uneven = Timeline(data_path, "uneven_phases.txt")
 
-    def test_phases(self):
-        fol.get_dynamic_interactions(self.data, self.config, 1,
-                                     save_distributions=True,
-                                     save_figures=True, return_median=False,
-                                     delimiter=";",
-                                     save_times=True)
-    def test_phases_2(self):
-        fol.get_dynamic_interactions(self.data, self.config, 1,
-                                     save_distributions=False,
-                                     save_figures=False, return_median=False,
-                                     delimiter=";",
-                                     save_times=False)
+    # def test_phases(self):
+    #     fol.get_dynamic_interactions(self.data, self.config, 1,
+    #                                  save_distributions=True,
+    #                                  save_figures=True, return_median=False,
+    #                                  delimiter=";",
+    #                                  save_times=True)
+    # def test_phases_2(self):
+    #     fol.get_dynamic_interactions(self.data, self.config, 1,
+    #                                  save_distributions=False,
+    #                                  save_figures=False, return_median=False,
+    #                                  delimiter=";",
+    #                                  save_times=False)
 
-    def test_ALL(self):
-        fol.get_dynamic_interactions(self.data, self.config, 1,
-                                     binsize="ALL")
+    # def test_ALL(self):
+    #     fol.get_dynamic_interactions(self.data, self.config, 1,
+    #                                  binsize="ALL")
 
-    def test_ALL(self):
-        fol.get_dynamic_interactions(self.data, self.config, 1,
-                                     binsize="ALL",
-                                     res_dir=os.path.join(self.data.path,
-                                                          "Resu2"),
-                                     save_distributions=True,
-                                     save_figures=True,
-                                     return_median=True, delimiter=";",
-                                     save_times=True,
-                                     full_dir_tree=False)
+    # def test_ALL(self):
+    #     fol.get_dynamic_interactions(self.data, self.config, 1,
+    #                                  binsize="ALL",
+    #                                  res_dir=os.path.join(self.data.path,
+    #                                                       "Resu2"),
+    #                                  save_distributions=True,
+    #                                  save_figures=True,
+    #                                  return_median=True, delimiter=";",
+    #                                  save_times=True,
+    #                                  full_dir_tree=False)
 
     def test_short_2(self):
         fol.get_dynamic_interactions(self.data, self.config, 1,
@@ -224,26 +224,26 @@ class TestExecution(unittest.TestCase):
                                      save_times=True,
                                      full_dir_tree=False)
 
-    def test_short_bin(self):
-        fol.get_dynamic_interactions(self.data, self.config, 1, binsize=3600)
+    # def test_short_bin(self):
+    #     fol.get_dynamic_interactions(self.data, self.config, 1, binsize=3600)
 
-    def test_long_bin(self):
-        fol.get_dynamic_interactions(self.data, self.config, 1,
-                                     save_distributions=True,
-                                     save_figures=True,
-                                     return_median=True, delimiter=";",
-                                     save_times=True,
-                                     seed=1,
-                                     binsize=24*3600)
+    # def test_long_bin(self):
+    #     fol.get_dynamic_interactions(self.data, self.config, 1,
+    #                                  save_distributions=True,
+    #                                  save_figures=True,
+    #                                  return_median=True, delimiter=";",
+    #                                  save_times=True,
+    #                                  seed=1,
+    #                                  binsize=24*3600)
 
-    def test_whole_phase_uneven(self):
-        fol.get_dynamic_interactions(self.data, self.uneven, 1,
-                                     binsize="whole phase",
-                                     save_distributions=True,
-                                     save_figures=True,
-                                     return_median=True, delimiter=";",
-                                     save_times=True,
-                                     seed=1)
+    # def test_whole_phase_uneven(self):
+    #     fol.get_dynamic_interactions(self.data, self.uneven, 1,
+    #                                  binsize="whole phase",
+    #                                  save_distributions=True,
+    #                                  save_figures=True,
+    #                                  return_median=True, delimiter=";",
+    #                                  save_times=True,
+    #                                  seed=1)
 
 
 if __name__ == '__main__':
