@@ -94,7 +94,7 @@ class TestGenerateSurrogateData(unittest.TestCase):
         cls.data = cls.dataset.registrations.data
         cls.N = 2
         np.random.seed(1)
-        func = utils.prepare_registrations
+        func = utils.prepare_tube_data
         cls.surrogate = rdg.generate_surrogate_data(cls.dataset,
                                                     timeline,
                                                     "whole_phases",
@@ -125,7 +125,7 @@ class TestReshapeSurrogateData(unittest.TestCase):
         cls.data = cls.dataset.registrations.data
         cls.N = 2
         np.random.seed(1)
-        func = utils.prepare_registrations
+        func = utils.prepare_tube_data
         cls.surrogate = rdg.generate_surrogate_data(cls.dataset,
                                                     timeline,
                                                     "whole_phases",

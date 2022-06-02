@@ -10,6 +10,7 @@ class PseudoLoader(object):
         self.registrations = BaseFunctions.Data(data, None)
         self.mice = self.get_mice()
         self.directions = setup_config.directions
+        self.backing = setup_config.backing
         self.session_start = sorted(self.get_times(self.mice))[0]
         self.session_end = sorted(self.get_times(self.mice))[-1]
 

@@ -179,6 +179,14 @@ def change_state(antennas):
     return indx
 
 
+def same_state(antennas):
+    indx = []
+    for i, a in enumerate(antennas[:-1]):
+        if a == antennas[i+1]:
+            indx.append(i)
+    return indx
+
+
 def get_times_antennas(e_data, mouse, t_1, t_2):
     if t_1 == 0 and t_2 == -1:
         e_data.unmask_data()
@@ -539,8 +547,31 @@ def extract_directions(times, antennas, last_antenna, keys):
             direction_dict[key][1].append(times[c_idx + 1])
     return direction_dict
 
+def extract_backing(times, antennas, last_antenna, keys):
+    direction_dict = {key: [[], []] for key in keys}
+    same_indices = same_state(antennas)
 
-def prepare_registrations(ecohab_data, mice, st, en):
+    for c_idx in same_indices:
+        if c_idx + 1 >= len(antennas):
+            break
+        ant, next_ant = antennas[c_idx], antennas[c_idx + 1]
+        key = "%s %s" % (ant, next_ant)
+        direction_dict[key][0].append(times[c_idx])
+        direction_dict[key][1].append(times[c_idx + 1])
+    return direction_dict
+
+def prepare_for_tube_dominance(ecohab_data, mice, st, en):
+    moves = {
+        "directions":{},
+        "backing out": {}}
+    moves["directions"] = prepare_tube_data(ecohab_data, mice, st, en,
+                                            "directions")
+    moves["backing out"] = prepare_tube_data(ecohab_data, mice, st, en,
+                                            "backing_out")
+    return moves
+    
+    
+def prepare_tube_data(ecohab_data, mice, st, en, what="directions"):
     directions = {}
     for j, mouse1 in enumerate(mice):
         times_antennas = get_times_antennas(ecohab_data,
@@ -556,10 +587,17 @@ def prepare_registrations(ecohab_data, mice, st, en):
             last_antenna = last_antennas[0]
         except IndexError:
             last_antenna = None
-        directions[mouse1] = extract_directions(times_antennas[0],
-                                                times_antennas[1],
-                                                last_antenna,
-                                                ecohab_data.directions)
+        if what == "directions":
+            directions[mouse1] = extract_directions(times_antennas[0],
+                                                    times_antennas[1],
+                                                    last_antenna,
+                                                    ecohab_data.directions)
+        elif what == "backing_out":
+            directions[mouse1] = extract_backing(times_antennas[0],
+                                                 times_antennas[1],
+                                                 last_antenna,
+                                                 ecohab_data.backing)
+        
     return directions
 
 

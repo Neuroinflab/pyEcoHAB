@@ -51,7 +51,7 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, phase,
         res_dir = ecohab_data.res_dir
     if prefix is None:
         prefix = ecohab_data.prefix
-    suff = var_name.split("_")[0][0]+var_name.split("_")[1][0]
+    suff = (var_name.split("_")[0][0]+var_name.split("_")[1][0]).upper()
     name = var_name.replace("_", " ")
     actions, action_durations = bootstrap_single_phase(directions_dict,
                                                          mice,
@@ -146,26 +146,6 @@ def following_single_pair(direction_m1, direction_m2):
     return followings, time_together, intervals
 
 
-def following_matrices(directions_dict, mice, t_start, t_stop):
-    assert t_stop - t_start > 0
-    durations = t_stop - t_start
-    followings = utils.make_results_dict(mice)
-    time_together = utils.make_results_dict(mice)
-    labels = utils.all_mouse_pairs(mice)
-    interval_details = {label: [] for label in labels}
-    for mouse1 in mice:
-        for mouse2 in mice:
-            if mouse1 == mouse2:
-                continue
-            out = following_single_pair(directions_dict[mouse1],
-                                        directions_dict[mouse2])
-            followings[mouse1][mouse2], time_in_pipe, mouse_intervals = out
-            time_together[mouse1][mouse2] = time_in_pipe/durations
-            key = "%s|%s" % (mouse1, mouse2)
-            interval_details[key] += mouse_intervals
-    return followings, time_together, interval_details
-
-
 def following_single_direction(intervals_m1, intervals_m2):
     t_starts_m1, t_ends_m1 = intervals_m1
     t_starts_m2, t_ends_m2 = intervals_m2
@@ -190,6 +170,28 @@ def add_intervals(all_intervals, phase_intervals):
         all_intervals[mouse].extend(phase_intervals[mouse])
 
 
+def following_matrices(directions_dict, mice, t_start, t_stop):
+    assert t_stop - t_start > 0
+    durations = t_stop - t_start
+    followings = utils.make_results_dict(mice)
+    time_together = utils.make_results_dict(mice)
+    labels = utils.all_mouse_pairs(mice)
+    interval_details = {label: [] for label in labels}
+    for mouse1 in mice:
+        for mouse2 in mice:
+            if mouse1 == mouse2:
+                continue
+            out = following_single_pair(directions_dict[mouse1],
+                                        directions_dict[mouse2])
+            followings[mouse1][mouse2], time_in_pipe, mouse_intervals = out
+            time_together[mouse1][mouse2] = time_in_pipe/durations
+            key = "%s|%s" % (mouse1, mouse2)
+            interval_details[key] += mouse_intervals
+    return followings, time_together, interval_details
+
+
+
+
 def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
                              res_dir="", prefix="", remove_mouse=None,
                              save_distributions=False, save_figures=False,
@@ -199,7 +201,7 @@ def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
 
     return exec_fun(ecohab_data, timeline, N, var_name="dynamic_interactions",
                     action1_name="leading", action2_name="following",
-                    data_prep=utils.prepare_registrations,
+                    data_prep=utils.prepare_tube_data,
                     function=following_matrices, binsize=binsize,
                     res_dir=res_dir, prefix=prefix, remove_mouse=remove_mouse,
                     save_distributions=save_distributions,
@@ -348,7 +350,7 @@ def exec_fun(ecohab_data, timeline, N, var_name, action1_name,
         raster_dir_add = var_name
         hist_dir = var_name
         hist_dir_add = var_name
-        suff = var_name.split("_")[0][0]+var_name.split("_")[1][0]
+        suff = (var_name.split("_")[0][0]+var_name.split("_")[1][0]).upper()
         other_dir = os.path.join('other_variables',
                                  'durations_%s' % suff)
         other_hist = os.path.join("other_variables",
@@ -910,7 +912,7 @@ def exec_fun(ecohab_data, timeline, N, var_name, action1_name,
                             phases,
                             "raster_excess_durations_%s" % var_name,
                             mice,
-                            title='% excess duration %s' % name,
+                            title='excess duration %s' % name,
                             symmetrical=False, prefix=prefix,
                             full_dir_tree=full_dir_tree)
     return action_m, action_m_exp, phases, mice
