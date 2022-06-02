@@ -351,6 +351,7 @@ class Loader(EcoHabDataBase):
                                      self.visit_threshold, antennas)
         self.cages = antennas.cages
         self.directions = antennas.directions
+        self.backing = antennas.backing
         self.setup_config = antennas
         self.all_antennas = antennas.all_antennas
         self.internal_antennas = antennas.internal_antennas

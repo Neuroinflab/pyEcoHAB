@@ -6,7 +6,6 @@ Created on Fri Mar 24 13:38:58 2017
 
 @author: Jan Maka, Joanna Jędrzejewska-Szmek
 """
-from __future__ import division, print_function, absolute_import
 import os
 import numpy as np
 import matplotlib as mpl

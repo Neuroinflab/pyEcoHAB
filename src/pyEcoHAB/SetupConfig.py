@@ -37,7 +37,8 @@ class SetupConfigMethods(RawConfigParser):
         self.address = self.get_cage_address_dict()
         self.address_non_adjacent = self.get_address_non_adjacent_dict()
         self.address_surrounding = self.get_surrounding_dict()
-        self.directions = self.get_directions_dict()
+        self.directions = self.get_directions_list()
+        self.backing = self.get_backing_list()
 
     def get_all_antennas(self):
         """
@@ -296,8 +297,19 @@ class SetupConfigMethods(RawConfigParser):
                 if key not in out:
                     out[key] = cage_dict[caa]
         return out
-
-    def get_directions_dict(self):
+    
+    def get_backing_list(self):
+        out = []
+        for tunnel in self.tunnels:
+            vals = [item[1] for item in self.items(tunnel)
+                    if item[0].startswith("entra")]
+            if len(vals) > 2:
+                raise Exception("There are more than 2 antennas at the entrances to %s"
+                                % tunnel)
+            out += ["%s %s" % (vals[0], vals[0]), "%s %s" % (vals[1], vals[1])]
+        return sorted(out)
+    
+    def get_directions_list(self):
         """
         Return a list of pairs of possible antenna registrations, when an animal
         is crossing a tunnel in any direction, for all tunnels and directions
@@ -308,7 +320,8 @@ class SetupConfigMethods(RawConfigParser):
             vals = [item[1] for item in self.items(tunnel)
                     if item[0].startswith("entra")]
             if len(vals) > 2:
-                raise Exception("There are more than 2 antennas at the entrances to %s" % tunnel)
+                raise Exception("There are more than 2 antennas at the entrances to %s"
+                                % tunnel)
             out += ["%s %s" % (vals[0], vals[1]), "%s %s" % (vals[1], vals[0])]
         return sorted(out)
 

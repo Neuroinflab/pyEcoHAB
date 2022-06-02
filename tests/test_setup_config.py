@@ -80,6 +80,7 @@ SURROUNDING = {
 }
 
 KEYS = ['1 2', '2 1', '3 4', '4 3', '5 6', '6 5', '7 8', '8 7']
+BACKING_KEYS = ["1 1", "2 2", "3 3", "4 4", "5 5", "6 6", "7 7", "8 8"]
 PAIRS = ["1 3", "1 4", "1 5", "1 6", "1 7", "2 4", "2 5", "2 6", "2 7", "2 8",
          "3 5", "3 6", "3 7", "3 8", "4 6", "4 7", "4 8", "5 7", "5 8", "6 8"]
 
@@ -361,11 +362,19 @@ class TestGetDicts(unittest.TestCase):
 
     def test_directions_custom(self):
         self.assertEqual(["1 2", "2 1"],
-                         self.custom.get_directions_dict())
+                         self.custom.get_directions_list())
 
     def test_directions_default(self):
         self.assertEqual(KEYS,
-                         self.default.get_directions_dict())
+                         self.default.get_directions_list())
+
+    def test_backing_custom(self):
+        self.assertEqual(["1 1", "2 2"],
+                         self.custom.get_backing_list())
+
+    def test_backing_default(self):
+        self.assertEqual(BACKING_KEYS,
+                         self.default.get_backing_list())
 
     def test_unused_antennas_d(self):
         self.assertEqual([],
