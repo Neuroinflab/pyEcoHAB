@@ -39,7 +39,8 @@ def bootstrap_single_phase(direction_dict, mice_list,
 
 
 def resample_single_phase(directions_dict, mice, t_start, t_stop, phase,
-                          var_name, function, return_median=False, save_figures=False,
+                          var_name, function, return_median=False,
+                          save_figures=False,
                           save_distributions=True, res_dir=None, prefix=None,
                           stf=False, full_dir_tree=True):
     """If return_median is False, function returns mean value
@@ -231,7 +232,8 @@ def exec_fun(ecohab_data, timeline, N, var_name, action1_name,
     phases, times, data, data_keys = utils.get_registrations_bins(ecohab_data,
                                                                   timeline,
                                                                   binsize,
-                                                                  mice, data_prep)
+                                                                  mice,
+                                                                  data_prep)
 
     surrogate_data = rdg.generate_surrogate_data(ecohab_data, timeline,
                                                  binsize, mice, N,
@@ -300,7 +302,8 @@ def exec_fun(ecohab_data, timeline, N, var_name, action1_name,
                                                     method,
                                                     prefix,
                                                     add_info_mice)
-        fname_rev_ = 'rasters_%s_%s_%s.csv' % (action1_name, prefix, add_info_mice)
+        fname_rev_ = 'rasters_%s_%s_%s.csv' % (action1_name, prefix,
+                                               add_info_mice)
 
     keys = utils.all_mouse_pairs(mice)
     interval_details = {key: [] for key in keys}
@@ -396,6 +399,7 @@ def exec_fun(ecohab_data, timeline, N, var_name, action1_name,
                                                  function,
                                                  res_dir=res_dir,
                                                  prefix=prefix,
+                                                 save_distributions=save_distributions,
                                                  stf=save_times,
                                                  save_figures=save_figures,
                                                  full_dir_tree=full_dir_tree)
