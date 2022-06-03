@@ -260,6 +260,7 @@ def write_interpair_intervals(results, main_directory,
         for interval in results[key]:
             f.write("%f%s" % (interval, delimiter))
         f.write("\n")
+    f.close()
 
 
 def save_visit_duration(results, time, phase, mice,
