@@ -547,17 +547,19 @@ def extract_directions(times, antennas, last_antenna, keys):
             direction_dict[key][1].append(times[c_idx + 1])
     return direction_dict
 
-def extract_backing(times, antennas, last_antenna, keys):
-    direction_dict = {key: [[], []] for key in keys}
-    same_indices = same_state(antennas)
+def extract_backing(times, antennas, last_antenna, setup):
+    direction_dict = {key: [[], []] for key in setup.backing}
+    internal = setup.internal_antennas
 
-    for c_idx in same_indices:
-        if c_idx + 1 >= len(antennas):
-            break
-        ant, next_ant = antennas[c_idx], antennas[c_idx + 1]
-        key = "%s %s" % (ant, next_ant)
-        direction_dict[key][0].append(times[c_idx])
-        direction_dict[key][1].append(times[c_idx + 1])
+    for i, ant in enumerate(antennas[1:-1]):
+        prev_ant, next_ant = antennas[i], antennas[i+1]
+        if ant not in internal and ant == next_ant:
+            if prev_ant in setup.same_tunnel[ant]:
+                continue
+            
+            key = "%s %s" % (ant, next_ant)
+            direction_dict[key][0].append(times[i + 1])
+            direction_dict[key][1].append(times[i + 2])
     return direction_dict
 
 def prepare_for_tube_dominance(ecohab_data, mice, st, en):
@@ -596,7 +598,7 @@ def prepare_tube_data(ecohab_data, mice, st, en, what="directions"):
             directions[mouse1] = extract_backing(times_antennas[0],
                                                  times_antennas[1],
                                                  last_antenna,
-                                                 ecohab_data.backing)
+                                                 ecohab_data.setup_config)
         
     return directions
 

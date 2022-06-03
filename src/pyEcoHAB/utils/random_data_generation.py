@@ -9,8 +9,8 @@ class PseudoLoader(object):
     def __init__(self, data, setup_config):
         self.registrations = BaseFunctions.Data(data, None)
         self.mice = self.get_mice()
+        self.setup_config = setup_config
         self.directions = setup_config.directions
-        self.backing = setup_config.backing
         self.session_start = sorted(self.get_times(self.mice))[0]
         self.session_end = sorted(self.get_times(self.mice))[-1]
 
