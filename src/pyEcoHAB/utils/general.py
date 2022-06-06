@@ -164,25 +164,10 @@ def get_idx_between(t0, t1, times):
     return np.where((np.array(times) >= t0) & (np.array(times) < t1))[0]
 
 
-def get_idx_post(t1, times):
-    idxs = np.where(np.array(times) > t1)[0]
-    if len(idxs):
-        return idxs[0]
-    return None
-
-
 def change_state(antennas):
     indx = []
     for i, a in enumerate(antennas[:-1]):
         if a != antennas[i+1]:
-            indx.append(i)
-    return indx
-
-
-def same_state(antennas):
-    indx = []
-    for i, a in enumerate(antennas[:-1]):
-        if a == antennas[i+1]:
             indx.append(i)
     return indx
 
@@ -205,24 +190,6 @@ def get_times_antennas_list_of_mice(ecohab_data, mice, t_1, t_2):
         out[mouse]["times"] = times
         out[mouse]["antennas"] = antennas
     return out
-
-
-def get_states_and_readouts(antennas, times, t1, t2):
-    before = get_idx_pre(t1, times)
-    between = get_idx_between(t1, t2, times)
-    after = get_idx_post(t2, times)
-    states = []
-    readouts = []
-    if before is not None:
-        states.append(antennas[before])
-        readouts.append(times[before])
-    for idx in between:
-        states.append(antennas[idx])
-        readouts.append(times[idx])
-    assert(len(states) == len(readouts))
-    return states, readouts
-
-
 
 
 def get_antennas(idxs, antennas):

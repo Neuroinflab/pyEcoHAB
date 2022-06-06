@@ -128,15 +128,6 @@ class TestGetIdxPre(unittest.TestCase):
         self.assertEqual(uf.get_idx_pre(0, []), None)
 
 
-class TestGetIdxPost(unittest.TestCase):
-    def test_false(self):
-        self.assertEqual(uf.get_idx_post(2, [-1, 0, 1]), None)
-
-    def test_correct(self):
-        self.assertEqual(uf.get_idx_post(2, [-1, 0, 1, 2, 3]), 4)
-
-    def test_empty(self):
-        self.assertEqual(uf.get_idx_post(0, []), None)
 
 
 class TestGetIdxBetween(unittest.TestCase):
@@ -572,17 +563,6 @@ class TestGetIdxPre(unittest.TestCase):
 
     def test_empty(self):
         self.assertEqual(uf.get_idx_pre(0, []), None)
-
-
-class TestGetIdxPost(unittest.TestCase):
-    def test_false(self):
-        self.assertEqual(uf.get_idx_post(2, [-1, 0, 1]), None)
-
-    def test_correct(self):
-        self.assertEqual(uf.get_idx_post(2, [-1, 0, 1, 2, 3]), 4)
-
-    def test_empty(self):
-        self.assertEqual(uf.get_idx_post(0, []), None)
 
 
 class TestGetIdxBetween(unittest.TestCase):
