@@ -7,7 +7,7 @@ import calendar
 import sys
 from collections import OrderedDict, Counter
 import numpy as np
-from pyEcoHAB.general import check_directory
+from .general import check_directory
 
 h = u"antenna, incorrect transitions count, percentage of antenna recordings\n"
 
