@@ -475,7 +475,7 @@ def single_histogram_figures(single_results, fname, main_directory,
                 bbox_inches=None,
                 pad_inches=.5,
                 dpi=100)
-    print(new_fname + ".png")
+    #print(new_fname + ".png")
     plt.close(fig)
 
 
