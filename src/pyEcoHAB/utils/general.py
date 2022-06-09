@@ -163,6 +163,11 @@ def get_idx_pre(t0, times):
 def get_idx_between(t0, t1, times):
     return np.where((np.array(times) >= t0) & (np.array(times) < t1))[0]
 
+def get_idx_post(t1, times):
+    idxs = np.where(np.array(times) > t1)[0]
+    if len(idxs):
+        return idxs[0]
+    return None
 
 def change_state(antennas):
     indx = []

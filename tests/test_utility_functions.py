@@ -1851,5 +1851,18 @@ class TestMath(unittest.TestCase):
                 expected[key1][key2] = 0
         self.assertEqual(sorted(expected), sorted(std1))
 
+
+
+class TestGetIdxPost(unittest.TestCase):
+    def test_false(self):
+        self.assertEqual(uf.get_idx_post(2, [-1, 0, 1]), None)
+
+    def test_correct(self):
+        self.assertEqual(uf.get_idx_post(2, [-1, 0, 1, 2, 3]), 4)
+
+    def test_empty(self):
+        self.assertEqual(uf.get_idx_post(0, []), None)
+
+
 if __name__ == '__main__':
     unittest.main()
