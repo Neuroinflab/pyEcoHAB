@@ -491,7 +491,8 @@ def prepare_binned_data(ecohab_data, timeline, bins, mice):
                 if t_e > t_end:
                     t_e = t_end
                 time = [t_start, t_e]
-                data[phase][bin_labels[phase][j]] = prepare_data(ecohab_data, mice,
+                data[phase][bin_labels[phase][j]] = prepare_data(ecohab_data,
+                                                                 mice,
                                                                  time)
                 total_time[phase][bin_labels[phase][j]] = time[1] - time[0]
                 t_start += bins
@@ -519,6 +520,7 @@ def extract_directions(times, antennas, last_antenna, keys):
             direction_dict[key][1].append(times[c_idx + 1])
     return direction_dict
 
+
 def extract_backing(times, antennas, last_antenna, setup):
     direction_dict = {key: [[], []] for key in setup.backing}
     internal = setup.internal_antennas
@@ -526,13 +528,14 @@ def extract_backing(times, antennas, last_antenna, setup):
     for i, ant in enumerate(antennas[1:-1]):
         prev_ant, next_ant = antennas[i], antennas[i+1]
         if ant not in internal and ant == next_ant:
-            if prev_ant in setup.same_tunnel[ant]:
+            if prev_ant == setup.other_tunnel_antenna(ant):
                 continue
             
             key = "%s %s" % (ant, next_ant)
             direction_dict[key][0].append(times[i + 1])
             direction_dict[key][1].append(times[i + 2])
     return direction_dict
+
 
 def prepare_for_tube_dominance(ecohab_data, mice, st, en):
     moves = {
