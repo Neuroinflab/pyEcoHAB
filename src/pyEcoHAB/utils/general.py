@@ -526,19 +526,24 @@ def extract_backing(times, antennas, last_antenna, setup):
     internal = setup.internal_antennas
     i = 1
     while i < len(antennas) - 1:
-        prev_ant, next_ant = antennas[i-1], antennas[i+1]
         ant = antennas[i]
-        print(prev_ant, ant, next_ant)
-        if ant not in internal and ant == next_ant:
-            if prev_ant == setup.other_tunnel_antenna(ant):
+        prev_ant, next_ant = antennas[i-1], antennas[i+1]
+        opposite_antenna = setup.other_tunnel_antenna(ant)[0]
+        if ant not in internal:
+            if prev_ant == opposite_antenna and next_ant == opposite_antenna:
+                key = "%s %s" % (antennas[i-1],
+                                 antennas[i+1])
+                direction_dict[key][0].append(times[i-1])
+                direction_dict[key][1].append(times[i+1])   
                 i = i+1
-                continue
-            key = "%s %s" % (ant, next_ant)
-            direction_dict[key][0].append(times[i + 1])
-            direction_dict[key][1].append(times[i + 2])
-            i = i + 2
-        else:
-            i = i+1
+            elif ant == next_ant and prev_ant != opposite_antenna:
+                key = "%s %s" % (antennas[i],
+                                 antennas[i+1])
+                direction_dict[key][0].append(times[i])
+                direction_dict[key][1].append(times[i+1])
+                i = i+1
+        i = i+1
+
     return direction_dict
 
 

@@ -1868,9 +1868,9 @@ class TestGetIdxPost(unittest.TestCase):
 class TestExtractBacking(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.m1_antennas = ["5", "6", "5", "5", "5", "5", "5",
+        m1_antennas = ["5", "6", "5", "5", "5", "5", "5",
                            "6", "6", "6", "7"]
-        cls.m1_times = [
+        m1_times = [
             705.074,  # 5
             708.091,  # 6
             710.577,  # 5
@@ -1882,11 +1882,19 @@ class TestExtractBacking(unittest.TestCase):
             809.252,  # 6
             809.564,  # 6
             813.675 ]  # 7
-        cls.setup = SetupConfig()
-
+        setup = SetupConfig()
+        cls.dire = uf.extract_backing(m1_times, m1_antennas, "7",
+                                      setup)
     def test_1(self):
-        print(uf.extract_backing(self.m1_times, self.m1_antennas, "7",
-                                 self.setup))
+        self.assertEqual(self.dire["5 5"][0], [705.074, 744.813, 758.851])
+
+
+    def test_2(self):
+        self.assertEqual(self.dire["5 5"][1], [710.577, 746.72, 802.624])
+
+
+    def test_3(self):
+        self.assertEqual(self.dire["6 6"], [[809.252], [809.564]])
 
 if __name__ == '__main__':
     unittest.main()
