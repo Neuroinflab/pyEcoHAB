@@ -1541,7 +1541,9 @@ class TestPrepareRegistrations(unittest.TestCase):
         t_end = times[-1] - 3600/3
         cls.out = uf.prepare_tube_data(data, ["mouse_1"],
                                            t_start, t_end)
-
+        cls.backing = uf.prepare_tube_data(data, ["mouse_1"],
+                                           t_start, t_end, "backing_out")
+        
     def test_1(self):
         self.assertEqual(["mouse_1"], list(self.out.keys()))
 
@@ -1552,7 +1554,8 @@ class TestPrepareRegistrations(unittest.TestCase):
         #  check if last antenna is working
         self.assertEqual(len(self.out["mouse_1"]["6 5"][0]), 2)
 
-
+    def test_4(self):
+        print(self.backing)
 class TestPrepareBinnedRegistrations(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -1895,6 +1898,10 @@ class TestExtractBacking(unittest.TestCase):
 
     def test_3(self):
         self.assertEqual(self.dire["6 6"], [[809.252], [809.564]])
+
+
+class TestPrepareForTB(unittest.TestCase):
+    pass
 
 if __name__ == '__main__':
     unittest.main()
