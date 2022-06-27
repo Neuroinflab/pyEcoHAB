@@ -1555,7 +1555,17 @@ class TestPrepareRegistrations(unittest.TestCase):
         self.assertEqual(len(self.out["mouse_1"]["6 5"][0]), 2)
 
     def test_4(self):
-        print(self.backing)
+        self.assertEqual(len(self.backing["mouse_1"]["5 5"][0]), 1)
+
+    def test_5(self):
+        self.assertEqual(len(self.backing["mouse_1"]["5 5"]), 2)
+
+    def test_6(self):
+        self.assertEqual(self.backing["mouse_1"]["1 1"], [[], []])
+
+
+
+    
 class TestPrepareBinnedRegistrations(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
