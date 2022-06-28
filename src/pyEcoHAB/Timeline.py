@@ -146,3 +146,36 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
         ax.get_figure().autofmt_xdate()
         plt.title(self.path)
         plt.draw()
+
+
+def generate_timeline(data_directory, dark_beginning="12:00",
+                      first_phase="dark", dark_length=12, light_length=12,
+                      phase_name="EMPTY"):
+    """
+    Automatically generate timeline of an EcoHAB experiment
+
+    This function will calculate phases beginnings and endings and generate 
+    the timeline of the experiment with phases named phase_name number phase_type.
+    The file will be save in data_directory. If the beginning of 
+    the dark phase is not provided, 12:00 will be used. Dark and light phase 
+    lengths will be used to calculate begginings and endings of each phase.
+    Phase lengths can be specified, otherwise it is assumed that dark and light
+    phase are 12 h long.
+    
+
+    Args:
+       data_directory: str
+           path to the directory containing experiment data files
+       dark_beginning: str
+           At what time do the dark phases begin. Default: 12:00
+       first_phase: str
+           What phase is the first: dark or light. Default: dark
+       dark_length: float
+           Length of the dark phase (in hours). Default: 12 
+       light_length: float
+           Length of the light phase (in hours). Default: 12 
+       phase_name: str
+           name of all the phases. Default: EMPTY. 
+           Consecutive phases will be named: EMPTY 1 dark, EMPTY 1 light,
+           EMPTY 2 dark ...
+    """
