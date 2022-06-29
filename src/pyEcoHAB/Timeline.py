@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # -*- encoding: utf-8 -*-
-from __future__ import division, absolute_import, print_function
 """
 Timeline.py
 
@@ -8,7 +7,8 @@ Created by Szymon Łęski on 2013-02-19.
 
 """
 import os
-from configparser import RawConfigParser, NoSectionError
+from configparser import ConfigParser, NoSectionError
+import glob
 import sys
 import time
 import calendar
@@ -28,7 +28,7 @@ from pyEcoHAB.utils import for_loading as fl
 
 
 
-class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
+class Timeline(ConfigParser, matplotlib.ticker.Formatter):
     """Read in the temporal config of the experiment
      (timeline of the experiment).
 
@@ -50,7 +50,7 @@ class Timeline(RawConfigParser, matplotlib.ticker.Formatter):
 
     """
     def __init__(self, path, fname=None):
-        RawConfigParser.__init__(self)
+        ConfigParser.__init__(self)
         self.path = path
         if fname is None:
             if os.path.isfile(path):
@@ -179,3 +179,23 @@ def generate_timeline(data_directory, dark_beginning="12:00",
            Consecutive phases will be named: EMPTY 1 dark, EMPTY 1 light,
            EMPTY 2 dark ...
     """
+    config = ConfigParser()
+    #find files
+    filenames = sorted(fl.get_filenames(data_directory))
+    #find beginning of the experiment
+    first_day = filenames[0].split("_")[0]
+    dark_beg = time.strptime(dark_beginning, "%H:%M")
+    light_duration = datetime.timedelta(hours=light_length)
+    dark_duration = datetime.timedelta(hours=dark_lenght)
+    light_beg = dark_beg + dark_duration
+    if first_phase.lower() == "dark":
+        str_date = "%s%s UTC" % (first_day, dark_beginning)
+        start_date = time.strptime(str_date, "%Y%m%d%H:%M %Z")
+    elif first_phase.lower() == "light":
+        start_date = time.strptime("%s UTC" % first_day, "%Y%m%d %Z")
+        
+        
+    
+    
+    
+    
