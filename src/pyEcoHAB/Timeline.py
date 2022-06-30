@@ -22,7 +22,7 @@ import matplotlib.dates as mpd
 import matplotlib.pyplot as plt
 from pyEcoHAB import utility_functions as uf
 from pyEcoHAB.utils import for_loading as fl
-
+from pyEcoHAB.utils import temporal as temp
 
 
 
@@ -147,7 +147,8 @@ class Timeline(ConfigParser, matplotlib.ticker.Formatter):
         plt.title(self.path)
         plt.draw()
 
-
+ 
+        
 def generate_timeline(data_directory, dark_beginning="12:00",
                       first_phase="dark", dark_length=12, light_length=12,
                       phase_name="EMPTY"):
@@ -184,17 +185,17 @@ def generate_timeline(data_directory, dark_beginning="12:00",
     filenames = sorted(fl.get_filenames(data_directory))
     #find beginning of the experiment
     first_day = filenames[0].split("_")[0]
-    dark_beg = time.strptime(dark_beginning, "%H:%M")
     light_duration = datetime.timedelta(hours=light_length)
-    dark_duration = datetime.timedelta(hours=dark_lenght)
-    light_beg = dark_beg + dark_duration
+    dark_duration = datetime.timedelta(hours=dark_length)
+    light_beginning = temp.find_light_beginning(dark_beginning,
+                                                dark_length)
     if first_phase.lower() == "dark":
         str_date = "%s%s UTC" % (first_day, dark_beginning)
-        start_date = time.strptime(str_date, "%Y%m%d%H:%M %Z")
+
     elif first_phase.lower() == "light":
-        start_date = time.strptime("%s UTC" % first_day, "%Y%m%d %Z")
+        str_date = "%s%s UTC" % (first_day, light_beginning)
         
-        
+    start_date = time.strptime(str_date, "%Y%m%d%H:%M %Z")        
     
     
     
