@@ -184,19 +184,32 @@ def generate_timeline(data_directory, dark_beginning="12:00",
     #find files
     filenames = sorted(fl.get_filenames(data_directory))
     #find beginning of the experiment
-    first_day = filenames[0].split("_")[0]
-    light_duration = datetime.timedelta(hours=light_length)
-    dark_duration = datetime.timedelta(hours=dark_length)
+    first_day, last_day = temp.find_first_last(filenames)
     light_beginning = temp.find_light_beginning(dark_beginning,
                                                 dark_length)
+    light_duration = datetime.timedelta(hours=light_length)
+    dark_duration = datetime.timedelta(hours=dark_length)
     if first_phase.lower() == "dark":
         str_date = "%s%s UTC" % (first_day, dark_beginning)
 
     elif first_phase.lower() == "light":
         str_date = "%s%s UTC" % (first_day, light_beginning)
-        
+    
     start_date = time.strptime(str_date, "%Y%m%d%H:%M %Z")        
+    i = 1
+    current_phase = first_phase
+    while True:
+        #current phase name
+        full_phase_name ="%s %d %s" % (phase_name, i, current_phase)
+        if current_phase.lower() == "light":
+            end_date = start_date + light_duration
+        else:
+            end_date = start_date + dark_duration
+        
+        
     
-    
-    
-    
+        if current_phase.lower() == "light":
+            i = i+1
+            current_phase = "dark"
+        else:
+            current phase = "light"

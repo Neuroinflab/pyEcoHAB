@@ -20,3 +20,6 @@ def find_light_beginning(dark_beg, dark_len):
         new_hours = new_hours - 24
     return "%s:%s" % (convert_int_to_time(new_hours),
                       convert_int_to_time(new_mins))  
+
+def find_first_last(filename_list):
+    return filename_list[0].split("_")[0], filenames[-1].split("_"][0]
