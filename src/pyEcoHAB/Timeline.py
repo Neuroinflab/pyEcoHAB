@@ -49,7 +49,9 @@ class Timeline(ConfigParser, matplotlib.ticker.Formatter):
     experiment are in UTC.
 
     """
-    def __init__(self, path, fname=None):
+    def __init__(self, path, fname=None, dark_beginning="12:00",
+                 first_phase="dark", dark_length=12, light_length=12,
+                 phase_name="EMPTY"):
         ConfigParser.__init__(self)
         self.path = path
         if fname is None:
@@ -59,9 +61,24 @@ class Timeline(ConfigParser, matplotlib.ticker.Formatter):
                 fname = 'config.txt'
                 self.path = os.path.join(path, fname)
             else:
-                fname = filter(lambda x: x.startswith('config') and
-                               x.endswith('.txt'),
-                               os.listdir(path))[0]
+                try: 
+                    fnames = filter(lambda x: x.startswith('config')
+                                    and x.endswith('.txt'),
+                                    os.listdir(path))[0]
+                
+                except TypeError:
+                    fname = "config.txt"
+                    config_dict = temp.gen_timeline(path,
+                                                    dark_beginning=dark_beginning,
+                                                    first_phase=first_phase,
+                                                    dark_length=dark_length,
+                                                    light_length=light_length,
+                                                    phase_name=phase_name)
+                    config = ConfigParser()
+                    config.read_dict(config_dict)
+                    new_path = os.path.join(path, fname)
+                    with open(new_path, 'w') as configfile:
+                        config.write(configfile)
                 self.path = os.path.join(path, fname)
         else:
             fname = fname
@@ -149,67 +166,3 @@ class Timeline(ConfigParser, matplotlib.ticker.Formatter):
 
  
         
-def generate_timeline(data_directory, dark_beginning="12:00",
-                      first_phase="dark", dark_length=12, light_length=12,
-                      phase_name="EMPTY"):
-    """
-    Automatically generate timeline of an EcoHAB experiment
-
-    This function will calculate phases beginnings and endings and generate 
-    the timeline of the experiment with phases named phase_name number phase_type.
-    The file will be save in data_directory. If the beginning of 
-    the dark phase is not provided, 12:00 will be used. Dark and light phase 
-    lengths will be used to calculate begginings and endings of each phase.
-    Phase lengths can be specified, otherwise it is assumed that dark and light
-    phase are 12 h long.
-    
-
-    Args:
-       data_directory: str
-           path to the directory containing experiment data files
-       dark_beginning: str
-           At what time do the dark phases begin. Default: 12:00
-       first_phase: str
-           What phase is the first: dark or light. Default: dark
-       dark_length: float
-           Length of the dark phase (in hours). Default: 12 
-       light_length: float
-           Length of the light phase (in hours). Default: 12 
-       phase_name: str
-           name of all the phases. Default: EMPTY. 
-           Consecutive phases will be named: EMPTY 1 dark, EMPTY 1 light,
-           EMPTY 2 dark ...
-    """
-    config = ConfigParser()
-    #find files
-    filenames = sorted(fl.get_filenames(data_directory))
-    #find beginning of the experiment
-    first_day, last_day = temp.find_first_last(filenames)
-    light_beginning = temp.find_light_beginning(dark_beginning,
-                                                dark_length)
-    light_duration = datetime.timedelta(hours=light_length)
-    dark_duration = datetime.timedelta(hours=dark_length)
-    if first_phase.lower() == "dark":
-        str_date = "%s%s UTC" % (first_day, dark_beginning)
-
-    elif first_phase.lower() == "light":
-        str_date = "%s%s UTC" % (first_day, light_beginning)
-    
-    start_date = time.strptime(str_date, "%Y%m%d%H:%M %Z")        
-    i = 1
-    current_phase = first_phase
-    while True:
-        #current phase name
-        full_phase_name ="%s %d %s" % (phase_name, i, current_phase)
-        if current_phase.lower() == "light":
-            end_date = start_date + light_duration
-        else:
-            end_date = start_date + dark_duration
-        
-        
-    
-        if current_phase.lower() == "light":
-            i = i+1
-            current_phase = "dark"
-        else:
-            current phase = "light"
