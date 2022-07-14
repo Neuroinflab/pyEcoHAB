@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
 from . import general as utils
 from . import BaseFunctions
+
 
 class PseudoLoader(object):
     def __init__(self, data, setup_config):
@@ -27,8 +28,8 @@ class PseudoLoader(object):
 
     def mask_data(self, start_time, end_time):
         """
-        Hide registrations and visits in ranges (self.session_start, start_time)
-        and (end_time, self.session_end).
+        Hide registrations and visits in ranges (self.session_start,
+        start_time) and (end_time, self.session_end).
 
         Args:
            start_time: float
@@ -38,19 +39,20 @@ class PseudoLoader(object):
         self.registrations.mask_data(self.mask)
 
     def unmask_data(self):
-        """Remove the mask - future registrations and visits 
+        """Remove the mask - future registrations and visits
         queries will not be clipped"""
         self.mask = None
         self.registrations.unmask_data()
 
     def get_antennas(self, mice):
         return self.registrations.getproperty(mice,
-                                         'Antenna')
+                                              'Antenna')
 
     def get_times(self, mice):
         return self.registrations.getproperty(mice,
-                                         'Time',
-                                         'float')
+                                              'Time',
+                                              'float')
+
 
 def get_shifts(mice_list):
     shift_dict = {}
@@ -59,7 +61,7 @@ def get_shifts(mice_list):
     return shift_dict
 
 
-def randomly_shift_data(data): 
+def randomly_shift_data(data):
     mice = sorted(set(data[:]["Tag"]))
     new_data = data.copy()
     shift_dict = get_shifts(mice)
@@ -82,6 +84,7 @@ def generate_surrogate_data(e_data, timeline, binsize, mice, N, func):
                                                      func)
         out_data.append(data)
     return out_data
+
 
 def reshape_surrogate_data(data):
     # data is a list of dictionaries, we need a dictionary of lists

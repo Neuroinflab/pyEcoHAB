@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
 import os
@@ -215,7 +215,8 @@ def get_activity(ecohab_data, timeline, binsize, res_dir="", prefix="",
                                           bin_labels[phase],
                                           phase, mice,
                                           histogram_fname, res_dir,
-                                          "other_variables/visit_histograms_binlen_%3.1f"
+                                          os.path.join("other_variables",
+                                                       "visit_histograms_binlen_%3.1f")
                                           % (binlen/3600),
                                           prefix, add_info_mice)
             save_visit_duration(visits_in_cages,

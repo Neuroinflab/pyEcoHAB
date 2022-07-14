@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-#!/usr/bin/env python
+# !/usr/bin/env python
 # encoding: utf-8
 import os
 import unittest
@@ -126,8 +126,6 @@ class TestGetIdxPre(unittest.TestCase):
 
     def test_empty(self):
         self.assertEqual(uf.get_idx_pre(0, []), None)
-
-
 
 
 class TestGetIdxBetween(unittest.TestCase):
@@ -539,7 +537,6 @@ class TestGETEHSData(unittest.TestCase):
                                "Light", "LIGHT", "light",
                                "Dark 6", "DARK 5", "dark 4",
                                "Light 3", "LIGHT 2", "light 1"])
-
 
 
 class TestChangeState(unittest.TestCase):
@@ -1543,7 +1540,7 @@ class TestPrepareRegistrations(unittest.TestCase):
                                        t_start, t_end)
         cls.backing = uf.prepare_tube_data(data, ["mouse_1"],
                                            t_start, t_end, "backing_out")
-        
+
     def test_1(self):
         self.assertEqual(["mouse_1"], list(self.out.keys()))
 
@@ -1564,8 +1561,6 @@ class TestPrepareRegistrations(unittest.TestCase):
         self.assertEqual(self.backing["mouse_1"]["1 1"], [[], []])
 
 
-
-    
 class TestPrepareBinnedRegistrations(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -1677,17 +1672,17 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
             out[phase] = OrderedDict()
 
         out["1_x"][0.0] = uf.prepare_tube_data(self.data,
-                                                   ["mouse_1"],
-                                                   times[0],
-                                                   times[0] +
-                                                   24*3600)
+                                               ["mouse_1"],
+                                               times[0],
+                                               times[0] +
+                                               24*3600)
 
         out["2_x"][0.0] = uf.prepare_tube_data(self.data,
-                                                   ["mouse_1"],
-                                                   times[0] +
-                                                   24*3600,
-                                                   times[0] +
-                                                   2*24*3600)
+                                               ["mouse_1"],
+                                               times[0] +
+                                               24*3600,
+                                               times[0] +
+                                               2*24*3600)
         self.assertEqual(self.out_24h[2], out)
 
     def test_24h_total(self):
@@ -1704,6 +1699,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
     def test_24h_keys(self):
         data_keys = [["1_x", "2_x"],
                      [0.0]]
+
 
 class TestMath(unittest.TestCase):
     @classmethod
@@ -1865,7 +1861,6 @@ class TestMath(unittest.TestCase):
         self.assertEqual(sorted(expected), sorted(std1))
 
 
-
 class TestGetIdxPost(unittest.TestCase):
     def test_false(self):
         self.assertEqual(uf.get_idx_post(2, [-1, 0, 1]), None)
@@ -1877,12 +1872,11 @@ class TestGetIdxPost(unittest.TestCase):
         self.assertEqual(uf.get_idx_post(0, []), None)
 
 
-
 class TestExtractBacking(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         m1_antennas = ["5", "6", "5", "5", "5", "5", "5",
-                           "6", "6", "6", "7"]
+                       "6", "6", "6", "7"]
         m1_times = [
             705.074,  # 5
             708.091,  # 6
@@ -1894,17 +1888,16 @@ class TestExtractBacking(unittest.TestCase):
             808.095,  # 6
             809.252,  # 6
             809.564,  # 6
-            813.675 ]  # 7
+            813.675]  # 7
         setup = SetupConfig()
         cls.dire = uf.extract_backing(m1_times, m1_antennas, "7",
                                       setup)
+
     def test_1(self):
         self.assertEqual(self.dire["5 5"][0], [705.074, 744.813, 758.851])
 
-
     def test_2(self):
         self.assertEqual(self.dire["5 5"][1], [710.577, 746.72, 802.624])
-
 
     def test_3(self):
         self.assertEqual(self.dire["6 6"], [[809.252], [809.564]])
@@ -1929,12 +1922,12 @@ class TestPrepareForTB(unittest.TestCase):
 
     def test_keys2(self):
         self.assertEqual(sorted(self.out["backing out"].keys()),
-                        sorted(self.out["directions"].keys()))
+                         sorted(self.out["directions"].keys()))
 
     def test_keys3(self):
         self.assertEqual(sorted(self.out["backing out"].keys()),
-                        ["mouse_1"])
-    
+                         ["mouse_1"])
+
     def test_2(self):
         self.assertEqual(len(self.out["directions"]["mouse_1"]["5 6"][0]), 3)
 
@@ -1942,7 +1935,7 @@ class TestPrepareForTB(unittest.TestCase):
         #  check if last antenna is working
         self.assertEqual(len(self.out["directions"]["mouse_1"]["6 5"][0]), 2)
 
-    def test_4(self): 
+    def test_4(self):
         self.assertEqual(len(self.out["backing out"]["mouse_1"]["5 5"][0]), 1)
 
     def test_5(self):
@@ -1951,6 +1944,6 @@ class TestPrepareForTB(unittest.TestCase):
     def test_6(self):
         self.assertEqual(self.out["backing out"]["mouse_1"]["1 1"], [[], []])
 
-        
+
 if __name__ == '__main__':
     unittest.main()

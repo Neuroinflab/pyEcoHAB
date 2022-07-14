@@ -16,7 +16,6 @@ except NameError:
     basestring = str
 
 
-
 class TestFollowing2ndMouseInPipe(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -176,7 +175,6 @@ class TestFollowingMatrices(unittest.TestCase):
         self.assertEqual(self.time_together["mouse3"]["mouse2"], 0)
 
 
-
 class TestExecution(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -190,6 +188,7 @@ class TestExecution(unittest.TestCase):
                                      save_figures=True, return_median=False,
                                      delimiter=";",
                                      save_times=True)
+
     def test_phases_2(self):
         fol.get_dynamic_interactions(self.data, self.config, 1,
                                      save_distributions=False,

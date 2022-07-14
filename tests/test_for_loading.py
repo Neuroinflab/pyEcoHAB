@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-#!/usr/bin/env python
+# !/usr/bin/env python
 # encoding: utf-8
 from __future__ import print_function, division, absolute_import
 import os
@@ -687,6 +687,7 @@ class TestTunnelErrors(unittest.TestCase):
 
     def test_data_total(self):
         self.assertEqual(self.pred_tot_i, self.out_tot_i)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+
 ecohab_loc = os.path.dirname(os.path.abspath(__file__))
 data_path = os.path.join(ecohab_loc, 'data')
 sample_data = os.path.join(data_path, "BALB_VPA_data_cohort_1")
@@ -18,3 +19,5 @@ from .single_antenna_registrations import get_single_antenna_stats
 from .trajectories import get_antenna_transition_durations
 from .trajectories import get_light_dark_transitions
 from .trajectories import get_registration_trains
+
+

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
 import glob
@@ -297,30 +297,30 @@ class SetupConfigMethods(RawConfigParser):
                 if key not in out:
                     out[key] = cage_dict[caa]
         return out
-    
+
     def get_backing_list(self):
         out = []
         for tunnel in self.tunnels:
             vals = [item[1] for item in self.items(tunnel)
                     if item[0].startswith("entra")]
             if len(vals) > 2:
-                raise Exception("There are more than 2 antennas at the entrances to %s"
+                raise Exception("There are more than 2 antennas at %s"
                                 % tunnel)
             out += ["%s %s" % (vals[0], vals[0]), "%s %s" % (vals[1], vals[1])]
         return sorted(out)
-    
+
     def get_directions_list(self):
         """
-        Return a list of pairs of possible antenna registrations, when an animal
-        is crossing a tunnel in any direction, for all tunnels and directions
-        in the experimental setup.
+        Return a list of pairs of possible antenna registrations, when
+        an animal is crossing a tunnel in any direction, for all tunnels
+        and directions in the experimental setup.
         """
         out = []
         for tunnel in self.tunnels:
             vals = [item[1] for item in self.items(tunnel)
                     if item[0].startswith("entra")]
             if len(vals) > 2:
-                raise Exception("There are more than 2 antennas at the entrances to %s"
+                raise Exception("There are more than 2 antennas at %s"
                                 % tunnel)
             out += ["%s %s" % (vals[0], vals[1]), "%s %s" % (vals[1], vals[0])]
         return sorted(out)
@@ -649,7 +649,7 @@ class IdentityConfig(RawConfigParser):
         if os.path.isfile(path_to_fname):
             self.config_path = path_to_fname
         else:
-            raise Exception("Could not find experiment config file %s for modular experiments",
+            raise Exception("No experiment config file %s for experiments",
                             path_to_fname)
         RawConfigParser.__init__(self)
         self.read(path_to_fname)
@@ -684,7 +684,9 @@ class IdentityConfig(RawConfigParser):
                 continue
             items = [item[0] for item in self.items(section)]
             if len(items) != 3:
-                raise Exception("A rename compartment should have 3 attributes: setup_name, compartment_name and destination name")
+                raise Exception("""A rename compartment should have 3
+                attributes: setup_name, compartment_name
+                and destination name""")
             setup = self.get(section, "setup_name")
             compartment = self.get(section, "compartment_name")
             key = "%s %s" % (setup, compartment)

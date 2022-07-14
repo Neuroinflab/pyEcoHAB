@@ -7,6 +7,7 @@ import pyEcoHAB.utils.temporal as ut
 from pyEcoHAB.utils import for_loading as fl
 from pyEcoHAB import sample_data
 
+
 class TestConvertIntsToTime(unittest.TestCase):
     def test_1(self):
         self.assertEqual(ut.convert_int_to_time(1), "01")
@@ -17,13 +18,14 @@ class TestConvertIntsToTime(unittest.TestCase):
     def test_3(self):
         self.assertEqual(ut.convert_int_to_time(31), "31")
 
+
 class TestFindLightBeginnig(unittest.TestCase):
     def test_1(self):
         dark_beg = "12:00"
         dark_len = 12
         self.assertEqual(ut.find_light_beginning(dark_beg, dark_len),
                          "00:00")
-        
+
     def test_2(self):
         dark_beg = "12:40"
         dark_len = 12.5
@@ -42,7 +44,7 @@ class DealWithDates(unittest.TestCase):
     def setUpClass(cls):
         cls.filenames = sorted(fl.get_filenames(sample_data))
         cls.first, cls.last = ut.find_first_last(cls.filenames)
-        
+
     def test_first(self):
         self.assertEqual(self.first, "20140616")
 
@@ -53,7 +55,7 @@ class DealWithDates(unittest.TestCase):
         last = ut.last_day_to_datetime(self.last)
         expected = datetime(year=2014, month=6, day=19, hour=11,
                             tzinfo=tzinfo("UTF"))
-    
+
     def test_strtime_to_datetime(self):
         measured = ut.strtime_to_datetime("%s12:00 UTC" % self.first)
         expected = datetime(year=2014, month=6, day=16, hour=12,
@@ -66,12 +68,11 @@ class DealWithDates(unittest.TestCase):
     def test_get_time(self):
         self.assertEqual(ut.get_time(time(hour=12)), "12:00")
 
-
     def generate_entry(self):
         first = datetime(year=2014, month=6, day=19, hour=12,
                          tzinfo=tzinfo("UTF"))
         last = datetime(year=2014, month=6, day=20, hour=00,
-                         tzinfo=tzinfo("UTF"))
+                        tzinfo=tzinfo("UTF"))
         out = ut.make_cofig_entry(first, last)
         expected = {"startdate": "2014.06.19",
                     "starttime": "12:00",
@@ -101,7 +102,7 @@ class TestGenerateTimeline(unittest.TestCase):
                 "starttime": "00:00",
                 "enddate": "17.06.2014",
                 "endtime": "12:00",
-                
+
             },
             "EMPTY 2 dark": {
                 "startdate": "17.06.2014",
@@ -135,10 +136,11 @@ class TestGenerateTimeline(unittest.TestCase):
                 "startdate": "16.06.2014",
                 "starttime": "12:00",
                 "enddate": "19.06.2014",
-                "endtime": "12:00",}
+                "endtime": "12:00"
+            }
         }
         self.assertEqual(config_exp, config_gen)
 
-        
+
 if __name__ == '__main__':
     unittest.main()

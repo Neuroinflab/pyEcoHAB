@@ -1,12 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Timeline.py
-
-Created by Szymon Łęski on 2013-02-19.
-
-"""
 import os
 from configparser import ConfigParser, NoSectionError
 import glob
@@ -27,8 +21,12 @@ from .utils import for_loading as fl
 from .utils import temporal as temp
 
 
+"""
+Timeline.py
 
+Created by Szymon Łęski on 2013-02-19.
 
+"""
 
 
 class Timeline(ConfigParser, matplotlib.ticker.Formatter):
@@ -55,6 +53,7 @@ class Timeline(ConfigParser, matplotlib.ticker.Formatter):
     def __init__(self, path, fname=None, dark_beginning="12:00",
                  first_phase="dark", dark_length=12, light_length=12,
                  phase_name="EMPTY"):
+        dark_beg = dark_beginning
         ConfigParser.__init__(self)
         self.path = path
         if fname is None:
@@ -64,15 +63,14 @@ class Timeline(ConfigParser, matplotlib.ticker.Formatter):
                 fname = 'config.txt'
                 self.path = os.path.join(path, fname)
             else:
-                try: 
+                try:
                     fnames = filter(lambda x: x.startswith('config')
                                     and x.endswith('.txt'),
                                     os.listdir(path))[0]
-                
                 except TypeError:
                     fname = "config.txt"
                     config_dict = temp.gen_timeline(path,
-                                                    dark_beginning=dark_beginning,
+                                                    dark_beginning=dark_beg,
                                                     first_phase=first_phase,
                                                     dark_length=dark_length,
                                                     light_length=light_length,
@@ -166,6 +164,3 @@ class Timeline(ConfigParser, matplotlib.ticker.Formatter):
         ax.get_figure().autofmt_xdate()
         plt.title(self.path)
         plt.draw()
-
- 
-        

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
 from collections import OrderedDict
@@ -340,7 +340,6 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
         standard_error_per_mouse[ph] = utils.standard_error(reflected_excess_time,
                                                             mean_excess_time_per_mouse[ph],
                                                             len(mice)-1)
-
 
         if isinstance(binsize, int) or isinstance(binsize, float):
             if int(binsize) == 24*3600:

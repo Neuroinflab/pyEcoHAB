@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
 import numpy as np
@@ -23,7 +23,7 @@ from .plotting_functions import single_histogram_figures
 
 def bootstrap_single_phase(direction_dict, mice_list,
                            t_start, t_stop, function):
-    
+
     action_count = utils.make_results_dict(mice_list, tolist=True)
     times_together = utils.make_results_dict(mice_list, tolist=True)
     for i, new_directions in enumerate(direction_dict):
@@ -35,7 +35,6 @@ def bootstrap_single_phase(direction_dict, mice_list,
                     action_count[m1][m2].append(out[0][m1][m2])
                     times_together[m1][m2].append(out[1][m1][m2])
     return action_count, times_together
-
 
 
 def resample_single_phase(directions_dict, mice, t_start, t_stop, phase,
@@ -56,7 +55,8 @@ def resample_single_phase(directions_dict, mice, t_start, t_stop, phase,
     name = var_name.replace("_", " ")
     actions, action_durations = bootstrap_single_phase(directions_dict,
                                                        mice,
-                                                       t_start, t_stop, function)
+                                                       t_start, t_stop,
+                                                       function)
     binsize = (t_stop - t_start)/3600
     hist_dir = os.path.join("other_variables",
                             "%s_hists" % var_name,
@@ -189,8 +189,6 @@ def following_matrices(directions_dict, mice, t_start, t_stop):
             key = "%s|%s" % (mouse1, mouse2)
             interval_details[key] += mouse_intervals
     return followings, time_together, interval_details
-
-
 
 
 def get_dynamic_interactions(ecohab_data, timeline, N, binsize="whole_phase",
@@ -366,8 +364,10 @@ def exec_fun(ecohab_data, timeline, N, var_name, action1_name,
     exp_prefix = "expected_%s_%s_%s" % (var_name, prefix, add_info_mice)
     exc_prefix = "excess_%s_%s_%s" % (var_name, prefix, add_info_mice)
     meas_prefix_dur = "durations_%s_%s_%s" % (var_name, prefix, add_info_mice)
-    exp_prefix_dur = "exp_durations_%s_%s_%s" % (var_name, prefix, add_info_mice)
-    exc_prefix_dur = "excess_durations_%s_%s_%s" % (var_name, prefix, add_info_mice)
+    exp_prefix_dur = "exp_durations_%s_%s_%s" % (var_name, prefix,
+                                                 add_info_mice)
+    exc_prefix_dur = "excess_durations_%s_%s_%s" % (var_name, prefix,
+                                                    add_info_mice)
 
     mouse_action2_sum = OrderedDict()
     mouse_action1_sum = OrderedDict()
@@ -386,7 +386,6 @@ def exec_fun(ecohab_data, timeline, N, var_name, action1_name,
         for i, lab in enumerate(bin_labels[ph]):
             t_start, t_stop = times[ph][lab]
             directions_dict = data[ph][lab]
-           
             out = function(directions_dict, mice, t_start, t_stop)
             action_m[ph][lab], time_together[ph][lab], phase_intervals1 = out
             duration = t_stop - t_start
@@ -484,7 +483,8 @@ def exec_fun(ecohab_data, timeline, N, var_name, action1_name,
                                           titles=['# %s' % name,
                                                   '# expected %s' % name,
                                                   '# excess %s' % name,
-                                                  'histogram of # excess %s' %name],
+                                                  'histogram of # excess %s'
+                                                  % name],
                                           labels=['%s mouse' % action2_name,
                                                   '%s mouse' % action1_name],
                                           full_dir_tree=full_dir_tree)
@@ -514,7 +514,8 @@ def exec_fun(ecohab_data, timeline, N, var_name, action1_name,
                                           titles=['# %s' % name,
                                                   '# expected %s' % name,
                                                   '# excess %s' % name,
-                                                  'histogram of # excess %s' % name],
+                                                  'histogram of # excess %s'
+                                                  % name],
                                           labels=['%s mouse' % action2_name,
                                                   '%s mouse' % action1_name],
                                           full_dir_tree=full_dir_tree)
@@ -629,12 +630,15 @@ def exec_fun(ecohab_data, timeline, N, var_name, action1_name,
                                               vmax=vmaxt,
                                               vmin1=vmin1t,
                                               vmax1=vmax1t,
-                                              titles=['Fraction of duration %s' % name,
+                                              titles=['Fraction of duration %s'
+                                                      % name,
                                                       '# expected duration',
                                                       '# excess duration',
-                                                      'histogram of # excess duration %s' % name],
+                                                      'histogram of # excess duration %s'
+                                                      % name],
                                               labels=['%s mouse' % action2_name,
-                                                      '%s mouse' % action1_name],
+                                                      '%s mouse'
+                                                      % action1_name],
                                               full_dir_tree=full_dir_tree)
                     csv_results_time[idx_phase] = res
                     csv_results_time_exp[idx_phase] = exp_res
@@ -659,13 +663,16 @@ def exec_fun(ecohab_data, timeline, N, var_name, action1_name,
                                               vmax=vmaxt,
                                               vmin1=vmin1t,
                                               vmax1=vmax1t,
-                                              titles=['Fraction of duration %s' % name,
+                                              titles=['Fraction of duration %s'
+                                                      % name,
                                                       '# expected duration',
                                                       '# excess duration',
                                                       'histogram of # excess duration %s'
-                                                      % name ],
-                                              labels=['%s mouse' % action2_name,
-                                                      '%s mouse' % action1_name],
+                                                      % name],
+                                              labels=['%s mouse' %
+                                                      action2_name,
+                                                      '%s mouse' %
+                                                      action1_name],
                                               full_dir_tree=full_dir_tree)
                     csv_results_time[idx_phase] = res
                     csv_results_time_exp[idx_phase] = exp_res
@@ -861,7 +868,6 @@ def exec_fun(ecohab_data, timeline, N, var_name, action1_name,
                          prefix,
                          additional_info=add_info_mice,
                          full_dir_tree=full_dir_tree)
-
 
     if save_times:
         make_histograms_for_every_mouse(interval_details,

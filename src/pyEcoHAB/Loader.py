@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
 import sys
@@ -99,8 +99,8 @@ class EcoHabDataBase(object):
 
     def mask_data(self, start_time, end_time):
         """
-        Hide registrations and visits in ranges (self.session_start, start_time)
-        and (end_time, self.session_end).
+        Hide registrations and visits in ranges
+        (self.session_start, start_time) and (end_time, self.session_end).
 
         Args:
            start_time: float
@@ -111,27 +111,30 @@ class EcoHabDataBase(object):
         self.visits.mask_data(self.mask)
 
     def unmask_data(self):
-        """Remove the mask - future registrations and visits queries will not be
-        clipped"""
+        """
+        Remove the mask - future registrations and visits queries
+        will not be clipped
+        """
         self.mask = None
         self.registrations.unmask_data()
         self.visits.unmask_data()
 
     def get_antennas(self, mice):
         return self.registrations.getproperty(mice,
-                                         'Antenna')
+                                              'Antenna')
 
     def get_times(self, mice):
         return self.registrations.getproperty(mice,
-                                         'Time',
-                                         'float')
+                                              'Time',
+                                              'float')
 
     def get_durations(self, mice):
-        """Return duration of registration by antenna for specified animals.
+        """
+        Return duration of registration by antenna for specified animals.
         """
         return self.registrations.getproperty(mice,
-                                         'Duration',
-                                         'float')
+                                              'Duration',
+                                              'float')
 
     def get_visit_addresses(self, mice):
         return self.visits.getproperty(mice,

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
 import unittest
@@ -7,8 +7,8 @@ import numpy as np
 
 from pyEcoHAB.utils import random_data_generation as rdg
 from pyEcoHAB.utils import general as utils
-
 from pyEcoHAB import data_path, Loader, Timeline
+
 
 class TestPseudoLoader(unittest.TestCase):
     @classmethod
@@ -20,8 +20,7 @@ class TestPseudoLoader(unittest.TestCase):
     def test_generation(self):
         PL = rdg.PseudoLoader(self.data, self.dataset.setup_config)
         equal = set(PL.registrations.data == self.data)
-        self.assertEqual(set([True]), equal) 
-
+        self.assertEqual(set([True]), equal)
 
 
 class TestGetShifts(unittest.TestCase):
@@ -45,6 +44,7 @@ class TestGetShifts(unittest.TestCase):
         equal = set(np.array(list(self.shifts_dict.values())) > -1800)
         self.assertTrue(equal, set([True]))
 
+
 class TestRandomlyShiftData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -55,23 +55,22 @@ class TestRandomlyShiftData(unittest.TestCase):
         cls.shifts_dict = rdg.get_shifts(cls.dataset.mice)
         np.random.seed(1)
         cls.shifted = rdg.randomly_shift_data(cls.data)
-        
+
     def test_shifting_mouse3(self):
         data_mouse3 = self.data[32]
         shifted_mouse3 = self.shifted[32]
         self.assertTrue(np.isclose(data_mouse3["Time"]
-                         +self.shifts_dict["mouse_3"],
-                         shifted_mouse3["Time"]))
+                                   + self.shifts_dict["mouse_3"],
+                                   shifted_mouse3["Time"]))
 
     def test_shifting_mouse2(self):
         idcs = [10, 11]
         equal = []
         for idx in idcs:
             equal.append(np.isclose(self.data[idx]["Time"]
-                                   + self.shifts_dict["mouse_2"], 
-                                   self.shifted[idx]["Time"]))
+                                    + self.shifts_dict["mouse_2"],
+                                    self.shifted[idx]["Time"]))
         self.assertEqual(set([True]), set(equal))
-
 
     def test_shifting_mouse1(self):
         idcs = [10, 11, 33]
@@ -100,13 +99,14 @@ class TestGenerateSurrogateData(unittest.TestCase):
                                                     "whole_phases",
                                                     cls.dataset.mice,
                                                     cls.N, func)
+
     def test_length(self):
         self.assertEqual(self.N, len(self.surrogate))
 
     def test_keys_1(self):
         self.assertEqual(sorted(self.surrogate[0].keys()),
                          sorted(self.surrogate[1].keys()))
-    
+
     def test_keys_11(self):
         self.assertEqual(sorted(self.surrogate[0].keys()),
                          sorted(["1 dark", "1 light", "2 dark"]))
@@ -156,6 +156,7 @@ class TestReshapeSurrogateData(unittest.TestCase):
     def test_reshaped_6(self):
         self.assertEqual(self.reshaped["2 dark"][0][1],
                          self.surrogate[1]["2 dark"][0])
+
 
 if __name__ == '__main__':
     unittest.main()
