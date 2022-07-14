@@ -1911,7 +1911,46 @@ class TestExtractBacking(unittest.TestCase):
 
 
 class TestPrepareForTB(unittest.TestCase):
-    pass
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_3_mice")
+        data_set = Loader(path)
+        mice = data_set.mice
+        config = Timeline(path)
+        times = config.get_time_from_epoch("1 dark")
+        t_start = times[-1] - 3600/3*2
+        t_end = times[-1] - 3600/3
+        cls.out = uf.prepare_for_tube_dominance(data_set, ["mouse_1"],
+                                                t_start, t_end)
 
+    def test_keys(self):
+        self.assertEqual(sorted(["backing out", "directions"]),
+                         sorted(self.out.keys()))
+
+    def test_keys2(self):
+        self.assertEqual(sorted(self.out["backing out"].keys()),
+                        sorted(self.out["directions"].keys()))
+
+    def test_keys3(self):
+        self.assertEqual(sorted(self.out["backing out"].keys()),
+                        ["mouse_1"])
+    
+    def test_2(self):
+        self.assertEqual(len(self.out["directions"]["mouse_1"]["5 6"][0]), 3)
+
+    def test_3(self):
+        #  check if last antenna is working
+        self.assertEqual(len(self.out["directions"]["mouse_1"]["6 5"][0]), 2)
+
+    def test_4(self): 
+        self.assertEqual(len(self.out["backing out"]["mouse_1"]["5 5"][0]), 1)
+
+    def test_5(self):
+        self.assertEqual(len(self.out["backing out"]["mouse_1"]["5 5"]), 2)
+
+    def test_6(self):
+        self.assertEqual(self.out["backing out"]["mouse_1"]["1 1"], [[], []])
+
+        
 if __name__ == '__main__':
     unittest.main()
