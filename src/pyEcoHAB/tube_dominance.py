@@ -67,7 +67,6 @@ def tube_dominance_matrices(data, mice, t_start, t_stop):
         for mouse2 in mice:
             if mouse1 == mouse2:
                 continue
-            print(data)
             out = tube_dominance_single_pair(data["directions"][mouse1],
                                              data["backing out"][mouse2])
             tube_dom[mouse1][mouse2], time_in_pipe, mouse_intervals = out

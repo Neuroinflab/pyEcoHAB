@@ -1540,7 +1540,7 @@ class TestPrepareRegistrations(unittest.TestCase):
         t_start = times[-1] - 3600/3*2
         t_end = times[-1] - 3600/3
         cls.out = uf.prepare_tube_data(data, ["mouse_1"],
-                                           t_start, t_end)
+                                       t_start, t_end)
         cls.backing = uf.prepare_tube_data(data, ["mouse_1"],
                                            t_start, t_end, "backing_out")
         
@@ -1596,7 +1596,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
                                                   cls.config,
                                                   "wholephase",
                                                   ["mouse_1"],
-                                                uf.prepare_tube_data)
+                                                  uf.prepare_tube_data)
 
     def test_all_phases(self):
         self.assertEqual(self.out_all[0], ["ALL"])
@@ -1610,8 +1610,8 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         out = OrderedDict()
         time = self.config.get_time_from_epoch("ALL")
         out["ALL"] = {0: uf.prepare_tube_data(self.data,
-                                                  ["mouse_1"],
-                                                  *time)}
+                                              ["mouse_1"],
+                                              *time)}
         self.assertEqual(self.out_all[2], out)
 
     def test_all_keys(self):
@@ -1639,16 +1639,16 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
             times = self.config.get_time_from_epoch(phase)
             out[phase] = OrderedDict()
             out[phase][0.0] = uf.prepare_tube_data(self.data,
-                                                       ["mouse_1"],
-                                                       times[0],
-                                                       times[0] +
-                                                       6*3600)
+                                                   ["mouse_1"],
+                                                   times[0],
+                                                   times[0] +
+                                                   6*3600)
             key = 6*3600.
             out[phase][key] = uf.prepare_tube_data(self.data,
-                                                       ["mouse_1"],
-                                                       times[0] +
-                                                       6*3600,
-                                                       times[-1])
+                                                   ["mouse_1"],
+                                                   times[0] +
+                                                   6*3600,
+                                                   times[-1])
         self.assertEqual(self.out_6h[2], out)
 
     def test_6h_total(self):
