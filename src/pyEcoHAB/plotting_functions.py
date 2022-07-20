@@ -118,7 +118,7 @@ def single_heat_map(result,
                     vmin=None,
                     xticks=None,
                     yticks=None):
-    name = '%s_%s_%s' % (name, prefix, phase)
+    name = '%s_%s_%s' % (name, prefix, phase.replace(" ", "_"))
     fig, ax = plt.subplots()
     if vmin is None:
         vmin = result.min()
@@ -148,10 +148,10 @@ def single_heat_map(result,
     if subdirectory:
         subdirectory = os.path.join(subdirectory, 'figs')
     dir_name = utils.check_directory(directory, subdirectory)
-    new_name = os.path.join(dir_name, name)
+    new_name = os.path.join(dir_name, name + '.png')
     fig.subplots_adjust(left=0.25)
     fig.subplots_adjust(bottom=0.25)
-    fig.savefig(new_name + ".png", transparent=False, bbox_inches=None,
+    fig.savefig(new_name, transparent=False, bbox_inches=None,
                 pad_inches=0.5,  dpi=100)
     plt.close(fig)
 
