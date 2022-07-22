@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-# !/usr/bin/env python
+#!/usr/bin/env python
 # encoding: utf-8
 import os
 import unittest
