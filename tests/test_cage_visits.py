@@ -9,6 +9,7 @@ from pyEcoHAB import sample_data, data_path
 from pyEcoHAB import Loader
 from pyEcoHAB import Timeline
 
+
 class TestGetVisits(unittest.TestCase):
     def test_intervals_only_in_the_bin(self):
         t_start = 10
@@ -321,16 +322,16 @@ class TestGetActivity(unittest.TestCase):
 
     def test_uneven(self):
         S = OrderedDict()
-        for address in self.uneven_12h.keys():
-            S[address] = OrderedDict()
-            S[address][0] = OrderedDict()
-            S[address][1] = OrderedDict()
-            for phase in self.uneven_12h[address][0].keys():
-                S[address][0][phase] = OrderedDict()
-                S[address][1][phase] = OrderedDict()
-                for mouse in self.uneven_12h[address][0][phase].keys():
-                    S[address][0][phase] = [sum(self.uneven_12h[address][0][phase][mouse])]
-                    S[address][1][phase] = [sum(self.uneven_12h[address][0][phase][mouse])]
+        for a in self.uneven_12h.keys():
+            S[a] = OrderedDict()
+            S[a][0] = OrderedDict()
+            S[a][1] = OrderedDict()
+            for phase in self.uneven_12h[a][0].keys():
+                S[a][0][phase] = OrderedDict()
+                S[a][1][phase] = OrderedDict()
+                for mouse in self.uneven_12h[a][0][phase].keys():
+                    S[a][0][phase] = [sum(self.uneven_12h[a][0][phase][mouse])]
+                    S[a][1][phase] = [sum(self.uneven_12h[a][0][phase][mouse])]
         self.assertEqual(sorted(S), sorted(self.whole_uneven))
 
 

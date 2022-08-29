@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import print_function, division, absolute_import
+#-*- coding: utf-8 -*-
 import os
 import sys
 from datetime import date
@@ -14,9 +13,9 @@ except NameError:
 
 import numpy as np
 
-from . import BaseFunctions
-from pyEcoHAB.SetupConfig import SetupConfig, ExperimentSetupConfig
-from . import utility_functions as utils
+from .utils import BaseFunctions
+from .SetupConfig import SetupConfig, ExperimentSetupConfig
+from .utils import general as utils
 from .utils import for_loading as ufl
 
 
@@ -100,8 +99,8 @@ class EcoHabDataBase(object):
 
     def mask_data(self, start_time, end_time):
         """
-        Hide registrations and visits in ranges (self.session_start, start_time)
-        and (end_time, self.session_end).
+        Hide registrations and visits in ranges
+        (self.session_start, start_time) and (end_time, self.session_end).
 
         Args:
            start_time: float
@@ -112,27 +111,30 @@ class EcoHabDataBase(object):
         self.visits.mask_data(self.mask)
 
     def unmask_data(self):
-        """Remove the mask - future registrations and visits queries will not be
-        clipped"""
+        """
+        Remove the mask - future registrations and visits queries
+        will not be clipped
+        """
         self.mask = None
         self.registrations.unmask_data()
         self.visits.unmask_data()
 
     def get_antennas(self, mice):
         return self.registrations.getproperty(mice,
-                                         'Antenna')
+                                              'Antenna')
 
     def get_times(self, mice):
         return self.registrations.getproperty(mice,
-                                         'Time',
-                                         'float')
+                                              'Time',
+                                              'float')
 
     def get_durations(self, mice):
-        """Return duration of registration by antenna for specified animals.
+        """
+        Return duration of registration by antenna for specified animals.
         """
         return self.registrations.getproperty(mice,
-                                         'Duration',
-                                         'float')
+                                              'Duration',
+                                              'float')
 
     def get_visit_addresses(self, mice):
         return self.visits.getproperty(mice,
@@ -341,7 +343,8 @@ class Loader(EcoHabDataBase):
             res_dir = "%s_%s" % (res_dir, today)
         self.res_dir = ufl.results_path(self.path, res_dir)
         # Read in data
-        rawdata = self._read_in_raw_data(tags)
+        ghost_tags = kwargs.pop("check_for_ghost_tags", False)
+        rawdata = self._read_in_raw_data(tags, ghost_tags)
         data = ufl.from_raw_data(rawdata)
         data = ufl.remove_antennas(data, remove_antennas)
         # As in antenna registrations
@@ -351,6 +354,7 @@ class Loader(EcoHabDataBase):
                                      self.visit_threshold, antennas)
         self.cages = antennas.cages
         self.directions = antennas.directions
+        self.backing = antennas.backing
         self.setup_config = antennas
         self.all_antennas = antennas.all_antennas
         self.internal_antennas = antennas.internal_antennas
@@ -359,7 +363,7 @@ class Loader(EcoHabDataBase):
         self.home_internal_antennas = antennas.homecage_internal_antennas
         self.stimulus_internal_antennas = antennas.stimCage_internal_antennas
 
-    def _read_in_raw_data(self, tags):
+    def _read_in_raw_data(self, tags, ghost_tags):
         """Reads in data from files in self.path.
         Removes ghost tags from data"""
         raw_data = []
@@ -371,7 +375,7 @@ class Loader(EcoHabDataBase):
             raw_data += ufl.read_single_file(self.path, f_name)
             days.add(f_name.split('_')[0])
         data = ufl.remove_ghost_tags(raw_data,
-                                     legal_tags=tags)
+                                     legal_tags=tags, ghost_tags=ghost_tags)
         data.sort(key=lambda x: ufl.time_to_sec(x[1]))
         return data
 

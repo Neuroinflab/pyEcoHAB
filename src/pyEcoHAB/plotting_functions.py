@@ -1,11 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Mar 24 13:38:58 2017
-
-@author: Jan Maka, Joanna Jędrzejewska-Szmek
-"""
-from __future__ import division, print_function, absolute_import
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
 import os
 import numpy as np
 import matplotlib as mpl
@@ -13,8 +8,14 @@ if os.environ.get('DISPLAY', '') == '':
     print('no display found. Using non-interactive Agg backend')
     mpl.use('Agg')
 import matplotlib.pyplot as plt
-from . import utility_functions as utils
+from .utils import general as utils
 
+
+"""
+Created on Fri Mar 24 13:38:58 2017
+
+@author: Jan Maka, Joanna Jędrzejewska-Szmek
+"""
 
 nbins = 10
 
@@ -39,6 +40,9 @@ def make_RasterPlot(main_directory,
                     symmetrical=True,
                     full_dir_tree=True):
     mice = make_labels(old_mice)
+
+    if len(set(old_mice)) != len(set(mice)):
+        return
     if full_dir_tree:
         subdirectory = os.path.join(subdirectory, 'raster_plots')
     new_path = utils.check_directory(main_directory, subdirectory)
@@ -86,7 +90,7 @@ def make_RasterPlot(main_directory,
     ax.set_xticklabels(phases)
     ax.set_yticklabels(pair_labels)
     for tick in ax.get_xticklabels():
-            tick.set_rotation(90)
+        tick.set_rotation(90)
     fig.subplots_adjust(left=0.25)
     fig.subplots_adjust(bottom=0.25)
     if prefix:
@@ -114,7 +118,7 @@ def single_heat_map(result,
                     vmin=None,
                     xticks=None,
                     yticks=None):
-    name = '%s_%s_%s' % (name, prefix, phase)
+    name = '%s_%s_%s' % (name, prefix, phase.replace(" ", "_"))
     fig, ax = plt.subplots()
     if vmin is None:
         vmin = result.min()
@@ -144,10 +148,10 @@ def single_heat_map(result,
     if subdirectory:
         subdirectory = os.path.join(subdirectory, 'figs')
     dir_name = utils.check_directory(directory, subdirectory)
-    new_name = os.path.join(dir_name, name)
+    new_name = os.path.join(dir_name, name + '.png')
     fig.subplots_adjust(left=0.25)
     fig.subplots_adjust(bottom=0.25)
-    fig.savefig(new_name + ".png", transparent=False, bbox_inches=None,
+    fig.savefig(new_name, transparent=False, bbox_inches=None,
                 pad_inches=0.5,  dpi=100)
     plt.close(fig)
 
@@ -211,7 +215,7 @@ def single_in_cohort_soc_plot(results,
                               titles=['% time together',
                                       'Expected % time together',
                                       'Excess % time together',
-                                      'Probability dist of excess % time together'],
+                                      'Histogram of excess % time together'],
                               labels=['', ''],
                               full_dir_tree=True):
     if full_dir_tree:
@@ -220,7 +224,6 @@ def single_in_cohort_soc_plot(results,
         new_name = directory
     directory = utils.check_directory(main_directory, new_name)
     fname = os.path.join(directory, '%s_%s_%s' % (fname, prefix, phase))
-    print(fname)
     label_mice = make_labels(mice)
     fig = plt.figure(figsize=(10, 6))
     ax = []
@@ -473,7 +476,7 @@ def single_histogram_figures(single_results, fname, main_directory,
                 bbox_inches=None,
                 pad_inches=.5,
                 dpi=100)
-    print(new_fname)
+    print(new_fname + ".png")
     plt.close(fig)
 
 
@@ -502,7 +505,7 @@ def make_single_histogram(ax, single_results, nbins, title="", xticks=False,
         ax.set_ylabel(ylabel, fontsize=fontsize)
     if yticks:
         for tick in ax.yaxis.get_major_ticks():
-                tick.label1.set_fontsize(fontsize)
+            tick.label1.set_fontsize(fontsize)
     else:
         ax.set_yticklabels([])
     if xticks:

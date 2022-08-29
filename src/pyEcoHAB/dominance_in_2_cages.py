@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-# -*- coding: utf-8 -*-
-from __future__ import print_function, division, absolute_import
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
 import numpy as np
-from . import utility_functions as utils
-from . import exec_functions as dispatch
+from .utils import general as utils
+
 from .write_to_file import write_csv_alone
 
 

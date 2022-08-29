@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-from __future__ import division, print_function, absolute_import
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
 import os
 import numpy as np
-from . import utility_functions as utils
+from .utils import general as utils
 
 
 def make_header_for_activity(phases, delimiter):
@@ -54,6 +55,7 @@ def save_data_cvs(data, phases, mice, bin_labels, fname,
             f.write("%s %s\n" % (h, stim))
             write_single_chamber(f, head, phases, mice, bin_labels,
                                  data[stim][j], delimiter, floats=j)
+    f.close()
 
 
 def write_binned_data(data_stim, fname, mice, bin_labels, phase,
@@ -129,7 +131,7 @@ def write_csv_rasters(mice, phases, output, directory,
     if prefix:
         fname = "%s_%s" % (prefix, fname)
     fname = os.path.join(directory, fname)
-    
+
     print(fname)
     try:
         f = open(fname, 'w')
@@ -258,6 +260,7 @@ def write_interpair_intervals(results, main_directory,
         for interval in results[key]:
             f.write("%f%s" % (interval, delimiter))
         f.write("\n")
+    f.close()
 
 
 def save_visit_duration(results, time, phase, mice,
@@ -382,9 +385,9 @@ def write_sum_data(data, fname, mice, bin_labels, phases,
     header = 'mouse'
 
     for phase in phases:
-        if bool_bins == True:
+        if bool_bins is True:
             for bin in bin_labels[phase]:
-                header += delimiter + str(bin/3600) + "h "+ str(phase)
+                header += delimiter + str(bin / 3600) + "h " + str(phase)
         else:
             header += delimiter + str(phase)
     header += '\n'
@@ -406,6 +409,7 @@ def write_sum_data(data, fname, mice, bin_labels, phases,
         f.write("\n")
     f.close()
 
+
 def write_two_values(data1, data2, list_of_param, fname, mice, bin_labels,
                      phases, path, target_dir, prefix, additional_info="",
                      delimiter=";", full_dir_tree=True):
@@ -424,7 +428,7 @@ def write_two_values(data1, data2, list_of_param, fname, mice, bin_labels,
     for phase in phases:
         for bi in bin_labels[phase]:
             for param in list_of_param:
-                header += delimiter + str(param)+ " "
+                header += delimiter + str(param) + " "
                 header += str(bi / 3600) + "h " + str(phase)
     header += '\n'
     f.write(header)
@@ -448,5 +452,3 @@ def write_two_values(data1, data2, list_of_param, fname, mice, bin_labels,
                             continue
         f.write("\n")
     f.close()
-
-

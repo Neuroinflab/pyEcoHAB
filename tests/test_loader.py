@@ -5,7 +5,6 @@ import unittest
 from datetime import date
 import numpy as np
 import pyEcoHAB.utils.for_loading as uf
-import pyEcoHAB.utility_functions as utils
 from pyEcoHAB import data_path, sample_data
 from pyEcoHAB.SetupConfig import SetupConfig
 from pyEcoHAB import Loader, Merger, Timeline
@@ -27,7 +26,8 @@ class TestLoader(unittest.TestCase):
         cls.dataset2 = Loader(cls.path2, visit_threshold=2)
         cls.setup3 = SetupConfig(path=data_path, fname="setup_short.txt")
         cls.dataset3 = Loader(cls.path1, visit_threshold=1.5,
-                              setup_config=cls.setup3, remove_antennas=["8"])
+                              setup_config=cls.setup3,
+                              remove_antennas=["8"])
         cls.path_empty = os.path.join(data_path, "empty")
 
     def test_load_empty(self):
@@ -144,8 +144,12 @@ class TestMerger(unittest.TestCase):
 
     def test_incohort_sociability_2(self):
         config = Timeline(sample_data)
-        out_1 = get_incohort_sociability(self.data, config, 24*3600)
-        out_2 = get_incohort_sociability(self.original_data, config, 24*3600)
+        out_1 = get_incohort_sociability(self.data, config,
+                                         "whole_phase")
+        out_2 = get_incohort_sociability(self.original_data, config,
+                                         "whole_phase")
+        print(out_1)
+        print(out_2)
         self.assertEqual(out_1, out_2)
 
     def test_solitude(self):

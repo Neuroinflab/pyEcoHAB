@@ -4,7 +4,6 @@ from __future__ import print_function, division, absolute_import
 import unittest
 import os
 from pyEcoHAB import single_antenna_registrations as sar
-from pyEcoHAB import utility_functions as uf
 from pyEcoHAB import Loader
 from pyEcoHAB import Timeline
 from pyEcoHAB import data_path

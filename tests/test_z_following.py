@@ -1,10 +1,9 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 from __future__ import print_function, division, absolute_import
-import random
 import unittest
 import os
 from pyEcoHAB import following as fol
-from pyEcoHAB import utility_functions as uf
+from pyEcoHAB.utils import general as uf
 from pyEcoHAB import Loader
 from pyEcoHAB import Timeline
 from pyEcoHAB import sample_data, data_path
@@ -25,28 +24,35 @@ class TestFollowing2ndMouseInPipe(unittest.TestCase):
         antennas2 = ["8", "1", "2", "3", "4", "5"]
         times2 = [10, 16, 19, 19.5, 22, 25]
         config = SetupConfig()
-        dir1 = uf.extract_directions(times1, antennas1, 3, config.directions)
-        dir2 = uf.extract_directions(times2, antennas2, 6, config.directions)
-        res = fol.following_single_pair(dir1, dir2, config.directions)
+        dir1 = uf.extract_directions(times1, antennas1, 3,
+                                     config.directions)
+        dir2 = uf.extract_directions(times2, antennas2, 6,
+                                     config.directions)
+        res = fol.following_single_pair(dir1, dir2)
         cls.out1, cls.time_together1, cls.intervals1 = res
 
         antennas1 = ["1", "2", "3", "4", "5"]
         times1 = [15, 16.5, 19, 20, 21]
         antennas2 = ["8", "1", "2", "3", "4", "5"]
         times2 = [10, 16, 19, 19.5, 22, 25]
-        dir1 = uf.extract_directions(times1, antennas1, 6, config.directions)
-        dir2 = uf.extract_directions(times2, antennas2, 6, config.directions)
-        res = fol.following_single_pair(dir2, dir1, config.directions)
+        dir1 = uf.extract_directions(times1, antennas1, 6,
+                                     config.directions)
+        dir2 = uf.extract_directions(times2, antennas2, 6,
+                                     config.directions)
+        res = fol.following_single_pair(dir2, dir1)
         cls.out2, cls.time_together2, cls.intervals2 = res
 
-        antennas1 = ["1", "2", "3", "4", "5",  "6", "7",  "8", "1", "2"]
+        antennas1 = ["1", "2", "3", "4", "5",  "6", "7",
+                     "8", "1", "2"]
         times1 = [15, 16.5, 19, 20, 21, 22, 24, 25, 29, 34]
         antennas2 = ["8", "1", "2", "3", "4", "5", "6",
                      "7", "8", "1", "2"]
         times2 = [10, 16, 19, 19.5, 22, 25, 26, 27, 28, 31, 35]
-        dir1 = uf.extract_directions(times1, antennas1, 3, config.directions)
-        dir2 = uf.extract_directions(times2, antennas2, 3, config.directions)
-        res = fol.following_single_pair(dir1, dir2, config.directions)
+        dir1 = uf.extract_directions(times1, antennas1, 3,
+                                     config.directions)
+        dir2 = uf.extract_directions(times2, antennas2, 3,
+                                     config.directions)
+        res = fol.following_single_pair(dir1, dir2)
         cls.out3, cls.time_together3, cls.intervals3 = res
 
     def test_following_11(self):
@@ -106,7 +112,7 @@ class TestFollowingMatrices(unittest.TestCase):
                                                            config.directions)
         out = fol.following_matrices(directions_dict,
                                      mice_list,
-                                     0, 1000, config.directions)
+                                     0, 1000)
         cls.following = out[0]
         cls.time_together = out[1]
         cls.interval_details = out[2]
@@ -169,159 +175,6 @@ class TestFollowingMatrices(unittest.TestCase):
         self.assertEqual(self.time_together["mouse3"]["mouse2"], 0)
 
 
-class TestInsertInterval(unittest.TestCase):
-    def insert_first_1(self):
-        t_starts = []
-        t_ends = []
-        out = fol.insert_interval(0, 1, t_starts, t_ends, 10)
-        self.assertEqual(out, 1)
-
-    def insert_first_2(self):
-        t_starts = []
-        t_ends = []
-        out = fol.insert_interval(0, 1, t_starts, t_ends, 10)
-        self.assertEqual(t_starts, [0])
-
-    def insert_first_3(self):
-        t_starts = []
-        t_ends = []
-        out = fol.insert_interval(0, 1, t_starts, t_ends, 10)
-        self.assertEqual(t_ends, [1])
-
-    def no_insert_first(self):
-        t_starts = []
-        t_ends = []
-        out = fol.insert_interval(0, 1, t_starts, t_ends, .5)
-        self.assertEqual(out, 0)
-
-    def test_t_start_in_starts(self):
-        t_starts = [1, 5, 10]
-        t_ends = [2, 8, 11]
-        out = fol.insert_interval(1, 1, t_starts, t_ends, 20)
-        self.assertEqual(out, 0)
-
-    def test_t_ends_in_ends(self):
-        t_starts = [1, 5, 10]
-        t_ends = [2, 8, 11]
-        out = fol.insert_interval(0, 2, t_starts, t_ends, 20)
-        self.assertEqual(out, 0)
-
-    def test_insert_at_the_beginning_1(self):
-        t_starts = [3, 5, 10]
-        t_ends = [4, 8, 11]
-        out = fol.insert_interval(0, 2, t_starts, t_ends, 20)
-        self.assertEqual(out, 1)
-
-    def test_insert_at_the_beginning_2(self):
-        t_starts = [3, 5, 10]
-        t_ends = [4, 8, 11]
-        out = fol.insert_interval(0, 2, t_starts, t_ends, 20)
-        self.assertEqual(t_starts, [0, 3, 5, 10])
-
-    def test_insert_at_the_beginning_3(self):
-        t_starts = [3, 5, 10]
-        t_ends = [4, 8, 11]
-        out = fol.insert_interval(0, 2, t_starts, t_ends, 20)
-        self.assertEqual(t_ends, [2, 4, 8, 11])
-
-    def test_insert_at_the_end_1(self):
-        t_starts = [3, 5, 10]
-        t_ends = [4, 8, 11]
-        out = fol.insert_interval(12, 2, t_starts, t_ends, 20)
-        self.assertEqual(out, 1)
-
-    def test_insert_at_the_end_2(self):
-        t_starts = [3, 5, 10]
-        t_ends = [4, 8, 11]
-        out = fol.insert_interval(12, 2, t_starts, t_ends, 20)
-        self.assertEqual(t_starts, [3, 5, 10, 12])
-
-    def test_insert_at_the_end_3(self):
-        t_starts = [3, 5, 10]
-        t_ends = [4, 8, 11]
-        out = fol.insert_interval(12, 2, t_starts, t_ends, 20)
-        self.assertEqual(t_ends, [4, 8, 11, 14])
-
-    def test_does_not_fit_1(self):
-        t_starts = [3, 5, 10]
-        t_ends = [4, 8, 11]
-        out = fol.insert_interval(4.5, 2, t_starts, t_ends, 20)
-        self.assertEqual(out, 0)
-
-    def test_does_not_fit_2(self):
-        t_starts = [3, 5, 10]
-        t_ends = [4, 8, 11]
-        out = fol.insert_interval(8, 2, t_starts, t_ends, 20)
-        self.assertEqual(out, 0)
-
-    def test_in_the_middle_1(self):
-        t_starts = [3, 5, 10]
-        t_ends = [4, 8, 11]
-        out = fol.insert_interval(8.5, 1, t_starts, t_ends, 20)
-        self.assertEqual(out, 1)
-
-    def test_in_the_middle_2(self):
-        t_starts = [3, 5, 10]
-        t_ends = [4, 8, 11]
-        out = fol.insert_interval(8.5, 1, t_starts, t_ends, 20)
-        self.assertEqual(t_starts, [3, 5, 8.5, 10])
-
-    def test_in_the_middle_3(self):
-        t_starts = [3, 5, 10]
-        t_ends = [4, 8, 11]
-        out = fol.insert_interval(8.5, 1, t_starts, t_ends, 20)
-        self.assertEqual(t_ends, [4, 8, 9.5, 11])
-
-
-class TestIntervalGeneration(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        t_starts = [3, 5, 10]
-        t_ends = [4, 8, 12]
-        cls.intervals = set(uf.get_interval_durations_2_lists(t_starts,
-                                                              t_ends))
-        duration = 40
-        random.seed(1)
-        cls.out1 = fol.generate_intervals(t_starts, t_ends, duration)
-        random.seed(100)
-        cls.out2 = fol.generate_intervals(t_starts, t_ends, duration)
-
-    def test_length_1(self):
-        self.assertEqual(len(self.out1[0]), 3)
-
-    def test_length_2(self):
-        self.assertEqual(len(self.out1[1]), 3)
-
-    def test_length_3(self):
-        self.assertEqual(len(self.out2[0]), 3)
-
-    def test_length_4(self):
-        self.assertEqual(len(self.out2[1]), 3)
-
-    def test_intervals_1(self):
-        intervals = set(uf.get_interval_durations_2_lists(self.out1[0],
-                                                          self.out1[1]))
-        self.assertEqual(intervals, self.intervals)
-
-    def test_intervals_2(self):
-        intervals = set(uf.get_interval_durations_2_lists(self.out2[0],
-                                                          self.out2[1]))
-        self.assertEqual(intervals, self.intervals)
-
-    def test_different_1(self):
-        self.assertFalse(self.out1[0] == self.out2[0])
-
-    def test_different_2(self):
-        self.assertFalse(self.out1[1] == self.out2[1])
-
-    def test_different_2(self):
-        ints1 = uf.get_interval_durations_2_lists(self.out1[0],
-                                                  self.out1[1])
-        ints2 = uf.get_interval_durations_2_lists(self.out2[0],
-                                                  self.out2[1])
-        self.assertFalse(ints1 == ints2)
-
-
 class TestExecution(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -334,7 +187,14 @@ class TestExecution(unittest.TestCase):
                                      save_distributions=True,
                                      save_figures=True, return_median=False,
                                      delimiter=";",
-                                     save_times_following=True)
+                                     save_times=True)
+
+    def test_phases_2(self):
+        fol.get_dynamic_interactions(self.data, self.config, 1,
+                                     save_distributions=False,
+                                     save_figures=False, return_median=False,
+                                     delimiter=";",
+                                     save_times=False)
 
     def test_ALL(self):
         fol.get_dynamic_interactions(self.data, self.config, 1,
@@ -348,7 +208,7 @@ class TestExecution(unittest.TestCase):
                                      save_distributions=True,
                                      save_figures=True,
                                      return_median=True, delimiter=";",
-                                     save_times_following=True,
+                                     save_times=True,
                                      full_dir_tree=False)
 
     def test_short_2(self):
@@ -360,7 +220,7 @@ class TestExecution(unittest.TestCase):
                                      save_distributions=True,
                                      save_figures=True,
                                      return_median=True, delimiter=";",
-                                     save_times_following=True,
+                                     save_times=True,
                                      full_dir_tree=False)
 
     def test_short_bin(self):
@@ -371,7 +231,7 @@ class TestExecution(unittest.TestCase):
                                      save_distributions=True,
                                      save_figures=True,
                                      return_median=True, delimiter=";",
-                                     save_times_following=True,
+                                     save_times=True,
                                      seed=1,
                                      binsize=24*3600)
 
@@ -381,7 +241,7 @@ class TestExecution(unittest.TestCase):
                                      save_distributions=True,
                                      save_figures=True,
                                      return_median=True, delimiter=";",
-                                     save_times_following=True,
+                                     save_times=True,
                                      seed=1)
 
 

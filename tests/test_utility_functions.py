@@ -9,7 +9,7 @@ import calendar
 from collections import OrderedDict
 import numpy as np
 
-import pyEcoHAB.utility_functions as uf
+from pyEcoHAB.utils import general as uf
 from pyEcoHAB import data_path
 from pyEcoHAB import Loader
 from pyEcoHAB import Timeline
@@ -105,260 +105,6 @@ class TestFilter(unittest.TestCase):
                                "Light 3", "LIGHT 2", "light 1"])
 
 
-class TestGetMoreStates(unittest.TestCase):
-    def test_2nd_tier_len_states(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 211.214,
-                 211.98,
-                 217.953,
-                 218.61,
-                 223.347,
-                 223.769,
-                 225.192,
-                 225.942,
-                 228.772,
-                 228.972]
-        idx = 6
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), 3)
-
-    def test_2nd_tier_len_states_times(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 211.214,
-                 211.98,
-                 217.953,
-                 218.61,
-                 223.347,
-                 223.769,
-                 225.192,
-                 225.942,
-                 228.772,
-                 228.972]
-        idx = 6
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), len(readouts))
-
-    def test_2nd_tier_equal_len_midx(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 211.214,
-                 211.98,
-                 217.953,
-                 218.61,
-                 223.347,
-                 223.769,
-                 225.192,
-                 225.942,
-                 228.772,
-                 228.972]
-        idx = 6
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(midx + 1, idx + len(states))
-
-    def test_catch_threshold_len_states(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 211.214,
-                 211.98,
-                 217.953,
-                 218.61,
-                 223.347,
-                 223.769,
-                 225.192,
-                 225.942,
-                 228.772,
-                 228.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), 4 + idx)
-
-    def test_catch_threshold_equal_len_states_times(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 211.214,
-                 211.98,
-                 217.953,
-                 218.61,
-                 223.347,
-                 223.769,
-                 225.192,
-                 225.942,
-                 228.772,
-                 228.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), len(readouts))
-
-    def test_catch_threshold_equal_len_midx(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 211.214,
-                 211.98,
-                 217.953,
-                 218.61,
-                 223.347,
-                 223.769,
-                 225.192,
-                 225.942,
-                 228.772,
-                 228.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), midx + idx)
-
-    def test_catch_3rd_len_states(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 111.214,
-                 111.98,
-                 117.953,
-                 118.61,
-                 123.347,
-                 123.769,
-                 125.192,
-                 125.942,
-                 128.772,
-                 128.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), 7)
-
-    def test_catch_3rd_equal_len_states_times(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 111.214,
-                 111.98,
-                 117.953,
-                 118.61,
-                 123.347,
-                 123.769,
-                 125.192,
-                 125.942,
-                 128.772,
-                 128.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), len(readouts))
-
-    def test_catch_3rd_equal_len_midx(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 111.214,
-                 111.98,
-                 117.953,
-                 118.61,
-                 123.347,
-                 123.769,
-                 125.192,
-                 125.942,
-                 128.772,
-                 128.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states) - 1, midx + idx)
-
-    def test_catch_end(self):
-        antennas = [5, 6, 6, 5, 5, 6, 5, 6, 5, 5, 6, 6, 6, 5]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 111.214,
-                 111.98,
-                 117.953,
-                 118.61,
-                 123.347,
-                 123.769,
-                 125.192,
-                 125.942,
-                 128.772,
-                 128.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), midx + idx)
-
-    def test_catch_equal_len_antennas_states(self):
-        antennas = [5, 6, 6, 5, 5, 6, 5, 6, 5, 5, 6, 6, 6, 5]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 111.214,
-                 111.98,
-                 117.953,
-                 118.61,
-                 123.347,
-                 123.769,
-                 125.192,
-                 125.942,
-                 128.772,
-                 128.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), len(antennas))
-
-    def test_catch_equal_len_antennas_readouts(self):
-        antennas = [5, 6, 6, 5, 5, 6, 5, 6, 5, 5, 6, 6, 6, 5]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 111.214,
-                 111.98,
-                 117.953,
-                 118.61,
-                 123.347,
-                 123.769,
-                 125.192,
-                 125.942,
-                 128.772,
-                 128.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), len(readouts))
-
-
 class TestChangeState(unittest.TestCase):
     def test_check_no_change(self):
         self.assertEqual(len(uf.change_state([1, 1, 1, 1])), 0)
@@ -380,17 +126,6 @@ class TestGetIdxPre(unittest.TestCase):
 
     def test_empty(self):
         self.assertEqual(uf.get_idx_pre(0, []), None)
-
-
-class TestGetIdxPost(unittest.TestCase):
-    def test_false(self):
-        self.assertEqual(uf.get_idx_post(2, [-1, 0, 1]), None)
-
-    def test_correct(self):
-        self.assertEqual(uf.get_idx_post(2, [-1, 0, 1, 2, 3]), 4)
-
-    def test_empty(self):
-        self.assertEqual(uf.get_idx_post(0, []), None)
 
 
 class TestGetIdxBetween(unittest.TestCase):
@@ -804,260 +539,6 @@ class TestGETEHSData(unittest.TestCase):
                                "Light 3", "LIGHT 2", "light 1"])
 
 
-class TestGetMoreStates(unittest.TestCase):
-    def test_2nd_tier_len_states(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 211.214,
-                 211.98,
-                 217.953,
-                 218.61,
-                 223.347,
-                 223.769,
-                 225.192,
-                 225.942,
-                 228.772,
-                 228.972]
-        idx = 6
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), 3)
-
-    def test_2nd_tier_len_states_times(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 211.214,
-                 211.98,
-                 217.953,
-                 218.61,
-                 223.347,
-                 223.769,
-                 225.192,
-                 225.942,
-                 228.772,
-                 228.972]
-        idx = 6
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), len(readouts))
-
-    def test_2nd_tier_equal_len_midx(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 211.214,
-                 211.98,
-                 217.953,
-                 218.61,
-                 223.347,
-                 223.769,
-                 225.192,
-                 225.942,
-                 228.772,
-                 228.972]
-        idx = 6
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(midx + 1, idx + len(states))
-
-    def test_catch_threshold_len_states(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 211.214,
-                 211.98,
-                 217.953,
-                 218.61,
-                 223.347,
-                 223.769,
-                 225.192,
-                 225.942,
-                 228.772,
-                 228.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), 4 + idx)
-
-    def test_catch_threshold_equal_len_states_times(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 211.214,
-                 211.98,
-                 217.953,
-                 218.61,
-                 223.347,
-                 223.769,
-                 225.192,
-                 225.942,
-                 228.772,
-                 228.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), len(readouts))
-
-    def test_catch_threshold_equal_len_midx(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 211.214,
-                 211.98,
-                 217.953,
-                 218.61,
-                 223.347,
-                 223.769,
-                 225.192,
-                 225.942,
-                 228.772,
-                 228.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), midx + idx)
-
-    def test_catch_3rd_len_states(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 111.214,
-                 111.98,
-                 117.953,
-                 118.61,
-                 123.347,
-                 123.769,
-                 125.192,
-                 125.942,
-                 128.772,
-                 128.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), 7)
-
-    def test_catch_3rd_equal_len_states_times(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 111.214,
-                 111.98,
-                 117.953,
-                 118.61,
-                 123.347,
-                 123.769,
-                 125.192,
-                 125.942,
-                 128.772,
-                 128.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), len(readouts))
-
-    def test_catch_3rd_equal_len_midx(self):
-        antennas = [5, 6, 6, 5, 5, 6, 7, 6, 5, 5, 6, 6, 6, 7]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 111.214,
-                 111.98,
-                 117.953,
-                 118.61,
-                 123.347,
-                 123.769,
-                 125.192,
-                 125.942,
-                 128.772,
-                 128.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states) - 1, midx + idx)
-
-    def test_catch_end(self):
-        antennas = [5, 6, 6, 5, 5, 6, 5, 6, 5, 5, 6, 6, 6, 5]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 111.214,
-                 111.98,
-                 117.953,
-                 118.61,
-                 123.347,
-                 123.769,
-                 125.192,
-                 125.942,
-                 128.772,
-                 128.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), midx + idx)
-
-    def test_catch_equal_len_antennas_states(self):
-        antennas = [5, 6, 6, 5, 5, 6, 5, 6, 5, 5, 6, 6, 6, 5]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 111.214,
-                 111.98,
-                 117.953,
-                 118.61,
-                 123.347,
-                 123.769,
-                 125.192,
-                 125.942,
-                 128.772,
-                 128.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), len(antennas))
-
-    def test_catch_equal_len_antennas_readouts(self):
-        antennas = [5, 6, 6, 5, 5, 6, 5, 6, 5, 5, 6, 6, 6, 5]
-        times = [101.976,
-                 103.148,
-                 109.37,
-                 109.761,
-                 111.214,
-                 111.98,
-                 117.953,
-                 118.61,
-                 123.347,
-                 123.769,
-                 125.192,
-                 125.942,
-                 128.772,
-                 128.972]
-        idx = 0
-        states, readouts, midx = uf.get_more_states(antennas, times, idx,
-                                                    50, 3)
-        self.assertEqual(len(states), len(readouts))
-
-
 class TestChangeState(unittest.TestCase):
     def test_check_no_change(self):
         self.assertEqual(len(uf.change_state([1, 1, 1, 1])), 0)
@@ -1079,17 +560,6 @@ class TestGetIdxPre(unittest.TestCase):
 
     def test_empty(self):
         self.assertEqual(uf.get_idx_pre(0, []), None)
-
-
-class TestGetIdxPost(unittest.TestCase):
-    def test_false(self):
-        self.assertEqual(uf.get_idx_post(2, [-1, 0, 1]), None)
-
-    def test_correct(self):
-        self.assertEqual(uf.get_idx_post(2, [-1, 0, 1, 2, 3]), 4)
-
-    def test_empty(self):
-        self.assertEqual(uf.get_idx_post(0, []), None)
 
 
 class TestGetIdxBetween(unittest.TestCase):
@@ -2066,8 +1536,10 @@ class TestPrepareRegistrations(unittest.TestCase):
         times = config.get_time_from_epoch("1 dark")
         t_start = times[-1] - 3600/3*2
         t_end = times[-1] - 3600/3
-        cls.out = uf.prepare_registrations(data, ["mouse_1"],
-                                           t_start, t_end)
+        cls.out = uf.prepare_tube_data(data, ["mouse_1"],
+                                       t_start, t_end)
+        cls.backing = uf.prepare_tube_data(data, ["mouse_1"],
+                                           t_start, t_end, "backing_out")
 
     def test_1(self):
         self.assertEqual(["mouse_1"], list(self.out.keys()))
@@ -2079,6 +1551,15 @@ class TestPrepareRegistrations(unittest.TestCase):
         #  check if last antenna is working
         self.assertEqual(len(self.out["mouse_1"]["6 5"][0]), 2)
 
+    def test_4(self):
+        self.assertEqual(len(self.backing["mouse_1"]["5 5"][0]), 1)
+
+    def test_5(self):
+        self.assertEqual(len(self.backing["mouse_1"]["5 5"]), 2)
+
+    def test_6(self):
+        self.assertEqual(self.backing["mouse_1"]["1 1"], [[], []])
+
 
 class TestPrepareBinnedRegistrations(unittest.TestCase):
     @classmethod
@@ -2089,23 +1570,28 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         cls.out_all = uf.get_registrations_bins(cls.data,
                                                 cls.config,
                                                 "All",
-                                                ["mouse_1"])
+                                                ["mouse_1"],
+                                                uf.prepare_tube_data)
         cls.out_6h = uf.get_registrations_bins(cls.data,
                                                cls.config,
                                                6*3600,
-                                               ["mouse_1"])
+                                               ["mouse_1"],
+                                               uf.prepare_tube_data)
         cls.out_24h = uf.get_registrations_bins(cls.data,
                                                 cls.config,
                                                 24*3600,
-                                                ["mouse_1"])
+                                                ["mouse_1"],
+                                                uf.prepare_tube_data)
         cls.out_wp = uf.get_registrations_bins(cls.data,
                                                cls.config,
                                                "whole phase",
-                                               ["mouse_1"])
+                                               ["mouse_1"],
+                                               uf.prepare_tube_data)
         cls.out_wperr = uf.get_registrations_bins(cls.data,
                                                   cls.config,
                                                   "wholephase",
-                                                  ["mouse_1"])
+                                                  ["mouse_1"],
+                                                  uf.prepare_tube_data)
 
     def test_all_phases(self):
         self.assertEqual(self.out_all[0], ["ALL"])
@@ -2118,9 +1604,9 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
     def test_all_data(self):
         out = OrderedDict()
         time = self.config.get_time_from_epoch("ALL")
-        out["ALL"] = {0: uf.prepare_registrations(self.data,
-                                                  ["mouse_1"],
-                                                  *time)}
+        out["ALL"] = {0: uf.prepare_tube_data(self.data,
+                                              ["mouse_1"],
+                                              *time)}
         self.assertEqual(self.out_all[2], out)
 
     def test_all_keys(self):
@@ -2147,17 +1633,17 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         for phase in phases:
             times = self.config.get_time_from_epoch(phase)
             out[phase] = OrderedDict()
-            out[phase][0.0] = uf.prepare_registrations(self.data,
-                                                       ["mouse_1"],
-                                                       times[0],
-                                                       times[0] +
-                                                       6*3600)
+            out[phase][0.0] = uf.prepare_tube_data(self.data,
+                                                   ["mouse_1"],
+                                                   times[0],
+                                                   times[0] +
+                                                   6*3600)
             key = 6*3600.
-            out[phase][key] = uf.prepare_registrations(self.data,
-                                                       ["mouse_1"],
-                                                       times[0] +
-                                                       6*3600,
-                                                       times[-1])
+            out[phase][key] = uf.prepare_tube_data(self.data,
+                                                   ["mouse_1"],
+                                                   times[0] +
+                                                   6*3600,
+                                                   times[-1])
         self.assertEqual(self.out_6h[2], out)
 
     def test_6h_total(self):
@@ -2185,18 +1671,18 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
         for phase in phases:
             out[phase] = OrderedDict()
 
-        out["1_x"][0.0] = uf.prepare_registrations(self.data,
-                                                   ["mouse_1"],
-                                                   times[0],
-                                                   times[0] +
-                                                   24*3600)
+        out["1_x"][0.0] = uf.prepare_tube_data(self.data,
+                                               ["mouse_1"],
+                                               times[0],
+                                               times[0] +
+                                               24*3600)
 
-        out["2_x"][0.0] = uf.prepare_registrations(self.data,
-                                                   ["mouse_1"],
-                                                   times[0] +
-                                                   24*3600,
-                                                   times[0] +
-                                                   2*24*3600)
+        out["2_x"][0.0] = uf.prepare_tube_data(self.data,
+                                               ["mouse_1"],
+                                               times[0] +
+                                               24*3600,
+                                               times[0] +
+                                               2*24*3600)
         self.assertEqual(self.out_24h[2], out)
 
     def test_24h_total(self):
@@ -2213,6 +1699,7 @@ class TestPrepareBinnedRegistrations(unittest.TestCase):
     def test_24h_keys(self):
         data_keys = [["1_x", "2_x"],
                      [0.0]]
+
 
 class TestMath(unittest.TestCase):
     @classmethod
@@ -2291,26 +1778,26 @@ class TestMath(unittest.TestCase):
         ref_matrix = uf.diagonal_reflection_3D(self.matrix_half1)
         out = uf.sum_per_mouse(ref_matrix, self.mice,
                                self.labels[self.phases[0]],
-                               position="leader")
+                               position="leading")
         self.assertEqual(sorted(out), sorted(self.expected_sum))
 
     def test_sum_per_mouse_2(self):
         ref_matrix = uf.diagonal_reflection_3D(self.matrix_half1)
         out1 = uf.sum_per_mouse(ref_matrix, self.mice,
                                 self.labels[self.phases[0]],
-                                position="follower")
+                                position="following")
         out2 = uf.sum_per_mouse(ref_matrix, self.mice,
                                 self.labels[self.phases[0]],
-                                position="leader")
+                                position="leading")
         self.assertEqual(sorted(out1), sorted(out2))
 
     def test_sum_per_mouse_difference(self):
         out1 = uf.sum_per_mouse(self.matrix_half1, self.mice,
                                 self.labels[self.phases[0]],
-                                position="follower")
+                                position="following")
         out2 = uf.sum_per_mouse(self.matrix_half2, self.mice,
                                 self.labels[self.phases[0]],
-                                position="leader")
+                                position="leading")
         self.assertEqual(sorted(out1), sorted(out2))
 
     def test_sum_activity(self):
@@ -2346,14 +1833,14 @@ class TestMath(unittest.TestCase):
     def test_mean(self):
         out1 = uf.sum_per_mouse(self.matrix_half1, self.mice,
                                 self.labels[self.phases[0]],
-                                position="follower")
+                                position="following")
         res = uf.mean(out1, 1)
         self.assertEqual(out1, res)
 
     def test_mean_2(self):
         out1 = uf.sum_per_mouse(self.matrix_half1, self.mice,
                                 self.labels[self.phases[0]],
-                                position="follower")
+                                position="following")
         res = uf.mean(out1, 2)
         for key1 in out1.keys():
             for key2 in out1[key1].keys():
@@ -2363,7 +1850,7 @@ class TestMath(unittest.TestCase):
     def test_std_1(self):
         out1 = uf.sum_per_mouse(self.matrix_half1, self.mice,
                                 self.labels[self.phases[0]],
-                                position="follower")
+                                position="following")
         mean1 = uf.mean(out1, 2)
         std1 = uf.standard_error(self.matrix_half1, mean1, 2)
         expected = OrderedDict()
@@ -2372,6 +1859,91 @@ class TestMath(unittest.TestCase):
             for key2 in mean1[key1].keys():
                 expected[key1][key2] = 0
         self.assertEqual(sorted(expected), sorted(std1))
+
+
+class TestGetIdxPost(unittest.TestCase):
+    def test_false(self):
+        self.assertEqual(uf.get_idx_post(2, [-1, 0, 1]), None)
+
+    def test_correct(self):
+        self.assertEqual(uf.get_idx_post(2, [-1, 0, 1, 2, 3]), 4)
+
+    def test_empty(self):
+        self.assertEqual(uf.get_idx_post(0, []), None)
+
+
+class TestExtractBacking(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        m1_antennas = ["5", "6", "5", "5", "5", "5", "5",
+                       "6", "6", "6", "7"]
+        m1_times = [
+            705.074,  # 5
+            708.091,  # 6
+            710.577,  # 5
+            744.813,  # 5
+            746.72,  # 5
+            758.851,  # 5
+            802.624,  # 5
+            808.095,  # 6
+            809.252,  # 6
+            809.564,  # 6
+            813.675]  # 7
+        setup = SetupConfig()
+        cls.dire = uf.extract_backing(m1_times, m1_antennas, "7",
+                                      setup)
+
+    def test_1(self):
+        self.assertEqual(self.dire["5 5"][0], [705.074, 744.813, 758.851])
+
+    def test_2(self):
+        self.assertEqual(self.dire["5 5"][1], [710.577, 746.72, 802.624])
+
+    def test_3(self):
+        self.assertEqual(self.dire["6 6"], [[809.252], [809.564]])
+
+
+class TestPrepareForTB(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(data_path, "weird_short_3_mice")
+        data_set = Loader(path)
+        mice = data_set.mice
+        config = Timeline(path)
+        times = config.get_time_from_epoch("1 dark")
+        t_start = times[-1] - 3600/3*2
+        t_end = times[-1] - 3600/3
+        cls.out = uf.prepare_for_tube_dominance(data_set, ["mouse_1"],
+                                                t_start, t_end)
+
+    def test_keys(self):
+        self.assertEqual(sorted(["backing out", "directions"]),
+                         sorted(self.out.keys()))
+
+    def test_keys2(self):
+        self.assertEqual(sorted(self.out["backing out"].keys()),
+                         sorted(self.out["directions"].keys()))
+
+    def test_keys3(self):
+        self.assertEqual(sorted(self.out["backing out"].keys()),
+                         ["mouse_1"])
+
+    def test_2(self):
+        self.assertEqual(len(self.out["directions"]["mouse_1"]["5 6"][0]), 3)
+
+    def test_3(self):
+        #  check if last antenna is working
+        self.assertEqual(len(self.out["directions"]["mouse_1"]["6 5"][0]), 2)
+
+    def test_4(self):
+        self.assertEqual(len(self.out["backing out"]["mouse_1"]["5 5"][0]), 1)
+
+    def test_5(self):
+        self.assertEqual(len(self.out["backing out"]["mouse_1"]["5 5"]), 2)
+
+    def test_6(self):
+        self.assertEqual(self.out["backing out"]["mouse_1"]["1 1"], [[], []])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, absolute_import
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
 import os
 import numpy as np
 from collections import OrderedDict
 
-from . import utility_functions as utils
+from .utils import general as utils
 from .write_to_file import write_registrations_stats
 from .plotting_functions import single_timeline_heat_map
 

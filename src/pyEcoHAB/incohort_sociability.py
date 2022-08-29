@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-# -*- coding: utf-8 -*-
-from __future__ import print_function, division, absolute_import
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
 import os
 from collections import OrderedDict
 import numpy as np
-from . import utility_functions as utils
+from .utils import general as utils
 from .plotting_functions import single_in_cohort_soc_plot
 from .plotting_functions import make_RasterPlot
 from .write_to_file import write_binned_data
@@ -326,7 +326,7 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
         reflected_excess_time = utils.diagonal_reflection_3D(excess_time)
         excess_time_per_mouse[ph] = utils.sum_per_mouse(reflected_excess_time,
                                                         mice, bin_labels[ph],
-                                                        "leader")
+                                                        "leading")
 
         write_binned_data(excess_time,
                           fname_excess,
@@ -340,7 +340,6 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
         standard_error_per_mouse[ph] = utils.standard_error(reflected_excess_time,
                                                             mean_excess_time_per_mouse[ph],
                                                             len(mice)-1)
-
 
         if isinstance(binsize, int) or isinstance(binsize, float):
             if int(binsize) == 24*3600:

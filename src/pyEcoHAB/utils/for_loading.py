@@ -1,12 +1,13 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-from __future__ import division, print_function, absolute_import
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
 import os
 import time
 import calendar
 import sys
 from collections import OrderedDict, Counter
 import numpy as np
-from pyEcoHAB.utility_functions import check_directory
+from .general import check_directory
 
 h = u"antenna, incorrect transitions count, percentage of antenna recordings\n"
 
@@ -203,7 +204,7 @@ def remove_antennas(data, antennas):
     return new_data
 
 
-def remove_ghost_tags(raw_data, legal_tags="ALL"):
+def remove_ghost_tags(raw_data, legal_tags="ALL", ghost_tags=False):
     """
     Leave animal tag registrations that are trustworthy.
 
@@ -220,13 +221,33 @@ def remove_ghost_tags(raw_data, legal_tags="ALL"):
     Returns:
        a list of lists or an 2D array (the same type as raw_data)
     """
+    if ghost_tags:
+        how_many_days = 1
+        how_many_appearances = 50
+        ghost_mice = []
+        counters = {}
+        all_mice = []
+        for d in raw_data:
+            mouse = d[4]
+            if mouse not in counters:
+                counters[mouse] = 0
+            if mouse not in all_mice:
+                all_mice.append(mouse)
+            counters[mouse] += 1
+        legal_tags = []
+        for mouse in counters:
+            if counters[mouse] < how_many_appearances:
+                if mouse not in ghost_mice:
+                    ghost_mice.append(mouse)
+        for mouse in all_mice:
+            if mouse not in ghost_mice:
+                legal_tags.append(mouse)
     if legal_tags == "ALL":
         return raw_data
 
     new_data = []
     if isinstance(legal_tags, basestring):
         legal_tags = [legal_tags]
-
     for d in raw_data:
         mouse = d[4]
         if mouse in legal_tags:

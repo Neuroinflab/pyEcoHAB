@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-# -*- coding: utf-8 -*-
-from __future__ import division, absolute_import
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
 import os
 import time
 import sys
@@ -197,53 +197,6 @@ def get_times_antennas_list_of_mice(ecohab_data, mice, t_1, t_2):
         out[mouse]["times"] = times
         out[mouse]["antennas"] = antennas
     return out
-
-
-def get_states_and_readouts(antennas, times, t1, t2):
-    before = get_idx_pre(t1, times)
-    between = get_idx_between(t1, t2, times)
-    after = get_idx_post(t2, times)
-    states = []
-    readouts = []
-    if before is not None:
-        states.append(antennas[before])
-        readouts.append(times[before])
-    for idx in between:
-        states.append(antennas[idx])
-        readouts.append(times[idx])
-    assert(len(states) == len(readouts))
-    return states, readouts
-
-
-def get_more_states(antennas, times, midx,
-                    mouse_attention_span,
-                    how_many_antennas):
-    # save first antenna
-    states = [antennas[midx]]
-    readouts = [times[midx]]
-    midx += 1
-    idx = 1
-    while True:
-        if midx >= len(antennas):
-            break
-        # read in next antenna
-        new_antenna = antennas[midx]
-        new_readout = times[midx]
-        # if pause too long break
-        if new_readout > readouts[idx - 1] + mouse_attention_span:
-            break
-
-        states.append(new_antenna)
-        readouts.append(new_readout)
-
-        idx += 1
-        # if more than 2 antennas, break
-        if len(set(states)) == how_many_antennas:
-            # go back to the last readout of the opposite antenna not
-            # to loose it
-            break
-        midx += 1
-    return states, readouts, midx
 
 
 def get_antennas(idxs, antennas):
@@ -540,7 +493,8 @@ def prepare_binned_data(ecohab_data, timeline, bins, mice):
                 if t_e > t_end:
                     t_e = t_end
                 time = [t_start, t_e]
-                data[phase][bin_labels[phase][j]] = prepare_data(ecohab_data, mice,
+                data[phase][bin_labels[phase][j]] = prepare_data(ecohab_data,
+                                                                 mice,
                                                                  time)
                 total_time[phase][bin_labels[phase][j]] = time[1] - time[0]
                 t_start += bins
@@ -569,7 +523,45 @@ def extract_directions(times, antennas, last_antenna, keys):
     return direction_dict
 
 
-def prepare_registrations(ecohab_data, mice, st, en):
+def extract_backing(times, antennas, last_antenna, setup):
+    direction_dict = {key: [[], []] for key in setup.backing}
+    internal = setup.internal_antennas
+    i = 1
+    while i < len(antennas) - 1:
+        ant = antennas[i]
+        prev_ant, next_ant = antennas[i-1], antennas[i+1]
+        opposite_antenna = setup.other_tunnel_antenna(ant)[0]
+        if ant not in internal:
+            if prev_ant == opposite_antenna and next_ant == opposite_antenna:
+                key = "%s %s" % (antennas[i-1],
+                                 antennas[i+1])
+                direction_dict[key][0].append(times[i-1])
+                direction_dict[key][1].append(times[i+1])
+                i = i+1
+            elif ant == next_ant and prev_ant != opposite_antenna:
+                key = "%s %s" % (antennas[i],
+                                 antennas[i+1])
+                direction_dict[key][0].append(times[i])
+                direction_dict[key][1].append(times[i+1])
+                i = i+1
+        i = i+1
+
+    return direction_dict
+
+
+def prepare_for_tube_dominance(ecohab_data, mice, st, en):
+    moves = {
+        "directions": {},
+        "backing out": {}
+    }
+    moves["directions"] = prepare_tube_data(ecohab_data, mice, st, en,
+                                            "directions")
+    moves["backing out"] = prepare_tube_data(ecohab_data, mice, st, en,
+                                             "backing_out")
+    return moves
+
+
+def prepare_tube_data(ecohab_data, mice, st, en, what="directions"):
     directions = {}
     for j, mouse1 in enumerate(mice):
         times_antennas = get_times_antennas(ecohab_data,
@@ -585,15 +577,21 @@ def prepare_registrations(ecohab_data, mice, st, en):
             last_antenna = last_antennas[0]
         except IndexError:
             last_antenna = None
-        directions[mouse1] = extract_directions(times_antennas[0],
-                                                times_antennas[1],
-                                                last_antenna,
-                                                ecohab_data.directions)
+        if what == "directions":
+            directions[mouse1] = extract_directions(times_antennas[0],
+                                                    times_antennas[1],
+                                                    last_antenna,
+                                                    ecohab_data.directions)
+        elif what == "backing_out":
+            directions[mouse1] = extract_backing(times_antennas[0],
+                                                 times_antennas[1],
+                                                 last_antenna,
+                                                 ecohab_data.setup_config)
     return directions
 
 
 def get_registrations_bins(ecohab_data, timeline, bins, mice,
-                           function=prepare_registrations):
+                           function):
     total_time = OrderedDict()
     data = OrderedDict()
     if bins in ["ALL", "all", "All"]:
@@ -603,7 +601,8 @@ def get_registrations_bins(ecohab_data, timeline, bins, mice,
         data_keys = [["ALL"], {"ALL": [0.0]}]
         total_time["ALL"] = {0: time}
     elif (isinstance(bins, str)
-          and bins.lower() in ["whole_phase", "whole phase", "whole phases",
+          and bins.lower() in ["whole_phase", "whole phase",
+                               "whole phases",
                                "whole_phases"]):
         phases = []
         all_phases = filter_dark_light(timeline.sections())
@@ -657,8 +656,8 @@ def get_registrations_bins(ecohab_data, timeline, bins, mice,
                     t_e = t_end
                 time = (t_start, t_e)
                 data[phase][bin_labels[phase][j]] = function(ecohab_data,
-                                                      mice,
-                                                      *time)
+                                                             mice,
+                                                             *time)
                 total_time[phase][bin_labels[phase][j]] = time
                 t_start += bins
                 j += 1
@@ -681,7 +680,6 @@ def get_registrations_bins(ecohab_data, timeline, bins, mice,
             data[phase][0] = function(ecohab_data, mice,
                                       *time)
         data_keys = [all_phases, bin_labels]
-            
     return phases, total_time, data, data_keys
 
 
@@ -742,9 +740,9 @@ def diagonal_reflection_3D(matrix_data):
     return result
 
 
-def sum_per_mouse(data, mice, binlabels, position="leader"):
+def sum_per_mouse(data, mice, binlabels, position="leading"):
     """
-    position can either be leader or follower.
+    position can either be leading or following.
     """
     sum_value = OrderedDict()
     for bi in binlabels:
@@ -754,9 +752,9 @@ def sum_per_mouse(data, mice, binlabels, position="leader"):
             for mouse2 in mice:
                 if mouse1 == mouse2:
                     continue
-                if position == "leader":
+                if position == "leading":
                     sum_value[bi][mouse1] += data[bi][mouse1][mouse2]
-                elif position == "follower":
+                elif position == "following":
                     sum_value[bi][mouse1] += data[bi][mouse2][mouse1]
     return sum_value
 
@@ -772,13 +770,13 @@ def sum_activity(activity, phases, mice, bin_labels):
         visits[phase] = OrderedDict()
         for i, lab in enumerate(bin_labels[phase]):
             visits[phase][lab] = OrderedDict()
-            for mouse in mice:
-                visits[phase][lab][mouse] = 0
+            for m in mice:
+                visits[phase][lab][m] = 0
     for A in activity.keys():
         for phase in activity[A][0].keys():
             for i, lab in enumerate(bin_labels[phase]):
-                for mouse in mice:
-                    visits[phase][lab][mouse] += activity[A][0][phase][mouse][i]
+                for m in mice:
+                    visits[phase][lab][m] += activity[A][0][phase][m][i]
     return visits
 
 

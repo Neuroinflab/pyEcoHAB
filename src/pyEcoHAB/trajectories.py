@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-from __future__ import division, print_function, absolute_import
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
 import os
 from collections import OrderedDict
 import numpy as np
-from pyEcoHAB import utility_functions as utils
+from pyEcoHAB.utils import general as utils
 from pyEcoHAB.plotting_functions import single_histogram_figures
 from pyEcoHAB.plotting_functions import histograms_antenna_transitions
 from pyEcoHAB.utils.for_loading import save_mismatches
@@ -204,10 +205,13 @@ def get_registration_trains(ecohab_data):
                                    fname_count, ecohab_data.res_dir, directory,
                                    title=title,
                                    xlabel="#registrations")
-    save_antenna_transitions(registration_trains, "transition_durations_ALL.csv",
-                             ecohab_data.res_dir, ecohab_data.prefix, directory)
+    save_antenna_transitions(registration_trains,
+                             "transition_durations_ALL.csv",
+                             ecohab_data.res_dir, ecohab_data.prefix,
+                             directory)
     save_antenna_transitions(counts_in_trains,  "counts_in_trains_ALL.csv",
-                             ecohab_data.res_dir, ecohab_data.prefix, directory)
+                             ecohab_data.res_dir, ecohab_data.prefix,
+                             directory)
     return registration_trains, counts_in_trains
 
 
