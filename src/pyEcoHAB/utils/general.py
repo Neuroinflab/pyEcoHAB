@@ -422,9 +422,32 @@ def get_dark_light_data(phase, timeline, ecohab_data, mice):
             data[mouse].extend(out[mouse])
         total_time += (time[1] - time[0])
     out_data = {phase: {0: data}}
-    return out_phases, {phase: {0: total_time}}, {phase: {0: data}}
+    return out_phases, {phase: {0: total_time}}, out_data
 
+def get_custom_range_data(phase_def, timeline, ecohab_data, mice):
+    out_phases = []
+    out_data = {}   
+    times = {}
+    for i, phases in enumerate(phase_def):
+        total_time = 0
+        phase_name = ""
+        data = {mouse: [] for mouse in mice}
+        if isinstance(phases, str):
+            phases = [phases]
+        assert isinstance(phases, list)
+        for ph in phases:
+            phase_name += ph.replace(" ", "_") + "_"
+            time = timeline.get_time_from_epoch(ph)
+            out = prepare_data(ecohab_data, mice, time)
+            for mouse in mice:
+                data[mouse].extend(out[mouse])
+            total_time += (time[1] - time[0])
+        out_phases.append(phase_name)
+        out_data[phase_name] = {0: data}
+        times[phase_name] = {0: total_time}
+    return out_phases, times, out_data
 
+            
 def prepare_binned_data(ecohab_data, timeline, bins, mice):
     total_time = OrderedDict()
     data = OrderedDict()
@@ -437,6 +460,13 @@ def prepare_binned_data(ecohab_data, timeline, bins, mice):
     elif bins in ['dark', "DARK", "Dark", "light", "LIGHT", "Light"]:
         phases, total_time, data = get_dark_light_data(bins, timeline,
                                                        ecohab_data, mice)
+        labels = {}
+        for key in data.keys():
+            labels[key] = [0]
+        keys = [list(data.keys()), labels]
+    elif isinstance(bins, list):
+        phases, total_time, data = get_custom_range_data(bins, timeline,
+                                                         ecohab_data, mice)
         labels = {}
         for key in data.keys():
             labels[key] = [0]

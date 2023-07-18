@@ -241,7 +241,6 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
     phases, time, data, keys = utils.prepare_binned_data(ecohab_data,
                                                          timeline, binsize,
                                                          mice)
-
     if isinstance(binsize, int) or isinstance(binsize, float):
         binsize_name = "%3.2f_h" % (binsize/3600)
         if int(binsize) == 43200 or int(binsize) == 24*3600:
@@ -258,6 +257,14 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
                                          len(mice)))
         csv_results_incohort_exp = np.zeros((len(phases), len(mice),
                                              len(mice)))
+    elif isinstance(binsize, list):
+    
+        binsize_name = "custom"
+        csv_results_incohort = np.zeros((len(binsize), len(mice),
+                                         len(mice)))
+        csv_results_incohort_exp = np.zeros((len(binsize), len(mice),
+                                             len(mice)))
+            
     else:
         binsize_name = binsize
     if time == 0:
@@ -286,7 +293,6 @@ def get_incohort_sociability(ecohab_data, timeline, binsize, res_dir="",
     excess_time_per_mouse = OrderedDict()
     mean_excess_time_per_mouse = OrderedDict()
     standard_error_per_mouse = OrderedDict()
-
     for idx_phase, ph in enumerate(all_phases):
         new_phase = phases[idx_phase]
         for lab in bin_labels[ph]:
