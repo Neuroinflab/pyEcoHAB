@@ -77,21 +77,31 @@ def make_prefix(path):
 
 def parse_fname(fname):
     """"Extracts time and date from data filename"""
+    parts = fname.split("_")
+    if len(parts) == 2:
+        date, hour = parts
+        setup = ""
+    elif len(parts) == 3:
+        setup, date, hour = parts
+    elif len(parts) == 4:
+        setup, date, hour, message = parts
+    else:
+        print("Unnkown filename format %s.")
+        raise
     try:
-        date, hour = fname.split("_")
+        date_in_sec = calendar.timegm(time.strptime(date, '%Y%m%d'))
     except ValueError:
-        parts = fname.split("_")
-        if len(parts) == 3:
-            date, hour = parts[:2]
-        else:
-            print("Unnkown filename format %s.")
-            raise
+        if len(parts) == 4:
+            no = int(message)
+        hour = date
+        date = setup
+        setup = ""
+        date_in_sec = calendar.timegm(time.strptime(date, '%Y%m%d'))
     hour = hour.split(".")[0]
-    date_in_sec = calendar.timegm(time.strptime(date, '%Y%m%d'))
-    datenext = time.strftime('%Y%m%d', time.localtime(
-        date_in_sec + 24*3600.))
-
-    return hour, date, datenext
+    datenext = time.strftime('%Y%m%d',
+                             time.localtime(date_in_sec
+                                            + 24*3600.))
+    return hour, date, datenext, setup
 
 
 def print_human_time(tt):
@@ -149,7 +159,8 @@ def get_filenames(path):
 
 def read_single_file(dir_path, fname):
     """Reads in a single data file"""
-    hour, date, datenext = parse_fname(fname)
+    
+    hour, date, datenext, setup = parse_fname(fname)
     raw_data = []
     f = open(os.path.join(dir_path, fname), 'r')
     for line in f:
@@ -165,7 +176,7 @@ def read_single_file(dir_path, fname):
             raise(IOError('Unknown data format in file %s' % f))
         raw_data += [line]
     f.close()
-    return raw_data
+    return raw_data, setup
 
 
 def remove_one_antenna(data, antenna):

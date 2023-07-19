@@ -38,6 +38,7 @@ setuptools.setup(
                                'data/time_change/*',
                                'data/weird_3_mice/*',
                                'data/weird_short/*',
+                               'data/weird_short_com_no/*',
                                'data/weird_short_3_mice/*',
                                'data/weird_very_short/*',
                                'data/weird_very_short_3_mice/*',

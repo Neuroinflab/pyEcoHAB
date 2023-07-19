@@ -14,7 +14,7 @@ class TestSingleAntennaStats(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short")
-        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        raw_data, setup = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
         setup_config = SetupConfig()
         cls.data = EcoHabDataBase(data, None, 2, setup_config)

@@ -79,16 +79,30 @@ SURROUNDING = {
 
 
 class TestParseFilename(unittest.TestCase):
-    def test_normal(self):
+    def test_normal1(self):
         fname = "20190403_120000.txt"
-        hour, date, datenext = uf.parse_fname(fname)
+        hour, date, datenext, setup = uf.parse_fname(fname)
         self.assertEqual(hour, "120000")
-        self.assertEqual(date, "20190403")
-        self.assertEqual(datenext, "20190404")
 
+    def test_normal2(self):
+        fname = "20190403_120000.txt"
+        hour, date, datenext, setup = uf.parse_fname(fname)
+        self.assertEqual(date, "20190403")
+
+    def test_normal3(self):
+        fname = "20190403_120000.txt"
+        hour, date, datenext, setup = uf.parse_fname(fname)
+        self.assertEqual(datenext, "20190404")
+        
+    def test_normal4(self):
+        fname = "20190403_120000.txt"
+        hour, date, datenext, setup = uf.parse_fname(fname)
+        self.assertEqual(setup, "")
+
+        
     def test_weird(self):
         fname = "20190403_120000_0001.txt"
-        hour, date, datenext = uf.parse_fname(fname)
+        hour, date, datenext, setup = uf.parse_fname(fname)
         self.assertEqual(hour, "120000")
         self.assertEqual(date, "20190403")
         self.assertEqual(datenext, "20190404")
@@ -96,6 +110,28 @@ class TestParseFilename(unittest.TestCase):
     def test_throw_exception(self):
         fname = "20190403_120000_0001_kk.txt"
         self.assertRaises(ValueError, uf.parse_fname, fname=fname)
+
+    def test_new_format1(self):
+        fname = "COM8_20190403_120000.txt"
+        hour, date, datenext, setup = uf.parse_fname(fname)
+        self.assertEqual(hour, "120000")
+
+    def test_new_format2(self):
+        fname = "COM8_20190403_120000.txt"
+        hour, date, datenext, setup = uf.parse_fname(fname)
+        self.assertEqual(date, "20190403")
+
+    def test_new_format3(self):
+        fname = "COM8_20190403_120000.txt"
+        hour, date, datenext, setup = uf.parse_fname(fname)
+        self.assertEqual(datenext, "20190404")
+
+    def test_new_format4(self):
+        fname = "COM8_20190403_120000.txt"
+        hour, date, datenext, setup = uf.parse_fname(fname)
+        self.assertEqual(setup, "COM8")
+
+        
 
 
 class TestPrintHumanTime(unittest.TestCase):
@@ -162,7 +198,7 @@ class TestReadInSingleFile(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short")
-        cls.out = uf.read_single_file(path, "20101010_110000.txt")
+        cls.out, setup = uf.read_single_file(path, "20101010_110000.txt")
 
     def test_1(self):
         self.assertEqual(101, len(self.out))
@@ -185,7 +221,7 @@ class TestRemoveGhostTags(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
-        cls.data = uf.read_single_file(path, "20101010_110000.txt")
+        cls.data, setup = uf.read_single_file(path, "20101010_110000.txt")
 
     def test_removing_tags_1(self):
         out = uf.remove_ghost_tags(self.data, "mouse_1")
@@ -213,7 +249,7 @@ class TestRemoveAntenna(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
-        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        raw_data, setup = uf.read_single_file(path, "20101010_110000.txt")
         cls.data = uf.from_raw_data(raw_data)
 
     def test_no_antenna(self):
@@ -247,7 +283,7 @@ class TestRemoveAntennas(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
-        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        raw_data, setup = uf.read_single_file(path, "20101010_110000.txt")
         cls.data = uf.from_raw_data(raw_data)
 
     def test_single_antenna_1(self):
@@ -289,7 +325,7 @@ class TestTransformAllData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
-        cls.raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        cls.raw_data, setup = uf.read_single_file(path, "20101010_110000.txt")
         cls.data = uf.from_raw_data(cls.raw_data)
 
     def test_len(self):
@@ -308,7 +344,7 @@ class TestAntennaMismatch(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
-        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        raw_data, setup = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
         config = SetupConfig()
         cls.mismatch1 = uf.antenna_mismatch(data, config)
@@ -334,7 +370,7 @@ class TestSkippedAntennas(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
-        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        raw_data, setup = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
         config = SetupConfig()
         cls.mismatch1 = uf.skipped_registrations(data, config)
@@ -357,7 +393,7 @@ class TestCheckAntennaPresence(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
-        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        raw_data, setup = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
         cls.config = SetupConfig()
         cls.presences = uf.check_antenna_presence(data, cls.config, 24*3600)
@@ -400,11 +436,11 @@ class TestTotalMismatches(unittest.TestCase):
         config = SetupConfig()
         cls.mismatched_pairs = config.mismatched_pairs
         path = os.path.join(data_path, "weird_short_3_mice")
-        raw_data1 = uf.read_single_file(path, "20101010_110000.txt")
+        raw_data1, setup = uf.read_single_file(path, "20101010_110000.txt")
         cls.data1 = uf.from_raw_data(raw_data1)
         cls.mismatch1 = uf.antenna_mismatch(cls.data1, config)
         path = os.path.join(data_path, "weird_short")
-        raw_data2 = uf.read_single_file(path, "20101010_110000.txt")
+        raw_data2, setup = uf.read_single_file(path, "20101010_110000.txt")
         cls.data2 = uf.from_raw_data(raw_data2)
         cls.mismatch2 = uf.antenna_mismatch(cls.data2, config)
 
@@ -441,7 +477,7 @@ class TestRunDiagnostics(unittest.TestCase):
     def setUpClass(cls):
         config = SetupConfig()
         path = os.path.join(data_path, "weird_short_3_mice")
-        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        raw_data, setup = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
         cls.mismatch1 = uf.antenna_mismatch(data, config)
         cls.presences1 = uf.check_antenna_presence(data, config, 24*3600)
@@ -453,7 +489,7 @@ class TestRunDiagnostics(unittest.TestCase):
         out1 = uf.run_diagnostics(data, 24*3600, res_path, config)
         cls.str11, cls.str12, cls.str13, cls.str14, cls.str15 = out1
         path = os.path.join(data_path, "weird_short")
-        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        raw_data, setup = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
         cls.mismatch2 = uf.antenna_mismatch(data, config)
         cls.presences2 = uf.check_antenna_presence(data, config, 24*3600)
@@ -465,7 +501,7 @@ class TestRunDiagnostics(unittest.TestCase):
         out2 = uf.run_diagnostics(data, 24*3600, res_path, config)
         cls.str21, cls.str22, cls.str23, cls.str24, cls.str25 = out2
         path1 = os.path.join(data_path, "weird_very_short_3_mice")
-        raw_data1 = uf.read_single_file(path1, "20101010_110000.txt")
+        raw_data1, setup = uf.read_single_file(path1, "20101010_110000.txt")
         data1 = uf.from_raw_data(raw_data1)
         config1 = SetupConfig()
         res_path1 = os.path.join(path1, "Results")
@@ -573,7 +609,7 @@ class TestTransformVisits(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short")
-        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        raw_data, setup = uf.read_single_file(path, "20101010_110000.txt")
         data = uf.from_raw_data(raw_data)
         cls.data = ut.get_animal_position(data["Time"],
                                           data["Antenna"],
@@ -602,7 +638,7 @@ class TestRenameAntennas(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short")
-        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        raw_data, setup = uf.read_single_file(path, "20101010_110000.txt")
         cls.old_data = uf.from_raw_data(raw_data)
         cls.data = uf.rename_antennas("setup1", cls.old_data)
 
@@ -633,7 +669,7 @@ class TestAppendData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path = os.path.join(data_path, "weird_short_3_mice")
-        raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        raw_data, setup = uf.read_single_file(path, "20101010_110000.txt")
         cls.data1 = uf.from_raw_data(raw_data)
         cls.data2 = uf.from_raw_data(raw_data)
         cls.data2["Time"] += 15*60
@@ -668,7 +704,7 @@ class TestTunnelErrors(unittest.TestCase):
                                                             times, durations)
         cls.pred_tot = {"1 2": 3, "3 4": 1, "5 6": 1, "7 8": 0}
         path = os.path.join(data_path, "weird_very_short_3_mice")
-        cls.raw_data = uf.read_single_file(path, "20101010_110000.txt")
+        cls.raw_data, setup = uf.read_single_file(path, "20101010_110000.txt")
         cls.data = uf.from_raw_data(cls.raw_data)
         config = SetupConfig()
         cls.out_i, cls.out_tot_i = uf.incorrect_tunnel_registrations(cls.data,
