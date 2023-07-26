@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-from __future__ import print_function, division, absolute_import
 import os
 import unittest
 from datetime import date
@@ -29,12 +28,17 @@ class TestLoader(unittest.TestCase):
                               setup_config=cls.setup3,
                               remove_antennas=["8"])
         cls.path_empty = os.path.join(data_path, "empty")
+        cls.path_with_com = os.path.join(data_path, "weird_short_com_no")
 
     def test_load_empty(self):
         self.assertRaises(Exception, Loader, self.path_empty)
 
     def test_path(self):
         self.assertEqual(self.path1, self.dataset1.path)
+
+    def test_com_no(self):
+        my_data_set = Loader(self.path_with_com)
+        self.assertEqual(my_data_set.chip_name, "COM1")
 
     def test_visit_threshold(self):
         self.assertEqual(self.dataset1.visit_threshold, 1.5)
@@ -148,8 +152,6 @@ class TestMerger(unittest.TestCase):
                                          "whole_phase")
         out_2 = get_incohort_sociability(self.original_data, config,
                                          "whole_phase")
-        print(out_1)
-        print(out_2)
         self.assertEqual(out_1, out_2)
 
     def test_solitude(self):

@@ -371,12 +371,26 @@ class Loader(EcoHabDataBase):
         self._fnames = ufl.get_filenames(self.path)
         if not len(self._fnames):
             raise Exception("empty directory %s" % self.path)
+        setup_set = set()
+        counter = 0
         for f_name in self._fnames:
-            raw_data += ufl.read_single_file(self.path, f_name)
+            raw_inside, setup = ufl.read_single_file(self.path, f_name)
+            if setup not in setup_set:
+                if len(setup_set) == 0:
+                    setup_set.add(setup)
+                    counter = 1
+                else:
+                    print("%s is from another dataset. Discarding" %f_name)
+                    continue
+
+            raw_data += raw_inside
+            counter += 1
             days.add(f_name.split('_')[0])
         data = ufl.remove_ghost_tags(raw_data,
                                      legal_tags=tags, ghost_tags=ghost_tags)
         data.sort(key=lambda x: ufl.time_to_sec(x[1]))
+        print("Read in %d files from setup %s" % (counter, list(setup_set)[0]))
+        self.chip_name = list(setup_set)[0]
         return data
 
     def __repr__(self):
